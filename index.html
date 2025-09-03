@@ -8,7 +8,55 @@
 <meta property="og:description" content="SVGレイヤーで再現性の高いキャラクター表現を公開。">
 <meta property="og:url" content="https://chikumo.jp/"><meta property="og:image" content="https://chikumo.jp/favicon.svg">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="stylesheet" href="/assets/site.css">
+<!-- 外部CSSが存在しないため読み込みを停止し、ベーススタイルを内包 -->
+<!-- <link rel="stylesheet" href="/assets/site.css"> -->
+<style>
+  :root{--bg:#fff7f0;--ink:#222;--brand:#f4a300}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 system-ui,-apple-system,"Noto Sans JP",sans-serif}
+  a{color:inherit;text-decoration:none}
+  img,svg{max-width:100%;height:auto}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px}
+  header,footer{border-top:1px solid #0000000f;border-bottom:1px solid #0000000f;background:#fff8}
+  h1{font-size:clamp(28px,4vw,40px);margin:0 0 12px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+  .card{background:#fff;border:1px solid #0001;border-radius:12px;padding:16px}
+  .btn{display:inline-block;padding:.6em 1em;border:1px solid #0002;border-radius:999px;background:var(--brand);color:#000}
+  small,footer{color:#555}
+  main{padding-inline:16px}
+  /* header nav */
+  nav.main{display:flex;gap:16px;align-items:center}
+  nav.main .spacer{flex:1}
+  nav.main .socials{display:flex;gap:12px;align-items:center}
+  nav.main .socials svg{width:24px;height:24px;display:block;fill:#111;transition:opacity .2s ease}
+  nav.main .socials a:hover svg{opacity:.7}
+  .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+  /* stage sizing */
+  #stage{width:clamp(260px,90vw,560px);margin:24px auto 48px;overflow:visible}
+  #stage svg{display:block;width:100%;height:auto}
+  /* fun background (optional) */
+  body.fun-bg{
+    --g1:#fff7f0; --g2:#fff4ff; --g3:#f0fff7;
+    background: radial-gradient(1200px 600px at 10% 10%, var(--g1), transparent 70%),
+                radial-gradient(800px 400px at 90% 20%, var(--g2), transparent 70%),
+                radial-gradient(900px 500px at 30% 90%, var(--g3), transparent 70%), var(--bg);
+    background-attachment: fixed;
+  }
+  #tagline{margin:6px 0 10px;color:#444}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:8px 0 8px}
+  .controls .hint{opacity:.7;font-size:.9em}
+  .btn{position:relative;cursor:pointer;transition:transform .08s ease,box-shadow .2s ease}
+  .btn:active{transform:translateY(1px)}
+  /* effects */
+  .floater{position:fixed;left:0;top:100vh;font-size:22px;opacity:.85;pointer-events:none;animation:float-up linear forwards}
+  @keyframes float-up{0%{transform:translate(var(--x,0),0) scale(1) rotate(0deg);opacity:0}10%{opacity:1}100%{transform:translate(calc(var(--x,0) + 40px), -110vh) scale(1.1) rotate(18deg);opacity:0}}
+  .confetti-piece{position:fixed;left:0;top:0;width:8px;height:12px;opacity:.9;pointer-events:none;will-change:transform,opacity;animation:confetti-fall var(--dur,1200ms) ease-out forwards;transform:translate(var(--sx),var(--sy)) rotate(var(--rot))}
+  @keyframes confetti-fall{0%{opacity:0;transform:translate(var(--sx),var(--sy)) rotate(var(--rot))}10%{opacity:1}100%{opacity:0;transform:translate(calc(var(--sx) + var(--dx)), calc(var(--sy) + var(--dy))) rotate(calc(var(--rot) + 540deg))}}
+  .sparkle{position:fixed;left:0;top:0;font-size:14px;opacity:0;pointer-events:none;animation:spark .7s ease-out forwards}
+  @keyframes spark{0%{opacity:0;transform:translate(var(--x),var(--y)) scale(.6)}20%{opacity:1}100%{opacity:0;transform:translate(calc(var(--x) + var(--dx)), calc(var(--y) + var(--dy))) scale(1)}}
+  #stage.shake{animation:shake .35s ease-in-out}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+ </style>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Organization","name":"Chikumo","url":"https://chikumo.jp/","logo":"https://chikumo.jp/favicon.svg","sameAs":["https://x.com/","https://www.youtube.com/"]}
 </script>
