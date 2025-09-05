@@ -178,7 +178,7 @@
       </div>
     </div>
     <div class="canvas-wrap">
-      <canvas id="game" width="480" height="800" aria-label="ゲームキャンバス"></canvas>
+      <canvas id="game" width="480" height="800" aria-label="ゲームキャンバス" tabindex="0"></canvas>
       <div class="hud" aria-hidden="true">
         <div class="score" id="score">0</div>
         <div class="best" id="best">Best: 0</div>
@@ -270,12 +270,20 @@
 
     // ---------- Resize (fit to width) ----------
     function resize(){
-      const wrap = root.querySelector('.game-shell');
-      const w = wrap.clientWidth; const ratio = VIRTUAL_H/VIRTUAL_W; const h = Math.round(w*ratio);
-      canvas.width = VIRTUAL_W; canvas.height = VIRTUAL_H; // logical
-      canvas.style.width = w+'px'; canvas.style.height = h+'px';
+      const shell = root.querySelector('.game-shell');
+      const w = Math.max(1, shell.clientWidth || shell.getBoundingClientRect().width);
+      const ratio = VIRTUAL_H / VIRTUAL_W; const h = Math.round(w * ratio);
+      canvas.width = VIRTUAL_W; canvas.height = VIRTUAL_H; // logical space
+      canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
     }
-    new ResizeObserver(resize).observe(root.querySelector('.game-shell'));
+    try{
+      if (window.ResizeObserver) {
+        const ro = new ResizeObserver(resize);
+        ro.observe(root.querySelector('.game-shell'));
+      } else {
+        window.addEventListener('resize', resize);
+      }
+    }catch(e){ window.addEventListener('resize', resize); }
     resize();
 
     // ---------- Game Control ----------
@@ -285,9 +293,15 @@
       spawnAt = performance.now()+600; blinkAt=scheduleBlink();
       uiOver.classList.add('hidden'); uiTitle.classList.add('hidden');
     }
-    function start(){ reset(); state='playing'; live.textContent='Game Start'; loop(performance.now()); }
+    function start(){ cancelAnimationFrame(rafId); reset(); state='playing'; live.textContent='Game Start'; spawnPipe(); loop(performance.now()); }
     function gameOver(){ state='gameover'; live.textContent='Game Over'; finalEl.textContent = `Score: ${score}`; if(score>best){best=score; localStorage.setItem('best',best);} finalBestEl.textContent = `Best: ${best}`; uiOver.classList.remove('hidden'); beep('over'); cancelAnimationFrame(rafId); }
-    function togglePause(){ if(state==='playing'){ state='paused'; live.textContent='Paused'; cancelAnimationFrame(rafId); } else if(state==='paused'){ state='playing'; live.textContent='Resumed'; loop(performance.now()); } }
+    function togglePause(){
+      if(state==='playing'){
+        state='paused'; live.textContent='Paused'; btnPause.textContent='▶ Resume'; cancelAnimationFrame(rafId);
+      } else if(state==='paused'){
+        state='playing'; live.textContent='Resumed'; btnPause.textContent='⏸ Pause'; loop(performance.now());
+      }
+    }
 
     // ---------- Spawning ----------
     function spawnPipe(){
@@ -325,7 +339,10 @@
       // beak
       ctx.fillStyle='#f3a43e'; ctx.beginPath(); ctx.moveTo(b.r*0.9,0); ctx.lineTo(b.r*1.5,-5); ctx.lineTo(b.r*1.5,5); ctx.closePath(); ctx.fill();
       // eye (blink)
-      const now=performance.now(); const blinking = now < blinkAt && (blinkAt - now) < 200; if(now>=blinkAt){ blinkAt=scheduleBlink(); }
+      const now=performance.now();
+      // blink for ~180ms window when now is past blinkAt
+      const blinking = (now >= blinkAt && now < blinkAt + 180);
+      if(now >= blinkAt + 180){ blinkAt = scheduleBlink(); }
       ctx.fillStyle='#111';
       if(blinking){ ctx.fillRect(b.r*0.3,-2,6,2); } else { ctx.beginPath(); ctx.arc(b.r*0.3,-2,3,0,Math.PI*2); ctx.fill(); }
       ctx.restore();
@@ -368,6 +385,8 @@
     function onClick(){ if(state==='paused'){ togglePause(); return; } flap(); }
     window.addEventListener('keydown', onKey);
     canvas.addEventListener('pointerdown', onClick, {passive:true});
+    // Start on first interaction anywhere in game area (mobile friendly)
+    root.addEventListener('pointerdown', ()=>{ if(state==='title') start(); }, {passive:true});
 
     // ---------- Buttons ----------
     btnPlay.addEventListener('click', start);
@@ -385,5 +404,4 @@
 </section>
 </main>
 <footer><div class="wrap"><small>© Chikumo</small></div></footer>
-<script src="/lib/layout.js" defer></script>
 </body></html>
