@@ -23,12 +23,14 @@
   footer small{line-height:1}
   /* minimize header height: override wrap padding inside header */
   header .wrap{padding:4px 16px}
-  h1{font-size:clamp(28px,4vw,40px);margin:0 0 12px}
+  h1{font-size:clamp(28px,4vw,40px);margin:0}
   .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
   .card{background:#fff;border:1px solid #0001;border-radius:12px;padding:16px}
   .btn{display:inline-block;padding:.6em 1em;border:1px solid #0002;border-radius:999px;background:var(--brand);color:#000}
   small,footer{color:#555}
   main{padding-inline:16px}
+  /* minimize distance between header and footer */
+  main.wrap{padding:0 16px}
   /* header nav */
   nav.main{display:flex;gap:16px;align-items:center}
   nav.main .spacer{flex:1}
@@ -45,7 +47,7 @@
   }
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   /* stage sizing */
-  #stage{width:clamp(260px,90vw,560px);margin:24px auto 48px;overflow:visible}
+  #stage{width:clamp(160px,40vw,260px);margin:0 auto;overflow:visible}
   #stage svg{display:block;width:100%;height:auto}
   /* fun background (optional) */
   body.fun-bg{
