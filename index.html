@@ -74,6 +74,18 @@
   @keyframes spark{0%{opacity:0;transform:translate(var(--x),var(--y)) scale(.6)}20%{opacity:1}100%{opacity:0;transform:translate(calc(var(--x) + var(--dx)), calc(var(--y) + var(--dy))) scale(1)}}
   #stage.shake{animation:shake .35s ease-in-out}
   @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(5px)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+
+  /* --- Chicken slider (infinite loop) --- */
+  .carousel{position:relative;padding:12px;margin:12px auto;max-width:880px}
+  .carousel .viewport{position:relative;overflow:hidden;border:1px solid #0001;border-radius:12px;background:#fff}
+  .carousel .track{display:flex;will-change:transform;transition:transform .45s cubic-bezier(.22,.7,.2,1)}
+  .carousel .slide{flex:0 0 100%;display:flex;align-items:center;justify-content:center;height:clamp(220px,52vw,420px);padding:12px}
+  .carousel .stage{width:min(92%,520px);aspect-ratio:1/1;background:#f9fafb;border:1px solid #00000012;border-radius:12px;display:flex;align-items:center;justify-content:center}
+  .carousel .stage svg{width:76%;height:auto;display:block}
+  .carousel .nav{position:absolute;top:50%;transform:translateY(-50%);width:38px;height:38px;border-radius:50%;border:1px solid #0002;background:#0008;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px #0004}
+  .carousel .nav.prev{left:8px}
+  .carousel .nav.next{right:8px}
+  .carousel .nav:focus-visible{outline:3px solid #f4a300}
  </style>
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"Organization","name":"Chikumo","url":"https://chikumo.jp/","logo":"https://chikumo.jp/favicon.svg","sameAs":["https://x.com/","https://www.youtube.com/"]}
@@ -178,4 +190,73 @@
 
 </main>
 <footer><div class="wrap"><small>© Chikumo</small></div></footer>
+<script>
+// Minimal infinite-loop slider (6 slides, clones at both ends) + drag/resize
+(function(){
+  const N=6;                      // real slides
+  const TRANS='transform .45s cubic-bezier(.22,.7,.2,1)';
+  const vp=document.getElementById('slider-viewport');
+  const track=document.getElementById('slider-track');
+  const prev=document.getElementById('slider-prev');
+  const next=document.getElementById('slider-next');
+  if(!vp||!track) return; // not on this page
+
+  // build slides
+  const slides=[];
+  for(let i=0;i<N;i++){
+    const s=document.createElement('div'); s.className='slide';
+    const st=document.createElement('div'); st.className='stage'; st.appendChild(chicken());
+    s.appendChild(st); slides.push(s); track.appendChild(s);
+  }
+  // clones for loop
+  const firstClone=slides[0].cloneNode(true); firstClone.dataset.clone='first';
+  const lastClone =slides[N-1].cloneNode(true); lastClone.dataset.clone='last';
+  track.insertBefore(lastClone, track.firstChild);
+  track.appendChild(firstClone);
+
+  // index & sizing
+  let index=1; // 0: lastClone, 1..N: real, N+1: firstClone
+  let w=vp.clientWidth; let transitioning=false;
+  function apply(immediate=false){
+    const x=-index*w;
+    if(immediate){ const prev=track.style.transition; track.style.transition='none'; track.style.transform=`translateX(${x}px)`; void track.offsetWidth; track.style.transition=prev; }
+    else track.style.transform=`translateX(${x}px)`;
+  }
+  function recalc(){ w=vp.clientWidth||vp.getBoundingClientRect().width; apply(true); }
+  new ResizeObserver(recalc).observe(vp); window.addEventListener('orientationchange',()=>setTimeout(recalc,200)); recalc();
+
+  function goTo(i){ if(transitioning) return; transitioning=true; index=i; track.style.transition=TRANS; apply(); }
+  track.addEventListener('transitionend',()=>{
+    if(index===0){ track.style.transition='none'; index=N; apply(); requestAnimationFrame(()=>track.style.transition=TRANS); }
+    else if(index===N+1){ track.style.transition='none'; index=1; apply(); requestAnimationFrame(()=>track.style.transition=TRANS); }
+    transitioning=false;
+  });
+
+  prev&&prev.addEventListener('click',()=>goTo(index-1));
+  next&&next.addEventListener('click',()=>goTo(index+1));
+
+  // drag/swipe
+  let down=false, startX=0, baseX=0, dx=0, pid=null; const TH=50;
+  const getX=e=> e.touches? e.touches[0].clientX : e.clientX;
+  function onDown(e){ if(transitioning) return; down=true; dx=0; startX=getX(e); baseX=-index*w; track.style.transition='none'; pid=e.pointerId; vp.setPointerCapture&&pid!=null&&vp.setPointerCapture(pid); }
+  function onMove(e){ if(!down) return; dx=getX(e)-startX; track.style.transform=`translateX(${baseX+dx}px)`; }
+  function onUp(){ if(!down) return; down=false; track.style.transition=TRANS; if(dx<-TH) goTo(index+1); else if(dx>TH) goTo(index-1); else apply(); }
+  vp.addEventListener('pointerdown',onDown,{passive:true}); window.addEventListener('pointermove',onMove,{passive:true}); window.addEventListener('pointerup',onUp,{passive:true});
+  vp.addEventListener('touchstart',onDown,{passive:true}); window.addEventListener('touchmove',onMove,{passive:true}); window.addEventListener('touchend',onUp,{passive:true}); window.addEventListener('touchcancel',onUp,{passive:true});
+
+  // start at first real slide
+  apply(true);
+
+  function chicken(){
+    const NS='http://www.w3.org/2000/svg';
+    const svg=document.createElementNS(NS,'svg'); svg.setAttribute('viewBox','0 0 200 200'); svg.setAttribute('aria-hidden','true');
+    const body=document.createElementNS(NS,'ellipse'); body.setAttribute('cx','100'); body.setAttribute('cy','110'); body.setAttribute('rx','58'); body.setAttribute('ry','50'); body.setAttribute('fill','#fff'); svg.appendChild(body);
+    const beak=document.createElementNS(NS,'polygon'); beak.setAttribute('points','120,100 150,90 150,110'); beak.setAttribute('fill','#f3a43e'); svg.appendChild(beak);
+    const l=document.createElementNS(NS,'circle'); l.setAttribute('cx','85'); l.setAttribute('cy','95'); l.setAttribute('r','5'); l.setAttribute('fill','#111');
+    const r=document.createElementNS(NS,'circle'); r.setAttribute('cx','110'); r.setAttribute('cy','95'); r.setAttribute('r','5'); r.setAttribute('fill','#111'); svg.appendChild(l); svg.appendChild(r);
+    return svg;
+  }
+})();
+</script>
+
 </body></html>
