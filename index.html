@@ -51,7 +51,7 @@
   #stage svg{display:block;width:100%;height:auto}
   /* duplicate chickens side-by-side */
   #stage{display:flex;justify-content:center;align-items:center;gap:12px}
-  #stage svg{width:48%;height:auto;max-width:100%}
+  #stage svg{width:100%;height:auto;max-width:100%}
   /* fun background (optional) */
   body.fun-bg{
     --g1:#fff7f0; --g2:#fff4ff; --g3:#f0fff7;
@@ -157,16 +157,21 @@
   </svg>
  </div>
 <script>
-// duplicate the chicken SVG and place it side-by-side
+// duplicate the chicken SVG to make 5 side-by-side; restore each size to 100%
 (function(){
   const stage=document.getElementById('stage');
   if(!stage) return;
   const first=stage.querySelector('svg');
   if(!first) return;
-  const second=first.cloneNode(true);
-  // avoid duplicate id on root SVG
-  second.removeAttribute('id');
-  stage.appendChild(second);
+  function cleanIds(root){
+    root.removeAttribute('id');
+    root.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+  }
+  while(stage.querySelectorAll('svg').length < 5){
+    const clone=first.cloneNode(true);
+    cleanIds(clone);
+    stage.appendChild(clone);
+  }
 })();
 </script>
 
