@@ -140,7 +140,248 @@
   </svg>
  </div>
 <p><a class="btn" href="/works.html">作品を見る</a></p>
-<section class="grid">
+
+<!-- Chikumo Sky Dive: inline single-file implementation -->
+<section id="chikumo-game" class="wrap" aria-label="Chikumo Sky Dive">
+  <style>
+    /* Game container (scoped) */
+    #chikumo-game{max-width:860px;margin:24px auto}
+    #chikumo-game .game-shell{position:relative;margin:0 auto;border-radius:16px;box-shadow:0 8px 24px #0002, 0 2px 6px #0001;background:#0f1020;color:#fff;overflow:hidden}
+    #chikumo-game .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:#0a0b18;border-bottom:1px solid #ffffff12}
+    #chikumo-game .topbar .title{font-weight:700}
+    #chikumo-game .controls{display:flex;gap:8px;align-items:center}
+    #chikumo-game .controls .btn{background:#232646;color:#fff;border-color:#ffffff26}
+    #chikumo-game .controls .btn:hover{filter:brightness(1.1)}
+    #chikumo-game .canvas-wrap{position:relative}
+    #chikumo-game canvas#game{display:block;width:100%;height:auto;background:#0e0f1c}
+    #chikumo-game .hud{position:absolute;inset:0;pointer-events:none}
+    #chikumo-game .hud .score{position:absolute;left:12px;top:12px;font-weight:800;background:#0006;padding:6px 10px;border-radius:12px}
+    #chikumo-game .hud .best{position:absolute;right:12px;top:12px;background:#0006;padding:6px 10px;border-radius:12px}
+    #chikumo-game .hud .pause-btn{position:absolute;right:12px;bottom:12px;pointer-events:auto}
+    #chikumo-game .card{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:#161830;border:1px solid #ffffff1a;border-radius:14px;box-shadow:0 10px 30px #0004;padding:18px 16px;min-width:260px;text-align:center}
+    #chikumo-game .card h2{margin:6px 0 8px}
+    #chikumo-game .card p{margin:4px 0 10px;color:#ddd}
+    #chikumo-game .row{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+    #chikumo-game .hidden{display:none}
+    #chikumo-game .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    @media (max-width:768px){
+      #chikumo-game .controls .btn{font-size:1.05em}
+      #chikumo-game .card{min-width:240px}
+    }
+  </style>
+
+  <div class="game-shell" role="region" aria-label="Chikumo Sky Dive Game">
+    <div class="topbar">
+      <div class="title">Chikumo Sky Dive</div>
+      <div class="controls">
+        <button id="btn-mute" class="btn" role="button" aria-label="ミュート切替">🔊 Mute</button>
+      </div>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="game" width="480" height="800" aria-label="ゲームキャンバス"></canvas>
+      <div class="hud" aria-hidden="true">
+        <div class="score" id="score">0</div>
+        <div class="best" id="best">Best: 0</div>
+        <button id="btn-pause" class="btn pause-btn" role="button" aria-label="一時停止">⏸ Pause</button>
+      </div>
+      <div id="ui-title" class="card" role="dialog" aria-modal="true">
+        <h2>Chikumo Sky Dive</h2>
+        <p>タップ/クリック/Space/↑ でフラップ。柱の隙間を抜けよう！</p>
+        <div class="row">
+          <button id="btn-play" class="btn" role="button" aria-label="プレイ開始">▶ PLAY</button>
+        </div>
+      </div>
+      <div id="ui-over" class="card hidden" role="dialog" aria-modal="true">
+        <h2>Game Over</h2>
+        <p id="final">Score: 0</p>
+        <p id="final-best">Best: 0</p>
+        <div class="row">
+          <button id="btn-retry" class="btn" role="button" aria-label="もう一度">↻ RETRY</button>
+        </div>
+      </div>
+      <div id="live" class="sr-only" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <script>
+  (()=>{'use strict';
+    // ---------- Config ----------
+    const VIRTUAL_W = 480, VIRTUAL_H = 800; // logical canvas size
+    const GRAVITY = 0.45, FLAP = 8.8;
+    const PIPE_SPEED_BASE = 2.6, PIPE_ACCEL = 0.0005;
+    const PIPE_GAP_BASE = 190, PIPE_GAP_MIN = 120; // shrinks with score
+    const PIPE_WIDTH = 70, SPAWN_INTERVAL = 1400; // ms
+    const NOODLE_CHANCE = 0.28; // chance per spawn
+    const SCORE_PER_NOODLE = 5;
+    const MAX_PARTICLES = 120;
+
+    // ---------- Elements ----------
+    const root = document.getElementById('chikumo-game');
+    const canvas = root.querySelector('#game');
+    const ctx = canvas.getContext('2d');
+    const uiTitle = root.querySelector('#ui-title');
+    const uiOver = root.querySelector('#ui-over');
+    const scoreEl = root.querySelector('#score');
+    const bestEl = root.querySelector('#best');
+    const finalEl = root.querySelector('#final');
+    const finalBestEl = root.querySelector('#final-best');
+    const live = root.querySelector('#live');
+    const btnPlay = root.querySelector('#btn-play');
+    const btnRetry = root.querySelector('#btn-retry');
+    const btnPause = root.querySelector('#btn-pause');
+    const btnMute = root.querySelector('#btn-mute');
+
+    // ---------- State ----------
+    let state = 'title'; // 'title' | 'playing' | 'paused' | 'gameover'
+    let score = 0, best = +localStorage.getItem('best')||0; bestEl.textContent = `Best: ${best}`;
+    let tPrev = 0, rafId = 0, spawnAt = 0, speed = PIPE_SPEED_BASE;
+    let blinkAt = scheduleBlink();
+    let muted = false;
+    const parallax = makeParallax();
+    const pipes = []; // {x,gapY,passed}
+    const noodles = []; // {x,y,taken}
+    const particles = []; // {x,y,vx,vy,life,color}
+
+    const bird = { x: Math.floor(VIRTUAL_W*0.34), y: Math.floor(VIRTUAL_H*0.5), r: 18, vy: 0 };
+
+    // ---------- Audio ----------
+    let AC = window.AudioContext||window.webkitAudioContext; let actx=null;
+    function ensureAudio(){ if(!actx){ try{ actx=new AC(); }catch(e){} } }
+    function beep(type){ if(muted) return; ensureAudio(); if(!actx) return; const now=actx.currentTime; const osc=actx.createOscillator(); const g=actx.createGain();
+      let f=440, d=0.08; if(type==='flap'){f=520; d=0.06}else if(type==='score'){f=760; d=0.09}else if(type==='over'){f=220; d=0.25}
+      osc.frequency.setValueAtTime(f,now); g.gain.setValueAtTime(0.0001,now); g.gain.exponentialRampToValueAtTime(0.25,now+0.01); g.gain.exponentialRampToValueAtTime(0.0001,now+d);
+      osc.type='square'; osc.connect(g); g.connect(actx.destination); osc.start(now); osc.stop(now+d+0.02);
+    }
+
+    // ---------- Utilities ----------
+    const rand=(a,b)=>a+Math.random()*(b-a);
+    const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+    function circleRectHit(cx,cy,r, rx,ry,rw,rh){ // clamp to rect & dist
+      const nx=clamp(cx,rx,rx+rw), ny=clamp(cy,ry,ry+rh); const dx=cx-nx, dy=cy-ny; return (dx*dx+dy*dy) <= r*r;
+    }
+    function scheduleBlink(){ return performance.now() + 2000 + Math.random()*4000; }
+    function makeParallax(){
+      const layers=[{n:20,s:0.3, r:[1,2], a:0.25},{n:14,s:0.6, r:[2,3], a:0.35},{n:8,s:1.1, r:[3,5], a:0.5}];
+      return layers.map((L,i)=>({
+        dots:Array.from({length:L.n},()=>({x:Math.random()*VIRTUAL_W,y:Math.random()*VIRTUAL_H,r:rand(L.r[0],L.r[1])})),
+        speed:L.s, alpha:L.a
+      }));
+    }
+
+    // ---------- Resize (fit to width) ----------
+    function resize(){
+      const wrap = root.querySelector('.game-shell');
+      const w = wrap.clientWidth; const ratio = VIRTUAL_H/VIRTUAL_W; const h = Math.round(w*ratio);
+      canvas.width = VIRTUAL_W; canvas.height = VIRTUAL_H; // logical
+      canvas.style.width = w+'px'; canvas.style.height = h+'px';
+    }
+    new ResizeObserver(resize).observe(root.querySelector('.game-shell'));
+    resize();
+
+    // ---------- Game Control ----------
+    function reset(){
+      score=0; scoreEl.textContent='0'; bestEl.textContent = `Best: ${best}`;
+      bird.y = Math.floor(VIRTUAL_H*0.5); bird.vy=0; speed=PIPE_SPEED_BASE; pipes.length=0; noodles.length=0; particles.length=0;
+      spawnAt = performance.now()+600; blinkAt=scheduleBlink();
+      uiOver.classList.add('hidden'); uiTitle.classList.add('hidden');
+    }
+    function start(){ reset(); state='playing'; live.textContent='Game Start'; loop(performance.now()); }
+    function gameOver(){ state='gameover'; live.textContent='Game Over'; finalEl.textContent = `Score: ${score}`; if(score>best){best=score; localStorage.setItem('best',best);} finalBestEl.textContent = `Best: ${best}`; uiOver.classList.remove('hidden'); beep('over'); cancelAnimationFrame(rafId); }
+    function togglePause(){ if(state==='playing'){ state='paused'; live.textContent='Paused'; cancelAnimationFrame(rafId); } else if(state==='paused'){ state='playing'; live.textContent='Resumed'; loop(performance.now()); } }
+
+    // ---------- Spawning ----------
+    function spawnPipe(){
+      const gap = Math.max(PIPE_GAP_MIN, PIPE_GAP_BASE - score*2);
+      const margin = 80; const gy = Math.round(rand(margin, VIRTUAL_H - margin - gap));
+      pipes.push({ x: VIRTUAL_W + PIPE_WIDTH, gapY: gy, gapH: gap, passed:false });
+      if(Math.random() < NOODLE_CHANCE){
+        noodles.push({ x: VIRTUAL_W + PIPE_WIDTH + 120, y: gy + gap*0.5, taken:false });
+      }
+    }
+
+    // ---------- Drawing ----------
+    function drawBackground(){
+      ctx.fillStyle = '#0e0f1c'; ctx.fillRect(0,0,VIRTUAL_W,VIRTUAL_H);
+      parallax.forEach((L,i)=>{ ctx.globalAlpha=L.alpha; ctx.fillStyle='#a9b4ff'; L.dots.forEach(d=>{ ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,Math.PI*2); ctx.fill(); }); ctx.globalAlpha=1; });
+    }
+    function drawPipes(){
+      ctx.fillStyle = '#2bd4a7';
+      pipes.forEach(p=>{
+        const topH = p.gapY; const botY = p.gapY + p.gapH; const botH = VIRTUAL_H - botY;
+        // rounded rectangles
+        roundRect(ctx, p.x, 0, PIPE_WIDTH, topH, 10); ctx.fill();
+        roundRect(ctx, p.x, botY, PIPE_WIDTH, botH, 10); ctx.fill();
+      });
+    }
+    function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+    function drawNoodles(){ ctx.strokeStyle='#ffcc66'; ctx.lineWidth=5; noodles.forEach(n=>{ if(n.taken) return; ctx.beginPath(); ctx.arc(n.x,n.y,10,Math.PI*0.2,Math.PI*1.7,false); ctx.stroke(); }); }
+    function drawParticles(){ particles.forEach(pt=>{ ctx.globalAlpha=Math.max(0,pt.life/1); ctx.fillStyle=pt.color; ctx.fillRect(pt.x,pt.y,3,3); ctx.globalAlpha=1; }); }
+    function drawBird(){ const b=bird; // body
+      ctx.save(); ctx.translate(b.x,b.y);
+      // tilt by velocity
+      ctx.rotate(clamp(b.vy,-10,10)*0.03);
+      // body
+      ctx.fillStyle='#fff'; ctx.beginPath(); ctx.ellipse(0,0,b.r*1.05,b.r*0.9,0,0,Math.PI*2); ctx.fill();
+      // beak
+      ctx.fillStyle='#f3a43e'; ctx.beginPath(); ctx.moveTo(b.r*0.9,0); ctx.lineTo(b.r*1.5,-5); ctx.lineTo(b.r*1.5,5); ctx.closePath(); ctx.fill();
+      // eye (blink)
+      const now=performance.now(); const blinking = now < blinkAt && (blinkAt - now) < 200; if(now>=blinkAt){ blinkAt=scheduleBlink(); }
+      ctx.fillStyle='#111';
+      if(blinking){ ctx.fillRect(b.r*0.3,-2,6,2); } else { ctx.beginPath(); ctx.arc(b.r*0.3,-2,3,0,Math.PI*2); ctx.fill(); }
+      ctx.restore();
+    }
+
+    // ---------- Update ----------
+    function update(dt){
+      // Parallax
+      parallax.forEach(L=>{ L.dots.forEach(d=>{ d.x-=L.speed*speed*0.6; if(d.x<-6){ d.x=VIRTUAL_W+6; d.y=Math.random()*VIRTUAL_H; } }); });
+      // Bird physics
+      bird.vy += GRAVITY; bird.y += bird.vy; if(bird.y < bird.r){ bird.y=bird.r; bird.vy=0; }
+      if(bird.y > VIRTUAL_H - bird.r){ bird.y=VIRTUAL_H - bird.r; gameOver(); return; }
+      // Pipes
+      speed += PIPE_ACCEL*dt; pipes.forEach(p=>{ p.x -= speed; });
+      // Score when center crosses
+      pipes.forEach(p=>{ const centerX = p.x + PIPE_WIDTH/2; if(!p.passed && centerX < bird.x){ p.passed=true; score++; scoreEl.textContent=String(score); beep('score'); burst(bird.x, bird.y, '#2bd4a7'); }});
+      // Remove offscreen
+      while(pipes.length && pipes[0].x + PIPE_WIDTH < -10) pipes.shift();
+      // Spawn
+      const now=performance.now(); if(now>=spawnAt){ spawnPipe(); spawnAt = now + SPAWN_INTERVAL; }
+      // Collisions
+      for(const p of pipes){
+        const topH=p.gapY; const botY=p.gapY+p.gapH; if(circleRectHit(bird.x,bird.y,bird.r, p.x,0,PIPE_WIDTH,topH) || circleRectHit(bird.x,bird.y,bird.r, p.x,botY,PIPE_WIDTH,VIRTUAL_H-botY)){ gameOver(); return; }
+      }
+      // Noodles
+      noodles.forEach(n=>{ n.x -= speed; if(!n.taken && Math.hypot(n.x-bird.x, n.y-bird.y) < bird.r+10){ n.taken=true; score+=SCORE_PER_NOODLE; scoreEl.textContent=String(score); beep('score'); burst(n.x,n.y,'#ffcc66'); }});
+      while(noodles.length && (noodles[0].x < -30 || noodles[0].taken)) noodles.shift();
+      // Particles
+      for(let i=particles.length-1;i>=0;i--){ const pt=particles[i]; pt.x+=pt.vx; pt.y+=pt.vy; pt.vy+=0.02; pt.life-=dt*0.002; if(pt.life<=0) particles.splice(i,1); }
+    }
+
+    function burst(x,y,color){ const count=12; for(let i=0;i<count;i++){ if(particles.length>MAX_PARTICLES) break; const a=Math.random()*Math.PI*2; const s=rand(1,3); particles.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,color}); } }
+
+    // ---------- Loop ----------
+    function loop(ts){ if(state!=='playing') return; const dt = tPrev? (ts - tPrev) : 16; tPrev=ts; ctx.clearRect(0,0,canvas.width,canvas.height); drawBackground(); drawNoodles(); drawPipes(); drawParticles(); drawBird(); update(dt); rafId = requestAnimationFrame(loop); }
+
+    // ---------- Input ----------
+    function flap(){ if(state==='title'){ start(); } if(state!=='playing') return; bird.vy = -FLAP; beep('flap'); }
+    function onKey(e){ if(e.repeat) return; const k=e.key.toLowerCase(); if(k==='p'){ togglePause(); } else if(k===' '||k==='arrowup'){ e.preventDefault(); flap(); } else if(k==='enter'){ if(state==='title'||state==='gameover'){ start(); } } }
+    function onClick(){ if(state==='paused'){ togglePause(); return; } flap(); }
+    window.addEventListener('keydown', onKey);
+    canvas.addEventListener('pointerdown', onClick, {passive:true});
+
+    // ---------- Buttons ----------
+    btnPlay.addEventListener('click', start);
+    btnRetry.addEventListener('click', start);
+    btnPause.addEventListener('click', togglePause);
+    btnMute.addEventListener('click', ()=>{ muted=!muted; btnMute.textContent = muted? '🔈 Unmute':'🔊 Mute'; live.textContent = muted? 'Muted':'Unmuted'; });
+
+    // ---------- Expose debug ----------
+    window.__gameDebug = { setSpeed(n){ speed=n; }, addScore(n){ score+=n; scoreEl.textContent=String(score); } };
+
+    // Title state initially
+    uiTitle.classList.remove('hidden');
+  })();
+  </script>
 </section>
 </main>
 <footer><div class="wrap"><small>© Chikumo</small></div></footer>
