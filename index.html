@@ -32,6 +32,14 @@
   nav.main .socials{display:flex;gap:12px;align-items:center}
   nav.main .socials svg{width:24px;height:24px;display:block;fill:#111;transition:opacity .2s ease}
   nav.main .socials a:hover svg{opacity:.7}
+  /* brand: かわいい丸ゴ寄りのシステムフォント優先 */
+  nav.main .brand{
+    font-family: "Hiragino Maru Gothic ProN","Hiragino Maru Gothic Pro","Yu Gothic UI","Yu Gothic","Meiryo",system-ui,-apple-system,"Noto Sans JP",sans-serif;
+    font-weight:700;
+    letter-spacing:.02em;
+    font-size:18px;
+    line-height:1;
+  }
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   /* stage sizing */
   #stage{width:clamp(260px,90vw,560px);margin:24px auto 48px;overflow:visible}
