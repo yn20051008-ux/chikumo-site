@@ -168,6 +168,11 @@
     </g>
   </svg>
  </div>
+<div class="slider-controls" aria-label="Slider controls">
+  <button class="nav" id="nav-prev" aria-label="前へ">‹</button>
+  <div class="slider-dots" id="stage-dots" role="tablist" aria-label="ページネーション"></div>
+  <button class="nav" id="nav-next" aria-label="次へ">›</button>
+</div>
 <script>
 // duplicate the chicken SVG to make 5 side-by-side; restore each size to 100%
 (function(){
@@ -187,12 +192,16 @@
 })();
 </script>
 <script>
-// Mobile auto-slide (infinite loop) for #stage using scroll-snap
+// Auto-slide (infinite loop) for #stage using scroll-snap (PC/スマホ共通)
 (function(){
   const stage = document.getElementById('stage');
   if(!stage) return;
 
-  const isMobile = () => window.matchMedia('(max-width: 600px)').matches;
+  const dotsWrap = document.getElementById('stage-dots');
+  const btnPrev  = document.getElementById('nav-prev');
+  const btnNext  = document.getElementById('nav-next');
+
+  const isMobile = () => window.matchMedia('(max-width: 600px)').matches; // 参照のみ（挙動は共通）
   let slideW = 0;
   let realCount = 0;   // number of real slides (excluding loop clones)
   let index = 1;       // current slide index in [0..realCount+1] where 0/realCount+1 are clones
@@ -205,7 +214,6 @@
   }
 
   function setup(){
-    if(!isMobile()) { teardown(); return; }
     const svgs = Array.from(stage.querySelectorAll('svg'));
     if(svgs.length === 0) return;
 
@@ -223,6 +231,9 @@
     slideW = stage.clientWidth || stage.getBoundingClientRect().width;
     index = 1; // first real
     jump(index);
+    buildDots();
+    updateDots();
+    bindNav();
     startAuto();
   }
 
@@ -232,7 +243,7 @@
 
   function startAuto(){
     stopAuto();
-    autoTimer = setInterval(()=>{ if(!paused && isMobile()) goTo(index+1, true); }, 3000);
+    autoTimer = setInterval(()=>{ if(!paused) goTo(index+1, true); }, 3000);
   }
   function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer=null; } }
 
@@ -244,12 +255,31 @@
     index = i;
     const x = index * (stage.clientWidth || stage.getBoundingClientRect().width);
     stage.scrollTo({ left:x, behavior: smooth ? 'smooth' : 'auto' });
-    if(smooth){ setTimeout(checkWrap, 460); } else { checkWrap(); }
+    if(smooth){ setTimeout(()=>{ checkWrap(); updateDots(); }, 480); } else { checkWrap(); updateDots(); }
   }
   function checkWrap(){
     const maxIndex = realCount + 1; // firstClone index
     if(index <= 0){ index = realCount; jump(index); }
     else if(index >= maxIndex){ index = 1; jump(index); }
+  }
+
+  function buildDots(){
+    if(!dotsWrap) return;
+    dotsWrap.innerHTML='';
+    for(let i=0;i<realCount;i++){
+      const b=document.createElement('button');
+      b.type='button'; b.setAttribute('role','tab'); b.addEventListener('click',()=>goTo(i+1,true));
+      dotsWrap.appendChild(b);
+    }
+  }
+  function updateDots(){
+    if(!dotsWrap) return;
+    const cur=(index-1+realCount)%realCount;
+    [...dotsWrap.children].forEach((d,i)=>{ if(i===cur) d.setAttribute('aria-current','true'); else d.removeAttribute('aria-current'); });
+  }
+  function bindNav(){
+    btnPrev && btnPrev.addEventListener('click',()=>goTo(index-1,true));
+    btnNext && btnNext.addEventListener('click',()=>goTo(index+1,true));
   }
 
   // Pause on interaction and resume after
@@ -261,22 +291,17 @@
   // Sync index on manual scroll and handle wrapping
   let scrollT = null;
   stage.addEventListener('scroll', ()=>{
-    if(!isMobile()) return;
     if(scrollT) clearTimeout(scrollT);
     const w = stage.clientWidth || stage.getBoundingClientRect().width;
     index = Math.round(stage.scrollLeft / Math.max(1, w));
-    scrollT = setTimeout(checkWrap, 140);
+    scrollT = setTimeout(()=>{ checkWrap(); updateDots(); }, 140);
   }, {passive:true});
 
   // Resize handling
   window.addEventListener('resize', ()=>{
-    if(isMobile()){
-      slideW = stage.clientWidth || stage.getBoundingClientRect().width;
+    slideW = stage.clientWidth || stage.getBoundingClientRect().width;
       jump(index);
       startAuto();
-    }else{
-      stopAuto();
-    }
   });
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', setup);
