@@ -49,14 +49,15 @@
   /* stage layout (responsive) */
   #stage{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:nowrap;width:100%;margin:0 auto;overflow:visible}
   #stage svg{display:block;width:100%;height:auto;max-width:100%}
-  /* Mobile-first: wrap into 2 columns */
+  /* Mobile: horizontal slider (scroll-snap) */
   @media (max-width: 600px){
     nav.main{gap:8px}
     nav.main .brand{font-size:16px}
     .wrap{padding:16px}
     main.wrap{padding:0 12px}
-    #stage{gap:8px;flex-wrap:wrap}
-    #stage svg{flex:0 1 calc(50% - 8px)}
+    #stage{flex-wrap:nowrap;gap:0;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    #stage::-webkit-scrollbar{display:none}
+    #stage svg{flex:0 0 100%;scroll-snap-align:center}
   }
   /* PC/tablet: single row of five */
   @media (min-width: 601px){
