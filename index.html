@@ -57,7 +57,7 @@
     main.wrap{padding:0 12px}
     #stage{flex-wrap:nowrap;gap:0;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
     #stage::-webkit-scrollbar{display:none}
-    #stage svg{flex:0 0 100%;scroll-snap-align:center}
+    #stage svg{flex:0 0 100%;scroll-snap-align:center; scroll-snap-stop: always}
   }
   /* PC/tablet: single row of five */
   @media (min-width: 601px){
