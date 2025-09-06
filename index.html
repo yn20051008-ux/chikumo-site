@@ -186,6 +186,103 @@
   }
 })();
 </script>
+<script>
+// Mobile auto-slide (infinite loop) for #stage using scroll-snap
+(function(){
+  const stage = document.getElementById('stage');
+  if(!stage) return;
+
+  const isMobile = () => window.matchMedia('(max-width: 600px)').matches;
+  let slideW = 0;
+  let realCount = 0;   // number of real slides (excluding loop clones)
+  let index = 1;       // current slide index in [0..realCount+1] where 0/realCount+1 are clones
+  let autoTimer = null;
+  let paused = false;
+
+  function cleanIds(root){
+    root.removeAttribute('id');
+    root.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+  }
+
+  function setup(){
+    if(!isMobile()) { teardown(); return; }
+    const svgs = Array.from(stage.querySelectorAll('svg'));
+    if(svgs.length === 0) return;
+
+    // Add loop clones once
+    if(!stage.querySelector('svg[data-clone]')){
+      const first = svgs[0];
+      const last  = svgs[svgs.length-1];
+      const firstClone = first.cloneNode(true); cleanIds(firstClone); firstClone.dataset.clone = 'first';
+      const lastClone  = last.cloneNode(true);  cleanIds(lastClone);  lastClone.dataset.clone  = 'last';
+      stage.insertBefore(lastClone, stage.firstChild);
+      stage.appendChild(firstClone);
+    }
+
+    realCount = stage.querySelectorAll('svg').length - 2;
+    slideW = stage.clientWidth || stage.getBoundingClientRect().width;
+    index = 1; // first real
+    jump(index);
+    startAuto();
+  }
+
+  function teardown(){
+    stopAuto();
+  }
+
+  function startAuto(){
+    stopAuto();
+    autoTimer = setInterval(()=>{ if(!paused && isMobile()) goTo(index+1, true); }, 3000);
+  }
+  function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer=null; } }
+
+  function jump(i){
+    const x = i * (stage.clientWidth || stage.getBoundingClientRect().width);
+    stage.scrollTo({ left:x, behavior:'auto' });
+  }
+  function goTo(i, smooth){
+    index = i;
+    const x = index * (stage.clientWidth || stage.getBoundingClientRect().width);
+    stage.scrollTo({ left:x, behavior: smooth ? 'smooth' : 'auto' });
+    if(smooth){ setTimeout(checkWrap, 460); } else { checkWrap(); }
+  }
+  function checkWrap(){
+    const maxIndex = realCount + 1; // firstClone index
+    if(index <= 0){ index = realCount; jump(index); }
+    else if(index >= maxIndex){ index = 1; jump(index); }
+  }
+
+  // Pause on interaction and resume after
+  stage.addEventListener('pointerdown', ()=>{ paused=true; stopAuto(); }, {passive:true});
+  window.addEventListener('pointerup', ()=>{ paused=false; startAuto(); }, {passive:true});
+  stage.addEventListener('touchstart', ()=>{ paused=true; stopAuto(); }, {passive:true});
+  window.addEventListener('touchend', ()=>{ paused=false; startAuto(); }, {passive:true});
+
+  // Sync index on manual scroll and handle wrapping
+  let scrollT = null;
+  stage.addEventListener('scroll', ()=>{
+    if(!isMobile()) return;
+    if(scrollT) clearTimeout(scrollT);
+    const w = stage.clientWidth || stage.getBoundingClientRect().width;
+    index = Math.round(stage.scrollLeft / Math.max(1, w));
+    scrollT = setTimeout(checkWrap, 140);
+  }, {passive:true});
+
+  // Resize handling
+  window.addEventListener('resize', ()=>{
+    if(isMobile()){
+      slideW = stage.clientWidth || stage.getBoundingClientRect().width;
+      jump(index);
+      startAuto();
+    }else{
+      stopAuto();
+    }
+  });
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', setup);
+  else setup();
+})();
+</script>
 
 
 </main>
