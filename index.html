@@ -20,6 +20,13 @@
   .wrap{max-width:1080px;margin:0 auto;padding:24px}
   /* ===== Header/Footer: CSS ===== */
   header,footer{border-top:1px solid #0000000f;border-bottom:1px solid #0000000f;background:#fff8}
+  header{
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    padding-top: env(safe-area-inset-top);
+    padding-top: constant(safe-area-inset-top);
+  }
   /* footer: minimal height + centered */
   footer .wrap{display:flex;justify-content:center;align-items:center;padding:2px 12px}
   footer small{line-height:1}
