@@ -83,7 +83,8 @@
   @media (min-width: 601px){
     #stage{
       flex-wrap:nowrap; gap:0; overflow-x:auto;
-      scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+      /* Disable snap on PC to avoid interference with programmatic scroll */
+      scroll-snap-type:none; -webkit-overflow-scrolling:touch; scrollbar-width:none;
       inline-size:100vw; margin-inline:calc(50% - 50vw);
     }
     #stage::-webkit-scrollbar{display:none}
@@ -250,7 +251,7 @@
   const btnNext  = document.getElementById('nav-next');
 
   const V_STEPS = 3;                 // 仮想ステップ数（=表示ドット数）
-  const INTERVAL_MS = 3000;          // ステップ間隔
+  let INTERVAL_MS = 3000;            // ステップ間隔（reduce-motion で上書き可）
   const SETTLE_MS = 480;             // スムース完了待ちフォールバック
 
   let slideW = 0;                    // 幅（setup/resizeのみ更新）
@@ -268,10 +269,31 @@
 
   // 位置計算（前クローンぶん+1）
   function posForReal(i){ return (i + 1) * slideW; }
-  function jumpToReal(i){ stage.scrollTo({ left: posForReal(i), behavior:'auto' }); }
+  function jumpToReal(i){
+    const prev = stage.style.scrollBehavior;
+    stage.style.scrollBehavior = 'auto';
+    stage.scrollTo({ left: posForReal(i), behavior:'auto' });
+    stage.style.scrollBehavior = prev || '';
+  }
   function smoothToLeft(x){ stage.scrollTo({ left:x, behavior:'smooth' }); }
 
-  function onScrollEndOnce(cb){ setTimeout(cb, SETTLE_MS); }
+  // Robust scroll settle detector (prefers scrollend, falls back to idle polling)
+  function onScrollSettled(target, cb, timeout=800){
+    let done = false; let t = null;
+    const finish = ()=>{ if(done) return; done=true; target.removeEventListener('scrollend', finish); if(t) clearTimeout(t); cb(); };
+    if('onscrollend' in window){
+      target.addEventListener('scrollend', finish, {once:true});
+      t = setTimeout(finish, timeout); // safety timeout
+      return;
+    }
+    let last = target.scrollLeft;
+    const tick = ()=>{
+      const cur = target.scrollLeft;
+      if(Math.abs(cur - last) < 0.5){ finish(); }
+      else { last = cur; t = setTimeout(tick, 50); }
+    };
+    t = setTimeout(tick, 50);
+  }
 
   function goToReal(nextReal, smooth=true){
     if(realCount <= 0) return;
@@ -286,14 +308,14 @@
     }
     if(fwdWrap){
       smoothToLeft((realCount + 1) * slideW);
-      onScrollEndOnce(()=>{ realIndex = target; jumpToReal(realIndex); updateDots(); isAnimating=false; });
+      onScrollSettled(stage, ()=>{ realIndex = target; jumpToReal(realIndex); updateDots(); isAnimating=false; }, SETTLE_MS+200);
     } else if(backWrap){
       smoothToLeft(0);
-      onScrollEndOnce(()=>{ realIndex = target; jumpToReal(realIndex); updateDots(); isAnimating=false; });
+      onScrollSettled(stage, ()=>{ realIndex = target; jumpToReal(realIndex); updateDots(); isAnimating=false; }, SETTLE_MS+200);
     } else {
       realIndex = target;
       smoothToLeft(posForReal(realIndex));
-      onScrollEndOnce(()=>{ updateDots(); isAnimating=false; });
+      onScrollSettled(stage, ()=>{ updateDots(); isAnimating=false; }, SETTLE_MS+200);
     }
   }
 
@@ -339,20 +361,20 @@
 
   function scheduleNext(){
     clearTimeout(autoT);
-    // Advance one virtual step, then schedule next after animation settles
+    // Advance by one virtual step, then chain after settle and interval
     goToVirtual(v+1, true);
-    onScrollEndOnce(()=>{
+    onScrollSettled(stage, ()=>{
       const plan = () => {
-        if(userInteracting){
+        if(userInteracting || isAnimating){
           clearTimeout(autoT);
-          autoT = setTimeout(plan, 300); // poll while interacting, never stall forever
+          autoT = setTimeout(plan, 300);
         } else {
           clearTimeout(autoT);
           autoT = setTimeout(scheduleNext, INTERVAL_MS);
         }
       };
       plan();
-    });
+    }, SETTLE_MS+200);
   }
   function startAuto(){ clearTimeout(autoT); scheduleNext(); }
   function pauseAuto(){ clearTimeout(autoT); }
@@ -386,9 +408,9 @@
 
   // ユーザー操作時の一時停止と再開（v再計算）
   stage.addEventListener('pointerdown', ()=>{ userInteracting=true; pauseAuto(); }, {passive:true});
-  window.addEventListener('pointerup', ()=>{ userInteracting=false; v = virtualFromReal(realIndex); resumeAuto(); }, {passive:true});
+  window.addEventListener('pointerup', ()=>{ userInteracting=false; v = virtualFromReal(realIndex); setTimeout(resumeAuto, 150); }, {passive:true});
   stage.addEventListener('touchstart', ()=>{ userInteracting=true; pauseAuto(); }, {passive:true});
-  window.addEventListener('touchend', ()=>{ userInteracting=false; v = virtualFromReal(realIndex); resumeAuto(); }, {passive:true});
+  window.addEventListener('touchend', ()=>{ userInteracting=false; v = virtualFromReal(realIndex); setTimeout(resumeAuto, 150); }, {passive:true});
 
   // 手動スクロール同期（誤差に強いfloor+閾値）
   let scrollT = null;
@@ -406,13 +428,29 @@
     }, 140);
   }, {passive:true});
 
-  // リサイズ: stop→測定→現在位置へjump→再開
+  // リサイズ: debounceして stop→測定→現在位置へjump→再開
+  let resizeT=null;
   window.addEventListener('resize', ()=>{
     pauseAuto();
-    slideW = stage.clientWidth || stage.getBoundingClientRect().width;
-    jumpToReal(realIndex);
-    resumeAuto();
+    clearTimeout(resizeT);
+    resizeT = setTimeout(()=>{
+      slideW = stage.clientWidth || stage.getBoundingClientRect().width;
+      jumpToReal(realIndex);
+      resumeAuto();
+    }, 150);
   });
+
+  // 非表示タブ制御: pause/resume + 再計算
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden){ pauseAuto(); }
+    else { v = virtualFromReal(realIndex); setTimeout(resumeAuto, 200); }
+  });
+
+  // 簡易アニメーション配慮
+  const prefersReduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  function applyReduceMotion(){ if(prefersReduce.matches){ INTERVAL_MS = 5000; } }
+  applyReduceMotion();
+  prefersReduce.addEventListener?.('change', applyReduceMotion);
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', setup);
   else setup();
