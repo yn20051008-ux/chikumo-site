@@ -302,20 +302,23 @@
     const fwdWrap = from === realCount - 1 && target === 0;
     const backWrap = from === 0 && target === realCount - 1;
 
+    // Pre-highlight target dot to avoid momentary mismatch during wrap
+    realIndex = target;
+    updateDots();
+
     isAnimating = true;
-    if(!smooth){
-      realIndex = target; jumpToReal(realIndex); updateDots(); isAnimating=false; return;
-    }
+    const finish = () => { realIndex = target; jumpToReal(realIndex); updateDots(); isAnimating = false; };
+    if(!smooth){ finish(); return; }
+
     if(fwdWrap){
       smoothToLeft((realCount + 1) * slideW);
-      onScrollSettled(stage, ()=>{ realIndex = target; jumpToReal(realIndex); updateDots(); isAnimating=false; }, SETTLE_MS+200);
+      onScrollSettled(stage, finish, SETTLE_MS+200);
     } else if(backWrap){
       smoothToLeft(0);
-      onScrollSettled(stage, ()=>{ realIndex = target; jumpToReal(realIndex); updateDots(); isAnimating=false; }, SETTLE_MS+200);
+      onScrollSettled(stage, finish, SETTLE_MS+200);
     } else {
-      realIndex = target;
       smoothToLeft(posForReal(realIndex));
-      onScrollSettled(stage, ()=>{ updateDots(); isAnimating=false; }, SETTLE_MS+200);
+      onScrollSettled(stage, () => { updateDots(); isAnimating=false; }, SETTLE_MS+200);
     }
   }
 
@@ -425,7 +428,7 @@
       else { realIndex = candidate; }
       v = virtualFromReal(realIndex);
       updateDots();
-    }, 140);
+    }, 100);
   }, {passive:true});
 
   // リサイズ: debounceして stop→測定→現在位置へjump→再開
