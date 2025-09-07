@@ -280,7 +280,7 @@
 
   function startAuto(){
     stopAuto();
-    autoTimer = setInterval(()=>{ if(!paused) goTo(index+1, true); }, 3000);
+    autoTimer = setInterval(()=>{ if(!paused) goTo(index+1, true); }, 1000);
   }
   function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer=null; } }
 
