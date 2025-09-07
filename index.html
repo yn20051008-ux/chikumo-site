@@ -318,15 +318,20 @@
     dotsWrap.style.display = '';
     for(let i=0;i<V_STEPS;i++){
       const b=document.createElement('button');
+      b.id = `dot-${i+1}`;
       b.type='button'; b.setAttribute('role','tab');
-      b.addEventListener('click',()=>{ pauseAuto(); goToVirtual(i,true); resumeAuto(); });
+      b.setAttribute('aria-controls', `bird-${i+1}`);
+      b.addEventListener('click',()=>{ pauseAuto(); v=i; goToReal(i,true); resumeAuto(); });
       dotsWrap.appendChild(b);
     }
   }
   function updateDots(){
     if(!dotsWrap) return;
-    const cur = ((v % V_STEPS) + V_STEPS) % V_STEPS;
-    [...dotsWrap.children].forEach((d,i)=>{ if(i===cur) d.setAttribute('aria-current','true'); else d.removeAttribute('aria-current'); });
+    // Highlight dot 1..3 when realIndex is 0..2; remove highlight otherwise
+    const cur = (realIndex >=0 && realIndex < V_STEPS) ? realIndex : -1;
+    [...dotsWrap.children].forEach((d,i)=>{
+      if(i===cur) d.setAttribute('aria-current','true'); else d.removeAttribute('aria-current');
+    });
   }
 
   function scheduleNext(){
