@@ -79,12 +79,15 @@
     #stage::-webkit-scrollbar{display:none}
     #stage svg{flex:0 0 100%;scroll-snap-align:center; scroll-snap-stop: always}
   }
-  /* PC/tablet: single row of five */
+  /* PC/tablet: full-bleed slider like mobile (one per view) */
   @media (min-width: 601px){
-    #stage{flex-wrap:nowrap;max-width:1080px}
-    /* Hide loop clones on desktop so exactly 5 show */
-    #stage svg[data-clone]{display:none}
-    #stage svg{flex:0 1 calc(20% - 12px)}
+    #stage{
+      flex-wrap:nowrap; gap:0; overflow-x:auto;
+      scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+      inline-size:100vw; margin-inline:calc(50% - 50vw);
+    }
+    #stage::-webkit-scrollbar{display:none}
+    #stage svg{flex:0 0 100%; scroll-snap-align:center; scroll-snap-stop: always}
   }
   /* ===== Misc: CSS (Optional background/effects) ===== */
   body.fun-bg{
