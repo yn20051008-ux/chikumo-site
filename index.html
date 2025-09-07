@@ -65,7 +65,7 @@
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   /* ===== Birds: CSS (Slider/Stage) ===== */
   #stage{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:nowrap;width:100%;margin:0 auto;overflow:visible;touch-action:pan-x;overscroll-behavior-x:contain}
-  #stage svg{display:block;width:100%;height:auto;max-width:100%;
+  #stage svg{display:block;width:100%;height:auto;max-width:100%;min-width:0;
     /* Fit bird within viewport height (minus header/dots/footer) */
     max-height: calc(100svh - var(--header-h, 0px) - var(--dots-h, 42px) - var(--footer-h, 0px) - 16px);
   }
@@ -212,7 +212,8 @@
     root.removeAttribute('id');
     root.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
   }
-  while(stage.querySelectorAll('svg').length < 5){
+  // Ensure exactly 5 real slides (exclude loop clones)
+  while(stage.querySelectorAll('svg:not([data-clone])').length < 5){
     const clone=first.cloneNode(true);
     cleanIds(clone);
     stage.appendChild(clone);
