@@ -228,7 +228,7 @@
 <!-- ===== Birds: JS (Duplicate 5) END ===== -->
 <script>
 // ===== Birds: JS (Auto-slide) =====
-// Auto-slide with robust index sync (realIndex-based, wrap via clones)
+// Auto-slide (infinite loop) for #stage using scroll-snap (PC/スマホ共通)
 (function(){
   const stage = document.getElementById('stage');
   if(!stage) return;
@@ -237,9 +237,10 @@
   const btnPrev  = document.getElementById('nav-prev');
   const btnNext  = document.getElementById('nav-next');
 
-  let slideW = 0;         // measured on setup/resize only
-  let realCount = 0;      // real slides count (exclude loop clones)
-  let realIndex = 0;      // 0..realCount-1
+  const isMobile = () => window.matchMedia('(max-width: 600px)').matches; // 参照のみ（挙動は共通）
+  let slideW = 0;
+  let realCount = 0;   // number of real slides (excluding loop clones)
+  let index = 1;       // current slide index in [0..realCount+1] where 0/realCount+1 are clones
   let autoTimer = null;
   let paused = false;
 
@@ -247,44 +248,56 @@
     root.removeAttribute('id');
     root.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
   }
-  function posForReal(i){ return (i + 1) * slideW; } // +1 accounts for leading lastClone
-  function jumpToReal(i){ stage.scrollTo({ left: posForReal(i), behavior:'auto' }); }
-  function onScrollEndOnce(cb){
-    if('onscrollend' in window){
-      const once = () => { stage.removeEventListener('scrollend', once); cb(); };
-      stage.addEventListener('scrollend', once, {once:true});
-    } else {
-      setTimeout(cb, 480);
+
+  function setup(){
+    const svgs = Array.from(stage.querySelectorAll('svg'));
+    if(svgs.length === 0) return;
+
+    // Add loop clones once
+    if(!stage.querySelector('svg[data-clone]')){
+      const first = svgs[0];
+      const last  = svgs[svgs.length-1];
+      const firstClone = first.cloneNode(true); cleanIds(firstClone); firstClone.dataset.clone = 'first';
+      const lastClone  = last.cloneNode(true);  cleanIds(lastClone);  lastClone.dataset.clone  = 'last';
+      stage.insertBefore(lastClone, stage.firstChild);
+      stage.appendChild(firstClone);
     }
+
+    // Count only real slides (exclude the two loop clones explicitly)
+    realCount = stage.querySelectorAll('svg:not([data-clone])').length;
+    slideW = stage.clientWidth || stage.getBoundingClientRect().width;
+    index = 1; // first real
+    jump(index);
+    buildDots();
+    updateDots();
+    bindNav();
+    startAuto();
   }
 
-  function goToReal(nextReal, smooth=true){
-    if(realCount <= 0) return;
-    const target = ((nextReal % realCount) + realCount) % realCount;
-    const from = realIndex;
-    const forwardWrap = from === realCount - 1 && target === 0;
-    const backwardWrap = from === 0 && target === realCount - 1;
+  function teardown(){
+    stopAuto();
+  }
 
-    if(!smooth){
-      realIndex = target;
-      jumpToReal(realIndex);
-      updateDots();
-      return;
-    }
+  function startAuto(){
+    stopAuto();
+    autoTimer = setInterval(()=>{ if(!paused) goTo(index+1, true); }, 1000);
+  }
+  function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer=null; } }
 
-    if(forwardWrap){
-      // Smooth to firstClone then snap back to first real
-      stage.scrollTo({ left: (realCount + 1) * slideW, behavior:'smooth' });
-      onScrollEndOnce(()=>{ realIndex = target; jumpToReal(realIndex); updateDots(); });
-    } else if(backwardWrap){
-      // Smooth to lastClone then snap to last real
-      stage.scrollTo({ left: 0, behavior:'smooth' });
-      onScrollEndOnce(()=>{ realIndex = target; jumpToReal(realIndex); updateDots(); });
-    } else {
-      realIndex = target;
-      stage.scrollTo({ left: posForReal(realIndex), behavior:'smooth' });
-      onScrollEndOnce(()=>{ updateDots(); });
-    }
+  function jump(i){
+    const x = i * (stage.clientWidth || stage.getBoundingClientRect().width);
+    stage.scrollTo({ left:x, behavior:'auto' });
+  }
+  function goTo(i, smooth){
+    index = i;
+    const x = index * (stage.clientWidth || stage.getBoundingClientRect().width);
+    stage.scrollTo({ left:x, behavior: smooth ? 'smooth' : 'auto' });
+    if(smooth){ setTimeout(()=>{ checkWrap(); updateDots(); }, 480); } else { checkWrap(); updateDots(); }
+  }
+  function checkWrap(){
+    const maxIndex = realCount + 1; // firstClone index
+    if(index <= 0){ index = realCount; jump(index); }
+    else if(index >= maxIndex){ index = 1; jump(index); }
   }
 
   function buildDots(){
@@ -294,46 +307,18 @@
     dotsWrap.style.display = '';
     for(let i=0;i<realCount;i++){
       const b=document.createElement('button');
-      b.type='button'; b.setAttribute('role','tab'); b.addEventListener('click',()=>goToReal(i,true));
+      b.type='button'; b.setAttribute('role','tab'); b.addEventListener('click',()=>goTo(i+1,true));
       dotsWrap.appendChild(b);
     }
   }
   function updateDots(){
     if(!dotsWrap) return;
-    const cur = ((realIndex % realCount) + realCount) % realCount;
+    const cur=(index-1+realCount)%realCount;
     [...dotsWrap.children].forEach((d,i)=>{ if(i===cur) d.setAttribute('aria-current','true'); else d.removeAttribute('aria-current'); });
   }
-
-  function setup(){
-    const svgs = Array.from(stage.querySelectorAll('svg'));
-    if(svgs.length === 0) return;
-    if(!stage.querySelector('svg[data-clone]')){
-      const first = svgs[0];
-      const last  = svgs[svgs.length-1];
-      const firstClone = first.cloneNode(true); cleanIds(firstClone); firstClone.dataset.clone = 'first';
-      const lastClone  = last.cloneNode(true);  cleanIds(lastClone);  lastClone.dataset.clone  = 'last';
-      stage.insertBefore(lastClone, stage.firstChild);
-      stage.appendChild(firstClone);
-    }
-    realCount = stage.querySelectorAll('svg:not([data-clone])').length;
-    slideW = stage.clientWidth || stage.getBoundingClientRect().width;
-    realIndex = 0;
-    jumpToReal(realIndex);
-    buildDots();
-    updateDots();
-    bindNav();
-    startAuto();
-  }
-
-  function startAuto(){
-    stopAuto();
-    autoTimer = setInterval(()=>{ if(!paused) goToReal(realIndex+1, true); }, 3000);
-  }
-  function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer=null; } }
-
   function bindNav(){
-    btnPrev && btnPrev.addEventListener('click',()=>goToReal(realIndex-1,true));
-    btnNext && btnNext.addEventListener('click',()=>goToReal(realIndex+1,true));
+    btnPrev && btnPrev.addEventListener('click',()=>goTo(index-1,true));
+    btnNext && btnNext.addEventListener('click',()=>goTo(index+1,true));
   }
 
   // Pause on interaction and resume after
@@ -342,27 +327,20 @@
   stage.addEventListener('touchstart', ()=>{ paused=true; stopAuto(); }, {passive:true});
   window.addEventListener('touchend', ()=>{ paused=false; startAuto(); }, {passive:true});
 
-  // Manual scroll sync using thresholded floor, then wrap-jump and dot update
+  // Sync index on manual scroll and handle wrapping
   let scrollT = null;
   stage.addEventListener('scroll', ()=>{
     if(scrollT) clearTimeout(scrollT);
-    const w = slideW || stage.clientWidth || stage.getBoundingClientRect().width;
-    const cloneIdx = Math.floor((stage.scrollLeft + 0.5 * Math.max(1, w)) / Math.max(1, w)); // 0..realCount+1
-    scrollT = setTimeout(()=>{
-      let candidate = cloneIdx - 1;
-      if(candidate < 0){ realIndex = realCount - 1; jumpToReal(realIndex); }
-      else if(candidate >= realCount){ realIndex = 0; jumpToReal(realIndex); }
-      else { realIndex = candidate; }
-      updateDots();
-    }, 140);
+    const w = stage.clientWidth || stage.getBoundingClientRect().width;
+    index = Math.round(stage.scrollLeft / Math.max(1, w));
+    scrollT = setTimeout(()=>{ checkWrap(); updateDots(); }, 140);
   }, {passive:true});
 
-  // Resize: stop -> measure -> jump -> restart
+  // Resize handling
   window.addEventListener('resize', ()=>{
-    stopAuto();
     slideW = stage.clientWidth || stage.getBoundingClientRect().width;
-    jumpToReal(realIndex);
-    startAuto();
+      jump(index);
+      startAuto();
   });
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', setup);
