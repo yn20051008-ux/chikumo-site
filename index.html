@@ -225,6 +225,13 @@
     cleanIds(clone);
     stage.appendChild(clone);
   }
+  // Assign stable IDs to the first three real birds for easy targeting
+  const reals = Array.from(stage.querySelectorAll('svg:not([data-clone])'));
+  reals.forEach((svg,i)=>{
+    // Clear any pre-existing id to avoid duplicates
+    svg.removeAttribute('id');
+    if(i < 3){ svg.id = `bird-${i+1}`; }
+  });
 })();
 </script>
 <!-- ===== Birds: JS (Duplicate 5) END ===== -->
