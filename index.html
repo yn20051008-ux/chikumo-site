@@ -208,8 +208,8 @@
   <div class="slider-dots" id="stage-dots" role="tablist" aria-label="ページネーション"></div>
 <!-- ===== Birds: HTML END ===== -->
 <script>
-// ===== Birds: JS (Duplicate 5) =====
-// duplicate the chicken SVG to make 5 side-by-side; restore each size to 100%
+// ===== Birds: JS (Duplicate 3) =====
+// Ensure exactly 3 real birds; remove extras; assign stable IDs
 (function(){
   const stage=document.getElementById('stage');
   if(!stage) return;
@@ -219,22 +219,25 @@
     root.removeAttribute('id');
     root.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
   }
-  // Ensure exactly 5 real slides (exclude loop clones)
-  while(stage.querySelectorAll('svg:not([data-clone])').length < 5){
-    const clone=first.cloneNode(true);
+  const DESIRED = 3;
+  // Remove extras beyond 3 (exclude loop clones)
+  let reals = Array.from(stage.querySelectorAll('svg:not([data-clone])'));
+  while(reals.length > DESIRED){
+    const last = reals.pop();
+    last.remove();
+  }
+  // Duplicate until we have exactly 3
+  while(reals.length < DESIRED){
+    const clone = first.cloneNode(true);
     cleanIds(clone);
     stage.appendChild(clone);
+    reals = Array.from(stage.querySelectorAll('svg:not([data-clone])'));
   }
-  // Assign stable IDs to the first three real birds for easy targeting
-  const reals = Array.from(stage.querySelectorAll('svg:not([data-clone])'));
-  reals.forEach((svg,i)=>{
-    // Clear any pre-existing id to avoid duplicates
-    svg.removeAttribute('id');
-    if(i < 3){ svg.id = `bird-${i+1}`; }
-  });
+  // Assign stable IDs to the three real birds
+  reals.forEach((svg,i)=>{ svg.removeAttribute('id'); svg.id = `bird-${i+1}`; });
 })();
 </script>
-<!-- ===== Birds: JS (Duplicate 5) END ===== -->
+<!-- ===== Birds: JS (Duplicate 3) END ===== -->
 <script>
 // ===== Birds: JS (Auto-slide) =====
 // RealIndex + Virtual 3-step, recursive setTimeout, robust wrap handling
