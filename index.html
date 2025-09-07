@@ -82,6 +82,8 @@
   /* PC/tablet: single row of five */
   @media (min-width: 601px){
     #stage{flex-wrap:nowrap;max-width:1080px}
+    /* Hide loop clones on desktop so exactly 5 show */
+    #stage svg[data-clone]{display:none}
     #stage svg{flex:0 1 calc(20% - 12px)}
   }
   /* ===== Misc: CSS (Optional background/effects) ===== */
