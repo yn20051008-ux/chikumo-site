@@ -28,8 +28,14 @@
     padding-top: env(safe-area-inset-top);
     padding-top: constant(safe-area-inset-top);
   }
-  /* footer: minimal height + centered + stick to bottom when short */
-  footer{margin-top:auto;padding-bottom:env(safe-area-inset-bottom);padding-bottom:constant(safe-area-inset-bottom)}
+  /* footer: fixed at bottom across all viewport sizes */
+  footer{
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    z-index: 999;
+    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: constant(safe-area-inset-bottom);
+  }
   footer .wrap{display:flex;justify-content:center;align-items:center;padding:2px 12px}
   footer small{line-height:1}
   /* minimize header height: override wrap padding inside header */
@@ -39,7 +45,7 @@
   .card{background:#fff;border:1px solid #0001;border-radius:12px;padding:16px}
   .btn{display:inline-block;padding:.6em 1em;border:1px solid #0002;border-radius:999px;background:var(--brand);color:#000}
   small,footer{color:#555}
-  main{padding-inline:16px;flex:1 0 auto}
+  main{padding-inline:16px;flex:1 0 auto;padding-bottom:var(--footer-h,0px)}
   /* minimize distance between header and footer */
   main.wrap{padding:0 16px}
   /* ===== Header: CSS (Nav/Brand/SNS) ===== */
@@ -60,8 +66,8 @@
   /* ===== Birds: CSS (Slider/Stage) ===== */
   #stage{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:nowrap;width:100%;margin:0 auto;overflow:visible;touch-action:pan-x;overscroll-behavior-x:contain}
   #stage svg{display:block;width:100%;height:auto;max-width:100%;
-    /* Fit bird within viewport height (minus header/dots) */
-    max-height: calc(100svh - var(--header-h, 0px) - var(--dots-h, 42px) - 16px);
+    /* Fit bird within viewport height (minus header/dots/footer) */
+    max-height: calc(100svh - var(--header-h, 0px) - var(--dots-h, 42px) - var(--footer-h, 0px) - 16px);
   }
   /* Mobile: horizontal slider (scroll-snap) */
   @media (max-width: 600px){
@@ -344,13 +350,16 @@
 (function(){
   const root = document.documentElement;
   const header = document.querySelector('header');
+  const footer = document.querySelector('footer');
   const dotsArea = document.querySelector('.slider-controls');
 
   function setVars(){
     const hh = header ? Math.ceil(header.getBoundingClientRect().height) : 0;
     const dh = dotsArea ? Math.ceil(dotsArea.getBoundingClientRect().height) : 0;
+    const fh = footer ? Math.ceil(footer.getBoundingClientRect().height) : 0;
     root.style.setProperty('--header-h', hh + 'px');
     root.style.setProperty('--dots-h', dh + 'px');
+    root.style.setProperty('--footer-h', fh + 'px');
   }
 
   if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', setVars);
