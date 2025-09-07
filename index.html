@@ -257,7 +257,8 @@
       stage.appendChild(firstClone);
     }
 
-    realCount = stage.querySelectorAll('svg').length - 2;
+    // Count only real slides (exclude the two loop clones explicitly)
+    realCount = stage.querySelectorAll('svg:not([data-clone])').length;
     slideW = stage.clientWidth || stage.getBoundingClientRect().width;
     index = 1; // first real
     jump(index);
@@ -296,6 +297,8 @@
   function buildDots(){
     if(!dotsWrap) return;
     dotsWrap.innerHTML='';
+    if(realCount <= 1){ dotsWrap.style.display = 'none'; return; }
+    dotsWrap.style.display = '';
     for(let i=0;i<realCount;i++){
       const b=document.createElement('button');
       b.type='button'; b.setAttribute('role','tab'); b.addEventListener('click',()=>goTo(i+1,true));
