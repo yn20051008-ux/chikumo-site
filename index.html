@@ -14,7 +14,8 @@
   /* ===== Global: CSS (Base) ===== */
   :root{--bg:#fff7f0;--ink:#222;--brand:#f4a300}
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 system-ui,-apple-system,"Noto Sans JP",sans-serif}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.7 system-ui,-apple-system,"Noto Sans JP",sans-serif;overflow-x:hidden}
+  html,body{overscroll-behavior-x:none}
   a{color:inherit;text-decoration:none}
   img,svg{max-width:100%;height:auto}
   .wrap{max-width:1080px;margin:0 auto;padding:24px}
@@ -56,7 +57,7 @@
   }
   .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
   /* ===== Birds: CSS (Slider/Stage) ===== */
-  #stage{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:nowrap;width:100%;margin:0 auto;overflow:visible}
+  #stage{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:nowrap;width:100%;margin:0 auto;overflow:visible;touch-action:pan-x;overscroll-behavior-x:contain}
   #stage svg{display:block;width:100%;height:auto;max-width:100%}
   /* Mobile: horizontal slider (scroll-snap) */
   @media (max-width: 600px){
@@ -64,7 +65,7 @@
     nav.main .brand{font-size:16px}
     .wrap{padding:16px}
     main.wrap{padding:0 12px}
-    #stage{flex-wrap:nowrap;gap:0;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+    #stage{flex-wrap:nowrap;gap:0;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;overscroll-behavior-x:contain}
     #stage::-webkit-scrollbar{display:none}
     #stage svg{flex:0 0 100%;scroll-snap-align:center; scroll-snap-stop: always}
   }
