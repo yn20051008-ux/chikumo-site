@@ -228,7 +228,7 @@
 <!-- ===== Birds: JS (Duplicate 5) END ===== -->
 <script>
 // ===== Birds: JS (Auto-slide) =====
-// RealIndex + Virtual 3-step, recursive setTimeout, robust wrap handling
+// Auto-slide (infinite loop) for #stage using scroll-snap (PC/スマホ共通)
 (function(){
   const stage = document.getElementById('stage');
   if(!stage) return;
@@ -237,104 +237,24 @@
   const btnPrev  = document.getElementById('nav-prev');
   const btnNext  = document.getElementById('nav-next');
 
-  const V_STEPS = 3;                 // 仮想ステップ数（=表示ドット数）
-  const INTERVAL_MS = 3000;          // ステップ間隔
-  const SETTLE_MS = 480;             // スムース完了待ちフォールバック
-
-  let slideW = 0;                    // 幅（setup/resizeのみ更新）
-  let realCount = 0;                 // 実スライド枚数（非クローン）
-  let realIndex = 0;                 // 0..realCount-1
-  let v = 0;                         // 仮想インデックス 0..V_STEPS-1
-  let isAnimating = false;           // スクロール中フラグ
-  let autoT = null;                  // 自動送りタイマー
-  let userInteracting = false;       // ユーザー操作中
+  const isMobile = () => window.matchMedia('(max-width: 600px)').matches; // 参照のみ（挙動は共通）
+  const DOTS_COUNT = 3; // 表示するドット数（5→3）
+  let slideW = 0;
+  let realCount = 0;   // number of real slides (excluding loop clones)
+  let index = 1;       // current slide index in [0..realCount+1] where 0/realCount+1 are clones
+  let autoTimer = null;
+  let paused = false;
 
   function cleanIds(root){
     root.removeAttribute('id');
     root.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
   }
 
-  // 位置計算（前クローンぶん+1）
-  function posForReal(i){ return (i + 1) * slideW; }
-  function jumpToReal(i){ stage.scrollTo({ left: posForReal(i), behavior:'auto' }); }
-  function smoothToLeft(x){ stage.scrollTo({ left:x, behavior:'smooth' }); }
-
-  function onScrollEndOnce(cb){ setTimeout(cb, SETTLE_MS); }
-
-  function goToReal(nextReal, smooth=true){
-    if(realCount <= 0) return;
-    const target = ((nextReal % realCount) + realCount) % realCount;
-    const from = realIndex;
-    const fwdWrap = from === realCount - 1 && target === 0;
-    const backWrap = from === 0 && target === realCount - 1;
-
-    isAnimating = true;
-    if(!smooth){
-      realIndex = target; jumpToReal(realIndex); updateDots(); isAnimating=false; return;
-    }
-    if(fwdWrap){
-      smoothToLeft((realCount + 1) * slideW);
-      onScrollEndOnce(()=>{ realIndex = target; jumpToReal(realIndex); updateDots(); isAnimating=false; });
-    } else if(backWrap){
-      smoothToLeft(0);
-      onScrollEndOnce(()=>{ realIndex = target; jumpToReal(realIndex); updateDots(); isAnimating=false; });
-    } else {
-      realIndex = target;
-      smoothToLeft(posForReal(realIndex));
-      onScrollEndOnce(()=>{ updateDots(); isAnimating=false; });
-    }
-  }
-
-  // 仮想→実体の等分マッピング
-  function realFromVirtual(vIdx){
-    if(realCount <= 1) return 0;
-    return Math.round(vIdx * (realCount - 1) / Math.max(1, (V_STEPS - 1)));
-  }
-  function virtualFromReal(rIdx){
-    if(realCount <= 1) return 0;
-    return Math.round(rIdx * Math.max(1, (V_STEPS - 1)) / Math.max(1, (realCount - 1)));
-  }
-
-  function goToVirtual(vIdx, smooth=true){
-    v = ((vIdx % V_STEPS) + V_STEPS) % V_STEPS;
-    const r = realFromVirtual(v);
-    goToReal(r, smooth);
-    updateDots();
-  }
-
-  function buildDots(){
-    if(!dotsWrap) return;
-    dotsWrap.innerHTML='';
-    if(realCount <= 1 || V_STEPS <= 1){ dotsWrap.style.display = 'none'; return; }
-    dotsWrap.style.display = '';
-    for(let i=0;i<V_STEPS;i++){
-      const b=document.createElement('button');
-      b.type='button'; b.setAttribute('role','tab');
-      b.addEventListener('click',()=>{ pauseAuto(); goToVirtual(i,true); resumeAuto(); });
-      dotsWrap.appendChild(b);
-    }
-  }
-  function updateDots(){
-    if(!dotsWrap) return;
-    const cur = ((v % V_STEPS) + V_STEPS) % V_STEPS;
-    [...dotsWrap.children].forEach((d,i)=>{ if(i===cur) d.setAttribute('aria-current','true'); else d.removeAttribute('aria-current'); });
-  }
-
-  function scheduleNext(){
-    clearTimeout(autoT);
-    autoT = setTimeout(()=>{
-      if(userInteracting || isAnimating) { scheduleNext(); return; }
-      goToVirtual(v+1, true);
-      scheduleNext();
-    }, INTERVAL_MS);
-  }
-  function startAuto(){ clearTimeout(autoT); scheduleNext(); }
-  function pauseAuto(){ clearTimeout(autoT); }
-  function resumeAuto(){ scheduleNext(); }
-
   function setup(){
     const svgs = Array.from(stage.querySelectorAll('svg'));
     if(svgs.length === 0) return;
+
+    // Add loop clones once
     if(!stage.querySelector('svg[data-clone]')){
       const first = svgs[0];
       const last  = svgs[svgs.length-1];
@@ -343,49 +263,94 @@
       stage.insertBefore(lastClone, stage.firstChild);
       stage.appendChild(firstClone);
     }
+
+    // Count only real slides (exclude the two loop clones explicitly)
     realCount = stage.querySelectorAll('svg:not([data-clone])').length;
     slideW = stage.clientWidth || stage.getBoundingClientRect().width;
-    realIndex = 0; v = 0;
-    jumpToReal(realIndex);
+    index = 1; // first real
+    jump(index);
     buildDots();
     updateDots();
     bindNav();
     startAuto();
   }
 
-  function bindNav(){
-    btnPrev && btnPrev.addEventListener('click',()=>{ pauseAuto(); goToVirtual(v-1,true); resumeAuto(); });
-    btnNext && btnNext.addEventListener('click',()=>{ pauseAuto(); goToVirtual(v+1,true); resumeAuto(); });
+  function teardown(){
+    stopAuto();
   }
 
-  // ユーザー操作時の一時停止と再開（v再計算）
-  stage.addEventListener('pointerdown', ()=>{ userInteracting=true; pauseAuto(); }, {passive:true});
-  window.addEventListener('pointerup', ()=>{ userInteracting=false; v = virtualFromReal(realIndex); resumeAuto(); }, {passive:true});
-  stage.addEventListener('touchstart', ()=>{ userInteracting=true; pauseAuto(); }, {passive:true});
-  window.addEventListener('touchend', ()=>{ userInteracting=false; v = virtualFromReal(realIndex); resumeAuto(); }, {passive:true});
+  function startAuto(){
+    stopAuto();
+    autoTimer = setInterval(()=>{ if(!paused) goTo(index+1, true); }, 1000);
+  }
+  function stopAuto(){ if(autoTimer){ clearInterval(autoTimer); autoTimer=null; } }
 
-  // 手動スクロール同期（誤差に強いfloor+閾値）
+  function jump(i){
+    const x = i * (stage.clientWidth || stage.getBoundingClientRect().width);
+    stage.scrollTo({ left:x, behavior:'auto' });
+  }
+  function goTo(i, smooth){
+    index = i;
+    const x = index * (stage.clientWidth || stage.getBoundingClientRect().width);
+    stage.scrollTo({ left:x, behavior: smooth ? 'smooth' : 'auto' });
+    if(smooth){ setTimeout(()=>{ checkWrap(); updateDots(); }, 480); } else { checkWrap(); updateDots(); }
+  }
+  function checkWrap(){
+    const maxIndex = realCount + 1; // firstClone index
+    if(index <= 0){ index = realCount; jump(index); }
+    else if(index >= maxIndex){ index = 1; jump(index); }
+  }
+
+  function buildDots(){
+    if(!dotsWrap) return;
+    dotsWrap.innerHTML='';
+    const dotsCount = Math.min(DOTS_COUNT, realCount);
+    if(dotsCount <= 1){ dotsWrap.style.display = 'none'; return; }
+    dotsWrap.style.display = '';
+    for(let i=0;i<dotsCount;i++){
+      const b=document.createElement('button');
+      b.type='button'; b.setAttribute('role','tab');
+      b.addEventListener('click',()=>{
+        const target = (i === dotsCount-1)
+          ? realCount
+          : 1 + Math.round(i * (realCount - 1) / Math.max(1, (dotsCount - 1)));
+        goTo(target,true);
+      });
+      dotsWrap.appendChild(b);
+    }
+  }
+  function updateDots(){
+    if(!dotsWrap) return;
+    const dotsCount = Math.min(DOTS_COUNT, realCount);
+    const realIdx = (index - 1 + realCount) % realCount; // 0..realCount-1
+    const cur = Math.min(dotsCount-1, Math.floor(realIdx * dotsCount / realCount));
+    [...dotsWrap.children].forEach((d,i)=>{ if(i===cur) d.setAttribute('aria-current','true'); else d.removeAttribute('aria-current'); });
+  }
+  function bindNav(){
+    btnPrev && btnPrev.addEventListener('click',()=>goTo(index-1,true));
+    btnNext && btnNext.addEventListener('click',()=>goTo(index+1,true));
+  }
+
+  // Pause on interaction and resume after
+  stage.addEventListener('pointerdown', ()=>{ paused=true; stopAuto(); }, {passive:true});
+  window.addEventListener('pointerup', ()=>{ paused=false; startAuto(); }, {passive:true});
+  stage.addEventListener('touchstart', ()=>{ paused=true; stopAuto(); }, {passive:true});
+  window.addEventListener('touchend', ()=>{ paused=false; startAuto(); }, {passive:true});
+
+  // Sync index on manual scroll and handle wrapping
   let scrollT = null;
   stage.addEventListener('scroll', ()=>{
     if(scrollT) clearTimeout(scrollT);
-    const w = slideW || stage.clientWidth || stage.getBoundingClientRect().width;
-    const cloneIdx = Math.floor((stage.scrollLeft + 0.5 * Math.max(1, w)) / Math.max(1, w)); // 0..realCount+1
-    scrollT = setTimeout(()=>{
-      let candidate = cloneIdx - 1; // 0..realCount-1 expected
-      if(candidate < 0){ realIndex = realCount - 1; jumpToReal(realIndex); }
-      else if(candidate >= realCount){ realIndex = 0; jumpToReal(realIndex); }
-      else { realIndex = candidate; }
-      v = virtualFromReal(realIndex);
-      updateDots();
-    }, 140);
+    const w = stage.clientWidth || stage.getBoundingClientRect().width;
+    index = Math.round(stage.scrollLeft / Math.max(1, w));
+    scrollT = setTimeout(()=>{ checkWrap(); updateDots(); }, 140);
   }, {passive:true});
 
-  // リサイズ: stop→測定→現在位置へjump→再開
+  // Resize handling
   window.addEventListener('resize', ()=>{
-    pauseAuto();
     slideW = stage.clientWidth || stage.getBoundingClientRect().width;
-    jumpToReal(realIndex);
-    resumeAuto();
+      jump(index);
+      startAuto();
   });
 
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', setup);
