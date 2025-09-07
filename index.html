@@ -238,6 +238,7 @@
   const btnNext  = document.getElementById('nav-next');
 
   const isMobile = () => window.matchMedia('(max-width: 600px)').matches; // 参照のみ（挙動は共通）
+  const DOTS_COUNT = 3; // 表示するドット数（5→3）
   let slideW = 0;
   let realCount = 0;   // number of real slides (excluding loop clones)
   let index = 1;       // current slide index in [0..realCount+1] where 0/realCount+1 are clones
@@ -303,17 +304,26 @@
   function buildDots(){
     if(!dotsWrap) return;
     dotsWrap.innerHTML='';
-    if(realCount <= 1){ dotsWrap.style.display = 'none'; return; }
+    const dotsCount = Math.min(DOTS_COUNT, realCount);
+    if(dotsCount <= 1){ dotsWrap.style.display = 'none'; return; }
     dotsWrap.style.display = '';
-    for(let i=0;i<realCount;i++){
+    for(let i=0;i<dotsCount;i++){
       const b=document.createElement('button');
-      b.type='button'; b.setAttribute('role','tab'); b.addEventListener('click',()=>goTo(i+1,true));
+      b.type='button'; b.setAttribute('role','tab');
+      b.addEventListener('click',()=>{
+        const target = (i === dotsCount-1)
+          ? realCount
+          : 1 + Math.round(i * (realCount - 1) / Math.max(1, (dotsCount - 1)));
+        goTo(target,true);
+      });
       dotsWrap.appendChild(b);
     }
   }
   function updateDots(){
     if(!dotsWrap) return;
-    const cur=(index-1+realCount)%realCount;
+    const dotsCount = Math.min(DOTS_COUNT, realCount);
+    const realIdx = (index - 1 + realCount) % realCount; // 0..realCount-1
+    const cur = Math.min(dotsCount-1, Math.floor(realIdx * dotsCount / realCount));
     [...dotsWrap.children].forEach((d,i)=>{ if(i===cur) d.setAttribute('aria-current','true'); else d.removeAttribute('aria-current'); });
   }
   function bindNav(){
