@@ -119,6 +119,91 @@
     .click-hint.awakened {
       opacity: 1;
     }
+
+    /* メニュー展開時のスタイル */
+    .cosmos-content {
+      transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .cosmos-content.menu-open {
+      transform: translateX(-25vw);
+    }
+
+    @media (max-width: 768px) {
+      .cosmos-content.menu-open {
+        transform: translateX(0) translateY(-20vh);
+      }
+    }
+
+    .cosmos-menu {
+      position: absolute;
+      right: 10vw;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 20;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1.5s ease 0.3s;
+    }
+
+    .cosmos-menu.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    @media (max-width: 768px) {
+      .cosmos-menu {
+        right: 50%;
+        top: 65%;
+        transform: translate(50%, -50%);
+        text-align: center;
+      }
+    }
+
+    .menu-item {
+      display: block;
+      margin: 1.5rem 0;
+      font-size: clamp(1rem, 2.5vw, 1.5rem);
+      font-weight: 300;
+      letter-spacing: 0.3em;
+      color: rgba(255, 255, 255, 0);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      transform: translateX(30px);
+    }
+
+    .cosmos-menu.visible .menu-item {
+      color: rgba(255, 255, 255, 0.6);
+      transform: translateX(0);
+    }
+
+    .menu-item:nth-child(1) { transition-delay: 0.1s; }
+    .menu-item:nth-child(2) { transition-delay: 0.2s; }
+    .menu-item:nth-child(3) { transition-delay: 0.3s; }
+    .menu-item:nth-child(4) { transition-delay: 0.4s; }
+    .menu-item:nth-child(5) { transition-delay: 0.5s; }
+
+    .menu-item:hover {
+      color: rgba(255, 255, 255, 1);
+      text-shadow: 0 0 30px rgba(150, 120, 255, 0.8);
+      transform: translateX(10px);
+    }
+
+    .click-counter {
+      position: absolute;
+      top: 2rem;
+      right: 2rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      color: rgba(255, 255, 255, 0.1);
+      z-index: 30;
+      transition: opacity 0.5s ease;
+    }
+
+    .click-counter.hidden {
+      opacity: 0;
+    }
   </style>
 </head>
 <body>
@@ -132,6 +217,16 @@
     
     <p class="cosmos-whisper" id="whisper">— gaze into eternity —</p>
     <p class="click-hint" id="clickHint">click to make a wish</p>
+    
+    <nav class="cosmos-menu" id="cosmosMenu">
+      <a class="menu-item" href="#story">物語</a>
+      <a class="menu-item" href="#world">世界観</a>
+      <a class="menu-item" href="#characters">登場人物</a>
+      <a class="menu-item" href="#gallery">銀河</a>
+      <a class="menu-item" href="#contact">接触</a>
+    </nav>
+    
+    <div class="click-counter" id="clickCounter">wishes: 0 / 20</div>
   </section>
 
   <script>
@@ -525,6 +620,46 @@
       }
 
       // ========================================
+      // クリックカウンター & メニュー展開
+      // ========================================
+      let clickCount = 0;
+      let menuOpened = false;
+      const CLICKS_TO_OPEN = 20;
+
+      function updateClickCounter() {
+        const counter = document.getElementById('clickCounter');
+        if (!menuOpened) {
+          counter.textContent = `wishes: ${clickCount} / ${CLICKS_TO_OPEN}`;
+        }
+      }
+
+      function openMenu() {
+        if (menuOpened) return;
+        menuOpened = true;
+
+        // カウンター非表示
+        document.getElementById('clickCounter').classList.add('hidden');
+        
+        // ヒント非表示
+        document.getElementById('clickHint').style.opacity = '0';
+        
+        // タイトルを左へ
+        document.querySelector('.cosmos-content').classList.add('menu-open');
+        
+        // メニュー表示
+        setTimeout(function() {
+          document.getElementById('cosmosMenu').classList.add('visible');
+        }, 500);
+
+        // 複数の流れ星を発生させる演出
+        for (let i = 0; i < 5; i++) {
+          setTimeout(function() {
+            triggerShootingStar();
+          }, i * 200);
+        }
+      }
+
+      // ========================================
       // イベント
       // ========================================
       window.addEventListener('mousemove', function(e) {
@@ -540,6 +675,15 @@
 
       window.addEventListener('click', function() {
         triggerShootingStar();
+        
+        if (!menuOpened) {
+          clickCount++;
+          updateClickCounter();
+          
+          if (clickCount >= CLICKS_TO_OPEN) {
+            openMenu();
+          }
+        }
       });
 
       // ========================================
