@@ -3,29 +3,63 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>畜物語 - 観測者の景色</title>
+  <title>物語 - 畜物語</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0a0a15;
+      color: #fff;
+      font-family: 'Cormorant Garamond', 'Palatino', Georgia, serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 8vw, 4rem);
+      font-weight: 100;
+      letter-spacing: 0.3em;
+      margin-bottom: 2rem;
+      text-shadow: 0 0 60px rgba(150, 120, 255, 0.4);
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: clamp(1rem, 2vw, 1.3rem);
+      line-height: 2.2;
+      max-width: 600px;
+    }
+
+    a {
+      color: rgba(255, 255, 255, 0.4);
+      text-decoration: none;
+      margin-top: 3rem;
+      display: inline-block;
+      letter-spacing: 0.2em;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    a:hover {
+      color: #fff;
+      text-shadow: 0 0 20px rgba(150, 120, 255, 0.6);
+    }
+  </style>
 </head>
 <body>
-  <section class="cosmos">
-    <canvas class="cosmos-canvas" id="cosmosCanvas"></canvas>
-    <div class="cosmos-content">
-      <h1 class="cosmos-title" id="title">畜物語</h1>
-      <p class="cosmos-subtitle" id="subtitle">観測者の景色</p>
-    </div>
-    <p class="cosmos-whisper" id="whisper">— gaze into eternity —</p>
-    <p class="click-hint" id="clickHint">click to make a wish</p>
-    <nav class="cosmos-menu" id="cosmosMenu">
-      <a class="menu-item" href="story/index.html">物語</a>
-      <a class="menu-item" href="#world">世界観</a>
-      <a class="menu-item" href="#characters">登場人物</a>
-      <a class="menu-item" href="#gallery">銀河</a>
-      <a class="menu-item" href="#contact">接触</a>
-    </nav>
-    <div class="click-counter" id="clickCounter">wishes: 0 / 20</div>
-  </section>
-  <script src="script.js"></script>
+  <h1>物語</h1>
+  <p>ここに物語の内容が入ります。</p>
+  <a href="../index.html">← 戻る</a>
 </body>
 </html>
