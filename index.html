@@ -347,7 +347,7 @@ return (
     {menuItems.map((item, i) => (
       <a
         key={item}
-        href={item === '物語' ? 'story/index.html' : `#${item}`}
+        href={item === '物語' ? '/story/' : `#${item}`}
         className="menu-item-link block my-6 hover:text-white"
         onClick={(e) => e.stopPropagation()}
         style={{
