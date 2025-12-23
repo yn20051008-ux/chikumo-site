@@ -1,705 +1,429 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>畜物語 - 観測者の景色</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+import { useEffect, useRef, useState } from ‘react’;
 
-    body {
-      overflow: hidden;
-      background: #000;
-      font-family: 'Cormorant Garamond', 'Palatino', Georgia, serif;
-    }
+export default function ChikumonogatariPreview() {
+const canvasRef = useRef(null);
+const [awakened, setAwakened] = useState(false);
+const [clickCount, setClickCount] = useState(0);
+const [menuOpen, setMenuOpen] = useState(false);
+const mouseRef = useRef({ x: 0.5, y: 0.5 });
+const shootingStarsRef = useRef([]);
 
-    .cosmos {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      height: 100dvh;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+const CLICKS_TO_OPEN = 20;
 
-    .cosmos-canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
+useEffect(() => {
+const canvas = canvasRef.current;
+const ctx = canvas.getContext(‘2d’);
+let w = canvas.width = window.innerWidth;
+let h = canvas.height = window.innerHeight;
+let frame = 0;
 
-    .cosmos-content {
-      position: relative;
-      text-align: center;
-      pointer-events: none;
-      z-index: 10;
+```
+class Star {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random() * w;
+    this.y = Math.random() * h;
+    this.z = Math.random();
+    this.baseRadius = 0.3 + Math.random() * 2.5;
+    this.twinkleSpeed = 0.015 + Math.random() * 0.035;
+    this.twinkleOffset = Math.random() * Math.PI * 2;
+    this.drawX = this.x;
+    this.drawY = this.y;
+    const temp = Math.random();
+    if (temp > 0.92) { this.hue = Math.random() * 30; this.sat = 80; }
+    else if (temp > 0.85) { this.hue = 30 + Math.random() * 30; this.sat = 70; }
+    else if (temp > 0.6) { this.hue = 45 + Math.random() * 15; this.sat = 40; }
+    else if (temp > 0.3) { this.hue = 60; this.sat = 10; }
+    else { this.hue = 200 + Math.random() * 40; this.sat = 60; }
+  }
+  update(t, mouse) {
+    this.twinkle = (Math.sin(t * this.twinkleSpeed + this.twinkleOffset) + 1) / 2;
+    const parallax = (1 - this.z) * 30;
+    this.drawX = this.x + (mouse.x - 0.5) * parallax;
+    this.drawY = this.y + (mouse.y - 0.5) * parallax;
+  }
+  draw(ctx) {
+    const r = this.baseRadius * (0.5 + this.z * 0.5) * (0.7 + this.twinkle * 0.3);
+    const alpha = (0.3 + this.z * 0.7) * (0.5 + this.twinkle * 0.5);
+    ctx.beginPath();
+    ctx.arc(this.drawX, this.drawY, r, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, 95%, ${alpha})`;
+    ctx.fill();
+    const glow = ctx.createRadialGradient(this.drawX, this.drawY, 0, this.drawX, this.drawY, r * 6);
+    glow.addColorStop(0, `hsla(${this.hue}, ${this.sat}%, 80%, ${alpha * 0.4})`);
+    glow.addColorStop(0.5, `hsla(${this.hue}, ${this.sat}%, 60%, ${alpha * 0.1})`);
+    glow.addColorStop(1, 'transparent');
+    ctx.beginPath();
+    ctx.arc(this.drawX, this.drawY, r * 6, 0, Math.PI * 2);
+    ctx.fillStyle = glow;
+    ctx.fill();
+    if (this.baseRadius > 1.8 && this.twinkle > 0.6) {
+      ctx.strokeStyle = `hsla(${this.hue}, ${this.sat}%, 90%, ${alpha * 0.3})`;
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(this.drawX - r * 4, this.drawY);
+      ctx.lineTo(this.drawX + r * 4, this.drawY);
+      ctx.moveTo(this.drawX, this.drawY - r * 4);
+      ctx.lineTo(this.drawX, this.drawY + r * 4);
+      ctx.stroke();
     }
+  }
+}
 
-    .cosmos-title {
-      font-size: clamp(2.5rem, 12vw, 10rem);
-      font-weight: 100;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: #fff;
-      white-space: nowrap;
-      text-shadow: 
-        0 0 80px rgba(150, 120, 255, 0.5),
-        0 0 120px rgba(100, 150, 255, 0.3);
-      opacity: 0;
-      transform: translateY(40px);
-      transition: all 3s cubic-bezier(0.16, 1, 0.3, 1);
+class Nebula {
+  constructor() {
+    this.x = Math.random() * w;
+    this.y = Math.random() * h;
+    this.radius = 150 + Math.random() * 250;
+    this.hue = Math.random() * 360;
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotSpeed = (Math.random() - 0.5) * 0.0005;
+  }
+  update() { this.rotation += this.rotSpeed; }
+  draw(ctx) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+    for (let i = 0; i < 3; i++) {
+      const grad = ctx.createRadialGradient(i * 20 - 20, i * 10 - 10, 0, 0, 0, this.radius * (0.8 + i * 0.2));
+      const hue = (this.hue + i * 40) % 360;
+      grad.addColorStop(0, `hsla(${hue}, 70%, 50%, 0.04)`);
+      grad.addColorStop(0.4, `hsla(${hue}, 60%, 40%, 0.02)`);
+      grad.addColorStop(1, 'transparent');
+      ctx.beginPath();
+      ctx.ellipse(0, 0, this.radius * (1 + i * 0.3), this.radius * 0.5 * (1 + i * 0.2), i * 0.3, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
     }
+    ctx.restore();
+  }
+}
 
-    .cosmos-title.awakened {
-      opacity: 1;
-      transform: translateY(0);
+class Galaxy {
+  constructor(x, y, size) {
+    this.x = x; this.y = y; this.size = size;
+    this.rotation = Math.random() * Math.PI * 2;
+    this.rotSpeed = 0.0008;
+    this.arms = 2 + Math.floor(Math.random() * 3);
+    this.hue = Math.random() * 60 + 200;
+    this.particles = [];
+    for (let i = 0; i < 800; i++) {
+      const arm = i % this.arms;
+      const dist = Math.pow(Math.random(), 0.5) * this.size;
+      const armAngle = (arm / this.arms) * Math.PI * 2;
+      const spiral = dist * 0.015;
+      const spread = (Math.random() - 0.5) * 0.5 * (dist / this.size);
+      this.particles.push({ dist, angle: armAngle + spiral + spread, size: 0.3 + Math.random() * 1.2, bright: Math.random() });
     }
+  }
+  update() { this.rotation += this.rotSpeed; }
+  draw(ctx) {
+    ctx.save();
+    ctx.translate(this.x, this.y);
+    ctx.rotate(this.rotation);
+    const core = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size * 0.3);
+    core.addColorStop(0, `hsla(${this.hue + 40}, 40%, 90%, 0.3)`);
+    core.addColorStop(0.3, `hsla(${this.hue + 20}, 50%, 60%, 0.1)`);
+    core.addColorStop(1, 'transparent');
+    ctx.beginPath();
+    ctx.arc(0, 0, this.size * 0.3, 0, Math.PI * 2);
+    ctx.fillStyle = core;
+    ctx.fill();
+    this.particles.forEach(p => {
+      const x = Math.cos(p.angle) * p.dist;
+      const y = Math.sin(p.angle) * p.dist * 0.4;
+      const fade = 1 - (p.dist / this.size) * 0.7;
+      ctx.beginPath();
+      ctx.arc(x, y, p.size * fade, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${this.hue + p.bright * 60}, ${30 + p.bright * 40}%, ${70 + p.bright * 25}%, ${fade * 0.6})`;
+      ctx.fill();
+    });
+    ctx.restore();
+  }
+}
 
-    .cosmos-subtitle {
-      margin-top: 1.5rem;
-      font-size: clamp(0.8rem, 2vw, 1.2rem);
-      font-style: italic;
-      letter-spacing: 0.5em;
-      color: rgba(255, 255, 255, 0.4);
-      opacity: 0;
-      transform: translateY(20px);
-      transition: all 3s cubic-bezier(0.16, 1, 0.3, 1) 0.5s;
+class ShootingStar {
+  constructor() { this.reset(); }
+  reset() { this.active = false; this.x = 0; this.y = 0; this.vx = 0; this.vy = 0; this.life = 0; this.maxLife = 0; }
+  trigger() {
+    if (this.active) return;
+    this.active = true;
+    this.x = Math.random() * w * 0.8;
+    this.y = Math.random() * h * 0.3;
+    const angle = Math.PI * 0.2 + Math.random() * 0.2;
+    const speed = 15 + Math.random() * 10;
+    this.vx = Math.cos(angle) * speed;
+    this.vy = Math.sin(angle) * speed;
+    this.life = 0;
+    this.maxLife = 40 + Math.random() * 30;
+  }
+  update() {
+    if (!this.active) return;
+    this.x += this.vx; this.y += this.vy; this.life++;
+    if (this.life > this.maxLife) this.reset();
+  }
+  draw(ctx) {
+    if (!this.active) return;
+    const progress = this.life / this.maxLife;
+    const alpha = Math.sin(progress * Math.PI);
+    const grad = ctx.createLinearGradient(this.x, this.y, this.x - this.vx * 3, this.y - this.vy * 3);
+    grad.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
+    grad.addColorStop(0.3, `rgba(200, 220, 255, ${alpha * 0.5})`);
+    grad.addColorStop(1, 'transparent');
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(this.x - this.vx * 3, this.y - this.vy * 3);
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+    ctx.fill();
+  }
+}
+
+class Aurora {
+  constructor() {
+    this.waves = [];
+    for (let i = 0; i < 5; i++) {
+      this.waves.push({ y: h * 0.1 + i * 30, amplitude: 20 + Math.random() * 40, frequency: 0.002 + Math.random() * 0.003, speed: 0.01 + Math.random() * 0.02, phase: Math.random() * Math.PI * 2, hue: 140 + i * 20, alpha: 0.03 - i * 0.005 });
     }
-
-    .cosmos-subtitle.awakened {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .cosmos-whisper {
-      position: absolute;
-      bottom: 2rem;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.9rem;
-      font-style: italic;
-      letter-spacing: 0.3em;
-      color: rgba(255, 255, 255, 0.2);
-      opacity: 0;
-      transition: opacity 2s ease 2s;
-      animation: breathe 4s ease-in-out infinite;
-    }
-
-    .cosmos-whisper.awakened {
-      opacity: 1;
-    }
-
-    @keyframes breathe {
-      0%, 100% { opacity: 0.2; }
-      50% { opacity: 0.1; }
-    }
-
-    .click-hint {
-      position: absolute;
-      bottom: 5rem;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.75rem;
-      letter-spacing: 0.2em;
-      color: rgba(255, 255, 255, 0.15);
-      opacity: 0;
-      transition: opacity 2s ease 3s;
-    }
-
-    .click-hint.awakened {
-      opacity: 1;
-    }
-
-    /* メニュー展開時のスタイル */
-    .cosmos-content {
-      transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .cosmos-content.menu-open {
-      transform: translateX(-25vw);
-    }
-
-    @media (max-width: 768px) {
-      .cosmos-content.menu-open {
-        transform: translateX(0) translateY(-20vh);
+  }
+  update() { this.waves.forEach(wave => { wave.phase += wave.speed; }); }
+  draw(ctx) {
+    this.waves.forEach(wave => {
+      ctx.beginPath();
+      ctx.moveTo(0, wave.y);
+      for (let x = 0; x <= w; x += 5) {
+        const y = wave.y + Math.sin(x * wave.frequency + wave.phase) * wave.amplitude;
+        ctx.lineTo(x, y);
       }
-    }
+      ctx.lineTo(w, h * 0.4);
+      ctx.lineTo(0, h * 0.4);
+      ctx.closePath();
+      const grad = ctx.createLinearGradient(0, wave.y - wave.amplitude, 0, h * 0.4);
+      grad.addColorStop(0, `hsla(${wave.hue}, 80%, 60%, ${wave.alpha})`);
+      grad.addColorStop(0.5, `hsla(${wave.hue + 30}, 70%, 50%, ${wave.alpha * 0.5})`);
+      grad.addColorStop(1, 'transparent');
+      ctx.fillStyle = grad;
+      ctx.fill();
+    });
+  }
+}
 
-    .cosmos-menu {
-      position: absolute;
-      right: 10vw;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 20;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 1.5s ease 0.3s;
-    }
+const stars = Array.from({ length: 600 }, () => new Star());
+const nebulae = Array.from({ length: 3 }, () => new Nebula());
+const galaxy = new Galaxy(w * 0.75, h * 0.35, 180);
+const shootingStars = Array.from({ length: 8 }, () => new ShootingStar());
+shootingStarsRef.current = shootingStars;
+const aurora = new Aurora();
 
-    .cosmos-menu.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
+const animate = () => {
+  frame++;
+  const mouse = mouseRef.current;
+  const bg = ctx.createRadialGradient(w * 0.3, h * 0.3, 0, w / 2, h / 2, Math.max(w, h));
+  bg.addColorStop(0, '#0d0d1a');
+  bg.addColorStop(0.5, '#070711');
+  bg.addColorStop(1, '#020204');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+  aurora.update(); aurora.draw(ctx);
+  nebulae.forEach(n => { n.update(); n.draw(ctx); });
+  galaxy.update(); galaxy.draw(ctx);
+  stars.forEach(s => { s.update(frame, mouse); s.draw(ctx); });
+  if (frame % 180 === 0) {
+    const inactive = shootingStars.find(s => !s.active);
+    if (inactive) inactive.trigger();
+  }
+  shootingStars.forEach(s => { s.update(); s.draw(ctx); });
+  const vignette = ctx.createRadialGradient(w / 2, h / 2, h * 0.3, w / 2, h / 2, Math.max(w, h) * 0.8);
+  vignette.addColorStop(0, 'transparent');
+  vignette.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+  ctx.fillStyle = vignette;
+  ctx.fillRect(0, 0, w, h);
+  requestAnimationFrame(animate);
+};
 
-    @media (max-width: 768px) {
-      .cosmos-menu {
-        right: 50%;
-        top: 65%;
-        transform: translate(50%, -50%);
-        text-align: center;
-      }
-    }
+animate();
+setTimeout(() => setAwakened(true), 1500);
 
-    .menu-item {
-      display: block;
-      margin: 1.5rem 0;
-      font-size: clamp(1rem, 2.5vw, 1.5rem);
-      font-weight: 300;
-      letter-spacing: 0.3em;
-      color: rgba(255, 255, 255, 0);
-      text-decoration: none;
-      cursor: pointer;
-      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-      transform: translateX(30px);
-    }
+const handleMove = e => { mouseRef.current = { x: e.clientX / w, y: e.clientY / h }; };
+const handleResize = () => { w = canvas.width = window.innerWidth; h = canvas.height = window.innerHeight; stars.forEach(s => s.reset()); };
+window.addEventListener('mousemove', handleMove);
+window.addEventListener('resize', handleResize);
+return () => { window.removeEventListener('mousemove', handleMove); window.removeEventListener('resize', handleResize); };
+```
 
-    .cosmos-menu.visible .menu-item {
-      color: rgba(255, 255, 255, 0.6);
-      transform: translateX(0);
-    }
+}, []);
 
-    .menu-item:nth-child(1) { transition-delay: 0.1s; }
-    .menu-item:nth-child(2) { transition-delay: 0.2s; }
-    .menu-item:nth-child(3) { transition-delay: 0.3s; }
-    .menu-item:nth-child(4) { transition-delay: 0.4s; }
-    .menu-item:nth-child(5) { transition-delay: 0.5s; }
+const triggerShootingStar = () => {
+const inactive = shootingStarsRef.current.find(s => !s.active);
+if (inactive) inactive.trigger();
+};
 
-    .menu-item:hover {
-      color: rgba(255, 255, 255, 1);
-      text-shadow: 0 0 30px rgba(150, 120, 255, 0.8);
-      transform: translateX(10px);
-    }
+const handleClick = (e) => {
+// メニューリンクがクリックされた場合は何もしない（リンク遷移を許可）
+if (e.target.closest(‘a.menu-item-link’)) return;
 
-    .click-counter {
-      position: absolute;
-      top: 2rem;
-      right: 2rem;
-      font-size: 0.75rem;
-      letter-spacing: 0.2em;
-      color: rgba(255, 255, 255, 0.1);
-      z-index: 30;
-      transition: opacity 0.5s ease;
+```
+triggerShootingStar();
+if (!menuOpen) {
+  const newCount = clickCount + 1;
+  setClickCount(newCount);
+  if (newCount >= CLICKS_TO_OPEN) {
+    setMenuOpen(true);
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => triggerShootingStar(), i * 200);
     }
+  }
+}
+```
 
-    .click-counter.hidden {
-      opacity: 0;
-    }
-  </style>
-</head>
-<body>
-  <section class="cosmos">
-    <canvas class="cosmos-canvas" id="cosmosCanvas"></canvas>
-    
-    <div class="cosmos-content">
-      <h1 class="cosmos-title" id="title">畜物語</h1>
-      <p class="cosmos-subtitle" id="subtitle">観測者の景色</p>
+};
+
+const menuItems = [‘物語’, ‘世界観’, ‘登場人物’, ‘銀河’, ‘接触’];
+
+return (
+<div className=“relative w-full h-screen overflow-hidden bg-black” onClick={(e) => handleClick(e)}>
+<canvas ref={canvasRef} className="absolute inset-0" />
+
+```
+  <div 
+    className="absolute inset-0 flex items-center justify-center pointer-events-none"
+    style={{
+      transform: menuOpen ? 'translateX(-25%)' : 'translateX(0)',
+      transition: 'transform 1.5s cubic-bezier(0.16, 1, 0.3, 1)'
+    }}
+  >
+    <div className="text-center">
+      <h1 
+        style={{
+          fontFamily: 'Palatino, Georgia, serif',
+          fontSize: 'clamp(2.5rem, 12vw, 10rem)',
+          fontWeight: 100,
+          letterSpacing: '0.2em',
+          whiteSpace: 'nowrap',
+          color: '#fff',
+          textShadow: '0 0 80px rgba(150, 120, 255, 0.5), 0 0 120px rgba(100, 150, 255, 0.3)',
+          opacity: awakened ? 1 : 0,
+          transform: `translateY(${awakened ? 0 : 40}px)`,
+          transition: 'all 3s cubic-bezier(0.16, 1, 0.3, 1)'
+        }}
+      >
+        畜物語
+      </h1>
+      <p
+        style={{
+          marginTop: '1.5rem',
+          fontFamily: 'Palatino, Georgia, serif',
+          fontSize: 'clamp(0.8rem, 2vw, 1.2rem)',
+          fontStyle: 'italic',
+          letterSpacing: '0.5em',
+          color: 'rgba(255, 255, 255, 0.4)',
+          opacity: awakened ? 1 : 0,
+          transform: `translateY(${awakened ? 0 : 20}px)`,
+          transition: 'all 3s cubic-bezier(0.16, 1, 0.3, 1) 0.5s'
+        }}
+      >
+        観測者の景色
+      </p>
     </div>
-    
-    <p class="cosmos-whisper" id="whisper">— gaze into eternity —</p>
-    <p class="click-hint" id="clickHint">click to make a wish</p>
-    
-    <nav class="cosmos-menu" id="cosmosMenu">
-      <a class="menu-item" href="#story">物語</a>
-      <a class="menu-item" href="#world">世界観</a>
-      <a class="menu-item" href="#characters">登場人物</a>
-      <a class="menu-item" href="#gallery">銀河</a>
-      <a class="menu-item" href="#contact">接触</a>
-    </nav>
-    
-    <div class="click-counter" id="clickCounter">wishes: 0 / 20</div>
-  </section>
+  </div>
 
-  <script>
-    (function() {
-      // Canvas設定
-      const canvas = document.getElementById('cosmosCanvas');
-      const ctx = canvas.getContext('2d');
-      let w = canvas.width = window.innerWidth;
-      let h = canvas.height = window.innerHeight;
-      let frame = 0;
-      let mouse = { x: 0.5, y: 0.5 };
+  <nav
+    onClick={(e) => e.stopPropagation()}
+    style={{
+      position: 'absolute',
+      right: '10vw',
+      top: '50%',
+      transform: 'translateY(-50%)',
+      zIndex: 20,
+      opacity: menuOpen ? 1 : 0,
+      pointerEvents: menuOpen ? 'auto' : 'none',
+      transition: 'opacity 1.5s ease 0.3s'
+    }}
+  >
+    {menuItems.map((item, i) => (
+      <a
+        key={item}
+        href={item === '物語' ? 'story/index.html' : `#${item}`}
+        className="menu-item-link block my-6 hover:text-white"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          fontFamily: 'Palatino, Georgia, serif',
+          fontSize: 'clamp(1rem, 2.5vw, 1.5rem)',
+          fontWeight: 300,
+          letterSpacing: '0.3em',
+          color: menuOpen ? 'rgba(255, 255, 255, 0.6)' : 'transparent',
+          textDecoration: 'none',
+          transform: menuOpen ? 'translateX(0)' : 'translateX(30px)',
+          transition: `all 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${0.1 * (i + 1)}s`,
+          pointerEvents: menuOpen ? 'auto' : 'none',
+          position: 'relative',
+          zIndex: 100
+        }}
+      >
+        {item}
+      </a>
+    ))}
+  </nav>
 
-      // ========================================
-      // 星クラス
-      // ========================================
-      class Star {
-        constructor() {
-          this.reset();
-        }
+  {!menuOpen && (
+    <p
+      style={{
+        position: 'absolute',
+        bottom: '5rem',
+        left: '50%',
+        transform: 'translateX(-50%)',
+        fontFamily: 'Palatino, Georgia, serif',
+        fontSize: '0.75rem',
+        letterSpacing: '0.2em',
+        color: 'rgba(255, 255, 255, 0.15)',
+        opacity: awakened ? 1 : 0,
+        transition: 'opacity 2s ease 3s'
+      }}
+    >
+      click to make a wish
+    </p>
+  )}
 
-        reset() {
-          this.x = Math.random() * w;
-          this.y = Math.random() * h;
-          this.z = Math.random();
-          this.baseRadius = 0.3 + Math.random() * 2.5;
-          this.twinkleSpeed = 0.015 + Math.random() * 0.035;
-          this.twinkleOffset = Math.random() * Math.PI * 2;
-          this.drawX = this.x;
-          this.drawY = this.y;
-          
-          // 星の色温度
-          const temp = Math.random();
-          if (temp > 0.92) {
-            this.hue = Math.random() * 30;
-            this.sat = 80;
-          } else if (temp > 0.85) {
-            this.hue = 30 + Math.random() * 30;
-            this.sat = 70;
-          } else if (temp > 0.6) {
-            this.hue = 45 + Math.random() * 15;
-            this.sat = 40;
-          } else if (temp > 0.3) {
-            this.hue = 60;
-            this.sat = 10;
-          } else {
-            this.hue = 200 + Math.random() * 40;
-            this.sat = 60;
-          }
-        }
+  <p
+    style={{
+      position: 'absolute',
+      bottom: '2rem',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      fontFamily: 'Palatino, Georgia, serif',
+      fontSize: '0.9rem',
+      fontStyle: 'italic',
+      letterSpacing: '0.3em',
+      color: 'rgba(255, 255, 255, 0.2)',
+      opacity: awakened ? 1 : 0,
+      transition: 'opacity 2s ease 2s'
+    }}
+  >
+    — gaze into eternity —
+  </p>
 
-        update(t, mouse) {
-          this.twinkle = (Math.sin(t * this.twinkleSpeed + this.twinkleOffset) + 1) / 2;
-          const parallax = (1 - this.z) * 30;
-          this.drawX = this.x + (mouse.x - 0.5) * parallax;
-          this.drawY = this.y + (mouse.y - 0.5) * parallax;
-        }
+  {!menuOpen && (
+    <div
+      style={{
+        position: 'absolute',
+        top: '2rem',
+        right: '2rem',
+        fontFamily: 'Palatino, Georgia, serif',
+        fontSize: '0.75rem',
+        letterSpacing: '0.2em',
+        color: 'rgba(255, 255, 255, 0.15)',
+        zIndex: 30
+      }}
+    >
+      wishes: {clickCount} / {CLICKS_TO_OPEN}
+    </div>
+  )}
+</div>
+```
 
-        draw(ctx) {
-          const r = this.baseRadius * (0.5 + this.z * 0.5) * (0.7 + this.twinkle * 0.3);
-          const alpha = (0.3 + this.z * 0.7) * (0.5 + this.twinkle * 0.5);
-
-          // コア
-          ctx.beginPath();
-          ctx.arc(this.drawX, this.drawY, r, 0, Math.PI * 2);
-          ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, 95%, ${alpha})`;
-          ctx.fill();
-
-          // グロー
-          const glow = ctx.createRadialGradient(
-            this.drawX, this.drawY, 0,
-            this.drawX, this.drawY, r * 6
-          );
-          glow.addColorStop(0, `hsla(${this.hue}, ${this.sat}%, 80%, ${alpha * 0.4})`);
-          glow.addColorStop(0.5, `hsla(${this.hue}, ${this.sat}%, 60%, ${alpha * 0.1})`);
-          glow.addColorStop(1, 'transparent');
-          ctx.beginPath();
-          ctx.arc(this.drawX, this.drawY, r * 6, 0, Math.PI * 2);
-          ctx.fillStyle = glow;
-          ctx.fill();
-
-          // 十字の光芒
-          if (this.baseRadius > 1.8 && this.twinkle > 0.6) {
-            ctx.strokeStyle = `hsla(${this.hue}, ${this.sat}%, 90%, ${alpha * 0.3})`;
-            ctx.lineWidth = 0.5;
-            ctx.beginPath();
-            ctx.moveTo(this.drawX - r * 4, this.drawY);
-            ctx.lineTo(this.drawX + r * 4, this.drawY);
-            ctx.moveTo(this.drawX, this.drawY - r * 4);
-            ctx.lineTo(this.drawX, this.drawY + r * 4);
-            ctx.stroke();
-          }
-        }
-      }
-
-      // ========================================
-      // 星雲クラス
-      // ========================================
-      class Nebula {
-        constructor() {
-          this.x = Math.random() * w;
-          this.y = Math.random() * h;
-          this.radius = 150 + Math.random() * 250;
-          this.hue = Math.random() * 360;
-          this.rotation = Math.random() * Math.PI * 2;
-          this.rotSpeed = (Math.random() - 0.5) * 0.0005;
-        }
-
-        update() {
-          this.rotation += this.rotSpeed;
-        }
-
-        draw(ctx) {
-          ctx.save();
-          ctx.translate(this.x, this.y);
-          ctx.rotate(this.rotation);
-
-          for (let i = 0; i < 3; i++) {
-            const grad = ctx.createRadialGradient(
-              i * 20 - 20, i * 10 - 10, 0,
-              0, 0, this.radius * (0.8 + i * 0.2)
-            );
-            const hue = (this.hue + i * 40) % 360;
-            grad.addColorStop(0, `hsla(${hue}, 70%, 50%, 0.04)`);
-            grad.addColorStop(0.4, `hsla(${hue}, 60%, 40%, 0.02)`);
-            grad.addColorStop(1, 'transparent');
-            ctx.beginPath();
-            ctx.ellipse(0, 0, this.radius * (1 + i * 0.3), this.radius * 0.5 * (1 + i * 0.2), i * 0.3, 0, Math.PI * 2);
-            ctx.fillStyle = grad;
-            ctx.fill();
-          }
-          ctx.restore();
-        }
-      }
-
-      // ========================================
-      // 銀河クラス
-      // ========================================
-      class Galaxy {
-        constructor(x, y, size) {
-          this.x = x;
-          this.y = y;
-          this.size = size;
-          this.rotation = Math.random() * Math.PI * 2;
-          this.rotSpeed = 0.0008;
-          this.arms = 2 + Math.floor(Math.random() * 3);
-          this.hue = Math.random() * 60 + 200;
-          this.particles = [];
-
-          for (let i = 0; i < 800; i++) {
-            const arm = i % this.arms;
-            const dist = Math.pow(Math.random(), 0.5) * this.size;
-            const armAngle = (arm / this.arms) * Math.PI * 2;
-            const spiral = dist * 0.015;
-            const spread = (Math.random() - 0.5) * 0.5 * (dist / this.size);
-            this.particles.push({
-              dist,
-              angle: armAngle + spiral + spread,
-              size: 0.3 + Math.random() * 1.2,
-              bright: Math.random()
-            });
-          }
-        }
-
-        update() {
-          this.rotation += this.rotSpeed;
-        }
-
-        draw(ctx) {
-          ctx.save();
-          ctx.translate(this.x, this.y);
-          ctx.rotate(this.rotation);
-
-          // 中心のグロー
-          const core = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size * 0.3);
-          core.addColorStop(0, `hsla(${this.hue + 40}, 40%, 90%, 0.3)`);
-          core.addColorStop(0.3, `hsla(${this.hue + 20}, 50%, 60%, 0.1)`);
-          core.addColorStop(1, 'transparent');
-          ctx.beginPath();
-          ctx.arc(0, 0, this.size * 0.3, 0, Math.PI * 2);
-          ctx.fillStyle = core;
-          ctx.fill();
-
-          // 星々
-          this.particles.forEach(p => {
-            const x = Math.cos(p.angle) * p.dist;
-            const y = Math.sin(p.angle) * p.dist * 0.4;
-            const fade = 1 - (p.dist / this.size) * 0.7;
-            ctx.beginPath();
-            ctx.arc(x, y, p.size * fade, 0, Math.PI * 2);
-            ctx.fillStyle = `hsla(${this.hue + p.bright * 60}, ${30 + p.bright * 40}%, ${70 + p.bright * 25}%, ${fade * 0.6})`;
-            ctx.fill();
-          });
-          ctx.restore();
-        }
-      }
-
-      // ========================================
-      // 流れ星クラス
-      // ========================================
-      class ShootingStar {
-        constructor() {
-          this.reset();
-        }
-
-        reset() {
-          this.active = false;
-          this.x = 0;
-          this.y = 0;
-          this.vx = 0;
-          this.vy = 0;
-          this.life = 0;
-          this.maxLife = 0;
-        }
-
-        trigger() {
-          if (this.active) return;
-          this.active = true;
-          this.x = Math.random() * w * 0.8;
-          this.y = Math.random() * h * 0.3;
-          const angle = Math.PI * 0.2 + Math.random() * 0.2;
-          const speed = 15 + Math.random() * 10;
-          this.vx = Math.cos(angle) * speed;
-          this.vy = Math.sin(angle) * speed;
-          this.life = 0;
-          this.maxLife = 40 + Math.random() * 30;
-        }
-
-        update() {
-          if (!this.active) return;
-          this.x += this.vx;
-          this.y += this.vy;
-          this.life++;
-          if (this.life > this.maxLife) this.reset();
-        }
-
-        draw(ctx) {
-          if (!this.active) return;
-          const progress = this.life / this.maxLife;
-          const alpha = Math.sin(progress * Math.PI);
-
-          const grad = ctx.createLinearGradient(
-            this.x, this.y,
-            this.x - this.vx * 3, this.y - this.vy * 3
-          );
-          grad.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
-          grad.addColorStop(0.3, `rgba(200, 220, 255, ${alpha * 0.5})`);
-          grad.addColorStop(1, 'transparent');
-
-          ctx.beginPath();
-          ctx.moveTo(this.x, this.y);
-          ctx.lineTo(this.x - this.vx * 3, this.y - this.vy * 3);
-          ctx.strokeStyle = grad;
-          ctx.lineWidth = 2;
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-          ctx.fill();
-        }
-      }
-
-      // ========================================
-      // オーロラクラス
-      // ========================================
-      class Aurora {
-        constructor() {
-          this.waves = [];
-          for (let i = 0; i < 5; i++) {
-            this.waves.push({
-              y: h * 0.1 + i * 30,
-              amplitude: 20 + Math.random() * 40,
-              frequency: 0.002 + Math.random() * 0.003,
-              speed: 0.01 + Math.random() * 0.02,
-              phase: Math.random() * Math.PI * 2,
-              hue: 140 + i * 20,
-              alpha: 0.03 - i * 0.005
-            });
-          }
-        }
-
-        update() {
-          this.waves.forEach(wave => {
-            wave.phase += wave.speed;
-          });
-        }
-
-        draw(ctx) {
-          this.waves.forEach(wave => {
-            ctx.beginPath();
-            ctx.moveTo(0, wave.y);
-            for (let x = 0; x <= w; x += 5) {
-              const y = wave.y + Math.sin(x * wave.frequency + wave.phase) * wave.amplitude;
-              ctx.lineTo(x, y);
-            }
-            ctx.lineTo(w, h * 0.4);
-            ctx.lineTo(0, h * 0.4);
-            ctx.closePath();
-
-            const grad = ctx.createLinearGradient(0, wave.y - wave.amplitude, 0, h * 0.4);
-            grad.addColorStop(0, `hsla(${wave.hue}, 80%, 60%, ${wave.alpha})`);
-            grad.addColorStop(0.5, `hsla(${wave.hue + 30}, 70%, 50%, ${wave.alpha * 0.5})`);
-            grad.addColorStop(1, 'transparent');
-            ctx.fillStyle = grad;
-            ctx.fill();
-          });
-        }
-      }
-
-      // ========================================
-      // 初期化
-      // ========================================
-      const stars = [];
-      for (let i = 0; i < 600; i++) {
-        stars.push(new Star());
-      }
-
-      const nebulae = [];
-      for (let i = 0; i < 3; i++) {
-        nebulae.push(new Nebula());
-      }
-
-      const galaxy = new Galaxy(w * 0.75, h * 0.35, 180);
-
-      const shootingStars = [];
-      for (let i = 0; i < 8; i++) {
-        shootingStars.push(new ShootingStar());
-      }
-
-      const aurora = new Aurora();
-
-      // 流れ星トリガー関数
-      function triggerShootingStar() {
-        const inactive = shootingStars.find(s => !s.active);
-        if (inactive) inactive.trigger();
-      }
-
-      // ========================================
-      // アニメーションループ
-      // ========================================
-      function animate() {
-        frame++;
-
-        // 背景
-        const bg = ctx.createRadialGradient(w * 0.3, h * 0.3, 0, w / 2, h / 2, Math.max(w, h));
-        bg.addColorStop(0, '#0d0d1a');
-        bg.addColorStop(0.5, '#070711');
-        bg.addColorStop(1, '#020204');
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, w, h);
-
-        // オーロラ
-        aurora.update();
-        aurora.draw(ctx);
-
-        // 星雲
-        nebulae.forEach(n => {
-          n.update();
-          n.draw(ctx);
-        });
-
-        // 銀河
-        galaxy.update();
-        galaxy.draw(ctx);
-
-        // 星
-        stars.forEach(s => {
-          s.update(frame, mouse);
-          s.draw(ctx);
-        });
-
-        // 3秒ごとに流れ星
-        if (frame % 180 === 0) {
-          triggerShootingStar();
-        }
-
-        // 流れ星
-        shootingStars.forEach(s => {
-          s.update();
-          s.draw(ctx);
-        });
-
-        // ビネット
-        const vignette = ctx.createRadialGradient(w / 2, h / 2, h * 0.3, w / 2, h / 2, Math.max(w, h) * 0.8);
-        vignette.addColorStop(0, 'transparent');
-        vignette.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
-        ctx.fillStyle = vignette;
-        ctx.fillRect(0, 0, w, h);
-
-        requestAnimationFrame(animate);
-      }
-
-      // ========================================
-      // クリックカウンター & メニュー展開
-      // ========================================
-      let clickCount = 0;
-      let menuOpened = false;
-      const CLICKS_TO_OPEN = 20;
-
-      function updateClickCounter() {
-        const counter = document.getElementById('clickCounter');
-        if (!menuOpened) {
-          counter.textContent = `wishes: ${clickCount} / ${CLICKS_TO_OPEN}`;
-        }
-      }
-
-      function openMenu() {
-        if (menuOpened) return;
-        menuOpened = true;
-
-        // カウンター非表示
-        document.getElementById('clickCounter').classList.add('hidden');
-        
-        // ヒント非表示
-        document.getElementById('clickHint').style.opacity = '0';
-        
-        // タイトルを左へ
-        document.querySelector('.cosmos-content').classList.add('menu-open');
-        
-        // メニュー表示
-        setTimeout(function() {
-          document.getElementById('cosmosMenu').classList.add('visible');
-        }, 500);
-
-        // 複数の流れ星を発生させる演出
-        for (let i = 0; i < 5; i++) {
-          setTimeout(function() {
-            triggerShootingStar();
-          }, i * 200);
-        }
-      }
-
-      // ========================================
-      // イベント
-      // ========================================
-      window.addEventListener('mousemove', function(e) {
-        mouse.x = e.clientX / w;
-        mouse.y = e.clientY / h;
-      });
-
-      window.addEventListener('resize', function() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-        stars.forEach(s => s.reset());
-      });
-
-      window.addEventListener('click', function() {
-        triggerShootingStar();
-        
-        if (!menuOpened) {
-          clickCount++;
-          updateClickCounter();
-          
-          if (clickCount >= CLICKS_TO_OPEN) {
-            openMenu();
-          }
-        }
-      });
-
-      // ========================================
-      // 開始
-      // ========================================
-      animate();
-
-      // 覚醒アニメーション
-      setTimeout(function() {
-        document.getElementById('title').classList.add('awakened');
-        document.getElementById('subtitle').classList.add('awakened');
-        document.getElementById('whisper').classList.add('awakened');
-        document.getElementById('clickHint').classList.add('awakened');
-      }, 1500);
-
-    })();
-  </script>
-</body>
-</html>
+);
+}
