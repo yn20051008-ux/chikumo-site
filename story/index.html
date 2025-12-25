@@ -1,1 +1,602 @@
 
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>畜星インターセプト</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
+      overflow: hidden;
+      background: #000;
+    }
+
+    /* ===== メインコンテナ ===== */
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background: linear-gradient(180deg, #000005 0%, #03030f 70%, #050515 100%);
+      cursor: pointer;
+      overflow: hidden;
+    }
+
+    /* ===== 星 ===== */
+    .star {
+      position: absolute;
+      background-color: #fff;
+      border-radius: 50%;
+    }
+
+    /* ===== 畜星 ===== */
+    #chikusei {
+      position: absolute;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #e07050 0%, #c0503a 40%, #a03020 70%, #701810 100%);
+      box-shadow: inset -8px -8px 20px rgba(0,0,0,0.5), 0 0 20px 5px rgba(200,100,50,0.3);
+      transform: translate(-50%, -50%);
+      z-index: 5;
+    }
+
+    #chikusei::after {
+      content: '';
+      position: absolute;
+      top: 30%;
+      left: 20%;
+      width: 25px;
+      height: 8px;
+      background: rgba(120,40,20,0.4);
+      border-radius: 50%;
+      transform: rotate(-15deg);
+    }
+
+    /* ===== 地球 ===== */
+    #earth-container {
+      position: absolute;
+      bottom: -180px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 450px;
+      height: 450px;
+    }
+
+    #earth-glow {
+      position: absolute;
+      inset: -40px;
+      border-radius: 50%;
+      background: radial-gradient(circle, transparent 50%, rgba(100,180,255,0.1) 70%, transparent 90%);
+    }
+
+    #earth {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: inset -40px -25px 80px rgba(0,0,0,0.7), 0 0 50px 10px rgba(100,180,255,0.25);
+    }
+
+    #earth-ocean {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 30% 30%, #1a6baa 0%, #0a3d62 60%, #072a45 100%);
+    }
+
+    #earth-land {
+      position: absolute;
+      inset: 0;
+      animation: earthSpin 90s linear infinite;
+    }
+
+    #earth-shadow {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: linear-gradient(105deg, transparent 45%, rgba(0,0,20,0.5) 65%, rgba(0,0,10,0.8) 100%);
+    }
+
+    #earth-atmosphere {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, transparent 80%, rgba(100,180,255,0.4) 95%, rgba(80,160,255,0.6) 100%);
+    }
+
+    /* ===== ロケット ===== */
+    #rocket {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 110px;
+      z-index: 10;
+    }
+
+    #rocket.launching {
+      animation: rocketShake 0.06s infinite;
+    }
+
+    #rocket svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 8px 25px rgba(0,0,0,0.5));
+    }
+
+    #flame {
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    #rocket.launching #flame {
+      opacity: 1;
+    }
+
+    /* ===== UI ===== */
+    #ui-top {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 20;
+    }
+
+    #mission-title {
+      color: #ff8866;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-shadow: 0 0 15px rgba(255,100,50,0.8);
+    }
+
+    #ui-bottom {
+      position: absolute;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      z-index: 20;
+    }
+
+    #attempts {
+      color: #5cb8ff;
+      font-size: 10px;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+
+    #instruction {
+      color: rgba(255,200,100,0.9);
+      font-size: 11px;
+      letter-spacing: 1px;
+      animation: pulse 1.5s infinite;
+    }
+
+    #instruction.hidden {
+      color: rgba(255,255,255,0.4);
+      animation: none;
+    }
+
+    /* ===== メニュー ===== */
+    .menu-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .menu-overlay.show {
+      display: flex;
+    }
+
+    .menu-box {
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+    }
+
+    /* クリアメニュー */
+    #clear-menu .menu-box {
+      background: linear-gradient(145deg, #1a2a4a, #0a1525);
+      border: 2px solid rgba(100,180,255,0.3);
+    }
+
+    #clear-menu .emoji {
+      font-size: 48px;
+      margin-bottom: 10px;
+    }
+
+    #clear-menu h1 {
+      color: #5cb8ff;
+      font-size: 28px;
+      margin: 0 0 10px 0;
+    }
+
+    #clear-menu .message {
+      color: #8cc8ff;
+      font-size: 14px;
+      margin: 0 0 5px 0;
+    }
+
+    #clear-menu .attempts-result {
+      color: rgba(255,255,255,0.5);
+      font-size: 12px;
+      margin: 0 0 30px 0;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 30px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: bold;
+      letter-spacing: 2px;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+    }
+
+    .btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-next {
+      background: linear-gradient(145deg, #4CAF50, #2E7D32);
+      color: white;
+    }
+
+    .btn-close {
+      background: linear-gradient(145deg, #444, #222);
+      border: 1px solid #555;
+      color: white;
+    }
+
+    /* 失敗メニュー */
+    #fail-menu .menu-box {
+      background: linear-gradient(145deg, #3a1a1a, #1a0a0a);
+      border: 2px solid rgba(255,100,100,0.3);
+    }
+
+    #fail-menu h1 {
+      color: #ff6b6b;
+      font-size: 24px;
+      margin: 0 0 10px 0;
+    }
+
+    #fail-menu .message {
+      color: rgba(255,255,255,0.6);
+      font-size: 13px;
+      margin: 0 0 25px 0;
+    }
+
+    .btn-retry {
+      background: linear-gradient(145deg, #cc4444, #992222);
+      color: white;
+    }
+
+    /* ===== アニメーション ===== */
+    @keyframes twinkle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.2; }
+    }
+
+    @keyframes earthSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @keyframes rocketShake {
+      0%, 100% { transform: translateX(-50%); }
+      50% { transform: translateX(-50%) translateY(-1px) rotate(0.2deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <!-- 星（JSで生成） -->
+    
+    <!-- 畜星 -->
+    <div id="chikusei"></div>
+    
+    <!-- ロケット -->
+    <div id="rocket">
+      <svg viewBox="0 0 70 240">
+        <defs>
+          <linearGradient id="body" x1="0%" x2="100%">
+            <stop offset="0%" stop-color="#888"/>
+            <stop offset="50%" stop-color="#f8f8f8"/>
+            <stop offset="100%" stop-color="#888"/>
+          </linearGradient>
+          <linearGradient id="nose" x1="0%" x2="100%">
+            <stop offset="0%" stop-color="#1a1a1a"/>
+            <stop offset="50%" stop-color="#444"/>
+            <stop offset="100%" stop-color="#1a1a1a"/>
+          </linearGradient>
+          <linearGradient id="flameGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#ff3300"/>
+            <stop offset="50%" stop-color="#ffbb00"/>
+            <stop offset="100%" stop-color="rgba(255,255,0,0)"/>
+          </linearGradient>
+          <filter id="glow" x="-100%" y="-20%" width="300%" height="150%">
+            <feGaussianBlur stdDeviation="3"/>
+          </filter>
+        </defs>
+        <path d="M35,0 C25,15 22,35 22,50 L48,50 C48,35 45,15 35,0 Z" fill="url(#nose)"/>
+        <rect x="22" y="50" width="26" height="40" fill="url(#body)"/>
+        <rect x="20" y="90" width="30" height="12" fill="#333"/>
+        <rect x="20" y="102" width="30" height="90" fill="url(#body)"/>
+        <rect x="6" y="105" width="12" height="18" fill="#333" rx="1"/>
+        <rect x="52" y="105" width="12" height="18" fill="#333" rx="1"/>
+        <path d="M20,175 L5,198 L9,200 L22,180" fill="#333"/>
+        <path d="M50,175 L65,198 L61,200 L48,180" fill="#333"/>
+        <path d="M20,192 L17,202 L53,202 L50,192" fill="#333"/>
+        <g id="flame">
+          <ellipse cx="35" cy="255" rx="32" ry="45" fill="url(#flameGrad)" filter="url(#glow)" opacity="0.5"/>
+          <path d="M24,208 Q18,235 15,270 Q26,305 35,315 Q44,305 55,270 Q52,235 46,208 Z" fill="url(#flameGrad)" filter="url(#glow)"/>
+        </g>
+      </svg>
+    </div>
+    
+    <!-- 地球 -->
+    <div id="earth-container">
+      <div id="earth-glow"></div>
+      <div id="earth">
+        <div id="earth-ocean"></div>
+        <svg id="earth-land" viewBox="0 0 400 400">
+          <defs>
+            <linearGradient id="land" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#5cb85c"/>
+              <stop offset="100%" stop-color="#2d6b2d"/>
+            </linearGradient>
+          </defs>
+          <path d="M75,75 Q120,65 175,66 Q210,70 218,88 Q212,96 165,108 Q105,112 72,88 Z" fill="url(#land)"/>
+          <path d="M80,108 Q165,108 235,125 Q240,148 188,180 Q105,180 70,140 Z" fill="url(#land)"/>
+          <path d="M155,315 Q192,318 200,360 Q175,400 122,365 Z" fill="url(#land)"/>
+          <path d="M275,125 Q312,130 322,170 Q302,218 242,195 Q250,142 275,125 Z" fill="url(#land)"/>
+          <path d="M320,65 Q380,68 398,100 Q380,135 308,125 Q310,85 320,65 Z" fill="url(#land)"/>
+          <ellipse cx="200" cy="25" rx="70" ry="15" fill="#fff" opacity="0.8"/>
+        </svg>
+        <div id="earth-shadow"></div>
+        <div id="earth-atmosphere"></div>
+      </div>
+    </div>
+    
+    <!-- UI上部 -->
+    <div id="ui-top">
+      <div id="mission-title">🔴 畜星 INTERCEPT MISSION</div>
+    </div>
+    
+    <!-- UI下部 -->
+    <div id="ui-bottom">
+      <div id="attempts">ATTEMPTS: <span id="attempts-count">0</span></div>
+      <div id="instruction">🚀 TAP TO LAUNCH!</div>
+    </div>
+    
+    <!-- クリアメニュー -->
+    <div id="clear-menu" class="menu-overlay">
+      <div class="menu-box">
+        <div class="emoji">🚀🎯</div>
+        <h1>MISSION COMPLETE!</h1>
+        <p class="message">畜星への軌道投入に成功！</p>
+        <p class="attempts-result">Attempts: <span id="clear-attempts">0</span></p>
+        <div class="btn-group">
+          <button class="btn btn-next" id="btn-next">NEXT →</button>
+          <button class="btn btn-close" id="btn-close">CLOSE</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 失敗メニュー -->
+    <div id="fail-menu" class="menu-overlay">
+      <div class="menu-box">
+        <div class="emoji" style="font-size:48px; margin-bottom:10px;">💥</div>
+        <h1>MISSION FAILED</h1>
+        <p class="message" id="fail-reason">ロケットが畜星を逃しました...</p>
+        <button class="btn btn-retry" id="btn-retry">TRY AGAIN</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===== 設定 =====
+    const CONFIG = {
+      starCount: 80,
+      launchDuration: 2500,
+      orbitDuration: 1600,  // 畜星の通過時間（5倍速）
+      nextPageUrl: '../story/'  // クリア後の遷移先
+    };
+
+    // ===== 要素取得 =====
+    const container = document.getElementById('game-container');
+    const chikusei = document.getElementById('chikusei');
+    const rocket = document.getElementById('rocket');
+    const attemptsCount = document.getElementById('attempts-count');
+    const instruction = document.getElementById('instruction');
+    const clearMenu = document.getElementById('clear-menu');
+    const failMenu = document.getElementById('fail-menu');
+    const clearAttempts = document.getElementById('clear-attempts');
+    const failReason = document.getElementById('fail-reason');
+    const btnNext = document.getElementById('btn-next');
+    const btnClose = document.getElementById('btn-close');
+    const btnRetry = document.getElementById('btn-retry');
+
+    // ===== ゲーム状態 =====
+    let gameState = 'ready'; // ready, launching, cleared, failed
+    let attempts = 0;
+    let rocketY = 240;
+    let chikuseiProgress = 0;
+    let startTime = null;
+    let launchTime = null;
+    let animationId = null;
+
+    // ===== 星を生成 =====
+    function createStars() {
+      for (let i = 0; i < CONFIG.starCount; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        const size = Math.random() * 2.5 + 0.5;
+        const brightness = Math.random() * 0.6 + 0.4;
+        star.style.cssText = `
+          left: ${Math.random() * 100}%;
+          top: ${Math.random() * 75}%;
+          width: ${size}px;
+          height: ${size}px;
+          opacity: ${brightness};
+          animation: twinkle ${Math.random() * 2 + 1.5}s ${Math.random() * 4}s infinite;
+        `;
+        container.appendChild(star);
+      }
+    }
+
+    // ===== 畜星の位置を更新 =====
+    function updateChikusei(progress) {
+      const x = 90 - progress * 80;
+      const y = 15 + Math.sin(progress * Math.PI) * 25;
+      chikusei.style.left = x + '%';
+      chikusei.style.top = y + '%';
+      return { x, y };
+    }
+
+    // ===== ロケットの位置を更新 =====
+    function updateRocket(y) {
+      rocket.style.bottom = y + 'px';
+    }
+
+    // ===== 衝突判定 =====
+    function checkCollision(chikuseiPos, rocketY) {
+      const rocketX = 50;
+      const rocketTopY = 100 - (rocketY / 8);
+      const distance = Math.sqrt(
+        Math.pow(chikuseiPos.x - rocketX, 2) + 
+        Math.pow(chikuseiPos.y - rocketTopY, 2)
+      );
+      return distance < 10;
+    }
+
+    // ===== ゲームループ =====
+    function gameLoop(timestamp) {
+      if (!startTime) startTime = timestamp;
+      
+      const elapsed = timestamp - startTime;
+      chikuseiProgress = (elapsed % CONFIG.orbitDuration) / CONFIG.orbitDuration;
+      const chikuseiPos = updateChikusei(chikuseiProgress);
+
+      if (gameState === 'launching' && launchTime) {
+        const launchElapsed = timestamp - launchTime;
+        rocketY = 240 + (launchElapsed / CONFIG.launchDuration) * 700;
+        updateRocket(rocketY);
+
+        // 衝突判定
+        if (checkCollision(chikuseiPos, rocketY)) {
+          gameState = 'cleared';
+          showClearMenu();
+        }
+
+        // 画面外に出たら失敗
+        if (rocketY > 1000 && gameState !== 'cleared') {
+          gameState = 'failed';
+          showFailMenu('ロケットが畜星を逃しました...');
+        }
+      }
+
+      // 常にアニメーションを継続
+      animationId = requestAnimationFrame(gameLoop);
+    }
+
+    // ===== クリアメニュー表示 =====
+    function showClearMenu() {
+      clearAttempts.textContent = attempts;
+      clearMenu.classList.add('show');
+    }
+
+    // ===== 失敗メニュー表示 =====
+    function showFailMenu(reason) {
+      failReason.textContent = reason;
+      failMenu.classList.add('show');
+    }
+
+    // ===== ゲームリセット =====
+    function resetGame() {
+      gameState = 'ready';
+      rocketY = 240;
+      launchTime = null;
+      updateRocket(rocketY);
+      rocket.classList.remove('launching');
+      instruction.textContent = '🚀 TAP TO LAUNCH!';
+      instruction.classList.remove('hidden');
+      clearMenu.classList.remove('show');
+      failMenu.classList.remove('show');
+    }
+
+    // ===== イベントリスナー =====
+    container.addEventListener('click', (e) => {
+      // メニューが表示されている場合は無視
+      if (gameState === 'cleared' || gameState === 'failed') return;
+
+      if (gameState === 'ready') {
+        gameState = 'launching';
+        attempts++;
+        attemptsCount.textContent = attempts;
+        launchTime = performance.now();
+        rocket.classList.add('launching');
+        instruction.textContent = 'LAUNCHING...';
+        instruction.classList.add('hidden');
+      }
+    });
+
+    // 次へボタン
+    btnNext.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.location.href = CONFIG.nextPageUrl;
+    });
+
+    // 閉じるボタン
+    btnClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      resetGame();
+    });
+
+    // リトライボタン
+    btnRetry.addEventListener('click', (e) => {
+      e.stopPropagation();
+      resetGame();
+    });
+
+    // ===== 初期化 =====
+    createStars();
+    updateRocket(rocketY);
+    animationId = requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
