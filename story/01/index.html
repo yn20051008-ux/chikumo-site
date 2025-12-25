@@ -5,320 +5,427 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SPACE DODGE - 宇宙ロケット避けゲーム</title>
     <meta name="description" content="隕石を避けて小惑星帯を突破！ブラウザで遊べる無料の宇宙ロケットゲーム。">
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        #game {
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(180deg, #000005, #050515);
+            position: relative;
+            overflow: hidden;
+        }
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+        }
+        .star.moving {
+            animation: starFlow linear infinite;
+        }
+        @keyframes starFlow {
+            0% {
+                transform: translateY(0);
+            }
+            100% {
+                transform: translateY(100vh);
+            }
+        }
+        #rocket {
+            position: absolute;
+            bottom: 15%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 150px;
+            z-index: 10;
+            display: none;
+        }
+        #score {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            z-index: 20;
+            display: none;
+        }
+        #score.gold {
+            color: gold;
+        }
+        .meteor {
+            position: absolute;
+            z-index: 5;
+        }
+        .overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        #startScreen {
+            background: rgba(0,0,0,0.8);
+        }
+        #gameOverScreen {
+            background: rgba(0,0,0,0.9);
+            display: none;
+        }
+        #victoryScreen {
+            background: rgba(0,0,50,0.9);
+            display: none;
+        }
+        .title {
+            font-size: 48px;
+            color: white;
+            margin: 20px;
+            font-weight: bold;
+        }
+        .subtitle {
+            font-size: 18px;
+            color: rgba(255,255,255,0.8);
+            margin: 20px;
+            text-align: center;
+        }
+        .game-btn {
+            padding: 15px 40px;
+            font-size: 20px;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .game-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255,255,255,0.3);
+        }
+        .btn-start {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        .btn-retry {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+        .emoji {
+            font-size: 64px;
+        }
+        .game-over-title {
+            font-size: 56px;
+            color: #ff4444;
+            margin: 20px;
+            font-weight: bold;
+        }
+        .victory-title {
+            font-size: 56px;
+            color: gold;
+            margin: 20px;
+            font-weight: bold;
+        }
+        .final-score {
+            font-size: 24px;
+            color: white;
+            margin: 20px;
+        }
+    </style>
 </head>
 <body>
-    <div id="root"></div>
-    
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+    <div id="game">
+        <!-- Stars will be generated here -->
+        
+        <div id="rocket">
+            <svg viewBox="0 0 70 240" style="width:100%;height:100%">
+                <defs>
+                    <linearGradient id="rocketBody">
+                        <stop offset="0%" stop-color="#8a8a8a"/>
+                        <stop offset="50%" stop-color="#f8f8f8"/>
+                        <stop offset="100%" stop-color="#8a8a8a"/>
+                    </linearGradient>
+                    <linearGradient id="noseCone">
+                        <stop offset="0%" stop-color="#1a1a1a"/>
+                        <stop offset="50%" stop-color="#444"/>
+                        <stop offset="100%" stop-color="#1a1a1a"/>
+                    </linearGradient>
+                    <linearGradient id="interstage">
+                        <stop offset="0%" stop-color="#202020"/>
+                        <stop offset="50%" stop-color="#505050"/>
+                        <stop offset="100%" stop-color="#202020"/>
+                    </linearGradient>
+                </defs>
+                <path d="M35,0 C25,15 22,35 22,50 L48,50 C48,35 45,15 35,0 Z" fill="url(#noseCone)"/>
+                <rect x="22" y="50" width="26" height="40" fill="url(#rocketBody)"/>
+                <rect x="20" y="90" width="30" height="12" fill="url(#interstage)"/>
+                <rect x="20" y="102" width="30" height="90" fill="url(#rocketBody)"/>
+                <rect x="24" y="130" width="22" height="25" fill="none" stroke="#1565c0" stroke-width="0.6"/>
+                <text x="35" y="145" text-anchor="middle" fill="#1565c0" font-size="5" font-weight="bold">SPACE</text>
+                <rect x="6" y="105" width="12" height="18" fill="url(#interstage)"/>
+                <rect x="52" y="105" width="12" height="18" fill="url(#interstage)"/>
+                <path d="M20,175 L5,198 L9,200 L22,180" fill="url(#interstage)"/>
+                <path d="M50,175 L65,198 L61,200 L48,180" fill="url(#interstage)"/>
+                <path d="M20,192 L17,202 L53,202 L50,192" fill="url(#interstage)"/>
+                <ellipse cx="35" cy="206" rx="5.5" ry="2.5" fill="#111"/>
+            </svg>
+        </div>
+        
+        <div id="score">0</div>
+        
+        <div id="startScreen" class="overlay">
+            <div class="emoji">🚀</div>
+            <div class="title">SPACE DODGE</div>
+            <div class="subtitle">隕石を避けて小惑星帯を突破しよう！</div>
+            <button class="game-btn btn-start" onclick="startGame()">START GAME</button>
+        </div>
+        
+        <div id="gameOverScreen" class="overlay">
+            <div class="game-over-title">GAME OVER</div>
+            <div class="final-score">Score: <span id="finalScore">0</span></div>
+            <button class="game-btn btn-retry" onclick="startGame()">RETRY</button>
+        </div>
+        
+        <div id="victoryScreen" class="overlay">
+            <div class="emoji">🎉</div>
+            <div class="victory-title">MISSION COMPLETE!</div>
+            <div class="subtitle">おめでとうございます！<br>小惑星帯を突破しました！</div>
+            <button class="game-btn btn-start" onclick="alert('次のステージは準備中です！')">NEXT STAGE</button>
+        </div>
+    </div>
 
-        function SpaceDodge() {
-          const [state, setState] = useState('start');
-          const [score, setScore] = useState(0);
-          const [rocketX, setRocketX] = useState(50);
-          const [meteors, setMeteors] = useState([]);
-          const gameRef = useRef(null);
-          const keysRef = useRef({ left: false, right: false });
+    <script>
+        const game = document.getElementById('game');
+        const rocket = document.getElementById('rocket');
+        const scoreDisplay = document.getElementById('score');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const victoryScreen = document.getElementById('victoryScreen');
+        const finalScoreDisplay = document.getElementById('finalScore');
 
-          const stars = Array.from({ length: 150 }, (_, i) => ({
-            id: i,
-            left: Math.random() * 100,
-            top: Math.random() * 100,
-            size: Math.random() * 2 + 1
-          }));
+        let state = 'start';
+        let score = 0;
+        let rocketX = 50;
+        let meteors = [];
+        let keys = { left: false, right: false };
+        let meteorInterval = null;
+        let gameLoop = null;
 
-          useEffect(() => {
+        // Generate stars
+        const stars = [];
+        for (let i = 0; i < 150; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            const size = Math.random() * 2 + 1;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            // Larger stars move faster (closer), smaller stars move slower (farther)
+            star.dataset.duration = (3 - size * 0.8 + Math.random()).toFixed(2);
+            game.appendChild(star);
+            stars.push(star);
+        }
+
+        function setStarsMoving(moving) {
+            stars.forEach(star => {
+                if (moving) {
+                    star.classList.add('moving');
+                    star.style.animationDuration = star.dataset.duration + 's';
+                } else {
+                    star.classList.remove('moving');
+                }
+            });
+        }
+
+        function startGame() {
+            state = 'playing';
+            score = 0;
+            rocketX = 50;
+            
+            // Clear existing meteors
+            meteors.forEach(m => m.element.remove());
+            meteors = [];
+            
+            // Hide overlays
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            victoryScreen.style.display = 'none';
+            
+            // Show game elements
+            rocket.style.display = 'block';
+            scoreDisplay.style.display = 'block';
+            scoreDisplay.classList.remove('gold');
+            
+            updateRocketPosition();
+            
+            // Start star animation
+            setStarsMoving(true);
+            
+            // Start meteor spawning
+            meteorInterval = setInterval(spawnMeteor, 1200);
+            
+            // Start game loop
+            gameLoop = setInterval(update, 16);
+        }
+
+        function spawnMeteor() {
             if (state !== 'playing') return;
-
-            const meteorInterval = setInterval(() => {
-              setMeteors(prev => [...prev, {
-                id: Date.now(),
+            
+            const id = Date.now();
+            const meteor = {
+                id: id,
                 x: Math.random() * 90 + 5,
                 y: -10,
                 rot: Math.random() * 360,
                 rotSpeed: (Math.random() - 0.5) * 8,
-                size: Math.random() * 30 + 40
-              }]);
-            }, 1200);
+                size: Math.random() * 30 + 40,
+                element: null
+            };
+            
+            const el = document.createElement('div');
+            el.className = 'meteor';
+            el.innerHTML = `
+                <svg viewBox="0 0 100 100" style="width:${meteor.size}px;height:${meteor.size}px">
+                    <defs>
+                        <radialGradient id="mg-${id}">
+                            <stop offset="0%" stop-color="#8b7355"/>
+                            <stop offset="50%" stop-color="#6b5344"/>
+                            <stop offset="100%" stop-color="#3a2518"/>
+                        </radialGradient>
+                    </defs>
+                    <circle cx="50" cy="50" r="45" fill="url(#mg-${id})"/>
+                    <ellipse cx="35" cy="35" rx="12" ry="10" fill="#4a3728" opacity="0.6"/>
+                    <ellipse cx="60" cy="55" rx="8" ry="7" fill="#4a3728" opacity="0.5"/>
+                </svg>
+            `;
+            game.appendChild(el);
+            meteor.element = el;
+            meteors.push(meteor);
+            
+            updateMeteorPosition(meteor);
+        }
 
-            const gameLoop = setInterval(() => {
-              if (keysRef.current.left) setRocketX(x => Math.max(5, x - 8));
-              if (keysRef.current.right) setRocketX(x => Math.min(95, x + 8));
+        function updateMeteorPosition(meteor) {
+            meteor.element.style.left = meteor.x + '%';
+            meteor.element.style.top = meteor.y + '%';
+            meteor.element.style.transform = `translate(-50%, -50%) rotate(${meteor.rot}deg)`;
+        }
 
-              setMeteors(prev => {
-                const updated = prev.map(m => ({
-                  ...m,
-                  y: m.y + 3,
-                  rot: m.rot + m.rotSpeed
-                })).filter(m => m.y < 110);
+        function updateRocketPosition() {
+            rocket.style.left = rocketX + '%';
+        }
 
-                const rocketTop = 70;
-                const rocketBottom = 85;
+        function update() {
+            if (state !== 'playing') return;
+            
+            // Handle input
+            if (keys.left) rocketX = Math.max(5, rocketX - 8);
+            if (keys.right) rocketX = Math.min(95, rocketX + 8);
+            updateRocketPosition();
+            
+            // Update meteors
+            const rocketTop = 70;
+            const rocketBottom = 85;
+            
+            for (let i = meteors.length - 1; i >= 0; i--) {
+                const m = meteors[i];
+                m.y += 3;
+                m.rot += m.rotSpeed;
                 
-                for (const m of updated) {
-                  const hit = (
+                // Check collision
+                const hit = (
                     m.y + m.size/100*6 > rocketTop &&
                     m.y < rocketBottom &&
                     m.x + m.size/100*2.5 > rocketX - 2.5 &&
                     m.x - m.size/100*2.5 < rocketX + 2.5
-                  );
-                  if (hit) {
-                    setState('over');
-                    return prev;
-                  }
+                );
+                
+                if (hit) {
+                    gameOver();
+                    return;
                 }
-                return updated;
-              });
-
-              setScore(s => {
-                const newScore = s + 1;
-                if (Math.floor(newScore / 60) >= 40) setState('victory');
-                return newScore;
-              });
-            }, 16);
-
-            return () => {
-              clearInterval(meteorInterval);
-              clearInterval(gameLoop);
-            };
-          }, [state, rocketX]);
-
-          useEffect(() => {
-            const handleKeyDown = (e) => {
-              if (e.key === 'ArrowLeft' || e.key === 'a') keysRef.current.left = true;
-              if (e.key === 'ArrowRight' || e.key === 'd') keysRef.current.right = true;
-              if (e.key === ' ' && state === 'start') { e.preventDefault(); startGame(); }
-              if (e.key === 'r' && state === 'over') startGame();
-            };
-
-            const handleKeyUp = (e) => {
-              if (e.key === 'ArrowLeft' || e.key === 'a') keysRef.current.left = false;
-              if (e.key === 'ArrowRight' || e.key === 'd') keysRef.current.right = false;
-            };
-
-            window.addEventListener('keydown', handleKeyDown);
-            window.addEventListener('keyup', handleKeyUp);
-            return () => {
-              window.removeEventListener('keydown', handleKeyDown);
-              window.removeEventListener('keyup', handleKeyUp);
-            };
-          }, [state]);
-
-          const startGame = () => {
-            setState('playing');
-            setScore(0);
-            setRocketX(50);
-            setMeteors([]);
-          };
-
-          const handleTouch = (e) => {
-            e.preventDefault();
-            if (state === 'start' || state === 'over') {
-              startGame();
-            } else if (state === 'playing' && gameRef.current) {
-              const rect = gameRef.current.getBoundingClientRect();
-              const x = ((e.touches[0].clientX - rect.left) / rect.width) * 100;
-              setRocketX(Math.max(5, Math.min(95, x)));
+                
+                // Remove off-screen meteors
+                if (m.y > 110) {
+                    m.element.remove();
+                    meteors.splice(i, 1);
+                } else {
+                    updateMeteorPosition(m);
+                }
             }
-          };
-
-          const displayScore = Math.floor(score / 60);
-
-          return (
-            <div 
-              ref={gameRef}
-              onTouchStart={handleTouch}
-              onTouchMove={handleTouch}
-              style={{
-                width: '100vw',
-                height: '100vh',
-                background: 'linear-gradient(180deg, #000005, #050515)',
-                position: 'relative',
-                overflow: 'hidden'
-              }}
-            >
-              {stars.map(s => (
-                <div key={s.id} style={{
-                  position: 'absolute',
-                  left: s.left + '%',
-                  top: s.top + '%',
-                  width: s.size + 'px',
-                  height: s.size + 'px',
-                  background: 'white',
-                  borderRadius: '50%'
-                }} />
-              ))}
-
-              {state === 'playing' && (
-                <>
-                  <div style={{
-                    position: 'absolute',
-                    left: rocketX + '%',
-                    bottom: '15%',
-                    transform: 'translateX(-50%)',
-                    width: '50px',
-                    height: '150px',
-                    zIndex: 10
-                  }}>
-                    <svg viewBox="0 0 70 240" style={{ width: '100%', height: '100%' }}>
-                      <defs>
-                        <linearGradient id="rocketBody">
-                          <stop offset="0%" stopColor="#8a8a8a" />
-                          <stop offset="50%" stopColor="#f8f8f8" />
-                          <stop offset="100%" stopColor="#8a8a8a" />
-                        </linearGradient>
-                        <linearGradient id="noseCone">
-                          <stop offset="0%" stopColor="#1a1a1a" />
-                          <stop offset="50%" stopColor="#444" />
-                          <stop offset="100%" stopColor="#1a1a1a" />
-                        </linearGradient>
-                        <linearGradient id="interstage">
-                          <stop offset="0%" stopColor="#202020" />
-                          <stop offset="50%" stopColor="#505050" />
-                          <stop offset="100%" stopColor="#202020" />
-                        </linearGradient>
-                      </defs>
-                      <path d="M35,0 C25,15 22,35 22,50 L48,50 C48,35 45,15 35,0 Z" fill="url(#noseCone)" />
-                      <rect x="22" y="50" width="26" height="40" fill="url(#rocketBody)" />
-                      <rect x="20" y="90" width="30" height="12" fill="url(#interstage)" />
-                      <rect x="20" y="102" width="30" height="90" fill="url(#rocketBody)" />
-                      <rect x="24" y="130" width="22" height="25" fill="none" stroke="#1565c0" strokeWidth="0.6" />
-                      <text x="35" y="145" textAnchor="middle" fill="#1565c0" fontSize="5" fontWeight="bold">SPACE</text>
-                      <rect x="6" y="105" width="12" height="18" fill="url(#interstage)" />
-                      <rect x="52" y="105" width="12" height="18" fill="url(#interstage)" />
-                      <path d="M20,175 L5,198 L9,200 L22,180" fill="url(#interstage)" />
-                      <path d="M50,175 L65,198 L61,200 L48,180" fill="url(#interstage)" />
-                      <path d="M20,192 L17,202 L53,202 L50,192" fill="url(#interstage)" />
-                      <ellipse cx="35" cy="206" rx="5.5" ry="2.5" fill="#111" />
-                    </svg>
-                  </div>
-
-                  <div style={{
-                    position: 'absolute',
-                    top: '30px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    color: displayScore >= 30 ? 'gold' : 'white',
-                    fontSize: '32px',
-                    fontWeight: 'bold',
-                    zIndex: 20
-                  }}>
-                    {displayScore}
-                  </div>
-
-                  {meteors.map(m => (
-                    <div key={m.id} style={{
-                      position: 'absolute',
-                      left: m.x + '%',
-                      top: m.y + '%',
-                      transform: `translate(-50%, -50%) rotate(${m.rot}deg)`,
-                      width: m.size + 'px',
-                      height: m.size + 'px',
-                      zIndex: 5
-                    }}>
-                      <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
-                        <defs>
-                          <radialGradient id={`mg-${m.id}`}>
-                            <stop offset="0%" stopColor="#8b7355" />
-                            <stop offset="50%" stopColor="#6b5344" />
-                            <stop offset="100%" stopColor="#3a2518" />
-                          </radialGradient>
-                        </defs>
-                        <circle cx="50" cy="50" r="45" fill={`url(#mg-${m.id})`} />
-                        <ellipse cx="35" cy="35" rx="12" ry="10" fill="#4a3728" opacity="0.6" />
-                        <ellipse cx="60" cy="55" rx="8" ry="7" fill="#4a3728" opacity="0.5" />
-                      </svg>
-                    </div>
-                  ))}
-                </>
-              )}
-
-              {state === 'start' && (
-                <div style={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: 'rgba(0,0,0,0.8)',
-                  zIndex: 100
-                }}>
-                  <div style={{ fontSize: '64px' }}>🚀</div>
-                  <div style={{ fontSize: '48px', color: 'white', margin: '20px', fontWeight: 'bold' }}>SPACE DODGE</div>
-                  <div style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', margin: '20px' }}>隕石を避けて畜星を目指そう！</div>
-                  <button onClick={startGame} style={{
-                    padding: '15px 40px',
-                    fontSize: '20px',
-                    background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '50px',
-                    cursor: 'pointer'
-                  }}>START GAME</button>
-                </div>
-              )}
-
-              {state === 'victory' && (
-                <div style={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: 'rgba(0,0,50,0.9)',
-                  zIndex: 100
-                }}>
-                  <div style={{ fontSize: '64px' }}>🎉</div>
-                  <div style={{ fontSize: '56px', color: 'gold', margin: '20px', fontWeight: 'bold' }}>MISSION COMPLETE!</div>
-                  <div style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', margin: '20px', textAlign: 'center' }}>
-                    おめでとうございます！<br/>小惑星帯を突破しました！
-                  </div>
-                  <button onClick={() => alert('次のステージは準備中です！')} style={{
-                    padding: '15px 40px',
-                    fontSize: '20px',
-                    background: 'linear-gradient(135deg, #667eea, #764ba2)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '50px',
-                    cursor: 'pointer'
-                  }}>NEXT STAGE</button>
-                </div>
-              )}
-
-              {state === 'over' && (
-                <div style={{
-                  position: 'absolute',
-                  inset: 0,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: 'rgba(0,0,0,0.9)',
-                  zIndex: 100
-                }}>
-                  <div style={{ fontSize: '56px', color: '#ff4444', margin: '20px', fontWeight: 'bold' }}>GAME OVER</div>
-                  <div style={{ fontSize: '24px', color: 'white', margin: '20px' }}>Score: {displayScore}</div>
-                  <button onClick={startGame} style={{
-                    padding: '15px 40px',
-                    fontSize: '20px',
-                    background: 'linear-gradient(135deg, #f093fb, #f5576c)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '50px',
-                    cursor: 'pointer'
-                  }}>RETRY</button>
-                </div>
-              )}
-            </div>
-          );
+            
+            // Update score
+            score++;
+            const displayScore = Math.floor(score / 60);
+            scoreDisplay.textContent = displayScore;
+            
+            if (displayScore >= 30) {
+                scoreDisplay.classList.add('gold');
+            }
+            
+            // Check victory
+            if (displayScore >= 40) {
+                victory();
+            }
         }
 
-        ReactDOM.render(<SpaceDodge />, document.getElementById('root'));
+        function gameOver() {
+            state = 'over';
+            clearInterval(meteorInterval);
+            clearInterval(gameLoop);
+            setStarsMoving(false);
+            
+            rocket.style.display = 'none';
+            scoreDisplay.style.display = 'none';
+            finalScoreDisplay.textContent = Math.floor(score / 60);
+            gameOverScreen.style.display = 'flex';
+        }
+
+        function victory() {
+            state = 'victory';
+            clearInterval(meteorInterval);
+            clearInterval(gameLoop);
+            setStarsMoving(false);
+            
+            rocket.style.display = 'none';
+            scoreDisplay.style.display = 'none';
+            victoryScreen.style.display = 'flex';
+        }
+
+        // Keyboard controls
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
+            if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
+            if (e.key === ' ' && state === 'start') { e.preventDefault(); startGame(); }
+            if (e.key === 'r' && state === 'over') startGame();
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = false;
+            if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
+        });
+
+        // Touch controls
+        game.addEventListener('touchstart', handleTouch, { passive: false });
+        game.addEventListener('touchmove', handleTouch, { passive: false });
+
+        function handleTouch(e) {
+            e.preventDefault();
+            if (state === 'start' || state === 'over') {
+                startGame();
+            } else if (state === 'playing') {
+                const rect = game.getBoundingClientRect();
+                const x = ((e.touches[0].clientX - rect.left) / rect.width) * 100;
+                rocketX = Math.max(5, Math.min(95, x));
+                updateRocketPosition();
+            }
+        }
     </script>
 </body>
 </html>
