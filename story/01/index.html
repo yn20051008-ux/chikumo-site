@@ -1,319 +1,324 @@
-import React, { useState, useEffect, useRef } from 'react';
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPACE DODGE - 宇宙ロケット避けゲーム</title>
+    <meta name="description" content="隕石を避けて小惑星帯を突破！ブラウザで遊べる無料の宇宙ロケットゲーム。">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
 
-export default function SpaceDodge() {
-  const [state, setState] = useState('start');
-  const [score, setScore] = useState(0);
-  const [rocketX, setRocketX] = useState(50);
-  const [meteors, setMeteors] = useState([]);
-  const gameRef = useRef(null);
-  const keysRef = useRef({ left: false, right: false });
+        function SpaceDodge() {
+          const [state, setState] = useState('start');
+          const [score, setScore] = useState(0);
+          const [rocketX, setRocketX] = useState(50);
+          const [meteors, setMeteors] = useState([]);
+          const gameRef = useRef(null);
+          const keysRef = useRef({ left: false, right: false });
 
-  const stars = Array.from({ length: 150 }, (_, i) => ({
-    id: i,
-    left: Math.random() * 100,
-    top: Math.random() * 100,
-    size: Math.random() * 2 + 1
-  }));
+          const stars = Array.from({ length: 150 }, (_, i) => ({
+            id: i,
+            left: Math.random() * 100,
+            top: Math.random() * 100,
+            size: Math.random() * 2 + 1
+          }));
 
-  useEffect(() => {
-    if (state !== 'playing') return;
+          useEffect(() => {
+            if (state !== 'playing') return;
 
-    const meteorInterval = setInterval(() => {
-      setMeteors(prev => [...prev, {
-        id: Date.now(),
-        x: Math.random() * 90 + 5,
-        y: -10,
-        rot: Math.random() * 360,
-        rotSpeed: (Math.random() - 0.5) * 8,
-        size: Math.random() * 30 + 40
-      }]);
-    }, 1200);
+            const meteorInterval = setInterval(() => {
+              setMeteors(prev => [...prev, {
+                id: Date.now(),
+                x: Math.random() * 90 + 5,
+                y: -10,
+                rot: Math.random() * 360,
+                rotSpeed: (Math.random() - 0.5) * 8,
+                size: Math.random() * 30 + 40
+              }]);
+            }, 1200);
 
-    const gameLoop = setInterval(() => {
-      if (keysRef.current.left) setRocketX(x => Math.max(5, x - 8));
-      if (keysRef.current.right) setRocketX(x => Math.min(95, x + 8));
+            const gameLoop = setInterval(() => {
+              if (keysRef.current.left) setRocketX(x => Math.max(5, x - 8));
+              if (keysRef.current.right) setRocketX(x => Math.min(95, x + 8));
 
-      setMeteors(prev => {
-        const updated = prev.map(m => ({
-          ...m,
-          y: m.y + 3,
-          rot: m.rot + m.rotSpeed
-        })).filter(m => m.y < 110);
+              setMeteors(prev => {
+                const updated = prev.map(m => ({
+                  ...m,
+                  y: m.y + 3,
+                  rot: m.rot + m.rotSpeed
+                })).filter(m => m.y < 110);
 
-        const rocketTop = 70;
-        const rocketBottom = 85;
-        
-        for (const m of updated) {
-          const hit = (
-            m.y + m.size/100*6 > rocketTop &&
-            m.y < rocketBottom &&
-            m.x + m.size/100*2.5 > rocketX - 2.5 &&
-            m.x - m.size/100*2.5 < rocketX + 2.5
-          );
-          if (hit) {
-            setState('over');
-            return prev;
-          }
-        }
-        return updated;
-      });
+                const rocketTop = 70;
+                const rocketBottom = 85;
+                
+                for (const m of updated) {
+                  const hit = (
+                    m.y + m.size/100*6 > rocketTop &&
+                    m.y < rocketBottom &&
+                    m.x + m.size/100*2.5 > rocketX - 2.5 &&
+                    m.x - m.size/100*2.5 < rocketX + 2.5
+                  );
+                  if (hit) {
+                    setState('over');
+                    return prev;
+                  }
+                }
+                return updated;
+              });
 
-      setScore(s => {
-        const newScore = s + 1;
-        if (Math.floor(newScore / 60) >= 40) setState('victory');
-        return newScore;
-      });
-    }, 16);
+              setScore(s => {
+                const newScore = s + 1;
+                if (Math.floor(newScore / 60) >= 40) setState('victory');
+                return newScore;
+              });
+            }, 16);
 
-    return () => {
-      clearInterval(meteorInterval);
-      clearInterval(gameLoop);
-    };
-  }, [state, rocketX]);
+            return () => {
+              clearInterval(meteorInterval);
+              clearInterval(gameLoop);
+            };
+          }, [state, rocketX]);
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === 'ArrowLeft' || e.key === 'a') keysRef.current.left = true;
-      if (e.key === 'ArrowRight' || e.key === 'd') keysRef.current.right = true;
-      if (e.key === ' ' && state === 'start') { e.preventDefault(); startGame(); }
-      if (e.key === 'r' && state === 'over') startGame();
-    };
+          useEffect(() => {
+            const handleKeyDown = (e) => {
+              if (e.key === 'ArrowLeft' || e.key === 'a') keysRef.current.left = true;
+              if (e.key === 'ArrowRight' || e.key === 'd') keysRef.current.right = true;
+              if (e.key === ' ' && state === 'start') { e.preventDefault(); startGame(); }
+              if (e.key === 'r' && state === 'over') startGame();
+            };
 
-    const handleKeyUp = (e) => {
-      if (e.key === 'ArrowLeft' || e.key === 'a') keysRef.current.left = false;
-      if (e.key === 'ArrowRight' || e.key === 'd') keysRef.current.right = false;
-    };
+            const handleKeyUp = (e) => {
+              if (e.key === 'ArrowLeft' || e.key === 'a') keysRef.current.left = false;
+              if (e.key === 'ArrowRight' || e.key === 'd') keysRef.current.right = false;
+            };
 
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [state]);
+            window.addEventListener('keydown', handleKeyDown);
+            window.addEventListener('keyup', handleKeyUp);
+            return () => {
+              window.removeEventListener('keydown', handleKeyDown);
+              window.removeEventListener('keyup', handleKeyUp);
+            };
+          }, [state]);
 
-  const startGame = () => {
-    setState('playing');
-    setScore(0);
-    setRocketX(50);
-    setMeteors([]);
-  };
+          const startGame = () => {
+            setState('playing');
+            setScore(0);
+            setRocketX(50);
+            setMeteors([]);
+          };
 
-  const handleTouch = (e) => {
-    e.preventDefault();
-    if (state === 'start' || state === 'over') {
-      startGame();
-    } else if (state === 'playing' && gameRef.current) {
-      const rect = gameRef.current.getBoundingClientRect();
-      const x = ((e.touches[0].clientX - rect.left) / rect.width) * 100;
-      setRocketX(Math.max(5, Math.min(95, x)));
-    }
-  };
+          const handleTouch = (e) => {
+            e.preventDefault();
+            if (state === 'start' || state === 'over') {
+              startGame();
+            } else if (state === 'playing' && gameRef.current) {
+              const rect = gameRef.current.getBoundingClientRect();
+              const x = ((e.touches[0].clientX - rect.left) / rect.width) * 100;
+              setRocketX(Math.max(5, Math.min(95, x)));
+            }
+          };
 
-  const displayScore = Math.floor(score / 60);
+          const displayScore = Math.floor(score / 60);
 
-  return (
-    <div 
-      ref={gameRef}
-      onTouchStart={handleTouch}
-      onTouchMove={handleTouch}
-      style={{
-        width: '100vw',
-        height: '100vh',
-        background: 'linear-gradient(180deg, #000005, #050515)',
-        position: 'relative',
-        overflow: 'hidden'
-      }}
-    >
-      {stars.map(s => (
-        <div key={s.id} style={{
-          position: 'absolute',
-          left: s.left + '%',
-          top: s.top + '%',
-          width: s.size + 'px',
-          height: s.size + 'px',
-          background: 'white',
-          borderRadius: '50%'
-        }} />
-      ))}
+          return (
+            <div 
+              ref={gameRef}
+              onTouchStart={handleTouch}
+              onTouchMove={handleTouch}
+              style={{
+                width: '100vw',
+                height: '100vh',
+                background: 'linear-gradient(180deg, #000005, #050515)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}
+            >
+              {stars.map(s => (
+                <div key={s.id} style={{
+                  position: 'absolute',
+                  left: s.left + '%',
+                  top: s.top + '%',
+                  width: s.size + 'px',
+                  height: s.size + 'px',
+                  background: 'white',
+                  borderRadius: '50%'
+                }} />
+              ))}
 
-      {state === 'playing' && (
-        <>
-          {/* ロケット */}
-          <div style={{
-            position: 'absolute',
-            left: rocketX + '%',
-            bottom: '15%',
-            transform: 'translateX(-50%)',
-            width: '50px',
-            height: '150px',
-            zIndex: 10
-          }}>
-            <svg viewBox="0 0 70 240" style={{ width: '100%', height: '100%' }}>
-              <defs>
-                <linearGradient id="rocketBody">
-                  <stop offset="0%" stopColor="#8a8a8a" />
-                  <stop offset="15%" stopColor="#c8c8c8" />
-                  <stop offset="50%" stopColor="#f8f8f8" />
-                  <stop offset="85%" stopColor="#c8c8c8" />
-                  <stop offset="100%" stopColor="#8a8a8a" />
-                </linearGradient>
-                <linearGradient id="noseCone">
-                  <stop offset="0%" stopColor="#1a1a1a" />
-                  <stop offset="50%" stopColor="#444" />
-                  <stop offset="100%" stopColor="#1a1a1a" />
-                </linearGradient>
-                <linearGradient id="interstage">
-                  <stop offset="0%" stopColor="#202020" />
-                  <stop offset="50%" stopColor="#505050" />
-                  <stop offset="100%" stopColor="#202020" />
-                </linearGradient>
-              </defs>
-              
-              <path d="M35,0 C25,15 22,35 22,50 L48,50 C48,35 45,15 35,0 Z" fill="url(#noseCone)" />
-              <rect x="22" y="50" width="26" height="40" fill="url(#rocketBody)" />
-              <rect x="20" y="90" width="30" height="12" fill="url(#interstage)" />
-              <rect x="20" y="102" width="30" height="90" fill="url(#rocketBody)" />
-              <rect x="24" y="130" width="22" height="25" fill="none" stroke="#1565c0" strokeWidth="0.6" rx="1.5" />
-              <text x="35" y="145" textAnchor="middle" fill="#1565c0" fontSize="5" fontWeight="bold">SPACE</text>
-              <rect x="6" y="105" width="12" height="18" fill="url(#interstage)" rx="1" />
-              <rect x="52" y="105" width="12" height="18" fill="url(#interstage)" rx="1" />
-              <path d="M20,175 L5,198 L9,200 L22,180" fill="url(#interstage)" />
-              <path d="M50,175 L65,198 L61,200 L48,180" fill="url(#interstage)" />
-              <path d="M20,192 L17,202 L53,202 L50,192" fill="url(#interstage)" />
-              <ellipse cx="35" cy="206" rx="5.5" ry="2.5" fill="#111" />
-            </svg>
-          </div>
+              {state === 'playing' && (
+                <>
+                  <div style={{
+                    position: 'absolute',
+                    left: rocketX + '%',
+                    bottom: '15%',
+                    transform: 'translateX(-50%)',
+                    width: '50px',
+                    height: '150px',
+                    zIndex: 10
+                  }}>
+                    <svg viewBox="0 0 70 240" style={{ width: '100%', height: '100%' }}>
+                      <defs>
+                        <linearGradient id="rocketBody">
+                          <stop offset="0%" stopColor="#8a8a8a" />
+                          <stop offset="50%" stopColor="#f8f8f8" />
+                          <stop offset="100%" stopColor="#8a8a8a" />
+                        </linearGradient>
+                        <linearGradient id="noseCone">
+                          <stop offset="0%" stopColor="#1a1a1a" />
+                          <stop offset="50%" stopColor="#444" />
+                          <stop offset="100%" stopColor="#1a1a1a" />
+                        </linearGradient>
+                        <linearGradient id="interstage">
+                          <stop offset="0%" stopColor="#202020" />
+                          <stop offset="50%" stopColor="#505050" />
+                          <stop offset="100%" stopColor="#202020" />
+                        </linearGradient>
+                      </defs>
+                      <path d="M35,0 C25,15 22,35 22,50 L48,50 C48,35 45,15 35,0 Z" fill="url(#noseCone)" />
+                      <rect x="22" y="50" width="26" height="40" fill="url(#rocketBody)" />
+                      <rect x="20" y="90" width="30" height="12" fill="url(#interstage)" />
+                      <rect x="20" y="102" width="30" height="90" fill="url(#rocketBody)" />
+                      <rect x="24" y="130" width="22" height="25" fill="none" stroke="#1565c0" strokeWidth="0.6" />
+                      <text x="35" y="145" textAnchor="middle" fill="#1565c0" fontSize="5" fontWeight="bold">SPACE</text>
+                      <rect x="6" y="105" width="12" height="18" fill="url(#interstage)" />
+                      <rect x="52" y="105" width="12" height="18" fill="url(#interstage)" />
+                      <path d="M20,175 L5,198 L9,200 L22,180" fill="url(#interstage)" />
+                      <path d="M50,175 L65,198 L61,200 L48,180" fill="url(#interstage)" />
+                      <path d="M20,192 L17,202 L53,202 L50,192" fill="url(#interstage)" />
+                      <ellipse cx="35" cy="206" rx="5.5" ry="2.5" fill="#111" />
+                    </svg>
+                  </div>
 
-          <div style={{
-            position: 'absolute',
-            top: '30px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            color: displayScore >= 30 ? 'gold' : 'white',
-            fontSize: '32px',
-            fontWeight: 'bold',
-            zIndex: 20
-          }}>
-            {displayScore}
-          </div>
+                  <div style={{
+                    position: 'absolute',
+                    top: '30px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    color: displayScore >= 30 ? 'gold' : 'white',
+                    fontSize: '32px',
+                    fontWeight: 'bold',
+                    zIndex: 20
+                  }}>
+                    {displayScore}
+                  </div>
 
-          {meteors.map(m => (
-            <div key={m.id} style={{
-              position: 'absolute',
-              left: m.x + '%',
-              top: m.y + '%',
-              transform: `translate(-50%, -50%) rotate(${m.rot}deg)`,
-              width: m.size + 'px',
-              height: m.size + 'px',
-              zIndex: 5
-            }}>
-              <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
-                <defs>
-                  <radialGradient id={`meteorGrad-${m.id}`}>
-                    <stop offset="0%" stopColor="#8b7355" />
-                    <stop offset="50%" stopColor="#6b5344" />
-                    <stop offset="100%" stopColor="#3a2518" />
-                  </radialGradient>
-                </defs>
-                <circle cx="50" cy="50" r="45" fill={`url(#meteorGrad-${m.id})`} />
-                <ellipse cx="35" cy="35" rx="12" ry="10" fill="#4a3728" opacity="0.6" />
-                <ellipse cx="60" cy="55" rx="8" ry="7" fill="#4a3728" opacity="0.5" />
-                <ellipse cx="45" cy="65" rx="10" ry="8" fill="#4a3728" opacity="0.7" />
-              </svg>
+                  {meteors.map(m => (
+                    <div key={m.id} style={{
+                      position: 'absolute',
+                      left: m.x + '%',
+                      top: m.y + '%',
+                      transform: `translate(-50%, -50%) rotate(${m.rot}deg)`,
+                      width: m.size + 'px',
+                      height: m.size + 'px',
+                      zIndex: 5
+                    }}>
+                      <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
+                        <defs>
+                          <radialGradient id={`mg-${m.id}`}>
+                            <stop offset="0%" stopColor="#8b7355" />
+                            <stop offset="50%" stopColor="#6b5344" />
+                            <stop offset="100%" stopColor="#3a2518" />
+                          </radialGradient>
+                        </defs>
+                        <circle cx="50" cy="50" r="45" fill={`url(#mg-${m.id})`} />
+                        <ellipse cx="35" cy="35" rx="12" ry="10" fill="#4a3728" opacity="0.6" />
+                        <ellipse cx="60" cy="55" rx="8" ry="7" fill="#4a3728" opacity="0.5" />
+                      </svg>
+                    </div>
+                  ))}
+                </>
+              )}
+
+              {state === 'start' && (
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(0,0,0,0.8)',
+                  zIndex: 100
+                }}>
+                  <div style={{ fontSize: '64px' }}>🚀</div>
+                  <div style={{ fontSize: '48px', color: 'white', margin: '20px', fontWeight: 'bold' }}>SPACE DODGE</div>
+                  <div style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', margin: '20px' }}>隕石を避けて畜星を目指そう！</div>
+                  <button onClick={startGame} style={{
+                    padding: '15px 40px',
+                    fontSize: '20px',
+                    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '50px',
+                    cursor: 'pointer'
+                  }}>START GAME</button>
+                </div>
+              )}
+
+              {state === 'victory' && (
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(0,0,50,0.9)',
+                  zIndex: 100
+                }}>
+                  <div style={{ fontSize: '64px' }}>🎉</div>
+                  <div style={{ fontSize: '56px', color: 'gold', margin: '20px', fontWeight: 'bold' }}>MISSION COMPLETE!</div>
+                  <div style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', margin: '20px', textAlign: 'center' }}>
+                    おめでとうございます！<br/>小惑星帯を突破しました！
+                  </div>
+                  <button onClick={() => alert('次のステージは準備中です！')} style={{
+                    padding: '15px 40px',
+                    fontSize: '20px',
+                    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '50px',
+                    cursor: 'pointer'
+                  }}>NEXT STAGE</button>
+                </div>
+              )}
+
+              {state === 'over' && (
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(0,0,0,0.9)',
+                  zIndex: 100
+                }}>
+                  <div style={{ fontSize: '56px', color: '#ff4444', margin: '20px', fontWeight: 'bold' }}>GAME OVER</div>
+                  <div style={{ fontSize: '24px', color: 'white', margin: '20px' }}>Score: {displayScore}</div>
+                  <button onClick={startGame} style={{
+                    padding: '15px 40px',
+                    fontSize: '20px',
+                    background: 'linear-gradient(135deg, #f093fb, #f5576c)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '50px',
+                    cursor: 'pointer'
+                  }}>RETRY</button>
+                </div>
+              )}
             </div>
-          ))}
-        </>
-      )}
+          );
+        }
 
-      {state === 'start' && (
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'rgba(0,0,0,0.8)',
-          zIndex: 100
-        }}>
-          <div style={{ fontSize: '64px' }}>🚀</div>
-          <div style={{ fontSize: '48px', color: 'white', margin: '20px', fontWeight: 'bold' }}>
-            SPACE DODGE
-          </div>
-          <div style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', margin: '20px' }}>
-            隕石を避けて畜星を目指そう！
-          </div>
-          <button onClick={startGame} style={{
-            padding: '15px 40px',
-            fontSize: '20px',
-            background: 'linear-gradient(135deg, #667eea, #764ba2)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '50px',
-            cursor: 'pointer'
-          }}>START GAME</button>
-        </div>
-      )}
-
-      {state === 'victory' && (
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'rgba(0,0,50,0.9)',
-          zIndex: 100
-        }}>
-          <div style={{ fontSize: '64px' }}>🎉</div>
-          <div style={{ fontSize: '56px', color: 'gold', margin: '20px', fontWeight: 'bold' }}>
-            MISSION COMPLETE!
-          </div>
-          <div style={{ fontSize: '18px', color: 'rgba(255,255,255,0.8)', margin: '20px', textAlign: 'center' }}>
-            おめでとうございます！<br/>小惑星帯を突破しました！
-          </div>
-          <button onClick={() => alert('次のステージは準備中です！')} style={{
-            padding: '15px 40px',
-            fontSize: '20px',
-            background: 'linear-gradient(135deg, #667eea, #764ba2)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '50px',
-            cursor: 'pointer'
-          }}>NEXT STAGE</button>
-        </div>
-      )}
-
-      {state === 'over' && (
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'rgba(0,0,0,0.9)',
-          zIndex: 100
-        }}>
-          <div style={{ fontSize: '56px', color: '#ff4444', margin: '20px', fontWeight: 'bold' }}>
-            GAME OVER
-          </div>
-          <div style={{ fontSize: '24px', color: 'white', margin: '20px' }}>
-            Score: {displayScore}
-          </div>
-          <button onClick={startGame} style={{
-            padding: '15px 40px',
-            fontSize: '20px',
-            background: 'linear-gradient(135deg, #f093fb, #f5576c)',
-            color: 'white',
-            border: 'none',
-            borderRadius: '50px',
-            cursor: 'pointer'
-          }}>RETRY</button>
-        </div>
-      )}
-    </div>
-  );
-}
+        ReactDOM.render(<SpaceDodge />, document.getElementById('root'));
+    </script>
+</body>
+</html>
