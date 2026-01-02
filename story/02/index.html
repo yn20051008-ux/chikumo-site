@@ -223,6 +223,7 @@
         const shipEl = document.getElementById('ship-container');
         const stationContainer = document.getElementById('station-container');
         const stationSvg = document.getElementById('station-svg');
+        const hud = document.getElementById('hud');
 
         // Load SVG
         stationSvg.src = STATION_SVG_DATA;
@@ -252,10 +253,9 @@
 
         // Calculate station display dimensions
         const stationAspectRatio = STATION_CONFIG.svgViewBox.width / STATION_CONFIG.svgViewBox.height;
-        const stationDisplayWidth = STATION_CONFIG.displayHeight * stationAspectRatio;
-        
-        // Scale factor from SVG coordinates to screen coordinates
-        const stationScale = STATION_CONFIG.displayHeight / STATION_CONFIG.svgViewBox.height;
+        let stationDisplayHeight = STATION_CONFIG.displayHeight;
+        let stationDisplayWidth = STATION_CONFIG.displayHeight * stationAspectRatio;
+        let stationScale = STATION_CONFIG.displayHeight / STATION_CONFIG.svgViewBox.height;
 
         // Physics constants
         const PHYSICS = {
@@ -292,9 +292,19 @@
             canvas.width = WIDTH;
             canvas.height = HEIGHT;
 
+            const isMobile = WIDTH <= 900;
+            stationDisplayHeight = isMobile
+                ? Math.min(STATION_CONFIG.displayHeight, HEIGHT * 0.35, WIDTH * 0.65)
+                : Math.min(STATION_CONFIG.displayHeight, HEIGHT * 0.45, WIDTH * 0.5);
+            stationDisplayWidth = stationDisplayHeight * stationAspectRatio;
+            stationScale = stationDisplayHeight / STATION_CONFIG.svgViewBox.height;
+
             // Update station size and position
-            stationSvg.style.height = STATION_CONFIG.displayHeight + 'px';
+            stationSvg.style.height = stationDisplayHeight + 'px';
             stationSvg.style.width = stationDisplayWidth + 'px';
+            const hudTop = isMobile ? stationDisplayHeight + 16 : 18;
+            hud.style.top = hudTop + 'px';
+            hud.style.right = isMobile ? '12px' : '18px';
         }
 
         function initGame() {
@@ -305,13 +315,13 @@
             const dockX = (STATION_CONFIG.dockingPort.x - STATION_CONFIG.svgViewBox.width / 2) * stationScale;
             const dockY = STATION_CONFIG.dockingPort.y * stationScale;
             
-            // Initial ship position (below station, offset randomly)
-            ship.x = dockX + (Math.random() - 0.5) * 100;
-            ship.y = HEIGHT / 2 + 100;
-            ship.vx = (Math.random() - 0.5) * 0.5;
-            ship.vy = (Math.random() - 0.5) * 0.3;
-            ship.angle = (Math.random() - 0.5) * 0.1;
-            ship.angularVelocity = (Math.random() - 0.5) * 0.005;
+            // Initial ship position: centered horizontally, lower portion of screen
+            ship.x = WIDTH / 2;
+            ship.y = HEIGHT * 0.72;
+            ship.vx = (Math.random() - 0.5) * 0.2;
+            ship.vy = (Math.random() - 0.5) * 0.15;
+            ship.angle = 0;
+            ship.angularVelocity = 0;
             ship.fuel = 100;
         }
 
@@ -514,7 +524,6 @@
                     <path d="M50,175 L65,198 L61,200 L48,180" fill="url(#${id}-fin)"/>
                     <path d="M20,192 L17,202 L53,202 L50,192" fill="url(#${id}-fin)"/>
                     <ellipse cx="35" cy="206" rx="5.5" ry="2.5" fill="#111"/>
-                    <rect x="32" y="152" width="6" height="40" rx="3" fill="#1565c0" opacity="0.5"/>
                 </svg>
                 ${thrustActive ? flame : ''}
             </div>`;
@@ -698,4 +707,3 @@
     </script>
 </body>
 </html>
-
