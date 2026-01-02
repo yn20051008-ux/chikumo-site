@@ -419,6 +419,9 @@
         game.addEventListener('touchmove', handleTouch, { passive: false });
 
         function handleTouch(e) {
+            // Allow taps on the victory overlay to fall through so the NEXT STAGE button works on mobile
+            if (state === 'victory') return;
+
             e.preventDefault();
             if (state === 'start' || state === 'over') {
                 startGame();
