@@ -8,6 +8,12 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --safe-area-bottom: env(safe-area-inset-bottom);
+        }
+        @supports not (padding-bottom: env(safe-area-inset-bottom)) {
+            :root { --safe-area-bottom: 0px; }
+        }
         body {
             font-family: 'Space Grotesk', 'SF Pro Display', 'Segoe UI', sans-serif;
             background: #02060e;
@@ -16,11 +22,16 @@
             user-select: none;
             touch-action: none;
             -webkit-tap-highlight-color: transparent;
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding-bottom: var(--safe-area-bottom);
         }
         #game-container {
             position: relative;
             width: 100vw;
             height: 100vh;
+            height: 100dvh;
+            padding-bottom: var(--safe-area-bottom);
             overflow: hidden;
             background: radial-gradient(circle at 25% 20%, rgba(46, 156, 255, 0.18), transparent 36%), radial-gradient(circle at 70% 65%, rgba(14, 255, 193, 0.14), transparent 42%), #000;
         }
@@ -64,21 +75,19 @@
             background: rgba(8, 14, 28, 0.82);
             border: 1px solid rgba(80, 230, 255, 0.55);
             border-radius: 14px;
-            padding: 16px;
+            padding: 10px;
             z-index: 100;
-            min-width: 280px;
+            width: 260px;
             box-shadow: 0 18px 50px rgba(0, 255, 255, 0.12);
             backdrop-filter: blur(10px);
         }
-        @media (max-width: 768px) { #hud { font-size: 11px; padding: 12px; top: 10px; right: 10px; min-width: 240px; } }
-        .hud-title { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-        .hud-badge { background: linear-gradient(135deg, #4ef2ff, #64ffb1); color: #041019; padding: 6px 10px; border-radius: 999px; font-weight: 700; font-size: 11px; letter-spacing: 0.08em; }
-        .hud-heading { font-size: 18px; letter-spacing: 0.08em; }
-        .hud-sub { font-size: 11px; color: #8cb0d5; letter-spacing: 0.05em; }
-        .hud-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-        .hud-card { padding: 8px 10px; border-radius: 10px; background: linear-gradient(145deg, rgba(28, 48, 78, 0.85), rgba(12, 24, 44, 0.9)); border: 1px solid rgba(120, 255, 255, 0.22); box-shadow: 0 12px 24px rgba(0, 255, 200, 0.08); }
+        @media (max-width: 768px) { #hud { font-size: 11px; padding: 8px; top: 10px; right: 10px; width: 220px; } }
+        .hud-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+        .hud-card { padding: 8px 10px; border-radius: 10px; background: linear-gradient(145deg, rgba(28, 48, 78, 0.85), rgba(12, 24, 44, 0.9)); border: 1px solid rgba(120, 255, 255, 0.22); box-shadow: 0 12px 24px rgba(0, 255, 200, 0.08); min-height: 82px; display: flex; flex-direction: column; justify-content: center; }
+        @media (max-width: 768px) { .hud-card { min-height: 74px; padding: 7px 9px; } }
         .hud-label { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #85c4ff; }
-        .hud-value { font-size: 18px; font-weight: 700; color: #f3fbff; margin-top: 4px; }
+        .hud-value { font-size: 18px; font-weight: 700; color: #f3fbff; margin-top: 4px; display: flex; align-items: baseline; gap: 4px; white-space: nowrap; line-height: 1.1; }
+        .hud-value .unit { font-size: 0.72em; opacity: 0.9; letter-spacing: 0.04em; }
         .hud-value.good { color: #ffe066; text-shadow: 0 0 12px rgba(255, 224, 102, 0.8), 0 0 22px rgba(255, 224, 102, 0.45); }
         .hud-value.bad { color: #ff6b6b; text-shadow: 0 0 12px rgba(255, 107, 107, 0.9), 0 0 22px rgba(255, 107, 107, 0.5); }
         .hud-footer { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
@@ -128,9 +137,9 @@
         .failure { border-color: #ff6b6b; }
         #result-screen h2 { font-size: 36px; margin-bottom: 20px; text-shadow: 0 0 30px currentColor; letter-spacing: 0.08em; }
         @media (max-width: 768px) { #result-screen { padding: 30px 20px; max-width: 90vw; } #result-screen h2 { font-size: 24px !important; } #result-screen p { font-size: 13px; } }
-        #virtual-controls { display: none; position: absolute; bottom: 0; left: 0; right: 0; height: 200px; pointer-events: none; z-index: 200; }
+        #virtual-controls { display: none; position: absolute; bottom: 0; left: 0; right: 0; height: 200px; pointer-events: none; z-index: 200; padding-bottom: var(--safe-area-bottom); }
         @media (max-width: 768px), (hover: none) { #virtual-controls { display: block; } }
-        .control-pad { position: absolute; bottom: 20px; pointer-events: all; }
+        .control-pad { position: absolute; bottom: calc(20px + var(--safe-area-bottom)); pointer-events: all; }
         .control-pad.left { left: 20px; }
         .control-pad.right { right: 20px; }
         .dpad { position: relative; width: 140px; height: 140px; }
@@ -152,29 +161,22 @@
         </div>
         <div id="ship-container"></div>
         <div id="hud">
-            <div class="hud-title">
-                <div class="hud-badge">NDS-07</div>
-                <div>
-                    <div class="hud-heading">Docking UI</div>
-                    <div class="hud-sub">Custom Station</div>
-                </div>
-            </div>
             <div class="hud-grid">
                 <div class="hud-card">
                     <div class="hud-label">Velocity</div>
-                    <div class="hud-value"><span id="velocity">0.00</span> m/s</div>
+                    <div class="hud-value"><span id="velocity">0.00</span><span class="unit">m/s</span></div>
                 </div>
                 <div class="hud-card">
                     <div class="hud-label">Distance</div>
-                    <div class="hud-value"><span id="distance">0.0</span> m</div>
+                    <div class="hud-value"><span id="distance">0.0</span><span class="unit">m</span></div>
                 </div>
                 <div class="hud-card">
                     <div class="hud-label">Angle</div>
-                    <div class="hud-value"><span id="angle">0.0</span>°</div>
+                    <div class="hud-value"><span id="angle">0.0</span><span class="unit">°</span></div>
                 </div>
                 <div class="hud-card">
                     <div class="hud-label">Lateral</div>
-                    <div class="hud-value"><span id="lateral">0.00</span> m</div>
+                    <div class="hud-value"><span id="lateral">0.00</span><span class="unit">m</span></div>
                 </div>
             </div>
             <div class="hud-footer">
