@@ -290,6 +290,9 @@
         };
 
         let keys = {}, touchControls = {}, gameActive = false, stars = [];
+        const gyroControls = { thrust: false, reverse: false, left: false, right: false };
+        const GYRO_SETTINGS = { deadzone: 8, maxTilt: 45 };
+        let gyroListener = null;
 
         function resizeCanvas() {
             WIDTH = window.innerWidth;
@@ -424,6 +427,10 @@
 
             // Thrust
             if ((keys.ArrowUp || touchControls.thrust) && ship.fuel > 0) {
+                // gyro thrust
+                if (gyroControls.thrust) {
+                    keys.ArrowUp = true;
+                }
                 const thrust = PHYSICS.thrustPower;
                 ship.vx += Math.sin(ship.angle) * thrust;
                 ship.vy -= Math.cos(ship.angle) * thrust;
@@ -431,7 +438,7 @@
             }
 
             // Reverse thrust
-            if ((keys.ArrowDown || touchControls.reverse) && ship.fuel > 0) {
+            if ((keys.ArrowDown || touchControls.reverse || gyroControls.reverse) && ship.fuel > 0) {
                 const reverse = PHYSICS.reversePower;
                 ship.vx -= Math.sin(ship.angle) * reverse;
                 ship.vy += Math.cos(ship.angle) * reverse;
@@ -439,11 +446,11 @@
             }
 
             // Rotation
-            if ((keys.ArrowLeft || touchControls.left) && ship.fuel > 0) {
+            if ((keys.ArrowLeft || touchControls.left || gyroControls.left) && ship.fuel > 0) {
                 ship.angularVelocity -= PHYSICS.rotationPower;
                 ship.fuel = Math.max(0, ship.fuel - PHYSICS.rotationFuelConsumption);
             }
-            if ((keys.ArrowRight || touchControls.right) && ship.fuel > 0) {
+            if ((keys.ArrowRight || touchControls.right || gyroControls.right) && ship.fuel > 0) {
                 ship.angularVelocity += PHYSICS.rotationPower;
                 ship.fuel = Math.max(0, ship.fuel - PHYSICS.rotationFuelConsumption);
             }
