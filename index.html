@@ -552,12 +552,21 @@
           ctx.rotate(this.rotation);
           ctx.globalAlpha = alpha;
           
-          // グロー効果（サイズに応じて調整）
-          ctx.shadowColor = 'rgba(255, 200, 100, 0.8)';
-          ctx.shadowBlur = 15 + this.size * 0.2;
-          
           const drawSize = this.size;
           const aspectRatio = 389.4 / 297.8;
+          
+          // グロー効果（shadowの代わりにグラデーションで描画）
+          const glowSize = drawSize * 0.8;
+          const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, glowSize);
+          glowGradient.addColorStop(0, `rgba(255, 220, 150, ${alpha * 0.4})`);
+          glowGradient.addColorStop(0.5, `rgba(255, 180, 100, ${alpha * 0.2})`);
+          glowGradient.addColorStop(1, 'transparent');
+          ctx.beginPath();
+          ctx.arc(0, 0, glowSize, 0, Math.PI * 2);
+          ctx.fillStyle = glowGradient;
+          ctx.fill();
+          
+          // kokkoちゃん本体を描画（shadowを使わない）
           ctx.drawImage(kokkoImage, -drawSize / 2, -drawSize * aspectRatio / 2, drawSize, drawSize * aspectRatio);
           
           ctx.restore();
@@ -746,6 +755,20 @@
           }
         }
       });
+
+      // タッチイベントも追加（モバイル対応）
+      canvas.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        console.log('canvas touched!');
+        triggerFlyingKokko();
+        if (!menuOpened) {
+          clickCount++;
+          updateClickCounter();
+          if (clickCount >= CLICKS_TO_OPEN) {
+            openMenu();
+          }
+        }
+      }, { passive: false });
 
       // ========================================
       // 開始
