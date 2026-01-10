@@ -454,13 +454,13 @@
           this.x = Math.random() * w * 0.8;
           this.y = Math.random() * h * 0.3;
           
-          // ランダムな速度（とても遅い〜とても速い）
+          // ランダムな速度（5段階）
           const speedType = Math.floor(Math.random() * 5);
           let speed;
           switch(speedType) {
             case 0: // とても遅い
               speed = 2 + Math.random() * 2;
-              this.maxLife = 150 + Math.random() * 50; // 長く表示
+              this.maxLife = 150 + Math.random() * 50;
               break;
             case 1: // 遅い
               speed = 4 + Math.random() * 3;
@@ -486,8 +486,26 @@
           this.life = 0;
           this.rotation = 0;
           
-          // 回転速度も速度に応じて調整（速いほど速く回る）
-          this.rotSpeed = (Math.random() - 0.5) * 0.15 * (speed / 10);
+          // ランダムな回転速度（5段階）
+          const rotationType = Math.floor(Math.random() * 5);
+          const rotDirection = Math.random() > 0.5 ? 1 : -1; // 回転方向もランダム
+          switch(rotationType) {
+            case 0: // 回転しない
+              this.rotSpeed = 0;
+              break;
+            case 1: // やや回転
+              this.rotSpeed = 0.02 * rotDirection;
+              break;
+            case 2: // 回転
+              this.rotSpeed = 0.05 * rotDirection;
+              break;
+            case 3: // 沢山回転
+              this.rotSpeed = 0.12 * rotDirection;
+              break;
+            case 4: // ものすごく回転
+              this.rotSpeed = 0.25 * rotDirection;
+              break;
+          }
           
           // ランダムな大きさ（4段階）
           const sizeType = Math.floor(Math.random() * 4);
@@ -555,7 +573,7 @@
           const drawSize = this.size;
           const aspectRatio = 389.4 / 297.8;
           
-          // グロー効果（shadowの代わりにグラデーションで描画）
+          // グロー効果（グラデーションで描画）
           const glowSize = drawSize * 0.8;
           const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, glowSize);
           glowGradient.addColorStop(0, `rgba(255, 220, 150, ${alpha * 0.4})`);
@@ -566,7 +584,7 @@
           ctx.fillStyle = glowGradient;
           ctx.fill();
           
-          // kokkoちゃん本体を描画（shadowを使わない）
+          // kokkoちゃん本体を描画
           ctx.drawImage(kokkoImage, -drawSize / 2, -drawSize * aspectRatio / 2, drawSize, drawSize * aspectRatio);
           
           ctx.restore();
@@ -756,7 +774,7 @@
         }
       });
 
-      // タッチイベントも追加（モバイル対応）
+      // タッチイベント（モバイル対応）
       canvas.addEventListener('touchstart', function(e) {
         e.preventDefault();
         console.log('canvas touched!');
