@@ -223,6 +223,9 @@
     <div class="click-counter" id="clickCounter">wishes: 0 / 20</div>
   </section>
 
+  <!-- kokkoちゃんのSVGを非表示で埋め込み -->
+  <img id="kokkoImg" style="display:none" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyOTcuOCAzODkuNCI+PGRlZnM+PHN0eWxlPi5zdDl7ZmlsbDojZmZmfTwvc3R5bGU+PC9kZWZzPjxwYXRoIGQ9Ik0xMjMuMiAzNDcuOWMtMy4yIDctMjMgNC45LTIxLjktMS4yLjUtMi4zIDUuNy0yLjYgOC42LTQuNiAxLjctMS4yLS4yLTUuNiAxLjYtNi4yIDQuNC0xLjYgMTMuNyA3LjUgMTEuNyAxMiIgZmlsbD0iI2RmOTUzYiIvPjxwYXRoIGQ9Ik0xMTIuNiAzNTUuM3EtNC4xIDAtNy41LTEuMWMtNy4yLTIuMy03LTYuNy02LjctOCAuNi0zLjIgMy44LTQuMiA2LjMtNWwzLTEuMnYtMWMwLTEuNi0uMi00LjkgMi44LTYgNC4xLTEuNCA5IDEuOSAxMiA1LjEgMy41IDMuOCA0LjggOCAzLjQgMTEtMiA0LjUtNy43IDYuMi0xMy4zIDYuMlptLTcuOS03LjhjMS4yLjggNC40IDEuOSA4LjYgMS44IDMuNi0uMiA2LjUtMS4yIDcuMS0yLjYuMi0uMyAwLTItMi00LjFhMTMgMTMgMCAwIDAtNC43LTMuN2MwIDEuOCAwIDQuMi0yIDUuN3EtMi42IDEuNS01IDIuMnoiLz48cGF0aCBkPSJNMTk3LjggMzQ2LjdjMy4yIDQuMi0xOCA5LjctMjEuOC45LTEuNy00IDctMTEuMyAxMS4zLTExLjggMy4yIDExIDcuMyA3IDEwLjQgMTEiIGZpbGw9IiNlZGEwM2YiLz48cGF0aCBkPSJNMTg2IDM1NS4zaC0uOHEtOS4yLS40LTEyLTYuNmMtLjUtMS4zLS44LTMuNS45LTYuNSAyLjUtNC4zIDguNy04LjkgMTIuOC05LjRsMi41LS4zLjcgMi40YzEuNyA1LjcgMy4xIDYuMiA1IDYuOCAxLjQuNCAzLjMgMSA1IDMuMmE0IDQgMCAwIDEgLjUgNC44Yy0xLjggMy41LTguOCA1LjYtMTQuNyA1LjZabS0uNi0xNS43Yy0zLjEgMS43LTYuOCA1LjUtNi42IDYuOC44IDEuOCAzIDIuNSA0LjkgMi43IDQgLjYgOC4yLS41IDEwLjMtMS41bC0uOC0uMmMtMi45LTEtNS42LTIuMy03LjgtNy44Wm0xMCA5Ii8+PHBhdGggZD0iTTE5MiA3MC41YzM3IDguMyA2Ny43IDM0IDgxLjEgNjkgNS4zIDEzLjkgNi40IDI5LjUgNS4zIDQ0LjUtMiAzMC0xOS40IDU1LjgtNDYgNjguNy0xNC40IDcgMTIuNiAxMy41IDEzLjYgMzguNC4zIDUuMy0xLjcgMTEtNi44IDExLjYtMy45LjUtMTAuMy0xLjUtMTAuNy02LjFsLTEuMS0xMS44Yy0uMy0yLjQtMi44LTMuNi00LjctMy4xLTEuNS40LTIuOCAyLjUtMi42IDQuNyAxIDE2LjgtNS4zIDM0LTIwLjYgNDIuMi0yNC41IDEzLTcxLjMgMTIuNi05NiAxLjVBNDAgNDAgMCAwIDEgNzkgMjg3LjNjLjQtMi4yLTEuNi00LjctMy4yLTQuNy01LjIgMC00LjYgNy4yLTUuMiAxMi4yLS42IDUuOC01LjcgOC41LTEwLjcgOC0xMy0xLjItOC4zLTI1LjYgMTAtNDEuOSAxLjItMSAyLjEtMi45IDEuOC0zLjlzLS4zLTMuMi0zLTRjLTcuNS0yLTE5LjQtMTItMjUuNi0xNi43LTI3LjktMzItMjkuNy04MS43LTYuNy0xMTcuOEExMDYgMTA2IDAgMCAxIDk2LjEgNzRjNS0xLjQgMTAuOS00LjUgMTUuMy00LjdsNC0yLjJxMzUuNi0zLjcgNzAuOC4yIDMuNi4yIDUuOCAzLjJaIiBmaWxsPSIjZjVlOGM2Ii8+PHBhdGggZD0iTTE1MC44IDM0MS40Yy0xOC40IDAtMzYuNS0zLjItNDguNC04LjZBNDIuNSA0Mi41IDAgMCAxIDc2IDI4N3EwLS43LS42LTEuMy0xLjQuNS0xLjcgNi43IDAgMS42LS4yIDIuOGMtLjggNy44LTcuOCAxMS40LTE0IDEwLjhxLTctLjgtOS4yLTcuNWMtMy40LTEwLjUgNC4zLTI4IDE3LjYtMzkuN3EuNi0uNy44LTEuMmwtLjEtLjNjLS4yLTEtLjMtMS4xLS44LTEuMy03LTItMTcuMi05LjktMjMuOS0xNS4xbC0yLjctMi4xLS4yLS4yLS4yLS4yYy0yOC4zLTMyLjUtMzEuMi04My41LTctMTIxLjQgMTQuMi0yMi4yIDM2LTM4LjQgNjEuNC00NS43bDUuMi0xLjlhNDIgNDIgMCAwIDEgMTAtM2w0LTIgLjctLjFjMjMuNy0yLjUgNDcuNy0yLjUgNzEuMi4ycTQuMS4yIDcuMiAzLjRhMTE1IDExNSAwIDAgMSA4Mi4zIDcwLjdxNy4zIDE5LjMgNS41IDQ1LjdhODUgODUgMCAwIDEtNDcuOCA3MS4yYy0yLjIgMS0yLjUgMS44LTIuNSAxLjggMCAuOSAyLjYgMy44IDQuNCA1LjggNS4xIDUuNyAxMyAxNC4zIDEzLjUgMjggLjQgOC0zLjQgMTQtOS41IDE0LjctMyAuNC03LjUtLjQtMTAuNy0zYTkgOSAwIDAgMS0zLjMtNS44bC0xLjEtMTEuN3EwLS4yLS4zLS41bC0uNS0uMXEtLjUuNC0uNSAxLjZjMS4zIDE5LjgtNy4yIDM3LTIyLjIgNDUtMTMuMSA3LTMxLjggMTAuMi01MC4xIDEwLjJabS03NS02MS44YTYgNiAwIDAgMSA0LjQgMi4zIDggOCAwIDAgMSAxLjggNS45IDM3IDM3IDAgMCAwIDIyLjggMzkuNmMyMi44IDEwLjIgNjguNCAxMS44IDkzLjMtMS41IDE1LjMtOC4yIDE5LjktMjUuNyAxOS0zOS4zLS4yLTMuNiAxLjktNyA0LjgtNy44cTMtLjcgNS42IDFhNyA3IDAgMCAxIDIuOSA0LjhsMSAxMS43cS0uMi40IDEuMiAxLjhhOSA5IDAgMCAwIDYuMiAxLjZjMy42LS40IDQuNC01LjUgNC4yLTguNS0uNS0xMS41LTcuMS0xOC44LTEyLTI0LjItMy42LTQtNi41LTcuMi01LjctMTEgLjYtMy4yIDMuNi01IDUuNy02YTc5IDc5IDAgMCAwIDQ0LjUtNjYuMnExLjctMjUuMS01LjItNDMuMWMtMTIuOS0zNC00Mi40LTU5LTc5LTY3LjJsLTEtLjMtLjYtLjhxLTEuNi0yLTMuNy0yaC0uMmEzMjQgMzI0IDAgMCAwLTY5LjQtLjNsLTQuOCAyLjJhMzQgMzQgMCAwIDAtOSAyLjZxLTIuOCAxLjItNS43IDJjLTI0IDctNDQuNSAyMi4zLTU4IDQzLjItMjIuNyAzNS42LTIwIDgzLjUgNi4zIDExNGwyLjUgMmM2IDQuNiAxNS45IDEyLjQgMjEuOCAxNGE3IDcgMCAwIDEgNSA1LjhsLjEuM2MuNyAyLjQtLjggNS4zLTIuNiA3LTEyLjQgMTEtMTguMyAyNi0xNiAzMy4zcTEgMy4xIDQuMiAzLjRjMy4zLjMgNy0xLjIgNy41LTUuNGwuMi0yLjZjLjMtNC42LjgtMTIuMyA3LjktMTIuM1oiLz48cGF0aCBkPSJtMTkyLjUgNzMuNy0zLS42YTEyNCAxMjQgMCAwIDAtODEuMi0uNGwtLjYtMS44YTQzIDQzIDAgMCAxIDEuNC0zMy43YzQuNS04LjIgMTEuOS0xNCAyMC4zLTE2IDcuMy0xLjYgMTQuNyAwIDIwLjggNC41IDUuMyAzLjggNyAxMSA4LjQgMTYuOS42IDIuNiAxLjcgNyAyLjYgNy40LjcgMCAxLjgtMS41IDIuOC0yLjggMi44LTMuNCA3LTguNyAxNi03LjggNi44LjcgMTIgNS40IDE0LjEgMTIuNmEzMiAzMiAwIDAgMS0xIDIwLjJ6bS0zNi4yLTguMXExNi42LS4yIDMyLjggMi44YTI3IDI3IDAgMCAwIC4yLTE1Yy0xLjUtNS4zLTUtOC41LTkuNy05LTYuNC0uNi05IDIuNy0xMS42IDYtMS45IDIuMi0zLjggNC42LTcgNC42LTQuNi0uMi02LTUuNi03LjMtMTEuMy0xLjMtNS4yLTIuNy0xMS4yLTYuNC0xNHEtNy43LTUuNS0xNi44LTMuNWMtNyAxLjUtMTMuMiA2LjUtMTcgMTMuNC01IDkuNC0zLjggMjAtMS42IDI4bDEzLjItLjhxMTUuNS0xIDMxLjItMS4yIi8+PHBhdGggZD0iTTE4OS42IDczYTMyMyAzMjMgMCAwIDAtNzguMy0uNyA0MSA0MSAwIDAgMSAxLjItMzEuNWM3LjMtMTMuOCAyMy42LTIwLjEgMzYuMi0xMC42IDguMyA2LjIgNi40IDI0LjQgMTIgMjQuNiA0LjkgMCA2LTExLjcgMTguMS0xMC41cTIuMy4zIDQuNCAxLjNjNC42IDIuMiA2LjQgNy4yIDcuMiA5LjRhMjYgMjYgMCAwIDEtLjggMThaIiBmaWxsPSIjZTI2YTNhIi8+PHBhdGggZD0iTTIzNS42IDIxOS42Yy04LjQgMS0xNS43LTMuMi0xOS4yLTkuNS00LTcuMi0yLjctMTUuNiAyLjQtMjEuOCA1LjgtNy4yIDE1LTkuNSAyMy4yLTUuNnMxMyAxMS45IDExLjUgMjAuN2MtMS41IDguNS04IDE1LjEtMTcuOSAxNi4yIiBmaWxsPSIjZWNhNjc4Ii8+PHBhdGggZD0iTTY4IDIxNy42Yy01LjguNi0xMSAwLTE0LjktMi43YTE4IDE4IDAgMCAxLTcuNS0xNC4yYy0uNS05LjYgNi0xOSAxNS41LTIwLjIgMTEuOS0xLjYgMjEgNC41IDIzLjEgMTUuN2ExOC40IDE4LjQgMCAwIDEtMTYuMSAyMS40IiBmaWxsPSIjZWVhYTdkIi8+PHBhdGggZD0iTTE3MS45IDIxMS44Yy00IDguOC0xMy4yIDEyLTIxLjQgMTIuMS04LjguMy0xNy44LTMuMi0yMi4yLTEyLTMuMi02LjMtMy4xLTE2LS4zLTIyLjYgMy44LTguOCAxMy4zLTEyLjEgMjEuOC0xMi42czE4IDQgMjIuMiAxM2EyOSAyOSAwIDAgMS0uMiAyMloiIGZpbGw9IiMxNTI1MjYiLz48cGF0aCBkPSJNMTY0LjkgMTkwLjhjOSAxMC42LTI5LjUgOS0zMC44IDQuOC0uMy0xLjIgMC0zLjIgMS4yLTQuOCA3LjItOS4yIDIyLTguOCAyOS42IDAiIGZpbGw9IiNmM2E0M2QiLz48cGF0aCBkPSJNMTY3IDIwNGMtMS41IDEwLTEwIDEzLjUtMTguOSAxMi42LTcuNS0uNy0xNC40LTMuNy0xNC45LTEyLjcgMTEuMyAzIDIxLjQgMi4xIDMzLjguMSIgZmlsbD0iI2VjOWYzZSIvPjxwYXRoIGQ9Ik0yMTIgMTM0LjVjLTIuNSA0LjMtOC4yLTQuNy0yMS4xLTIuNy0xLjMuMi0zLjQtLjctMy41LTEuNyAwLS45LjMtMi43IDEuNy0zLjcgOS45LTYuNyAyNiAyLjggMjIuOSA4IiBmaWxsPSIjMTgyNjI4Ii8+PHBhdGggZD0iTTExMS4yIDEzMGMuMyA0LjgtNy4yLTEuNy0xOSA1LjEtMS40LjgtMy43LjctNC4yLS41LTIuOC02LjggMTItMTMgMjEuNi04LjUgMS42LjcgMS42IDMgMS42IDMuOSIgZmlsbD0iIzFhMjcyOSIvPjxwYXRoIGQ9Ik0xMTkuNiAxNzkuNWExNyAxNyAwIDAgMS0xNiAxMC44QTE3IDE3IDAgMCAxIDg3LjggMTc5YTE3IDE3IDAgMCAxIDYuNC0xOS4zYzUuOS00LjQgMTQuNC00LjUgMjAtLjFzOC41IDEyLjMgNS4zIDIwIiBmaWxsPSIjMTQyODJiIi8+PHBhdGggZD0iTTE4OC43IDE4OC40Yy04LjctNC42LTEwLjgtMTQuNy03LTIyLjhzMTMuNS0xMS41IDIyLTcuNyAxMS4zIDE0IDcuNyAyMi41LTEzLjggMTIuNi0yMi43IDhaIiBmaWxsPSIjMTQyNzJiIi8+PHBhdGggZD0iTTEwNy4zIDE2Ni4xYzIuMy0xIDQuMi44IDQuNiAyLjMuNSAxLjgtLjIgMy42LTEuOSA0LjMtMS43LjgtMy43LjEtNC40LTEuNHMtLjYtNC4xIDEuNy01LjJNMTk5LjEgMTY2LjNjMi4xLTEuMSA0IC4yIDQuOCAxLjYuOSAxLjcuMiAzLjktMS41IDQuN3MtMy41LjQtNC40LS44Yy0xLjItMS41LTEuMi00LjMgMS4xLTUuNSIgY2xhc3M9InN0OSIvPjwvc3ZnPg==" />
+
   <script>
     (function() {
       // ========================================
@@ -234,6 +237,16 @@
       let h = canvas.height = window.innerHeight;
       let frame = 0;
       let mouse = { x: 0.5, y: 0.5 };
+
+      // ========================================
+      // kokkoちゃん画像の参照
+      // ========================================
+      const kokkoImage = document.getElementById('kokkoImg');
+      let kokkoLoaded = kokkoImage.complete;
+      kokkoImage.onload = function() {
+        kokkoLoaded = true;
+        console.log('kokko loaded!');
+      };
 
       // ========================================
       // 星クラス
@@ -253,7 +266,6 @@
           this.drawX = this.x;
           this.drawY = this.y;
           
-          // 星の色温度
           const temp = Math.random();
           if (temp > 0.92) {
             this.hue = Math.random() * 30;
@@ -284,13 +296,11 @@
           const r = this.baseRadius * (0.5 + this.z * 0.5) * (0.7 + this.twinkle * 0.3);
           const alpha = (0.3 + this.z * 0.7) * (0.5 + this.twinkle * 0.5);
 
-          // コア
           ctx.beginPath();
           ctx.arc(this.drawX, this.drawY, r, 0, Math.PI * 2);
           ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, 95%, ${alpha})`;
           ctx.fill();
 
-          // グロー
           const glow = ctx.createRadialGradient(
             this.drawX, this.drawY, 0,
             this.drawX, this.drawY, r * 6
@@ -303,7 +313,6 @@
           ctx.fillStyle = glow;
           ctx.fill();
 
-          // 十字の光芒
           if (this.baseRadius > 1.8 && this.twinkle > 0.6) {
             ctx.strokeStyle = `hsla(${this.hue}, ${this.sat}%, 90%, ${alpha * 0.3})`;
             ctx.lineWidth = 0.5;
@@ -395,7 +404,6 @@
           ctx.translate(this.x, this.y);
           ctx.rotate(this.rotation);
 
-          // 中心のグロー
           const core = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size * 0.3);
           core.addColorStop(0, `hsla(${this.hue + 40}, 40%, 90%, 0.3)`);
           core.addColorStop(0.3, `hsla(${this.hue + 20}, 50%, 60%, 0.1)`);
@@ -405,7 +413,6 @@
           ctx.fillStyle = core;
           ctx.fill();
 
-          // 星々
           this.particles.forEach(p => {
             const x = Math.cos(p.angle) * p.dist;
             const y = Math.sin(p.angle) * p.dist * 0.4;
@@ -420,9 +427,9 @@
       }
 
       // ========================================
-      // 流れ星クラス
+      // kokkoちゃんクラス
       // ========================================
-      class ShootingStar {
+      class FlyingKokko {
         constructor() {
           this.reset();
         }
@@ -435,6 +442,10 @@
           this.vy = 0;
           this.life = 0;
           this.maxLife = 0;
+          this.rotation = 0;
+          this.rotSpeed = 0;
+          this.size = 40;
+          this.trail = [];
         }
 
         trigger() {
@@ -442,46 +453,114 @@
           this.active = true;
           this.x = Math.random() * w * 0.8;
           this.y = Math.random() * h * 0.3;
-          const angle = Math.PI * 0.2 + Math.random() * 0.2;
-          const speed = 15 + Math.random() * 10;
+          
+          // ランダムな速度（とても遅い〜とても速い）
+          const speedType = Math.floor(Math.random() * 5);
+          let speed;
+          switch(speedType) {
+            case 0: // とても遅い
+              speed = 2 + Math.random() * 2;
+              this.maxLife = 150 + Math.random() * 50; // 長く表示
+              break;
+            case 1: // 遅い
+              speed = 4 + Math.random() * 3;
+              this.maxLife = 100 + Math.random() * 40;
+              break;
+            case 2: // 普通
+              speed = 7 + Math.random() * 4;
+              this.maxLife = 70 + Math.random() * 30;
+              break;
+            case 3: // 速い
+              speed = 12 + Math.random() * 5;
+              this.maxLife = 50 + Math.random() * 20;
+              break;
+            case 4: // とても速い
+              speed = 18 + Math.random() * 7;
+              this.maxLife = 35 + Math.random() * 15;
+              break;
+          }
+          
+          const angle = Math.PI * 0.15 + Math.random() * 0.25;
           this.vx = Math.cos(angle) * speed;
           this.vy = Math.sin(angle) * speed;
           this.life = 0;
-          this.maxLife = 40 + Math.random() * 30;
+          this.rotation = 0;
+          
+          // 回転速度も速度に応じて調整（速いほど速く回る）
+          this.rotSpeed = (Math.random() - 0.5) * 0.15 * (speed / 10);
+          
+          // ランダムな大きさ（4段階）
+          const sizeType = Math.floor(Math.random() * 4);
+          switch(sizeType) {
+            case 0: // 小さい
+              this.size = 20 + Math.random() * 10;
+              break;
+            case 1: // 中くらい
+              this.size = 40 + Math.random() * 15;
+              break;
+            case 2: // 大きい
+              this.size = 70 + Math.random() * 20;
+              break;
+            case 3: // とても大きい
+              this.size = 100 + Math.random() * 40;
+              break;
+          }
+          
+          this.trail = [];
         }
 
         update() {
           if (!this.active) return;
+          
+          this.trail.push({ x: this.x, y: this.y, life: 20 });
+          
+          this.trail = this.trail.filter(t => {
+            t.life--;
+            return t.life > 0;
+          });
+          
           this.x += this.vx;
           this.y += this.vy;
+          this.rotation += this.rotSpeed;
           this.life++;
           if (this.life > this.maxLife) this.reset();
         }
 
         draw(ctx) {
-          if (!this.active) return;
+          if (!this.active || !kokkoLoaded) return;
           const progress = this.life / this.maxLife;
           const alpha = Math.sin(progress * Math.PI);
 
-          const grad = ctx.createLinearGradient(
-            this.x, this.y,
-            this.x - this.vx * 3, this.y - this.vy * 3
-          );
-          grad.addColorStop(0, `rgba(255, 255, 255, ${alpha})`);
-          grad.addColorStop(0.3, `rgba(200, 220, 255, ${alpha * 0.5})`);
-          grad.addColorStop(1, 'transparent');
+          // トレイル（サイズに応じて調整）
+          this.trail.forEach((t) => {
+            const trailAlpha = (t.life / 20) * alpha * 0.5;
+            const trailSize = (2 + (t.life / 20) * 4) * (this.size / 50);
+            
+            ctx.beginPath();
+            ctx.arc(t.x, t.y, trailSize, 0, Math.PI * 2);
+            const gradient = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, trailSize);
+            gradient.addColorStop(0, `rgba(255, 220, 150, ${trailAlpha})`);
+            gradient.addColorStop(0.5, `rgba(255, 180, 100, ${trailAlpha * 0.5})`);
+            gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.fill();
+          });
 
-          ctx.beginPath();
-          ctx.moveTo(this.x, this.y);
-          ctx.lineTo(this.x - this.vx * 3, this.y - this.vy * 3);
-          ctx.strokeStyle = grad;
-          ctx.lineWidth = 2;
-          ctx.stroke();
-
-          ctx.beginPath();
-          ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-          ctx.fill();
+          // kokkoちゃん
+          ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.rotation);
+          ctx.globalAlpha = alpha;
+          
+          // グロー効果（サイズに応じて調整）
+          ctx.shadowColor = 'rgba(255, 200, 100, 0.8)';
+          ctx.shadowBlur = 15 + this.size * 0.2;
+          
+          const drawSize = this.size;
+          const aspectRatio = 389.4 / 297.8;
+          ctx.drawImage(kokkoImage, -drawSize / 2, -drawSize * aspectRatio / 2, drawSize, drawSize * aspectRatio);
+          
+          ctx.restore();
         }
       }
 
@@ -547,17 +626,19 @@
 
       const galaxy = new Galaxy(w * 0.75, h * 0.35, 180);
 
-      const shootingStars = [];
-      for (let i = 0; i < 8; i++) {
-        shootingStars.push(new ShootingStar());
+      const flyingKokkos = [];
+      for (let i = 0; i < 12; i++) {
+        flyingKokkos.push(new FlyingKokko());
       }
 
       const aurora = new Aurora();
 
-      // 流れ星トリガー関数
-      function triggerShootingStar() {
-        const inactive = shootingStars.find(s => !s.active);
-        if (inactive) inactive.trigger();
+      function triggerFlyingKokko() {
+        const inactive = flyingKokkos.find(k => !k.active);
+        if (inactive) {
+          inactive.trigger();
+          console.log('kokko triggered!');
+        }
       }
 
       // ========================================
@@ -566,7 +647,6 @@
       function animate() {
         frame++;
 
-        // 背景
         const bg = ctx.createRadialGradient(w * 0.3, h * 0.3, 0, w / 2, h / 2, Math.max(w, h));
         bg.addColorStop(0, '#0d0d1a');
         bg.addColorStop(0.5, '#070711');
@@ -574,38 +654,31 @@
         ctx.fillStyle = bg;
         ctx.fillRect(0, 0, w, h);
 
-        // オーロラ
         aurora.update();
         aurora.draw(ctx);
 
-        // 星雲
         nebulae.forEach(n => {
           n.update();
           n.draw(ctx);
         });
 
-        // 銀河
         galaxy.update();
         galaxy.draw(ctx);
 
-        // 星
         stars.forEach(s => {
           s.update(frame, mouse);
           s.draw(ctx);
         });
 
-        // 3秒ごとに流れ星
-        if (frame % 180 === 0) {
-          triggerShootingStar();
+        if (frame % 300 === 0) {
+          triggerFlyingKokko();
         }
 
-        // 流れ星
-        shootingStars.forEach(s => {
-          s.update();
-          s.draw(ctx);
+        flyingKokkos.forEach(k => {
+          k.update();
+          k.draw(ctx);
         });
 
-        // ビネット
         const vignette = ctx.createRadialGradient(w / 2, h / 2, h * 0.3, w / 2, h / 2, Math.max(w, h) * 0.8);
         vignette.addColorStop(0, 'transparent');
         vignette.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
@@ -633,25 +706,18 @@
         if (menuOpened) return;
         menuOpened = true;
 
-        // カウンター非表示
         document.getElementById('clickCounter').classList.add('hidden');
-        
-        // ヒント非表示
         document.getElementById('clickHint').style.opacity = '0';
-        
-        // タイトルを左へ
         document.querySelector('.cosmos-content').classList.add('menu-open');
         
-        // メニュー表示
         setTimeout(function() {
           document.getElementById('cosmosMenu').classList.add('visible');
         }, 500);
 
-        // 複数の流れ星を発生させる演出
-        for (let i = 0; i < 5; i++) {
+        for (let i = 0; i < 8; i++) {
           setTimeout(function() {
-            triggerShootingStar();
-          }, i * 200);
+            triggerFlyingKokko();
+          }, i * 150);
         }
       }
 
@@ -669,11 +735,9 @@
         stars.forEach(s => s.reset());
       });
 
-      window.addEventListener('click', function(e) {
-        // メニューリンクがクリックされた場合は何もしない（リンク遷移を許可）
-        if (e.target.classList.contains('menu-item')) return;
-        
-        triggerShootingStar();
+      canvas.addEventListener('click', function(e) {
+        console.log('canvas clicked!');
+        triggerFlyingKokko();
         if (!menuOpened) {
           clickCount++;
           updateClickCounter();
@@ -688,7 +752,6 @@
       // ========================================
       animate();
 
-      // 覚醒アニメーション
       setTimeout(function() {
         document.getElementById('title').classList.add('awakened');
         document.getElementById('subtitle').classList.add('awakened');
