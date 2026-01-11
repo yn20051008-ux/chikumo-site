@@ -4,6 +4,80 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>畜物語 - 観測者の景色</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="畜物語（ちくも/chikumo）は、ゆるキャラとぬい活をテーマにした物語プロジェクト。kokkoちゃんをはじめとする可愛いキャラクターたちが織りなす、心温まるストーリーをお届けします。">
+  <meta name="keywords" content="畜物語,ちくも,chikumo,ゆるキャラ,ぬい活,物語,kokko,キャラクター,ぬいぐるみ,マスコット">
+  <meta name="author" content="畜物語プロジェクト">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://chikumo.jp/">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://chikumo.jp/">
+  <meta property="og:title" content="畜物語（ちくも）- ゆるキャラ・ぬい活の物語">
+  <meta property="og:description" content="ゆるキャラとぬい活をテーマにした物語プロジェクト。kokkoちゃんをはじめとする可愛いキャラクターたちの世界へようこそ。">
+  <meta property="og:image" content="https://chikumo.jp/ogp.png">
+  <meta property="og:site_name" content="畜物語 - chikumo">
+  <meta property="og:locale" content="ja_JP">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://chikumo.jp/">
+  <meta name="twitter:title" content="畜物語（ちくも）- ゆるキャラ・ぬい活の物語">
+  <meta name="twitter:description" content="ゆるキャラとぬい活をテーマにした物語プロジェクト。kokkoちゃんをはじめとする可愛いキャラクターたちの世界へようこそ。">
+  <meta name="twitter:image" content="https://chikumo.jp/ogp.png">
+  
+  <!-- Additional SEO -->
+  <meta name="theme-color" content="#0d0d1a">
+  <meta name="format-detection" content="telephone=no">
+  
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://chikumo.jp/#website",
+        "url": "https://chikumo.jp/",
+        "name": "畜物語",
+        "alternateName": ["ちくも", "chikumo", "Chikumonogatari"],
+        "description": "ゆるキャラとぬい活をテーマにした物語プロジェクト",
+        "inLanguage": "ja-JP"
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://chikumo.jp/#organization",
+        "name": "畜物語プロジェクト",
+        "alternateName": ["ちくも", "chikumo"],
+        "url": "https://chikumo.jp/",
+        "description": "ゆるキャラ・ぬい活をテーマにしたオリジナル物語とキャラクターを制作"
+      },
+      {
+        "@type": "CreativeWork",
+        "@id": "https://chikumo.jp/#creativework",
+        "name": "畜物語",
+        "alternateName": ["ちくも", "chikumo"],
+        "description": "ゆるキャラとぬい活の世界を舞台にした物語。kokkoちゃんをはじめとする個性豊かなキャラクターたちが活躍します。",
+        "genre": ["ゆるキャラ", "ぬい活", "物語", "ファンタジー"],
+        "inLanguage": "ja-JP",
+        "keywords": "畜物語, ちくも, chikumo, ゆるキャラ, ぬい活, 物語, kokko, キャラクター"
+      },
+      {
+        "@type": "WebPage",
+        "@id": "https://chikumo.jp/#webpage",
+        "url": "https://chikumo.jp/",
+        "name": "畜物語（ちくも）- ゆるキャラ・ぬい活の物語 | chikumo",
+        "description": "畜物語（ちくも/chikumo）公式サイト。ゆるキャラとぬい活をテーマにした物語プロジェクト。",
+        "isPartOf": {"@id": "https://chikumo.jp/#website"},
+        "about": {"@id": "https://chikumo.jp/#creativework"},
+        "inLanguage": "ja-JP"
+      }
+    ]
+  }
+  </script>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
   <style>
@@ -202,23 +276,83 @@
     .click-counter.hidden {
       opacity: 0;
     }
+
+    /* Screen Reader Only - SEO Content */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
   </style>
 </head>
 <body>
+  <!-- Hidden SEO Content (Accessible to Screen Readers & Search Engines) -->
+  <div class="sr-only">
+    <h1>畜物語（ちくも / chikumo）- ゆるキャラ・ぬい活の物語</h1>
+    <p>畜物語（読み方：ちくものがたり、愛称：ちくも、英語表記：chikumo）は、ゆるキャラとぬい活をテーマにしたオリジナル物語プロジェクトです。</p>
+    
+    <h2>畜物語とは</h2>
+    <p>畜物語は、可愛いゆるキャラたちが織りなす心温まる物語です。ぬい活（ぬいぐるみ活動）の世界観を大切にしながら、キャラクターたちの日常や冒険を描いています。</p>
+    
+    <h2>登場キャラクター</h2>
+    <p>kokko（こっこ）ちゃんをはじめとする個性豊かなゆるキャラたちが登場します。それぞれのキャラクターには物語があり、ぬい活を楽しむ人々に愛されています。</p>
+    
+    <h2>ぬい活とゆるキャラの世界</h2>
+    <p>ぬい活とは、ぬいぐるみと一緒にお出かけしたり、写真を撮ったりする活動のこと。畜物語のキャラクターたちは、そんなぬい活の楽しさを伝える存在です。</p>
+    
+    <h2>コンテンツ</h2>
+    <ul>
+      <li>物語 - キャラクターたちの物語を読む</li>
+      <li>世界観 - 畜物語の世界設定</li>
+      <li>登場人物 - ゆるキャラたちの紹介</li>
+      <li>銀河 - ギャラリー・イラスト</li>
+      <li>接触 - お問い合わせ・コンタクト</li>
+    </ul>
+    
+    <h2>関連キーワード</h2>
+    <p>畜物語, ちくも, chikumo, ゆるキャラ, ぬい活, 物語, kokko, キャラクター, ぬいぐるみ, マスコット, オリジナルキャラクター, 創作</p>
+  </div>
+
+  <!-- Noscript Fallback for Search Engines -->
+  <noscript>
+    <div style="padding: 40px; max-width: 800px; margin: 0 auto; font-family: sans-serif;">
+      <h1>畜物語（ちくも / chikumo）</h1>
+      <p>ゆるキャラ・ぬい活の物語プロジェクト</p>
+      <h2>畜物語について</h2>
+      <p>畜物語（読み方：ちくものがたり）は、ゆるキャラとぬい活をテーマにした物語です。kokkoちゃんをはじめとする可愛いキャラクターたちが活躍します。</p>
+      <nav>
+        <ul>
+          <li><a href="story/index.html">物語</a></li>
+          <li><a href="#world">世界観</a></li>
+          <li><a href="#characters">登場人物</a></li>
+          <li><a href="#gallery">銀河（ギャラリー）</a></li>
+          <li><a href="#contact">接触（お問い合わせ）</a></li>
+        </ul>
+      </nav>
+      <p>このサイトはJavaScriptを使用しています。より良い体験のためにJavaScriptを有効にしてください。</p>
+    </div>
+  </noscript>
+
   <section class="cosmos">
     <canvas class="cosmos-canvas" id="cosmosCanvas"></canvas>
     <div class="cosmos-content">
-      <h1 class="cosmos-title" id="title">畜物語</h1>
-      <p class="cosmos-subtitle" id="subtitle">観測者の景色</p>
+      <h1 class="cosmos-title" id="title" aria-label="畜物語 - ちくも - chikumo - ゆるキャラとぬい活の物語">畜物語</h1>
+      <p class="cosmos-subtitle" id="subtitle" aria-label="観測者の景色 - 畜物語のサブタイトル">観測者の景色</p>
     </div>
     <p class="cosmos-whisper" id="whisper">— gaze into eternity —</p>
     <p class="click-hint" id="clickHint">click to make a wish</p>
-    <nav class="cosmos-menu" id="cosmosMenu">
-      <a class="menu-item" href="story/index.html">物語</a>
-      <a class="menu-item" href="#world">世界観</a>
-      <a class="menu-item" href="#characters">登場人物</a>
-      <a class="menu-item" href="#gallery">銀河</a>
-      <a class="menu-item" href="#contact">接触</a>
+    <nav class="cosmos-menu" id="cosmosMenu" aria-label="畜物語メインナビゲーション">
+      <a class="menu-item" href="story/index.html" title="畜物語の物語を読む">物語</a>
+      <a class="menu-item" href="#world" title="畜物語の世界観">世界観</a>
+      <a class="menu-item" href="#characters" title="ゆるキャラ・登場人物紹介">登場人物</a>
+      <a class="menu-item" href="#gallery" title="イラストギャラリー">銀河</a>
+      <a class="menu-item" href="#contact" title="お問い合わせ・コンタクト">接触</a>
     </nav>
     <div class="click-counter" id="clickCounter">wishes: 0 / 20</div>
   </section>
