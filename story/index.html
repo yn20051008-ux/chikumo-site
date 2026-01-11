@@ -1,601 +1,751 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>畜星インターセプト</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPACE DODGE - 宇宙ロケット避けゲーム</title>
+    <meta name="description" content="隕石を避けて小惑星帯を突破！ブラウザで遊べる無料の宇宙ロケットゲーム。">
 
-    body {
-      font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif;
-      overflow: hidden;
-      background: #000;
-    }
+    <!-- ========================================
+         CSS スタイル定義
+         ======================================== -->
+    <style>
+        /* ----------------------------
+           リセット & 基本設定
+           ---------------------------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    /* ===== メインコンテナ ===== */
-    #game-container {
-      position: relative;
-      width: 100vw;
-      height: 100vh;
-      background: linear-gradient(180deg, #000005 0%, #03030f 70%, #050515 100%);
-      cursor: pointer;
-      overflow: hidden;
-    }
+        body {
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
 
-    /* ===== 星 ===== */
-    .star {
-      position: absolute;
-      background-color: #fff;
-      border-radius: 50%;
-    }
+        /* ----------------------------
+           ゲームコンテナ
+           ---------------------------- */
+        #game {
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(180deg, #000005, #050515);
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            touch-action: none;  /* タッチ操作の最適化 */
+        }
 
-    /* ===== 畜星 ===== */
-    #chikusei {
-      position: absolute;
-      width: 45px;
-      height: 45px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 35% 35%, #e07050 0%, #c0503a 40%, #a03020 70%, #701810 100%);
-      box-shadow: inset -8px -8px 20px rgba(0,0,0,0.5), 0 0 20px 5px rgba(200,100,50,0.3);
-      transform: translate(-50%, -50%);
-      z-index: 5;
-    }
+        #game.playing {
+            cursor: none;  /* プレイ中はカーソル非表示 */
+        }
 
-    #chikusei::after {
-      content: '';
-      position: absolute;
-      top: 30%;
-      left: 20%;
-      width: 25px;
-      height: 8px;
-      background: rgba(120,40,20,0.4);
-      border-radius: 50%;
-      transform: rotate(-15deg);
-    }
+        /* ----------------------------
+           星空背景
+           ---------------------------- */
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+        }
 
-    /* ===== 地球 ===== */
-    #earth-container {
-      position: absolute;
-      bottom: -180px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 450px;
-      height: 450px;
-    }
+        .star.moving {
+            animation: starFlow linear infinite;
+        }
 
-    #earth-glow {
-      position: absolute;
-      inset: -40px;
-      border-radius: 50%;
-      background: radial-gradient(circle, transparent 50%, rgba(100,180,255,0.1) 70%, transparent 90%);
-    }
+        @keyframes starFlow {
+            0%   { transform: translateY(0); }
+            100% { transform: translateY(100vh); }
+        }
 
-    #earth {
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      overflow: hidden;
-      box-shadow: inset -40px -25px 80px rgba(0,0,0,0.7), 0 0 50px 10px rgba(100,180,255,0.25);
-    }
+        /* ----------------------------
+           ロケット
+           ---------------------------- */
+        #rocket {
+            position: absolute;
+            bottom: 15%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 150px;
+            z-index: 10;
+            display: none;  /* ゲーム開始時に表示 */
+        }
 
-    #earth-ocean {
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 30% 30%, #1a6baa 0%, #0a3d62 60%, #072a45 100%);
-    }
+        #rocket.visible {
+            display: block;
+        }
 
-    #earth-land {
-      position: absolute;
-      inset: 0;
-      animation: earthSpin 90s linear infinite;
-    }
+        .rocket-svg {
+            width: 100%;
+            height: 100%;
+        }
 
-    #earth-shadow {
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      background: linear-gradient(105deg, transparent 45%, rgba(0,0,20,0.5) 65%, rgba(0,0,10,0.8) 100%);
-    }
+        /* ----------------------------
+           隕石
+           ---------------------------- */
+        .meteor {
+            position: absolute;
+            z-index: 5;
+        }
 
-    #earth-atmosphere {
-      position: absolute;
-      inset: 0;
-      border-radius: 50%;
-      background: radial-gradient(circle, transparent 80%, rgba(100,180,255,0.4) 95%, rgba(80,160,255,0.6) 100%);
-    }
+        /* ----------------------------
+           スコア表示
+           ---------------------------- */
+        #score {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 32px;
+            font-weight: bold;
+            z-index: 20;
+            display: none;  /* ゲーム開始時に表示 */
+        }
 
-    /* ===== ロケット ===== */
-    #rocket {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 40px;
-      height: 110px;
-      z-index: 10;
-    }
+        #score.visible {
+            display: block;
+        }
 
-    #rocket.launching {
-      animation: rocketShake 0.06s infinite;
-    }
+        #score.gold {
+            color: gold;  /* スコア30以上で金色 */
+        }
 
-    #rocket svg {
-      width: 100%;
-      height: 100%;
-      filter: drop-shadow(0 8px 25px rgba(0,0,0,0.5));
-    }
+        /* ----------------------------
+           オーバーレイ（共通）
+           ---------------------------- */
+        .overlay {
+            position: absolute;
+            inset: 0;
+            display: none;  /* デフォルト非表示 */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
 
-    #flame {
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
+        .overlay.visible {
+            display: flex;
+        }
 
-    #rocket.launching #flame {
-      opacity: 1;
-    }
+        /* ----------------------------
+           スタート画面
+           ---------------------------- */
+        #startScreen {
+            background: rgba(0, 0, 0, 0.8);
+        }
 
-    /* ===== UI ===== */
-    #ui-top {
-      position: absolute;
-      top: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      text-align: center;
-      z-index: 20;
-    }
+        /* ----------------------------
+           ゲームオーバー画面
+           ---------------------------- */
+        #gameOverScreen {
+            background: rgba(0, 0, 0, 0.9);
+        }
 
-    #mission-title {
-      color: #ff8866;
-      font-size: 11px;
-      letter-spacing: 3px;
-      text-shadow: 0 0 15px rgba(255,100,50,0.8);
-    }
+        /* ----------------------------
+           クリア画面
+           ---------------------------- */
+        #victoryScreen {
+            background: rgba(0, 0, 50, 0.9);
+        }
 
-    #ui-bottom {
-      position: absolute;
-      bottom: 25px;
-      left: 50%;
-      transform: translateX(-50%);
-      text-align: center;
-      z-index: 20;
-    }
+        /* ----------------------------
+           テキストスタイル
+           ---------------------------- */
+        .emoji {
+            font-size: 64px;
+        }
 
-    #attempts {
-      color: #5cb8ff;
-      font-size: 10px;
-      letter-spacing: 2px;
-      margin-bottom: 8px;
-    }
+        .title {
+            font-size: 48px;
+            color: white;
+            margin: 20px;
+            font-weight: bold;
+        }
 
-    #instruction {
-      color: rgba(255,200,100,0.9);
-      font-size: 11px;
-      letter-spacing: 1px;
-      animation: pulse 1.5s infinite;
-    }
+        .subtitle {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.8);
+            margin: 20px;
+            text-align: center;
+            line-height: 1.6;
+        }
 
-    #instruction.hidden {
-      color: rgba(255,255,255,0.4);
-      animation: none;
-    }
+        .game-over-title {
+            font-size: 56px;
+            color: #ff4444;
+            margin: 20px;
+            font-weight: bold;
+        }
 
-    /* ===== メニュー ===== */
-    .menu-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(0,0,0,0.85);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      animation: fadeIn 0.5s ease;
-    }
+        .victory-title {
+            font-size: 56px;
+            color: gold;
+            margin: 20px;
+            font-weight: bold;
+        }
 
-    .menu-overlay.show {
-      display: flex;
-    }
+        .final-score {
+            font-size: 24px;
+            color: white;
+            margin: 20px;
+        }
 
-    .menu-box {
-      border-radius: 20px;
-      padding: 40px;
-      text-align: center;
-    }
+        /* ----------------------------
+           ボタン
+           ---------------------------- */
+        .game-btn {
+            padding: 15px 40px;
+            font-size: 20px;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
 
-    /* クリアメニュー */
-    #clear-menu .menu-box {
-      background: linear-gradient(145deg, #1a2a4a, #0a1525);
-      border: 2px solid rgba(100,180,255,0.3);
-    }
+        .game-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+        }
 
-    #clear-menu .emoji {
-      font-size: 48px;
-      margin-bottom: 10px;
-    }
+        .btn-start {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
 
-    #clear-menu h1 {
-      color: #5cb8ff;
-      font-size: 28px;
-      margin: 0 0 10px 0;
-    }
-
-    #clear-menu .message {
-      color: #8cc8ff;
-      font-size: 14px;
-      margin: 0 0 5px 0;
-    }
-
-    #clear-menu .attempts-result {
-      color: rgba(255,255,255,0.5);
-      font-size: 12px;
-      margin: 0 0 30px 0;
-    }
-
-    .btn-group {
-      display: flex;
-      gap: 15px;
-      justify-content: center;
-    }
-
-    .btn {
-      border: none;
-      border-radius: 10px;
-      padding: 12px 30px;
-      font-size: 14px;
-      cursor: pointer;
-      font-weight: bold;
-      letter-spacing: 2px;
-      transition: transform 0.1s, box-shadow 0.1s;
-    }
-
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
-    }
-
-    .btn:active {
-      transform: translateY(0);
-    }
-
-    .btn-next {
-      background: linear-gradient(145deg, #4CAF50, #2E7D32);
-      color: white;
-    }
-
-    .btn-close {
-      background: linear-gradient(145deg, #444, #222);
-      border: 1px solid #555;
-      color: white;
-    }
-
-    /* 失敗メニュー */
-    #fail-menu .menu-box {
-      background: linear-gradient(145deg, #3a1a1a, #1a0a0a);
-      border: 2px solid rgba(255,100,100,0.3);
-    }
-
-    #fail-menu h1 {
-      color: #ff6b6b;
-      font-size: 24px;
-      margin: 0 0 10px 0;
-    }
-
-    #fail-menu .message {
-      color: rgba(255,255,255,0.6);
-      font-size: 13px;
-      margin: 0 0 25px 0;
-    }
-
-    .btn-retry {
-      background: linear-gradient(145deg, #cc4444, #992222);
-      color: white;
-    }
-
-    /* ===== アニメーション ===== */
-    @keyframes twinkle {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.2; }
-    }
-
-    @keyframes earthSpin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    @keyframes rocketShake {
-      0%, 100% { transform: translateX(-50%); }
-      50% { transform: translateX(-50%) translateY(-1px) rotate(0.2deg); }
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-  </style>
+        .btn-retry {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+        }
+    </style>
 </head>
 <body>
-  <div id="game-container">
-    <!-- 星（JSで生成） -->
-    
-    <!-- 畜星 -->
-    <div id="chikusei"></div>
-    
-    <!-- ロケット -->
-    <div id="rocket">
-      <svg viewBox="0 0 70 240">
-        <defs>
-          <linearGradient id="body" x1="0%" x2="100%">
-            <stop offset="0%" stop-color="#888"/>
-            <stop offset="50%" stop-color="#f8f8f8"/>
-            <stop offset="100%" stop-color="#888"/>
-          </linearGradient>
-          <linearGradient id="nose" x1="0%" x2="100%">
-            <stop offset="0%" stop-color="#1a1a1a"/>
-            <stop offset="50%" stop-color="#444"/>
-            <stop offset="100%" stop-color="#1a1a1a"/>
-          </linearGradient>
-          <linearGradient id="flameGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stop-color="#ff3300"/>
-            <stop offset="50%" stop-color="#ffbb00"/>
-            <stop offset="100%" stop-color="rgba(255,255,0,0)"/>
-          </linearGradient>
-          <filter id="glow" x="-100%" y="-20%" width="300%" height="150%">
-            <feGaussianBlur stdDeviation="3"/>
-          </filter>
-        </defs>
-        <path d="M35,0 C25,15 22,35 22,50 L48,50 C48,35 45,15 35,0 Z" fill="url(#nose)"/>
-        <rect x="22" y="50" width="26" height="40" fill="url(#body)"/>
-        <rect x="20" y="90" width="30" height="12" fill="#333"/>
-        <rect x="20" y="102" width="30" height="90" fill="url(#body)"/>
-        <rect x="6" y="105" width="12" height="18" fill="#333" rx="1"/>
-        <rect x="52" y="105" width="12" height="18" fill="#333" rx="1"/>
-        <path d="M20,175 L5,198 L9,200 L22,180" fill="#333"/>
-        <path d="M50,175 L65,198 L61,200 L48,180" fill="#333"/>
-        <path d="M20,192 L17,202 L53,202 L50,192" fill="#333"/>
-        <g id="flame">
-          <ellipse cx="35" cy="255" rx="32" ry="45" fill="url(#flameGrad)" filter="url(#glow)" opacity="0.5"/>
-          <path d="M24,208 Q18,235 15,270 Q26,305 35,315 Q44,305 55,270 Q52,235 46,208 Z" fill="url(#flameGrad)" filter="url(#glow)"/>
-        </g>
-      </svg>
-    </div>
-    
-    <!-- 地球 -->
-    <div id="earth-container">
-      <div id="earth-glow"></div>
-      <div id="earth">
-        <div id="earth-ocean"></div>
-        <svg id="earth-land" viewBox="0 0 400 400">
-          <defs>
-            <linearGradient id="land" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#5cb85c"/>
-              <stop offset="100%" stop-color="#2d6b2d"/>
-            </linearGradient>
-          </defs>
-          <path d="M75,75 Q120,65 175,66 Q210,70 218,88 Q212,96 165,108 Q105,112 72,88 Z" fill="url(#land)"/>
-          <path d="M80,108 Q165,108 235,125 Q240,148 188,180 Q105,180 70,140 Z" fill="url(#land)"/>
-          <path d="M155,315 Q192,318 200,360 Q175,400 122,365 Z" fill="url(#land)"/>
-          <path d="M275,125 Q312,130 322,170 Q302,218 242,195 Q250,142 275,125 Z" fill="url(#land)"/>
-          <path d="M320,65 Q380,68 398,100 Q380,135 308,125 Q310,85 320,65 Z" fill="url(#land)"/>
-          <ellipse cx="200" cy="25" rx="70" ry="15" fill="#fff" opacity="0.8"/>
-        </svg>
-        <div id="earth-shadow"></div>
-        <div id="earth-atmosphere"></div>
-      </div>
-    </div>
-    
-    <!-- UI上部 -->
-    <div id="ui-top">
-      <div id="mission-title">🔴 畜星 INTERCEPT MISSION</div>
-    </div>
-    
-    <!-- UI下部 -->
-    <div id="ui-bottom">
-      <div id="attempts">ATTEMPTS: <span id="attempts-count">0</span></div>
-      <div id="instruction">🚀 TAP TO LAUNCH!</div>
-    </div>
-    
-    <!-- クリアメニュー -->
-    <div id="clear-menu" class="menu-overlay">
-      <div class="menu-box">
-        <div class="emoji">🚀🎯</div>
-        <h1>MISSION COMPLETE!</h1>
-        <p class="message">畜星への軌道投入に成功！</p>
-        <p class="attempts-result">Attempts: <span id="clear-attempts">0</span></p>
-        <div class="btn-group">
-          <button class="btn btn-next" id="btn-next">NEXT →</button>
-          <button class="btn btn-close" id="btn-close">CLOSE</button>
+    <!-- ========================================
+         HTML 構造
+         ======================================== -->
+    <div id="game">
+
+        <!-- ===== ロケット ===== -->
+        <div id="rocket">
+            <svg viewBox="0 0 70 240" class="rocket-svg">
+                <!-- グラデーション定義 -->
+                <defs>
+                    <!-- ロケット本体のグラデーション -->
+                    <linearGradient id="rocketBody">
+                        <stop offset="0%" stop-color="#8a8a8a"/>
+                        <stop offset="50%" stop-color="#f8f8f8"/>
+                        <stop offset="100%" stop-color="#8a8a8a"/>
+                    </linearGradient>
+                    <!-- ノーズコーンのグラデーション -->
+                    <linearGradient id="noseCone">
+                        <stop offset="0%" stop-color="#1a1a1a"/>
+                        <stop offset="50%" stop-color="#444"/>
+                        <stop offset="100%" stop-color="#1a1a1a"/>
+                    </linearGradient>
+                    <!-- 接続部のグラデーション -->
+                    <linearGradient id="interstage">
+                        <stop offset="0%" stop-color="#202020"/>
+                        <stop offset="50%" stop-color="#505050"/>
+                        <stop offset="100%" stop-color="#202020"/>
+                    </linearGradient>
+                </defs>
+
+                <!-- ノーズコーン（先端） -->
+                <path d="M35,0 C25,15 22,35 22,50 L48,50 C48,35 45,15 35,0 Z" fill="url(#noseCone)"/>
+                
+                <!-- 上部タンク -->
+                <rect x="22" y="50" width="26" height="40" fill="url(#rocketBody)"/>
+                
+                <!-- 接続部1 -->
+                <rect x="20" y="90" width="30" height="12" fill="url(#interstage)"/>
+                
+                <!-- メインタンク -->
+                <rect x="20" y="102" width="30" height="90" fill="url(#rocketBody)"/>
+                
+                <!-- ロゴ部分 -->
+                <rect x="24" y="130" width="22" height="25" fill="none" stroke="#1565c0" stroke-width="0.6"/>
+                <text x="35" y="145" text-anchor="middle" fill="#1565c0" font-size="5" font-weight="bold">SPACE</text>
+                
+                <!-- サイドブースター -->
+                <rect x="6" y="105" width="12" height="18" fill="url(#interstage)"/>
+                <rect x="52" y="105" width="12" height="18" fill="url(#interstage)"/>
+                
+                <!-- エンジン部分 -->
+                <path d="M20,175 L5,198 L9,200 L22,180" fill="url(#interstage)"/>
+                <path d="M50,175 L65,198 L61,200 L48,180" fill="url(#interstage)"/>
+                <path d="M20,192 L17,202 L53,202 L50,192" fill="url(#interstage)"/>
+                
+                <!-- ノズル -->
+                <ellipse cx="35" cy="206" rx="5.5" ry="2.5" fill="#111"/>
+                
+                <!-- 炎（アニメーション付き） -->
+                <ellipse cx="35" cy="215" rx="8" ry="20" fill="#ff6600" opacity="0.8">
+                    <animate attributeName="ry" values="20;25;20" dur="0.1s" repeatCount="indefinite"/>
+                </ellipse>
+                <ellipse cx="35" cy="215" rx="5" ry="15" fill="#ffcc00" opacity="0.9">
+                    <animate attributeName="ry" values="15;18;15" dur="0.08s" repeatCount="indefinite"/>
+                </ellipse>
+            </svg>
         </div>
-      </div>
+
+        <!-- ===== スコア表示 ===== -->
+        <div id="score">0</div>
+
+        <!-- ===== スタート画面 ===== -->
+        <div id="startScreen" class="overlay visible">
+            <div class="emoji">🚀</div>
+            <div class="title">SPACE DODGE</div>
+            <div class="subtitle">
+                隕石を避けて小惑星帯を突破しよう！<br>
+                マウスまたはタッチで操作
+            </div>
+            <button class="game-btn btn-start" onclick="startGame()">START GAME</button>
+        </div>
+
+        <!-- ===== ゲームオーバー画面 ===== -->
+        <div id="gameOverScreen" class="overlay">
+            <div class="game-over-title">GAME OVER</div>
+            <div class="final-score">Score: <span id="finalScore">0</span></div>
+            <button class="game-btn btn-retry" onclick="startGame()">RETRY</button>
+        </div>
+
+        <!-- ===== クリア画面 ===== -->
+        <div id="victoryScreen" class="overlay">
+            <div class="emoji">🎉</div>
+            <div class="victory-title">MISSION COMPLETE!</div>
+            <div class="subtitle">
+                おめでとうございます！<br>
+                小惑星帯を突破しました！
+            </div>
+            <button class="game-btn btn-start" onclick="window.open('https://chikumo.jp/story/02/', '_blank')">
+                NEXT STAGE
+            </button>
+        </div>
     </div>
-    
-    <!-- 失敗メニュー -->
-    <div id="fail-menu" class="menu-overlay">
-      <div class="menu-box">
-        <div class="emoji" style="font-size:48px; margin-bottom:10px;">💥</div>
-        <h1>MISSION FAILED</h1>
-        <p class="message" id="fail-reason">ロケットが畜星を逃しました...</p>
-        <button class="btn btn-retry" id="btn-retry">TRY AGAIN</button>
-      </div>
-    </div>
-  </div>
 
-  <script>
-    // ===== 設定 =====
-    const CONFIG = {
-      starCount: 80,
-      launchDuration: 2500,
-      orbitDuration: 1600,  // 畜星の通過時間（5倍速）
-      nextPageUrl: '../story/01/'  // クリア後の遷移先
-    };
+    <!-- ========================================
+         JavaScript ゲームロジック
+         ======================================== -->
+    <script>
+        /* ====================================
+           定数設定（調整しやすいようにまとめています）
+           ==================================== */
+        const CONFIG = {
+            // 星の数
+            STAR_COUNT: 150,
 
-    // ===== 要素取得 =====
-    const container = document.getElementById('game-container');
-    const chikusei = document.getElementById('chikusei');
-    const rocket = document.getElementById('rocket');
-    const attemptsCount = document.getElementById('attempts-count');
-    const instruction = document.getElementById('instruction');
-    const clearMenu = document.getElementById('clear-menu');
-    const failMenu = document.getElementById('fail-menu');
-    const clearAttempts = document.getElementById('clear-attempts');
-    const failReason = document.getElementById('fail-reason');
-    const btnNext = document.getElementById('btn-next');
-    const btnClose = document.getElementById('btn-close');
-    const btnRetry = document.getElementById('btn-retry');
+            // 隕石の出現間隔（ミリ秒）
+            METEOR_SPAWN_INTERVAL: 1200,
 
-    // ===== ゲーム状態 =====
-    let gameState = 'ready'; // ready, launching, cleared, failed
-    let attempts = 0;
-    let rocketY = 240;
-    let chikuseiProgress = 0;
-    let startTime = null;
-    let launchTime = null;
-    let animationId = null;
+            // ゲームループの間隔（ミリ秒）≒ 60fps
+            GAME_LOOP_INTERVAL: 16,
 
-    // ===== 星を生成 =====
-    function createStars() {
-      for (let i = 0; i < CONFIG.starCount; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        const size = Math.random() * 2.5 + 0.5;
-        const brightness = Math.random() * 0.6 + 0.4;
-        star.style.cssText = `
-          left: ${Math.random() * 100}%;
-          top: ${Math.random() * 75}%;
-          width: ${size}px;
-          height: ${size}px;
-          opacity: ${brightness};
-          animation: twinkle ${Math.random() * 2 + 1.5}s ${Math.random() * 4}s infinite;
-        `;
-        container.appendChild(star);
-      }
-    }
+            // ロケットの移動速度
+            ROCKET_SPEED: 1.5,
 
-    // ===== 畜星の位置を更新 =====
-    function updateChikusei(progress) {
-      const x = 90 - progress * 80;
-      const y = 15 + Math.sin(progress * Math.PI) * 25;
-      chikusei.style.left = x + '%';
-      chikusei.style.top = y + '%';
-      return { x, y };
-    }
+            // ロケットの移動可能範囲（%）
+            ROCKET_MIN_X: 5,
+            ROCKET_MAX_X: 95,
 
-    // ===== ロケットの位置を更新 =====
-    function updateRocket(y) {
-      rocket.style.bottom = y + 'px';
-    }
+            // 当たり判定の範囲（%）
+            ROCKET_TOP: 70,
+            ROCKET_BOTTOM: 85,
+            ROCKET_WIDTH: 2.5,
 
-    // ===== 衝突判定 =====
-    function checkCollision(chikuseiPos, rocketY) {
-      const rocketX = 50;
-      const rocketTopY = 100 - (rocketY / 8);
-      const distance = Math.sqrt(
-        Math.pow(chikuseiPos.x - rocketX, 2) + 
-        Math.pow(chikuseiPos.y - rocketTopY, 2)
-      );
-      return distance < 10;
-    }
+            // クリア条件（スコア）
+            VICTORY_SCORE: 40,
 
-    // ===== ゲームループ =====
-    function gameLoop(timestamp) {
-      if (!startTime) startTime = timestamp;
-      
-      const elapsed = timestamp - startTime;
-      chikuseiProgress = (elapsed % CONFIG.orbitDuration) / CONFIG.orbitDuration;
-      const chikuseiPos = updateChikusei(chikuseiProgress);
+            // スコアが金色になる閾値
+            GOLD_SCORE_THRESHOLD: 30,
 
-      if (gameState === 'launching' && launchTime) {
-        const launchElapsed = timestamp - launchTime;
-        rocketY = 240 + (launchElapsed / CONFIG.launchDuration) * 700;
-        updateRocket(rocketY);
+            // 隕石のサイズ一覧（ピクセル）
+            // 極小(25), 小(50), 中(100), 大(150), 極大(250)
+            METEOR_SIZES: [25, 50, 100, 150, 250],
 
-        // 衝突判定
-        if (checkCollision(chikuseiPos, rocketY)) {
-          gameState = 'cleared';
-          showClearMenu();
+            // 隕石の速度一覧（1フレームあたりの移動量）
+            // 遅い(2s), 普通(1s), 早い(0.5s), とても早い(0.2s), 最速(0.1s)
+            METEOR_SPEEDS: [0.8, 1.6, 3.2, 8, 16]
+        };
+
+
+        /* ====================================
+           DOM要素の取得
+           ==================================== */
+        const $game = document.getElementById('game');
+        const $rocket = document.getElementById('rocket');
+        const $score = document.getElementById('score');
+        const $startScreen = document.getElementById('startScreen');
+        const $gameOverScreen = document.getElementById('gameOverScreen');
+        const $victoryScreen = document.getElementById('victoryScreen');
+        const $finalScore = document.getElementById('finalScore');
+
+
+        /* ====================================
+           ゲーム状態の管理
+           ==================================== */
+        let gameState = 'start';  // 'start' | 'playing' | 'over' | 'victory'
+        let score = 0;
+        let rocketX = 50;         // ロケットのX座標（%）
+        let meteors = [];         // 隕石の配列
+        let stars = [];           // 星の配列
+
+        // キー入力状態
+        const keys = {
+            left: false,
+            right: false
+        };
+
+        // タイマーID
+        let meteorIntervalId = null;
+        let gameLoopId = null;
+
+
+        /* ====================================
+           初期化: 星空の生成
+           ==================================== */
+        function initStars() {
+            for (let i = 0; i < CONFIG.STAR_COUNT; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                
+                // ランダムな位置
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                
+                // ランダムなサイズ（1〜3px）
+                const size = Math.random() * 2 + 1;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                
+                // アニメーション時間（大きい星は速く、小さい星は遅く）
+                star.dataset.duration = (3 - size * 0.8 + Math.random()).toFixed(2);
+                
+                $game.appendChild(star);
+                stars.push(star);
+            }
         }
 
-        // 画面外に出たら失敗
-        if (rocketY > 1000 && gameState !== 'cleared') {
-          gameState = 'failed';
-          showFailMenu('ロケットが畜星を逃しました...');
+
+        /* ====================================
+           星のアニメーション制御
+           ==================================== */
+        function setStarsMoving(isMoving) {
+            stars.forEach(star => {
+                if (isMoving) {
+                    star.classList.add('moving');
+                    star.style.animationDuration = star.dataset.duration + 's';
+                } else {
+                    star.classList.remove('moving');
+                }
+            });
         }
-      }
 
-      // 常にアニメーションを継続
-      animationId = requestAnimationFrame(gameLoop);
-    }
 
-    // ===== クリアメニュー表示 =====
-    function showClearMenu() {
-      clearAttempts.textContent = attempts;
-      clearMenu.classList.add('show');
-    }
+        /* ====================================
+           ゲーム開始
+           ==================================== */
+        function startGame() {
+            // 状態の初期化
+            gameState = 'playing';
+            score = 0;
+            rocketX = 50;
 
-    // ===== 失敗メニュー表示 =====
-    function showFailMenu(reason) {
-      failReason.textContent = reason;
-      failMenu.classList.add('show');
-    }
+            // 既存の隕石を削除
+            meteors.forEach(m => m.element.remove());
+            meteors = [];
 
-    // ===== ゲームリセット =====
-    function resetGame() {
-      gameState = 'ready';
-      rocketY = 240;
-      launchTime = null;
-      updateRocket(rocketY);
-      rocket.classList.remove('launching');
-      instruction.textContent = '🚀 TAP TO LAUNCH!';
-      instruction.classList.remove('hidden');
-      clearMenu.classList.remove('show');
-      failMenu.classList.remove('show');
-    }
+            // UI更新
+            hideAllOverlays();
+            $rocket.classList.add('visible');
+            $score.classList.add('visible');
+            $score.classList.remove('gold');
+            $score.textContent = '0';
+            $game.classList.add('playing');
 
-    // ===== イベントリスナー =====
-    container.addEventListener('click', (e) => {
-      // メニューが表示されている場合は無視
-      if (gameState === 'cleared' || gameState === 'failed') return;
+            updateRocketPosition();
+            setStarsMoving(true);
 
-      if (gameState === 'ready') {
-        gameState = 'launching';
-        attempts++;
-        attemptsCount.textContent = attempts;
-        launchTime = performance.now();
-        rocket.classList.add('launching');
-        instruction.textContent = 'LAUNCHING...';
-        instruction.classList.add('hidden');
-      }
-    });
+            // ゲームループ開始
+            meteorIntervalId = setInterval(spawnMeteor, CONFIG.METEOR_SPAWN_INTERVAL);
+            gameLoopId = setInterval(gameLoop, CONFIG.GAME_LOOP_INTERVAL);
+        }
 
-    // 次へボタン
-    btnNext.addEventListener('click', (e) => {
-      e.stopPropagation();
-      window.location.href = CONFIG.nextPageUrl;
-    });
 
-    // 閉じるボタン
-    btnClose.addEventListener('click', (e) => {
-      e.stopPropagation();
-      resetGame();
-    });
+        /* ====================================
+           ゲームオーバー
+           ==================================== */
+        function gameOver() {
+            gameState = 'over';
+            stopGame();
 
-    // リトライボタン
-    btnRetry.addEventListener('click', (e) => {
-      e.stopPropagation();
-      resetGame();
-    });
+            $finalScore.textContent = Math.floor(score / 60);
+            $gameOverScreen.classList.add('visible');
+        }
 
-    // ===== 初期化 =====
-    createStars();
-    updateRocket(rocketY);
-    animationId = requestAnimationFrame(gameLoop);
-  </script>
+
+        /* ====================================
+           ゲームクリア
+           ==================================== */
+        function victory() {
+            gameState = 'victory';
+            stopGame();
+
+            $victoryScreen.classList.add('visible');
+        }
+
+
+        /* ====================================
+           ゲーム停止（共通処理）
+           ==================================== */
+        function stopGame() {
+            clearInterval(meteorIntervalId);
+            clearInterval(gameLoopId);
+            setStarsMoving(false);
+
+            $rocket.classList.remove('visible');
+            $score.classList.remove('visible');
+            $game.classList.remove('playing');
+        }
+
+
+        /* ====================================
+           オーバーレイを全て非表示
+           ==================================== */
+        function hideAllOverlays() {
+            $startScreen.classList.remove('visible');
+            $gameOverScreen.classList.remove('visible');
+            $victoryScreen.classList.remove('visible');
+        }
+
+
+        /* ====================================
+           ロケット位置の更新
+           ==================================== */
+        function updateRocketPosition() {
+            $rocket.style.left = rocketX + '%';
+        }
+
+
+        /* ====================================
+           隕石の生成
+           ==================================== */
+        function spawnMeteor() {
+            if (gameState !== 'playing') return;
+
+            const id = Date.now() + Math.random();
+
+            // ランダムなサイズと速度を選択
+            const size = CONFIG.METEOR_SIZES[Math.floor(Math.random() * CONFIG.METEOR_SIZES.length)];
+            const speed = CONFIG.METEOR_SPEEDS[Math.floor(Math.random() * CONFIG.METEOR_SPEEDS.length)];
+
+            // 隕石オブジェクトの作成
+            const meteor = {
+                id: id,
+                x: Math.random() * 90 + 5,  // 5〜95%の範囲
+                y: -10,                      // 画面上部の外側から開始
+                rot: Math.random() * 360,    // 初期回転角度
+                rotSpeed: (Math.random() - 0.5) * 0.5,  // 回転速度
+                size: size,
+                speed: speed,
+                element: null
+            };
+
+            // DOM要素の作成
+            const el = document.createElement('div');
+            el.className = 'meteor';
+            el.innerHTML = `
+                <svg viewBox="0 0 100 100" style="width:${size}px; height:${size}px;">
+                    <defs>
+                        <radialGradient id="mg-${id}">
+                            <stop offset="0%" stop-color="#8b7355"/>
+                            <stop offset="50%" stop-color="#6b5344"/>
+                            <stop offset="100%" stop-color="#3a2518"/>
+                        </radialGradient>
+                    </defs>
+                    <!-- 隕石本体 -->
+                    <circle cx="50" cy="50" r="45" fill="url(#mg-${id})"/>
+                    <!-- クレーター（装飾） -->
+                    <ellipse cx="35" cy="35" rx="12" ry="10" fill="#4a3728" opacity="0.6"/>
+                    <ellipse cx="60" cy="55" rx="8" ry="7" fill="#4a3728" opacity="0.5"/>
+                </svg>
+            `;
+
+            $game.appendChild(el);
+            meteor.element = el;
+            meteors.push(meteor);
+
+            updateMeteorPosition(meteor);
+        }
+
+
+        /* ====================================
+           隕石位置の更新
+           ==================================== */
+        function updateMeteorPosition(meteor) {
+            meteor.element.style.left = meteor.x + '%';
+            meteor.element.style.top = meteor.y + '%';
+            meteor.element.style.transform = `translate(-50%, -50%) rotate(${meteor.rot}deg)`;
+        }
+
+
+        /* ====================================
+           メインゲームループ
+           ==================================== */
+        function gameLoop() {
+            if (gameState !== 'playing') return;
+
+            // --- キー入力によるロケット移動 ---
+            if (keys.left) {
+                rocketX = Math.max(CONFIG.ROCKET_MIN_X, rocketX - CONFIG.ROCKET_SPEED);
+            }
+            if (keys.right) {
+                rocketX = Math.min(CONFIG.ROCKET_MAX_X, rocketX + CONFIG.ROCKET_SPEED);
+            }
+            updateRocketPosition();
+
+            // --- 隕石の更新 ---
+            for (let i = meteors.length - 1; i >= 0; i--) {
+                const m = meteors[i];
+                
+                // 移動と回転
+                m.y += m.speed;
+                m.rot += m.rotSpeed;
+
+                // --- 当たり判定（円形） ---
+                // 隕石の半径をビューポート基準の%に変換
+                const gameWidth = $game.offsetWidth;
+                const gameHeight = $game.offsetHeight;
+                const meteorRadiusPercent = (m.size / 2) / gameWidth * 100;
+
+                // ロケットの当たり判定（中心と半径）
+                // ロケットは細長いので、見た目より小さめの円で判定（プレイヤー有利）
+                const rocketCenterY = CONFIG.ROCKET_TOP + (CONFIG.ROCKET_BOTTOM - CONFIG.ROCKET_TOP) / 2;
+                const rocketRadiusPercent = 2;  // ロケットの当たり判定半径（%）
+
+                // 前フレームから現在までの経路上で判定（トンネリング対策）
+                const prevY = m.y - m.speed;
+                const steps = Math.max(1, Math.ceil(m.speed / 2));  // 高速時は複数点で判定
+                
+                let hit = false;
+                for (let s = 0; s <= steps; s++) {
+                    const checkY = prevY + (m.y - prevY) * (s / steps);
+                    
+                    // X方向の距離（%）
+                    const dx = m.x - rocketX;
+                    // Y方向の距離（%、アスペクト比を考慮）
+                    const dy = (checkY - rocketCenterY) * (gameWidth / gameHeight);
+                    
+                    // 中心間の距離
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // 2つの円の半径の合計より距離が小さければ衝突
+                    if (distance < meteorRadiusPercent + rocketRadiusPercent) {
+                        hit = true;
+                        break;
+                    }
+                }
+
+                if (hit) {
+                    gameOver();
+                    return;
+                }
+
+                // --- 画面外に出た隕石を削除 ---
+                if (m.y > 110) {
+                    m.element.remove();
+                    meteors.splice(i, 1);
+                } else {
+                    updateMeteorPosition(m);
+                }
+            }
+
+            // --- スコア更新 ---
+            score++;
+            const displayScore = Math.floor(score / 60);
+            $score.textContent = displayScore;
+
+            // スコアが閾値を超えたら金色に
+            if (displayScore >= CONFIG.GOLD_SCORE_THRESHOLD) {
+                $score.classList.add('gold');
+            }
+
+            // --- クリア判定 ---
+            if (displayScore >= CONFIG.VICTORY_SCORE) {
+                victory();
+            }
+        }
+
+
+        /* ====================================
+           キーボード操作
+           ==================================== */
+        document.addEventListener('keydown', (e) => {
+            // 左移動
+            if (e.key === 'ArrowLeft' || e.key === 'a') {
+                keys.left = true;
+            }
+            // 右移動
+            if (e.key === 'ArrowRight' || e.key === 'd') {
+                keys.right = true;
+            }
+            // スペースキーでゲーム開始
+            if (e.key === ' ' && gameState === 'start') {
+                e.preventDefault();
+                startGame();
+            }
+            // Rキーでリトライ
+            if (e.key === 'r' && gameState === 'over') {
+                startGame();
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (e.key === 'ArrowLeft' || e.key === 'a') {
+                keys.left = false;
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd') {
+                keys.right = false;
+            }
+        });
+
+
+        /* ====================================
+           マウス・タッチ操作
+           ==================================== */
+        function handlePointerMove(e) {
+            if (gameState !== 'playing') return;
+
+            const rect = $game.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const x = ((clientX - rect.left) / rect.width) * 100;
+
+            rocketX = Math.max(CONFIG.ROCKET_MIN_X, Math.min(CONFIG.ROCKET_MAX_X, x));
+            updateRocketPosition();
+        }
+
+        function handleClick(e) {
+            // ボタンクリックは除外
+            if (e.target.tagName === 'BUTTON') return;
+
+            if (gameState === 'start' || gameState === 'over') {
+                startGame();
+            }
+        }
+
+        $game.addEventListener('mousemove', handlePointerMove);
+        $game.addEventListener('touchmove', handlePointerMove, { passive: true });
+        $game.addEventListener('click', handleClick);
+        $game.addEventListener('touchstart', (e) => {
+            if (e.target.tagName !== 'BUTTON') {
+                handleClick(e);
+            }
+        }, { passive: true });
+
+
+        /* ====================================
+           初期化実行
+           ==================================== */
+        initStars();
+    </script>
 </body>
 </html>
