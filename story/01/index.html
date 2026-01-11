@@ -5,39 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SPACE DODGE - 宇宙ロケット避けゲーム</title>
     <meta name="description" content="隕石を避けて小惑星帯を突破！ブラウザで遊べる無料の宇宙ロケットゲーム。">
+
+    <!-- ========================================
+         CSS スタイル定義
+         ======================================== -->
     <style>
+        /* ----------------------------
+           リセット & 基本設定
+           ---------------------------- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
+
         body {
             overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
+
+        /* ----------------------------
+           ゲームコンテナ
+           ---------------------------- */
         #game {
             width: 100vw;
             height: 100vh;
             background: linear-gradient(180deg, #000005, #050515);
             position: relative;
             overflow: hidden;
+            cursor: pointer;
+            touch-action: none;  /* タッチ操作の最適化 */
         }
+
+        #game.playing {
+            cursor: none;  /* プレイ中はカーソル非表示 */
+        }
+
+        /* ----------------------------
+           星空背景
+           ---------------------------- */
         .star {
             position: absolute;
             background: white;
             border-radius: 50%;
         }
+
         .star.moving {
             animation: starFlow linear infinite;
         }
+
         @keyframes starFlow {
-            0% {
-                transform: translateY(0);
-            }
-            100% {
-                transform: translateY(100vh);
-            }
+            0%   { transform: translateY(0); }
+            100% { transform: translateY(100vh); }
         }
+
+        /* ----------------------------
+           ロケット
+           ---------------------------- */
         #rocket {
             position: absolute;
             bottom: 15%;
@@ -45,8 +69,29 @@
             width: 50px;
             height: 150px;
             z-index: 10;
-            display: none;
+            display: none;  /* ゲーム開始時に表示 */
         }
+
+        #rocket.visible {
+            display: block;
+        }
+
+        .rocket-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ----------------------------
+           隕石
+           ---------------------------- */
+        .meteor {
+            position: absolute;
+            z-index: 5;
+        }
+
+        /* ----------------------------
+           スコア表示
+           ---------------------------- */
         #score {
             position: absolute;
             top: 30px;
@@ -56,47 +101,100 @@
             font-size: 32px;
             font-weight: bold;
             z-index: 20;
-            display: none;
+            display: none;  /* ゲーム開始時に表示 */
         }
+
+        #score.visible {
+            display: block;
+        }
+
         #score.gold {
-            color: gold;
+            color: gold;  /* スコア30以上で金色 */
         }
-        .meteor {
-            position: absolute;
-            z-index: 5;
-        }
+
+        /* ----------------------------
+           オーバーレイ（共通）
+           ---------------------------- */
         .overlay {
             position: absolute;
             inset: 0;
-            display: flex;
+            display: none;  /* デフォルト非表示 */
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 100;
         }
+
+        .overlay.visible {
+            display: flex;
+        }
+
+        /* ----------------------------
+           スタート画面
+           ---------------------------- */
         #startScreen {
-            background: rgba(0,0,0,0.8);
+            background: rgba(0, 0, 0, 0.8);
         }
+
+        /* ----------------------------
+           ゲームオーバー画面
+           ---------------------------- */
         #gameOverScreen {
-            background: rgba(0,0,0,0.9);
-            display: none;
+            background: rgba(0, 0, 0, 0.9);
         }
+
+        /* ----------------------------
+           クリア画面
+           ---------------------------- */
         #victoryScreen {
-            background: rgba(0,0,50,0.9);
-            display: none;
+            background: rgba(0, 0, 50, 0.9);
         }
+
+        /* ----------------------------
+           テキストスタイル
+           ---------------------------- */
+        .emoji {
+            font-size: 64px;
+        }
+
         .title {
             font-size: 48px;
             color: white;
             margin: 20px;
             font-weight: bold;
         }
+
         .subtitle {
             font-size: 18px;
-            color: rgba(255,255,255,0.8);
+            color: rgba(255, 255, 255, 0.8);
             margin: 20px;
             text-align: center;
+            line-height: 1.6;
         }
+
+        .game-over-title {
+            font-size: 56px;
+            color: #ff4444;
+            margin: 20px;
+            font-weight: bold;
+        }
+
+        .victory-title {
+            font-size: 56px;
+            color: gold;
+            margin: 20px;
+            font-weight: bold;
+        }
+
+        .final-score {
+            font-size: 24px;
+            color: white;
+            margin: 20px;
+        }
+
+        /* ----------------------------
+           ボタン
+           ---------------------------- */
         .game-btn {
             padding: 15px 40px;
             font-size: 20px;
@@ -106,138 +204,234 @@
             cursor: pointer;
             transition: transform 0.2s, box-shadow 0.2s;
         }
+
         .game-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 0 30px rgba(255,255,255,0.3);
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
         }
+
         .btn-start {
             background: linear-gradient(135deg, #667eea, #764ba2);
         }
+
         .btn-retry {
             background: linear-gradient(135deg, #f093fb, #f5576c);
-        }
-        .emoji {
-            font-size: 64px;
-        }
-        .game-over-title {
-            font-size: 56px;
-            color: #ff4444;
-            margin: 20px;
-            font-weight: bold;
-        }
-        .victory-title {
-            font-size: 56px;
-            color: gold;
-            margin: 20px;
-            font-weight: bold;
-        }
-        .final-score {
-            font-size: 24px;
-            color: white;
-            margin: 20px;
         }
     </style>
 </head>
 <body>
+    <!-- ========================================
+         HTML 構造
+         ======================================== -->
     <div id="game">
-        <!-- Stars will be generated here -->
-        
+
+        <!-- ===== ロケット ===== -->
         <div id="rocket">
-            <svg viewBox="0 0 70 240" style="width:100%;height:100%">
+            <svg viewBox="0 0 70 240" class="rocket-svg">
+                <!-- グラデーション定義 -->
                 <defs>
+                    <!-- ロケット本体のグラデーション -->
                     <linearGradient id="rocketBody">
                         <stop offset="0%" stop-color="#8a8a8a"/>
                         <stop offset="50%" stop-color="#f8f8f8"/>
                         <stop offset="100%" stop-color="#8a8a8a"/>
                     </linearGradient>
+                    <!-- ノーズコーンのグラデーション -->
                     <linearGradient id="noseCone">
                         <stop offset="0%" stop-color="#1a1a1a"/>
                         <stop offset="50%" stop-color="#444"/>
                         <stop offset="100%" stop-color="#1a1a1a"/>
                     </linearGradient>
+                    <!-- 接続部のグラデーション -->
                     <linearGradient id="interstage">
                         <stop offset="0%" stop-color="#202020"/>
                         <stop offset="50%" stop-color="#505050"/>
                         <stop offset="100%" stop-color="#202020"/>
                     </linearGradient>
                 </defs>
+
+                <!-- ノーズコーン（先端） -->
                 <path d="M35,0 C25,15 22,35 22,50 L48,50 C48,35 45,15 35,0 Z" fill="url(#noseCone)"/>
+                
+                <!-- 上部タンク -->
                 <rect x="22" y="50" width="26" height="40" fill="url(#rocketBody)"/>
+                
+                <!-- 接続部1 -->
                 <rect x="20" y="90" width="30" height="12" fill="url(#interstage)"/>
+                
+                <!-- メインタンク -->
                 <rect x="20" y="102" width="30" height="90" fill="url(#rocketBody)"/>
+                
+                <!-- ロゴ部分 -->
                 <rect x="24" y="130" width="22" height="25" fill="none" stroke="#1565c0" stroke-width="0.6"/>
                 <text x="35" y="145" text-anchor="middle" fill="#1565c0" font-size="5" font-weight="bold">SPACE</text>
+                
+                <!-- サイドブースター -->
                 <rect x="6" y="105" width="12" height="18" fill="url(#interstage)"/>
                 <rect x="52" y="105" width="12" height="18" fill="url(#interstage)"/>
+                
+                <!-- エンジン部分 -->
                 <path d="M20,175 L5,198 L9,200 L22,180" fill="url(#interstage)"/>
                 <path d="M50,175 L65,198 L61,200 L48,180" fill="url(#interstage)"/>
                 <path d="M20,192 L17,202 L53,202 L50,192" fill="url(#interstage)"/>
+                
+                <!-- ノズル -->
                 <ellipse cx="35" cy="206" rx="5.5" ry="2.5" fill="#111"/>
+                
+                <!-- 炎（アニメーション付き） -->
+                <ellipse cx="35" cy="215" rx="8" ry="20" fill="#ff6600" opacity="0.8">
+                    <animate attributeName="ry" values="20;25;20" dur="0.1s" repeatCount="indefinite"/>
+                </ellipse>
+                <ellipse cx="35" cy="215" rx="5" ry="15" fill="#ffcc00" opacity="0.9">
+                    <animate attributeName="ry" values="15;18;15" dur="0.08s" repeatCount="indefinite"/>
+                </ellipse>
             </svg>
         </div>
-        
+
+        <!-- ===== スコア表示 ===== -->
         <div id="score">0</div>
-        
-        <div id="startScreen" class="overlay">
+
+        <!-- ===== スタート画面 ===== -->
+        <div id="startScreen" class="overlay visible">
             <div class="emoji">🚀</div>
             <div class="title">SPACE DODGE</div>
-            <div class="subtitle">隕石を避けて小惑星帯を突破しよう！</div>
+            <div class="subtitle">
+                隕石を避けて小惑星帯を突破しよう！<br>
+                マウスまたはタッチで操作
+            </div>
             <button class="game-btn btn-start" onclick="startGame()">START GAME</button>
         </div>
-        
+
+        <!-- ===== ゲームオーバー画面 ===== -->
         <div id="gameOverScreen" class="overlay">
             <div class="game-over-title">GAME OVER</div>
             <div class="final-score">Score: <span id="finalScore">0</span></div>
             <button class="game-btn btn-retry" onclick="startGame()">RETRY</button>
         </div>
-        
+
+        <!-- ===== クリア画面 ===== -->
         <div id="victoryScreen" class="overlay">
             <div class="emoji">🎉</div>
             <div class="victory-title">MISSION COMPLETE!</div>
-            <div class="subtitle">おめでとうございます！<br>小惑星帯を突破しました！</div>
-            <button class="game-btn btn-start"
-        onclick="location.href='https://chikumo.jp/story/02/'">
-    NEXT STAGE
-</button>
+            <div class="subtitle">
+                おめでとうございます！<br>
+                小惑星帯を突破しました！
+            </div>
+            <button class="game-btn btn-start" onclick="window.open('https://chikumo.jp/story/02/', '_blank')">
+                NEXT STAGE
+            </button>
         </div>
     </div>
 
+    <!-- ========================================
+         JavaScript ゲームロジック
+         ======================================== -->
     <script>
-        const game = document.getElementById('game');
-        const rocket = document.getElementById('rocket');
-        const scoreDisplay = document.getElementById('score');
-        const startScreen = document.getElementById('startScreen');
-        const gameOverScreen = document.getElementById('gameOverScreen');
-        const victoryScreen = document.getElementById('victoryScreen');
-        const finalScoreDisplay = document.getElementById('finalScore');
+        /* ====================================
+           定数設定（調整しやすいようにまとめています）
+           ==================================== */
+        const CONFIG = {
+            // 星の数
+            STAR_COUNT: 150,
 
-        let state = 'start';
+            // 隕石の出現間隔（ミリ秒）
+            METEOR_SPAWN_INTERVAL: 1200,
+
+            // ゲームループの間隔（ミリ秒）≒ 60fps
+            GAME_LOOP_INTERVAL: 16,
+
+            // ロケットの移動速度
+            ROCKET_SPEED: 1.5,
+
+            // ロケットの移動可能範囲（%）
+            ROCKET_MIN_X: 5,
+            ROCKET_MAX_X: 95,
+
+            // 当たり判定の範囲（%）
+            ROCKET_TOP: 70,
+            ROCKET_BOTTOM: 85,
+            ROCKET_WIDTH: 2.5,
+
+            // クリア条件（スコア）
+            VICTORY_SCORE: 40,
+
+            // スコアが金色になる閾値
+            GOLD_SCORE_THRESHOLD: 30,
+
+            // 隕石のサイズ一覧（ピクセル）
+            // 極小(25), 小(50), 中(100), 大(150), 極大(250)
+            METEOR_SIZES: [25, 50, 100, 150, 250],
+
+            // 隕石の速度一覧（1フレームあたりの移動量）
+            // 遅い(2s), 普通(1s), 早い(0.5s), とても早い(0.2s), 最速(0.1s)
+            METEOR_SPEEDS: [0.8, 1.6, 3.2, 8, 16]
+        };
+
+
+        /* ====================================
+           DOM要素の取得
+           ==================================== */
+        const $game = document.getElementById('game');
+        const $rocket = document.getElementById('rocket');
+        const $score = document.getElementById('score');
+        const $startScreen = document.getElementById('startScreen');
+        const $gameOverScreen = document.getElementById('gameOverScreen');
+        const $victoryScreen = document.getElementById('victoryScreen');
+        const $finalScore = document.getElementById('finalScore');
+
+
+        /* ====================================
+           ゲーム状態の管理
+           ==================================== */
+        let gameState = 'start';  // 'start' | 'playing' | 'over' | 'victory'
         let score = 0;
-        let rocketX = 50;
-        let meteors = [];
-        let keys = { left: false, right: false };
-        let meteorInterval = null;
-        let gameLoop = null;
+        let rocketX = 50;         // ロケットのX座標（%）
+        let meteors = [];         // 隕石の配列
+        let stars = [];           // 星の配列
 
-        // Generate stars
-        const stars = [];
-        for (let i = 0; i < 150; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 100 + '%';
-            const size = Math.random() * 2 + 1;
-            star.style.width = size + 'px';
-            star.style.height = size + 'px';
-            // Larger stars move faster (closer), smaller stars move slower (farther)
-            star.dataset.duration = (3 - size * 0.8 + Math.random()).toFixed(2);
-            game.appendChild(star);
-            stars.push(star);
+        // キー入力状態
+        const keys = {
+            left: false,
+            right: false
+        };
+
+        // タイマーID
+        let meteorIntervalId = null;
+        let gameLoopId = null;
+
+
+        /* ====================================
+           初期化: 星空の生成
+           ==================================== */
+        function initStars() {
+            for (let i = 0; i < CONFIG.STAR_COUNT; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                
+                // ランダムな位置
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                
+                // ランダムなサイズ（1〜3px）
+                const size = Math.random() * 2 + 1;
+                star.style.width = size + 'px';
+                star.style.height = size + 'px';
+                
+                // アニメーション時間（大きい星は速く、小さい星は遅く）
+                star.dataset.duration = (3 - size * 0.8 + Math.random()).toFixed(2);
+                
+                $game.appendChild(star);
+                stars.push(star);
+            }
         }
 
-        function setStarsMoving(moving) {
+
+        /* ====================================
+           星のアニメーション制御
+           ==================================== */
+        function setStarsMoving(isMoving) {
             stars.forEach(star => {
-                if (moving) {
+                if (isMoving) {
                     star.classList.add('moving');
                     star.style.animationDuration = star.dataset.duration + 's';
                 } else {
@@ -246,55 +440,121 @@
             });
         }
 
+
+        /* ====================================
+           ゲーム開始
+           ==================================== */
         function startGame() {
-            state = 'playing';
+            // 状態の初期化
+            gameState = 'playing';
             score = 0;
             rocketX = 50;
-            
-            // Clear existing meteors
+
+            // 既存の隕石を削除
             meteors.forEach(m => m.element.remove());
             meteors = [];
-            
-            // Hide overlays
-            startScreen.style.display = 'none';
-            gameOverScreen.style.display = 'none';
-            victoryScreen.style.display = 'none';
-            
-            // Show game elements
-            rocket.style.display = 'block';
-            scoreDisplay.style.display = 'block';
-            scoreDisplay.classList.remove('gold');
-            
+
+            // UI更新
+            hideAllOverlays();
+            $rocket.classList.add('visible');
+            $score.classList.add('visible');
+            $score.classList.remove('gold');
+            $score.textContent = '0';
+            $game.classList.add('playing');
+
             updateRocketPosition();
-            
-            // Start star animation
             setStarsMoving(true);
-            
-            // Start meteor spawning
-            meteorInterval = setInterval(spawnMeteor, 1200);
-            
-            // Start game loop
-            gameLoop = setInterval(update, 16);
+
+            // ゲームループ開始
+            meteorIntervalId = setInterval(spawnMeteor, CONFIG.METEOR_SPAWN_INTERVAL);
+            gameLoopId = setInterval(gameLoop, CONFIG.GAME_LOOP_INTERVAL);
         }
 
+
+        /* ====================================
+           ゲームオーバー
+           ==================================== */
+        function gameOver() {
+            gameState = 'over';
+            stopGame();
+
+            $finalScore.textContent = Math.floor(score / 60);
+            $gameOverScreen.classList.add('visible');
+        }
+
+
+        /* ====================================
+           ゲームクリア
+           ==================================== */
+        function victory() {
+            gameState = 'victory';
+            stopGame();
+
+            $victoryScreen.classList.add('visible');
+        }
+
+
+        /* ====================================
+           ゲーム停止（共通処理）
+           ==================================== */
+        function stopGame() {
+            clearInterval(meteorIntervalId);
+            clearInterval(gameLoopId);
+            setStarsMoving(false);
+
+            $rocket.classList.remove('visible');
+            $score.classList.remove('visible');
+            $game.classList.remove('playing');
+        }
+
+
+        /* ====================================
+           オーバーレイを全て非表示
+           ==================================== */
+        function hideAllOverlays() {
+            $startScreen.classList.remove('visible');
+            $gameOverScreen.classList.remove('visible');
+            $victoryScreen.classList.remove('visible');
+        }
+
+
+        /* ====================================
+           ロケット位置の更新
+           ==================================== */
+        function updateRocketPosition() {
+            $rocket.style.left = rocketX + '%';
+        }
+
+
+        /* ====================================
+           隕石の生成
+           ==================================== */
         function spawnMeteor() {
-            if (state !== 'playing') return;
-            
-            const id = Date.now();
+            if (gameState !== 'playing') return;
+
+            const id = Date.now() + Math.random();
+
+            // ランダムなサイズと速度を選択
+            const size = CONFIG.METEOR_SIZES[Math.floor(Math.random() * CONFIG.METEOR_SIZES.length)];
+            const speed = CONFIG.METEOR_SPEEDS[Math.floor(Math.random() * CONFIG.METEOR_SPEEDS.length)];
+
+            // 隕石オブジェクトの作成
             const meteor = {
                 id: id,
-                x: Math.random() * 90 + 5,
-                y: -10,
-                rot: Math.random() * 360,
-                rotSpeed: (Math.random() - 0.5) * 8,
-                size: Math.random() * 30 + 40,
+                x: Math.random() * 90 + 5,  // 5〜95%の範囲
+                y: -10,                      // 画面上部の外側から開始
+                rot: Math.random() * 360,    // 初期回転角度
+                rotSpeed: (Math.random() - 0.5) * 0.5,  // 回転速度
+                size: size,
+                speed: speed,
                 element: null
             };
-            
+
+            // DOM要素の作成
             const el = document.createElement('div');
             el.className = 'meteor';
             el.innerHTML = `
-                <svg viewBox="0 0 100 100" style="width:${meteor.size}px;height:${meteor.size}px">
+                <svg viewBox="0 0 100 100" style="width:${size}px; height:${size}px;">
                     <defs>
                         <radialGradient id="mg-${id}">
                             <stop offset="0%" stop-color="#8b7355"/>
@@ -302,59 +562,70 @@
                             <stop offset="100%" stop-color="#3a2518"/>
                         </radialGradient>
                     </defs>
+                    <!-- 隕石本体 -->
                     <circle cx="50" cy="50" r="45" fill="url(#mg-${id})"/>
+                    <!-- クレーター（装飾） -->
                     <ellipse cx="35" cy="35" rx="12" ry="10" fill="#4a3728" opacity="0.6"/>
                     <ellipse cx="60" cy="55" rx="8" ry="7" fill="#4a3728" opacity="0.5"/>
                 </svg>
             `;
-            game.appendChild(el);
+
+            $game.appendChild(el);
             meteor.element = el;
             meteors.push(meteor);
-            
+
             updateMeteorPosition(meteor);
         }
 
+
+        /* ====================================
+           隕石位置の更新
+           ==================================== */
         function updateMeteorPosition(meteor) {
             meteor.element.style.left = meteor.x + '%';
             meteor.element.style.top = meteor.y + '%';
             meteor.element.style.transform = `translate(-50%, -50%) rotate(${meteor.rot}deg)`;
         }
 
-        function updateRocketPosition() {
-            rocket.style.left = rocketX + '%';
-        }
 
-        function update() {
-            if (state !== 'playing') return;
-            
-            // Handle input
-            if (keys.left) rocketX = Math.max(5, rocketX - 8);
-            if (keys.right) rocketX = Math.min(95, rocketX + 8);
+        /* ====================================
+           メインゲームループ
+           ==================================== */
+        function gameLoop() {
+            if (gameState !== 'playing') return;
+
+            // --- キー入力によるロケット移動 ---
+            if (keys.left) {
+                rocketX = Math.max(CONFIG.ROCKET_MIN_X, rocketX - CONFIG.ROCKET_SPEED);
+            }
+            if (keys.right) {
+                rocketX = Math.min(CONFIG.ROCKET_MAX_X, rocketX + CONFIG.ROCKET_SPEED);
+            }
             updateRocketPosition();
-            
-            // Update meteors
-            const rocketTop = 70;
-            const rocketBottom = 85;
-            
+
+            // --- 隕石の更新 ---
             for (let i = meteors.length - 1; i >= 0; i--) {
                 const m = meteors[i];
-                m.y += 3;
+                
+                // 移動と回転
+                m.y += m.speed;
                 m.rot += m.rotSpeed;
-                
-                // Check collision
+
+                // --- 当たり判定 ---
+                const hitboxSize = m.size / 100;  // サイズを%に変換
                 const hit = (
-                    m.y + m.size/100*6 > rocketTop &&
-                    m.y < rocketBottom &&
-                    m.x + m.size/100*2.5 > rocketX - 2.5 &&
-                    m.x - m.size/100*2.5 < rocketX + 2.5
+                    m.y + hitboxSize * 6 > CONFIG.ROCKET_TOP &&
+                    m.y < CONFIG.ROCKET_BOTTOM &&
+                    m.x + hitboxSize * 2.5 > rocketX - CONFIG.ROCKET_WIDTH &&
+                    m.x - hitboxSize * 2.5 < rocketX + CONFIG.ROCKET_WIDTH
                 );
-                
+
                 if (hit) {
                     gameOver();
                     return;
                 }
-                
-                // Remove off-screen meteors
+
+                // --- 画面外に出た隕石を削除 ---
                 if (m.y > 110) {
                     m.element.remove();
                     meteors.splice(i, 1);
@@ -362,76 +633,94 @@
                     updateMeteorPosition(m);
                 }
             }
-            
-            // Update score
+
+            // --- スコア更新 ---
             score++;
             const displayScore = Math.floor(score / 60);
-            scoreDisplay.textContent = displayScore;
-            
-            if (displayScore >= 30) {
-                scoreDisplay.classList.add('gold');
+            $score.textContent = displayScore;
+
+            // スコアが閾値を超えたら金色に
+            if (displayScore >= CONFIG.GOLD_SCORE_THRESHOLD) {
+                $score.classList.add('gold');
             }
-            
-            // Check victory
-            if (displayScore >= 40) {
+
+            // --- クリア判定 ---
+            if (displayScore >= CONFIG.VICTORY_SCORE) {
                 victory();
             }
         }
 
-        function gameOver() {
-            state = 'over';
-            clearInterval(meteorInterval);
-            clearInterval(gameLoop);
-            setStarsMoving(false);
-            
-            rocket.style.display = 'none';
-            scoreDisplay.style.display = 'none';
-            finalScoreDisplay.textContent = Math.floor(score / 60);
-            gameOverScreen.style.display = 'flex';
-        }
 
-        function victory() {
-            state = 'victory';
-            clearInterval(meteorInterval);
-            clearInterval(gameLoop);
-            setStarsMoving(false);
-            
-            rocket.style.display = 'none';
-            scoreDisplay.style.display = 'none';
-            victoryScreen.style.display = 'flex';
-        }
-
-        // Keyboard controls
+        /* ====================================
+           キーボード操作
+           ==================================== */
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = true;
-            if (e.key === 'ArrowRight' || e.key === 'd') keys.right = true;
-            if (e.key === ' ' && state === 'start') { e.preventDefault(); startGame(); }
-            if (e.key === 'r' && state === 'over') startGame();
+            // 左移動
+            if (e.key === 'ArrowLeft' || e.key === 'a') {
+                keys.left = true;
+            }
+            // 右移動
+            if (e.key === 'ArrowRight' || e.key === 'd') {
+                keys.right = true;
+            }
+            // スペースキーでゲーム開始
+            if (e.key === ' ' && gameState === 'start') {
+                e.preventDefault();
+                startGame();
+            }
+            // Rキーでリトライ
+            if (e.key === 'r' && gameState === 'over') {
+                startGame();
+            }
         });
 
         document.addEventListener('keyup', (e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'a') keys.left = false;
-            if (e.key === 'ArrowRight' || e.key === 'd') keys.right = false;
+            if (e.key === 'ArrowLeft' || e.key === 'a') {
+                keys.left = false;
+            }
+            if (e.key === 'ArrowRight' || e.key === 'd') {
+                keys.right = false;
+            }
         });
 
-        // Touch controls
-        game.addEventListener('touchstart', handleTouch, { passive: false });
-        game.addEventListener('touchmove', handleTouch, { passive: false });
 
-        function handleTouch(e) {
-            // Allow taps on the victory overlay to fall through so the NEXT STAGE button works on mobile
-            if (state === 'victory') return;
+        /* ====================================
+           マウス・タッチ操作
+           ==================================== */
+        function handlePointerMove(e) {
+            if (gameState !== 'playing') return;
 
-            e.preventDefault();
-            if (state === 'start' || state === 'over') {
+            const rect = $game.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const x = ((clientX - rect.left) / rect.width) * 100;
+
+            rocketX = Math.max(CONFIG.ROCKET_MIN_X, Math.min(CONFIG.ROCKET_MAX_X, x));
+            updateRocketPosition();
+        }
+
+        function handleClick(e) {
+            // ボタンクリックは除外
+            if (e.target.tagName === 'BUTTON') return;
+
+            if (gameState === 'start' || gameState === 'over') {
                 startGame();
-            } else if (state === 'playing') {
-                const rect = game.getBoundingClientRect();
-                const x = ((e.touches[0].clientX - rect.left) / rect.width) * 100;
-                rocketX = Math.max(5, Math.min(95, x));
-                updateRocketPosition();
             }
         }
+
+        $game.addEventListener('mousemove', handlePointerMove);
+        $game.addEventListener('touchmove', handlePointerMove, { passive: true });
+        $game.addEventListener('click', handleClick);
+        $game.addEventListener('touchstart', (e) => {
+            if (e.target.tagName !== 'BUTTON') {
+                handleClick(e);
+            }
+        }, { passive: true });
+
+
+        /* ====================================
+           初期化実行
+           ==================================== */
+        initStars();
     </script>
 </body>
 </html>
