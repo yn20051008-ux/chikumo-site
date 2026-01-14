@@ -994,6 +994,27 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
   // TODO: Add SDKs for Firebase products that you want to use
   // https://firebase.google.com/docs/web/setup#available-libraries
+<script>
+  // Observer No (訪問回数 = 会員番号)
+  let observerId = localStorage.getItem("observerId");
+  let visits = localStorage.getItem("observerVisits");
+
+  if (!observerId) {
+    observerId = crypto.randomUUID();
+    visits = 1;
+  } else {
+    visits = parseInt(visits || "0") + 1;
+  }
+
+  localStorage.setItem("observerId", observerId);
+  localStorage.setItem("observerVisits", visits);
+
+  // 表示
+  document.addEventListener("DOMContentLoaded", () => {
+    const el = document.getElementById("observerNo");
+    if (el) el.textContent = visits;
+  });
+</script>
 
   // Your web app's Firebase configuration
   const firebaseConfig = {
