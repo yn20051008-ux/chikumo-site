@@ -939,7 +939,7 @@
     })();
   </script>
   
-  <!-- 訪問者累計カウンターダグ終わり -->
+  
   <script type="module">
   // Import the functions you need from the SDKs you need
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
@@ -961,6 +961,38 @@
   const app = initializeApp(firebaseConfig);
 </script>
   <!-- 訪問者累計カウンターダグ終わり -->
-  
+  <div id="visitorCounter" style="
+  position: fixed;
+  right: 14px;
+  bottom: 14px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.25);
+  font-family: 'Cormorant Garamond', serif;
+  z-index: 9999;
+  pointer-events: none;
+">
+  OBSERVERS: --
+</div>
+<script type="module">
+import { getDatabase, ref, runTransaction, onValue }
+  from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+
+const db = getDatabase();
+const counterRef = ref(db, 'chikumo_visitors/count');
+
+// アクセス時に +1
+runTransaction(counterRef, (current) => {
+  return (current || 0) + 1;
+});
+
+// リアルタイム表示
+onValue(counterRef, (snapshot) => {
+  const count = snapshot.val() || 0;
+  document.getElementById("visitorCounter").textContent =
+    "OBSERVERS: " + count.toLocaleString();
+});
+</script>
+<!-- 訪問者累計カウンターダグ終わり -->
 </body>
 </html>
