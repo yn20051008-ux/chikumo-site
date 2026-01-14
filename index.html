@@ -989,32 +989,54 @@
   </script>
   
   
-  <script type="module">
+ <!-- Firebase 初期化（モジュール） -->
+<script type="module">
   // Import the functions you need from the SDKs you need
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBn5mrQbLWsi27YYED8EqkXbAaTpv27_MY",
+    authDomain: "chikumo-counter.firebaseapp.com",
+    databaseURL: "https://chikumo-counter-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "chikumo-counter",
+    storageBucket: "chikumo-counter.firebasestorage.app",
+    messagingSenderId: "405581609668",
+    appId: "1:405581609668:web:e28bbe71c0812c32b36791"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
+
+<!-- Observer No. 管理（会員番号 = 訪問回数） -->
 <script>
-  // Observer No (訪問回数 = 会員番号)
+  // ========================================
+  // Observer No (訪問回数 = 魂の通し番号)
+  // ========================================
+
   let observerId = localStorage.getItem("observerId");
   let visits = localStorage.getItem("observerVisits");
 
+  // 初回訪問
   if (!observerId) {
-    observerId = crypto.randomUUID();
-    visits = 1;
+    observerId = crypto.randomUUID();   // 魂ID
+    visits = 1;                        // Observer No. 1
   } else {
-    visits = parseInt(visits || "0") + 1;
+    visits = parseInt(visits || "0") + 1; // 再訪問ごとに +1
   }
 
+  // 保存
   localStorage.setItem("observerId", observerId);
   localStorage.setItem("observerVisits", visits);
 
-  // 表示
+  // 表示（魂ユニットに反映）
   document.addEventListener("DOMContentLoaded", () => {
     const el = document.getElementById("observerNo");
     if (el) el.textContent = visits;
   });
 </script>
+
 
   // Your web app's Firebase configuration
   const firebaseConfig = {
