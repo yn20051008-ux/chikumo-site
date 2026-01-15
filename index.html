@@ -992,22 +992,46 @@
   OBSERVERS: --
 </div>
 <script type="module">
-import { getDatabase, ref, runTransaction, onValue }
+import { getDatabase, ref, runTransaction, onValue, update }
   from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
-const db = getDatabase();
-const counterRef = ref(db, 'chikumo_visitors/count');
+function getOrCreateUUID() {
+  const KEY = "chikumo_uuid";
+  let uuid = localStorage.getItem(KEY);
+  if (!uuid) {
+    uuid = crypto.randomUUID();
+    localStorage.setItem(KEY, uuid);
+  }
+  return uuid;
+}
 
-// アクセス時に +1
-runTransaction(counterRef, (current) => {
-  return (current || 0) + 1;
+const db = getDatabase();
+const counterEl = document.getElementById("visitorCounter");
+
+const uuid = getOrCreateUUID();
+const visitorRef = ref(db, `visitors/${uuid}`);
+const uniqueCountRef = ref(db, "chikumo_visitors/unique_count");
+
+runTransaction(visitorRef, (current) => {
+  if (current) return current;
+  return {
+    firstSeen: Date.now(),
+    lastSeen: Date.now(),
+    userAgent: navigator.userAgent
+  };
+}).then((result) => {
+  if (result.committed) {
+    runTransaction(uniqueCountRef, (n) => (n || 0) + 1);
+  } else {
+    update(ref(db, `visitors/${uuid}`), { lastSeen: Date.now() });
+  }
 });
 
-// リアルタイム表示
-onValue(counterRef, (snapshot) => {
+onValue(uniqueCountRef, (snapshot) => {
   const count = snapshot.val() || 0;
-  document.getElementById("visitorCounter").textContent =
-    "OBSERVERS: " + count.toLocaleString();
+  if (counterEl) {
+    counterEl.textContent = "OBSERVERS: " + count.toLocaleString();
+  }
 });
 </script>
 <!-- 訪問者累計カウンターダグ終わり -->
