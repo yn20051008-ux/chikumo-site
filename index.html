@@ -992,7 +992,7 @@
   OBSERVERS: --
 </div>
 <script type="module">
-import { getDatabase, ref, runTransaction, onValue, update }
+import { getDatabase, ref, runTransaction, onValue } 
   from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
 function getOrCreateUUID() {
@@ -1010,28 +1010,20 @@ const counterEl = document.getElementById("visitorCounter");
 
 const uuid = getOrCreateUUID();
 const visitorRef = ref(db, `visitors/${uuid}`);
-const uniqueCountRef = ref(db, "chikumo_visitors/unique_count");
+const countRef = ref(db, `stats/unique_count`);
 
 runTransaction(visitorRef, (current) => {
   if (current) return current;
-  return {
-    firstSeen: Date.now(),
-    lastSeen: Date.now(),
-    userAgent: navigator.userAgent
-  };
-}).then((result) => {
+  return { firstSeen: Date.now() };
+}).then(result => {
   if (result.committed) {
-    runTransaction(uniqueCountRef, (n) => (n || 0) + 1);
-  } else {
-    update(ref(db, `visitors/${uuid}`), { lastSeen: Date.now() });
+    runTransaction(countRef, n => (n || 0) + 1);
   }
 });
 
-onValue(uniqueCountRef, (snapshot) => {
-  const count = snapshot.val() || 0;
-  if (counterEl) {
-    counterEl.textContent = "OBSERVERS: " + count.toLocaleString();
-  }
+onValue(countRef, snap => {
+  const n = snap.val() || 0;
+  counterEl.textContent = "OBSERVERS: " + n.toLocaleString();
 });
 </script>
 <!-- 訪問者累計カウンターダグ終わり -->
