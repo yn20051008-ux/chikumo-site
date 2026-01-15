@@ -277,6 +277,43 @@
       opacity: 0;
     }
 
+    /* Floating Kokko Styles */
+    .floating-kokko-container {
+      position: fixed;
+      bottom: 70px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 15px;
+      z-index: 50;
+      pointer-events: none;
+    }
+
+    .floating-kokko {
+      width: 45px;
+      height: auto;
+      opacity: 0.85;
+      filter: drop-shadow(0 0 15px rgba(255, 220, 150, 0.4));
+      animation: floatKokko 3.5s ease-in-out infinite;
+    }
+
+    @keyframes floatKokko {
+      0%, 100% {
+        transform: translateY(0) translateX(0);
+      }
+      25% {
+        transform: translateY(-10px) translateX(2px);
+      }
+      50% {
+        transform: translateY(-6px) translateX(-2px);
+      }
+      75% {
+        transform: translateY(-12px) translateX(1px);
+      }
+    }
+
     /* Screen Reader Only - SEO Content */
     .sr-only {
       position: absolute;
@@ -1073,6 +1110,62 @@ if (document.readyState === "loading") {
 }
 </script>
 <!-- Firebase Counters End -->
+
+<!-- Floating Kokko Display Start -->
+<div class="floating-kokko-container" id="floatingKokkoContainer"></div>
+
+<script type="module">
+import { getDatabase, ref, onValue } 
+  from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+
+function initFloatingKokkos() {
+  const container = document.getElementById('floatingKokkoContainer');
+  const kokkoSrc = document.getElementById('kokkoImg').src;
+  let currentCount = 0;
+
+  function updateKokkos(count) {
+    // 現在の数と同じなら何もしない
+    if (count === currentCount) return;
+    
+    // kokkoちゃんを増減
+    if (count > currentCount) {
+      // 増やす
+      for (let i = currentCount; i < count; i++) {
+        const img = document.createElement('img');
+        img.src = kokkoSrc;
+        img.className = 'floating-kokko';
+        img.alt = 'kokko';
+        // 各kokkoに異なるアニメーション遅延を設定（自然な動きに）
+        const delay = (i * 0.4) % 3.5;
+        const duration = 3 + (i % 3) * 0.5;
+        img.style.animationDelay = `-${delay}s`;
+        img.style.animationDuration = `${duration}s`;
+        container.appendChild(img);
+      }
+    } else {
+      // 減らす
+      while (container.children.length > count) {
+        container.removeChild(container.lastChild);
+      }
+    }
+    currentCount = count;
+  }
+
+  // Firebase presence を監視
+  const db = getDatabase();
+  const presenceListRef = ref(db, "presence");
+  
+  onValue(presenceListRef, (snapshot) => {
+    const val = snapshot.val();
+    const count = val ? Object.keys(val).length : 0;
+    updateKokkos(count);
+  });
+}
+
+// 少し遅延させて初期化（Firebase初期化完了後に実行）
+setTimeout(initFloatingKokkos, 1000);
+</script>
+<!-- Floating Kokko Display End -->
 <!-- 訪問者累計カウンターダグ終わり -->
 
 
