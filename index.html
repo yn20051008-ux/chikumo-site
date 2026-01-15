@@ -960,6 +960,23 @@
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
 </script>
+  
+  <!-- Current Observers (Concurrent Users) -->
+<div id="currentObservers" style="
+  position: fixed;
+  right: 14px;
+  bottom: 34px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: rgba(255,255,255,0.25);
+  font-family: 'Cormorant Garamond', serif;
+  z-index: 9999;
+  pointer-events: none;
+">
+  Current Observers: --
+</div>
+   <!-- Current Observers (Concurrent Users) -->
+  
   <!-- 訪問者累計カウンターダグ終わり -->
   <div id="visitorCounter" style="
   position: fixed;
@@ -994,5 +1011,31 @@ onValue(counterRef, (snapshot) => {
 });
 </script>
 <!-- 訪問者累計カウンターダグ終わり -->
+<!-- 同時接続者カウンターダグ -->
+  <script type="module">
+import { getDatabase, ref, set, remove, onValue, onDisconnect, push } 
+  from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+
+const db = getDatabase();
+
+// この閲覧者専用の一時IDを生成
+const myPresenceRef = push(ref(db, "presence"));
+
+// 接続したらオンライン登録
+set(myPresenceRef, true);
+
+// 切断時に自動削除
+onDisconnect(myPresenceRef).remove();
+
+// 同時接続数を監視
+const presenceListRef = ref(db, "presence");
+onValue(presenceListRef, (snapshot) => {
+  const users = snapshot.val();
+  const count = users ? Object.keys(users).length : 0;
+  document.getElementById("currentObservers").textContent =
+    "Current Observers: " + count;
+});
+</script>
+<!-- 同時接続者カウンターダグ -->
 </body>
 </html>
