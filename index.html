@@ -1036,31 +1036,6 @@ onValue(presenceListRef, (snapshot) => {
     "Current Observers: " + count;
 });
 </script>
-<!-- 同時接続者カウンターダグ -->
-<script type="module">
-import { getDatabase, ref, set, onValue, onDisconnect, push } 
-  from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
-
-const db = getDatabase();
-
-// この閲覧者専用の一時IDを生成
-const myPresenceRef = push(ref(db, "presence"));
-
-// 接続したらオンライン登録
-set(myPresenceRef, true);
-
-// 切断時に自動削除
-onDisconnect(myPresenceRef).remove();
-
-// 同時接続数を監視
-const presenceListRef = ref(db, "presence");
-onValue(presenceListRef, (snapshot) => {
-  const users = snapshot.val();
-  const count = users ? Object.keys(users).length : 0;
-  document.getElementById("currentObservers").textContent =
-    "Current Observers: " + count;
-});
-</script>
 
 
 </body>
