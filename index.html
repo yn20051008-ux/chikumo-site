@@ -1005,51 +1005,82 @@ function getOrCreateUUID() {
   return uuid;
 }
 
-const db = getDatabase();
-const counterEl = document.getElementById("visitorCounter");
+function initUniqueCounter() {
+  const db = getDatabase();
+  let counterEl = null;
+  const getCounterEl = () => document.getElementById("visitorCounter");
+  const setCounterText = (count) => {
+    if (!counterEl) counterEl = getCounterEl();
+    if (counterEl) {
+      counterEl.textContent = "OBSERVERS: " + count.toLocaleString();
+    }
+  };
 
-const uuid = getOrCreateUUID();
-const visitorRef = ref(db, `visitors/${uuid}`);
-const countRef = ref(db, `stats/unique_count`);
+  setCounterText(0);
 
-runTransaction(visitorRef, (current) => {
-  if (current) return current;
-  return { firstSeen: Date.now() };
-}).then(result => {
-  if (result.committed) {
-    runTransaction(countRef, n => (n || 0) + 1);
-  }
-});
+  const uuid = getOrCreateUUID();
+  const visitorRef = ref(db, `visitors/${uuid}`);
+  const countRef = ref(db, `stats/unique_count`);
 
-onValue(countRef, snap => {
-  const n = snap.val() || 0;
-  counterEl.textContent = "OBSERVERS: " + n.toLocaleString();
-});
+  runTransaction(visitorRef, (current) => {
+    if (current) return current;
+    return { firstSeen: Date.now() };
+  }).then((result) => {
+    if (result.committed) {
+      runTransaction(countRef, (n) => (n || 0) + 1);
+    }
+  });
+
+  onValue(countRef, (snap) => {
+    const n = snap.val() || 0;
+    setCounterText(n);
+  });
+}
+
+if (document.readyState === "complete") {
+  initUniqueCounter();
+} else {
+  document.addEventListener("DOMContentLoaded", initUniqueCounter, { once: true });
+}
 </script>
 <!-- 訪問者累計カウンターダグ終わり -->
 <!-- 同時接続者カウンターダグ -->
   <script type="module">
-import { getDatabase, ref, set, remove, onValue, onDisconnect, push } 
+import { getDatabase, ref, set, onValue, onDisconnect, push } 
   from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
-const db = getDatabase();
+function initPresenceCounter() {
+  const db = getDatabase();
+  let observersEl = null;
+  const getObserversEl = () => document.getElementById("currentObservers");
+  const setObserversText = (count) => {
+    if (!observersEl) observersEl = getObserversEl();
+    if (observersEl) {
+      observersEl.textContent = "Current Observers: " + count;
+    }
+  };
 
-// presence 登録
-const presenceRef = push(ref(db, "presence"));
-set(presenceRef, { online: true, at: Date.now() });
-onDisconnect(presenceRef).remove();
+  setObserversText(0);
 
-// 同時接続数表示
-const countRef = ref(db, "presence");
-onValue(countRef, (snapshot) => {
-  const val = snapshot.val();
-  const count = val ? Object.keys(val).length : 0;
+  // presence 登録
+  const presenceRef = push(ref(db, "presence"));
+  set(presenceRef, { online: true, at: Date.now() });
+  onDisconnect(presenceRef).remove();
 
-  const el = document.getElementById("currentObservers");
-  if (el) {
-    el.textContent = "Current Observers: " + count;
-  }
-});
+  // 同時接続数表示
+  const countRef = ref(db, "presence");
+  onValue(countRef, (snapshot) => {
+    const val = snapshot.val();
+    const count = val ? Object.keys(val).length : 0;
+    setObserversText(count);
+  });
+}
+
+if (document.readyState === "complete") {
+  initPresenceCounter();
+} else {
+  document.addEventListener("DOMContentLoaded", initPresenceCounter, { once: true });
+}
 </script>
 
 
