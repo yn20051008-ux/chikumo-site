@@ -991,8 +991,10 @@
 ">
   OBSERVERS: --
 </div>
+<!-- 同時接続者カウンターダグ -->
+<!-- Firebase Counters Start -->
 <script type="module">
-import { getDatabase, ref, runTransaction, onValue } 
+import { getDatabase, ref, runTransaction, onValue, set, onDisconnect, push } 
   from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
 function getOrCreateUUID() {
@@ -1005,83 +1007,67 @@ function getOrCreateUUID() {
   return uuid;
 }
 
-function initUniqueCounter() {
-  const db = getDatabase();
-  let counterEl = null;
-  const getCounterEl = () => document.getElementById("visitorCounter");
-  const setCounterText = (count) => {
-    if (!counterEl) counterEl = getCounterEl();
-    if (counterEl) {
-      counterEl.textContent = "OBSERVERS: " + count.toLocaleString();
+function makeTextSetter(id, prefix) {
+  let el = null;
+  return (value) => {
+    if (!el) el = document.getElementById(id);
+    if (el) {
+      el.textContent = `${prefix}${value}`;
     }
   };
+}
 
-  setCounterText(0);
+let countersStarted = false;
+
+function initFirebaseCounters() {
+  if (countersStarted) return;
+  countersStarted = true;
+
+  const db = getDatabase();
+  const setUniqueText = makeTextSetter("visitorCounter", "OBSERVERS: ");
+  const setPresenceText = makeTextSetter("currentObservers", "Current Observers: ");
+
+  setUniqueText(0);
+  setPresenceText(0);
 
   const uuid = getOrCreateUUID();
   const visitorRef = ref(db, `visitors/${uuid}`);
-  const countRef = ref(db, `stats/unique_count`);
+  const uniqueCountRef = ref(db, "stats/unique_count");
 
   runTransaction(visitorRef, (current) => {
-    if (current) return current;
+    if (current) return;
     return { firstSeen: Date.now() };
   }).then((result) => {
     if (result.committed) {
-      runTransaction(countRef, (n) => (n || 0) + 1);
+      runTransaction(uniqueCountRef, (n) => (n || 0) + 1);
     }
   });
 
-  onValue(countRef, (snap) => {
+  onValue(uniqueCountRef, (snap) => {
     const n = snap.val() || 0;
-    setCounterText(n);
+    setUniqueText(n.toLocaleString());
   });
-}
 
-if (document.readyState === "complete") {
-  initUniqueCounter();
-} else {
-  document.addEventListener("DOMContentLoaded", initUniqueCounter, { once: true });
-}
-</script>
-<!-- 訪問者累計カウンターダグ終わり -->
-<!-- 同時接続者カウンターダグ -->
-  <script type="module">
-import { getDatabase, ref, set, onValue, onDisconnect, push } 
-  from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
-
-function initPresenceCounter() {
-  const db = getDatabase();
-  let observersEl = null;
-  const getObserversEl = () => document.getElementById("currentObservers");
-  const setObserversText = (count) => {
-    if (!observersEl) observersEl = getObserversEl();
-    if (observersEl) {
-      observersEl.textContent = "Current Observers: " + count;
-    }
-  };
-
-  setObserversText(0);
-
-  // presence 登録
   const presenceRef = push(ref(db, "presence"));
   set(presenceRef, { online: true, at: Date.now() });
   onDisconnect(presenceRef).remove();
 
-  // 同時接続数表示
-  const countRef = ref(db, "presence");
-  onValue(countRef, (snapshot) => {
+  const presenceListRef = ref(db, "presence");
+  onValue(presenceListRef, (snapshot) => {
     const val = snapshot.val();
     const count = val ? Object.keys(val).length : 0;
-    setObserversText(count);
+    setPresenceText(count);
   });
 }
 
-if (document.readyState === "complete") {
-  initPresenceCounter();
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initFirebaseCounters, { once: true });
 } else {
-  document.addEventListener("DOMContentLoaded", initPresenceCounter, { once: true });
+  initFirebaseCounters();
 }
 </script>
+<!-- Firebase Counters End -->
+<!-- 訪問者累計カウンターダグ終わり -->
 
 
 </body>
