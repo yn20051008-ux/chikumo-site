@@ -994,7 +994,7 @@
 <!-- 同時接続者カウンターダグ -->
 <!-- Firebase Counters Start -->
 <script type="module">
-import { getDatabase, ref, runTransaction, onValue, set, onDisconnect, push } 
+import { getDatabase, ref, get, set, runTransaction, onValue, onDisconnect, push } 
   from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
 function getOrCreateUUID() {
@@ -1019,7 +1019,7 @@ function makeTextSetter(id, prefix) {
 
 let countersStarted = false;
 
-function initFirebaseCounters() {
+async function initFirebaseCounters() {
   if (countersStarted) return;
   countersStarted = true;
 
@@ -1034,20 +1034,26 @@ function initFirebaseCounters() {
   const visitorRef = ref(db, `visitors/${uuid}`);
   const uniqueCountRef = ref(db, "stats/unique_count");
 
-  runTransaction(visitorRef, (current) => {
-    if (current) return;
-    return { firstSeen: Date.now() };
-  }).then((result) => {
-    if (result.committed) {
-      runTransaction(uniqueCountRef, (n) => (n || 0) + 1);
+  // 訪問者の存在確認と登録（get → set パターンで確実に判定）
+  try {
+    const snapshot = await get(visitorRef);
+    if (!snapshot.exists()) {
+      // 新規訪問者のみ: レコードを作成してカウントを増やす
+      await set(visitorRef, { firstSeen: Date.now() });
+      await runTransaction(uniqueCountRef, (n) => (n || 0) + 1);
     }
-  });
+    // 既存訪問者（更新ボタン押下含む）: 何もしない
+  } catch (error) {
+    console.error("Visitor registration error:", error);
+  }
 
+  // カウント表示の監視（リアルタイム更新）
   onValue(uniqueCountRef, (snap) => {
     const n = snap.val() || 0;
     setUniqueText(n.toLocaleString());
   });
 
+  // 同時接続者の管理（これは従来通り）
   const presenceRef = push(ref(db, "presence"));
   set(presenceRef, { online: true, at: Date.now() });
   onDisconnect(presenceRef).remove();
