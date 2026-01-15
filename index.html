@@ -1018,22 +1018,21 @@ import { getDatabase, ref, set, remove, onValue, onDisconnect, push }
 
 const db = getDatabase();
 
-// この閲覧者専用の一時IDを生成
-const myPresenceRef = push(ref(db, "presence"));
+// presence 登録
+const presenceRef = push(ref(db, "presence"));
+set(presenceRef, { online: true, at: Date.now() });
+onDisconnect(presenceRef).remove();
 
-// 接続したらオンライン登録
-set(myPresenceRef, true);
+// 同時接続数表示
+const countRef = ref(db, "presence");
+onValue(countRef, (snapshot) => {
+  const val = snapshot.val();
+  const count = val ? Object.keys(val).length : 0;
 
-// 切断時に自動削除
-onDisconnect(myPresenceRef).remove();
-
-// 同時接続数を監視
-const presenceListRef = ref(db, "presence");
-onValue(presenceListRef, (snapshot) => {
-  const users = snapshot.val();
-  const count = users ? Object.keys(users).length : 0;
-  document.getElementById("currentObservers").textContent =
-    "Current Observers: " + count;
+  const el = document.getElementById("currentObservers");
+  if (el) {
+    el.textContent = "Current Observers: " + count;
+  }
 });
 </script>
 
