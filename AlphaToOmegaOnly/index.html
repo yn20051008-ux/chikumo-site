@@ -1,0 +1,2897 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="format-detection" content="telephone=no">
+  <title>畜物語 事業計画書 | Business Plan</title>
+  <meta name="description" content="畜物語 - 生活実装型ストーリーOS。α（オンライン）とΩ（オフライン）の収束による持続可能な共同体プロジェクト。">
+  <meta name="author" content="Shiozaki">
+  
+  <!-- OGP -->
+  <meta property="og:title" content="畜物語 事業計画書">
+  <meta property="og:description" content="生活実装型ストーリーOS — α（Online）× Ω（Offline）収束プロジェクト">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="/assets/ogp.png">
+  <meta property="og:locale" content="ja_JP">
+  
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="畜物語 事業計画書">
+  <meta name="twitter:description" content="生活実装型ストーリーOS — α（Online）× Ω（Offline）収束プロジェクト">
+  <meta name="twitter:image" content="/assets/ogp.png">
+  <style>
+    /* ========================================
+       CSS Variables & Reset
+    ======================================== */
+    :root {
+      --color-bg: #FAFAFA;
+      --color-bg-alt: #FFFFFF;
+      --color-text: #1A1A1A;
+      --color-text-muted: #6B6B6B;
+      --color-accent: #2D5A27;
+      --color-accent-light: #E8F0E7;
+      --color-border: #E0E0E0;
+      --color-card: #FFFFFF;
+      --color-card-shadow: rgba(0,0,0,0.06);
+      --color-risk-high: #C41E3A;
+      --color-risk-mid: #E8A838;
+      --color-risk-low: #4A7C59;
+      --font-display: "Hiragino Mincho ProN", "Yu Mincho", "MS Mincho", serif;
+      --font-body: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif;
+      --font-mono: "SF Mono", "Monaco", "Consolas", monospace;
+      --max-width: 1100px;
+      --spacing-xs: 0.5rem;
+      --spacing-sm: 1rem;
+      --spacing-md: 2rem;
+      --spacing-lg: 3rem;
+      --spacing-xl: 5rem;
+    }
+
+    [data-theme="dark"] {
+      --color-bg: #0D0D0D;
+      --color-bg-alt: #1A1A1A;
+      --color-text: #EFEFEF;
+      --color-text-muted: #999999;
+      --color-accent: #6AAF5C;
+      --color-accent-light: #1E2E1C;
+      --color-border: #333333;
+      --color-card: #1A1A1A;
+      --color-card-shadow: rgba(0,0,0,0.3);
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      font-size: 16px;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.8;
+      min-height: 100vh;
+    }
+
+    /* ========================================
+       Typography
+    ======================================== */
+    h1, h2, h3, h4 {
+      font-family: var(--font-display);
+      font-weight: 400;
+      line-height: 1.3;
+      letter-spacing: 0.02em;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    h2 {
+      font-size: 1.75rem;
+      margin-bottom: var(--spacing-md);
+      padding-bottom: var(--spacing-xs);
+      border-bottom: 1px solid var(--color-border);
+      color: var(--color-accent);
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      margin-bottom: var(--spacing-sm);
+      color: var(--color-text);
+    }
+
+    h4 {
+      font-size: 1rem;
+      margin-bottom: var(--spacing-xs);
+      color: var(--color-text-muted);
+    }
+
+    p {
+      margin-bottom: var(--spacing-sm);
+    }
+
+    a {
+      color: var(--color-accent);
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+
+    a:hover {
+      opacity: 0.7;
+    }
+
+    strong {
+      font-weight: 600;
+    }
+
+    .english-term {
+      font-family: var(--font-mono);
+      font-size: 0.85em;
+      color: var(--color-text-muted);
+      margin-left: 0.25em;
+    }
+
+    /* ========================================
+       Layout
+    ======================================== */
+    .container {
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 var(--spacing-md);
+    }
+
+    header {
+      background: var(--color-bg-alt);
+      border-bottom: 1px solid var(--color-border);
+      padding: var(--spacing-md) 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    [data-theme="dark"] header {
+      background: rgba(26, 26, 26, 0.95);
+    }
+
+    .header-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+    }
+
+    .header-title {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header-title h1 {
+      font-size: 1.5rem;
+      margin-bottom: 0;
+    }
+
+    .header-subtitle {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--color-text-muted);
+    }
+
+    .theme-toggle {
+      background: var(--color-accent);
+      color: var(--color-bg);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: opacity 0.2s;
+    }
+
+    .theme-toggle:hover {
+      opacity: 0.8;
+    }
+
+    nav {
+      background: var(--color-bg-alt);
+      border-bottom: 1px solid var(--color-border);
+      padding: var(--spacing-sm) 0;
+      overflow-x: auto;
+    }
+
+    .nav-list {
+      list-style: none;
+      display: flex;
+      gap: var(--spacing-xs);
+      flex-wrap: wrap;
+    }
+
+    .nav-list a {
+      display: block;
+      padding: 0.375rem 0.75rem;
+      font-size: 0.8125rem;
+      border-radius: 4px;
+      white-space: nowrap;
+      background: transparent;
+      transition: background 0.2s;
+    }
+
+    .nav-list a:hover {
+      background: var(--color-accent-light);
+      opacity: 1;
+    }
+
+    main {
+      padding: var(--spacing-xl) 0;
+    }
+
+    section {
+      margin-bottom: var(--spacing-xl);
+      scroll-margin-top: 120px;
+    }
+
+    footer {
+      background: var(--color-bg-alt);
+      border-top: 1px solid var(--color-border);
+      padding: var(--spacing-lg) 0;
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+
+    /* ========================================
+       Components
+    ======================================== */
+    .key-takeaways {
+      background: var(--color-accent-light);
+      border-left: 4px solid var(--color-accent);
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+      border-radius: 0 8px 8px 0;
+    }
+
+    .key-takeaways h4 {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-accent);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .key-takeaways ul {
+      list-style: none;
+      margin: 0;
+    }
+
+    .key-takeaways li {
+      position: relative;
+      padding-left: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .key-takeaways li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--color-accent);
+    }
+
+    .card {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: var(--spacing-md);
+      box-shadow: 0 2px 8px var(--color-card-shadow);
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .metric-card {
+      text-align: center;
+      padding: var(--spacing-lg) var(--spacing-md);
+    }
+
+    .metric-value {
+      font-family: var(--font-display);
+      font-size: 2.5rem;
+      color: var(--color-accent);
+      line-height: 1;
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .metric-label {
+      font-size: 0.875rem;
+      color: var(--color-text-muted);
+    }
+
+    .metric-sublabel {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--color-text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* Tables */
+    .table-wrapper {
+      overflow-x: auto;
+      margin-bottom: var(--spacing-md);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    th, td {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    th {
+      background: var(--color-bg-alt);
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-text-muted);
+    }
+
+    td {
+      font-family: var(--font-mono);
+    }
+
+    tr:hover td {
+      background: var(--color-accent-light);
+    }
+
+    .number-right {
+      text-align: right;
+    }
+
+    .positive {
+      color: var(--color-risk-low);
+    }
+
+    .negative {
+      color: var(--color-risk-high);
+    }
+
+    /* Charts */
+    .chart-container {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .chart-title {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--color-text-muted);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    canvas {
+      max-width: 100%;
+      display: block;
+    }
+
+    /* Loading state */
+    .loading {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    /* Risk Matrix */
+    .risk-matrix {
+      display: grid;
+      grid-template-columns: auto repeat(3, 1fr);
+      gap: 2px;
+      background: var(--color-border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .risk-cell {
+      background: var(--color-card);
+      padding: var(--spacing-sm);
+      font-size: 0.75rem;
+      text-align: center;
+    }
+
+    .risk-header {
+      background: var(--color-bg-alt);
+      font-weight: 600;
+      font-size: 0.6875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .risk-label {
+      background: var(--color-bg-alt);
+      font-weight: 600;
+      font-size: 0.6875rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      writing-mode: vertical-rl;
+      text-orientation: mixed;
+      transform: rotate(180deg);
+    }
+
+    .risk-high {
+      background: rgba(196, 30, 58, 0.15);
+      color: var(--color-risk-high);
+    }
+
+    .risk-mid {
+      background: rgba(232, 168, 56, 0.15);
+      color: var(--color-risk-mid);
+    }
+
+    .risk-low {
+      background: rgba(74, 124, 89, 0.15);
+      color: var(--color-risk-low);
+    }
+
+    /* Roadmap */
+    .roadmap {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .roadmap-quarter {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: var(--spacing-md);
+    }
+
+    .roadmap-quarter h4 {
+      font-family: var(--font-mono);
+      font-size: 0.875rem;
+      color: var(--color-accent);
+      margin-bottom: var(--spacing-sm);
+      padding-bottom: var(--spacing-xs);
+      border-bottom: 2px solid var(--color-accent);
+    }
+
+    .roadmap-quarter ul {
+      list-style: none;
+      font-size: 0.8125rem;
+    }
+
+    .roadmap-quarter li {
+      padding: 0.375rem 0;
+      border-bottom: 1px dashed var(--color-border);
+    }
+
+    .roadmap-quarter li:last-child {
+      border-bottom: none;
+    }
+
+    /* Funnel Diagram */
+    .funnel-diagram {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      padding: var(--spacing-md) 0;
+    }
+
+    .funnel-step {
+      background: var(--color-accent);
+      color: var(--color-bg);
+      padding: 1rem 2rem;
+      text-align: center;
+      font-size: 0.875rem;
+      transition: transform 0.2s;
+    }
+
+    .funnel-step:hover {
+      transform: scale(1.02);
+    }
+
+    .funnel-step:nth-child(1) { width: 100%; clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%); }
+    .funnel-step:nth-child(2) { width: 85%; clip-path: polygon(5% 0, 95% 0, 90% 100%, 10% 100%); }
+    .funnel-step:nth-child(3) { width: 70%; clip-path: polygon(8% 0, 92% 0, 85% 100%, 15% 100%); }
+    .funnel-step:nth-child(4) { width: 55%; clip-path: polygon(10% 0, 90% 0, 80% 100%, 20% 100%); }
+    .funnel-step:nth-child(5) { width: 40%; clip-path: polygon(15% 0, 85% 0, 100% 100%, 0% 100%); border-radius: 0 0 8px 8px; }
+
+    .funnel-rate {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      opacity: 0.8;
+      display: block;
+      margin-top: 0.25rem;
+    }
+
+    /* North Star Structure */
+    .north-star-structure {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: var(--spacing-lg);
+    }
+
+    .ns-primary {
+      background: var(--color-accent);
+      color: var(--color-bg);
+      padding: var(--spacing-md) var(--spacing-lg);
+      border-radius: 50%;
+      text-align: center;
+      margin-bottom: var(--spacing-md);
+      width: 200px;
+      height: 200px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .ns-primary-label {
+      font-family: var(--font-mono);
+      font-size: 0.6875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.8;
+    }
+
+    .ns-primary-value {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      margin: 0.5rem 0;
+    }
+
+    .ns-connector {
+      width: 2px;
+      height: 40px;
+      background: var(--color-accent);
+    }
+
+    .ns-secondary {
+      display: flex;
+      gap: var(--spacing-md);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .ns-metric {
+      background: var(--color-accent-light);
+      border: 2px solid var(--color-accent);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: 8px;
+      text-align: center;
+      min-width: 140px;
+    }
+
+    .ns-metric-label {
+      font-size: 0.75rem;
+      color: var(--color-text-muted);
+    }
+
+    .ns-metric-value {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      color: var(--color-accent);
+      font-weight: 600;
+    }
+
+    /* Model Comparison */
+    .model-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .model-card {
+      background: var(--color-card);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: var(--spacing-md);
+      position: relative;
+    }
+
+    .model-card.recommended {
+      border-color: var(--color-accent);
+      border-width: 2px;
+    }
+
+    .model-card.recommended::after {
+      content: "推奨";
+      position: absolute;
+      top: -10px;
+      right: 16px;
+      background: var(--color-accent);
+      color: var(--color-bg);
+      font-size: 0.6875rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .model-card h4 {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--color-text);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .model-card p {
+      font-size: 0.8125rem;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .model-pros, .model-cons {
+      font-size: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .model-pros::before {
+      content: "○ ";
+      color: var(--color-risk-low);
+    }
+
+    .model-cons::before {
+      content: "△ ";
+      color: var(--color-risk-mid);
+    }
+
+    /* Sensitivity Table */
+    .sensitivity-grid {
+      display: grid;
+      grid-template-columns: auto repeat(3, 1fr);
+      gap: 1px;
+      background: var(--color-border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .sensitivity-cell {
+      background: var(--color-card);
+      padding: 0.75rem;
+      text-align: center;
+      font-size: 0.8125rem;
+      font-family: var(--font-mono);
+    }
+
+    .sensitivity-header {
+      background: var(--color-bg-alt);
+      font-weight: 600;
+      font-family: var(--font-body);
+    }
+
+    .sensitivity-row-header {
+      background: var(--color-bg-alt);
+      text-align: left;
+      font-family: var(--font-body);
+    }
+
+    /* Disclaimer */
+    .disclaimer {
+      background: var(--color-bg-alt);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: var(--spacing-md);
+      font-size: 0.8125rem;
+      color: var(--color-text-muted);
+      margin-top: var(--spacing-md);
+    }
+
+    .disclaimer h4 {
+      color: var(--color-text);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    /* Print Styles */
+    @media print {
+      :root {
+        --color-bg: #FFFFFF;
+        --color-bg-alt: #FFFFFF;
+        --color-text: #000000;
+        --color-accent: #2D5A27;
+        --color-border: #CCCCCC;
+        --color-card: #FFFFFF;
+      }
+
+      body {
+        font-size: 10pt;
+        line-height: 1.5;
+      }
+
+      header {
+        position: static;
+        border-bottom: 2px solid var(--color-accent);
+      }
+
+      nav {
+        display: none;
+      }
+
+      .theme-toggle {
+        display: none;
+      }
+
+      section {
+        page-break-inside: avoid;
+        margin-bottom: 2rem;
+      }
+
+      h2 {
+        page-break-after: avoid;
+      }
+
+      .card, .chart-container {
+        box-shadow: none;
+        border: 1px solid var(--color-border);
+      }
+
+      /* Hide canvas, show print fallback */
+      canvas {
+        display: none !important;
+      }
+
+      .print-fallback {
+        display: block !important;
+      }
+
+      .roadmap {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .funnel-step {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      .key-takeaways {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      .risk-matrix .risk-high,
+      .risk-matrix .risk-mid,
+      .risk-matrix .risk-low {
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      @page {
+        margin: 2cm;
+        size: A4;
+      }
+    }
+
+    /* Print fallback (hidden on screen) */
+    .print-fallback {
+      display: none;
+    }
+
+    /* Responsive - Large Tablet / iPad Pro 12.9" */
+    @media (max-width: 1366px) {
+      :root {
+        --max-width: 1000px;
+      }
+    }
+
+    /* Responsive - iPad Pro 11" / iPad Air */
+    @media (max-width: 1024px) {
+      :root {
+        --max-width: 900px;
+        --spacing-xl: 4rem;
+      }
+
+      .card-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .roadmap {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .model-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .sensitivity-grid {
+        font-size: 0.8125rem;
+      }
+    }
+
+    /* Responsive - iPad mini / iPad (standard) Portrait */
+    @media (max-width: 834px) {
+      :root {
+        --max-width: 100%;
+        --spacing-xl: 3.5rem;
+        --spacing-lg: 2.5rem;
+      }
+
+      h1 { font-size: 2rem; }
+      h2 { font-size: 1.5rem; }
+
+      .header-content {
+        gap: var(--spacing-sm);
+      }
+
+      .header-title h1 {
+        font-size: 1.375rem;
+      }
+
+      /* Navigation - allow wrapping on iPad */
+      .nav-list {
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .nav-list a {
+        font-size: 0.75rem;
+      }
+
+      /* Two column grid for cards */
+      .card-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+      }
+
+      .metric-card {
+        padding: var(--spacing-md);
+      }
+
+      .metric-value {
+        font-size: 2rem;
+      }
+
+      /* Roadmap 2x2 grid */
+      .roadmap {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+      }
+
+      /* Model grid 2 columns */
+      .model-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-sm);
+      }
+
+      /* North Star adjustments */
+      .ns-primary {
+        width: 180px;
+        height: 180px;
+      }
+
+      .ns-secondary {
+        gap: var(--spacing-sm);
+      }
+
+      .ns-metric {
+        min-width: 120px;
+      }
+
+      /* Funnel */
+      .funnel-step {
+        font-size: 0.8125rem;
+      }
+
+      /* Risk matrix */
+      .risk-matrix {
+        font-size: 0.6875rem;
+      }
+
+      .risk-cell {
+        padding: 0.625rem;
+      }
+
+      /* Tables */
+      table {
+        font-size: 0.8125rem;
+      }
+
+      th, td {
+        padding: 0.625rem 0.75rem;
+      }
+    }
+
+    /* Responsive - Tablet */
+    @media (max-width: 768px) {
+      :root {
+        --spacing-xl: 3rem;
+        --spacing-lg: 2rem;
+        --spacing-md: 1.5rem;
+      }
+
+      h1 { font-size: 1.75rem; }
+      h2 { font-size: 1.375rem; }
+      h3 { font-size: 1.125rem; }
+
+      .header-content {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .roadmap {
+        grid-template-columns: 1fr;
+      }
+
+      .risk-matrix {
+        font-size: 0.625rem;
+      }
+
+      .ns-secondary {
+        flex-direction: column;
+      }
+
+      .model-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .card-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .sensitivity-grid {
+        font-size: 0.75rem;
+      }
+
+      .funnel-step {
+        padding: 0.75rem 1rem;
+        font-size: 0.8125rem;
+      }
+    }
+
+    /* Responsive - Mobile (iPhone) */
+    @media (max-width: 480px) {
+      :root {
+        --spacing-xl: 2rem;
+        --spacing-lg: 1.5rem;
+        --spacing-md: 1rem;
+        --spacing-sm: 0.75rem;
+      }
+
+      html {
+        font-size: 14px;
+      }
+
+      h1 { font-size: 1.5rem; }
+      h2 { 
+        font-size: 1.25rem;
+        margin-bottom: var(--spacing-sm);
+      }
+      h3 { font-size: 1rem; }
+
+      .container {
+        padding: 0 var(--spacing-sm);
+      }
+
+      /* Header mobile */
+      .header-title h1 {
+        font-size: 1.25rem;
+      }
+
+      .header-subtitle {
+        font-size: 0.75rem;
+      }
+
+      .header-meta {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+
+      .theme-toggle {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.6875rem;
+      }
+
+      /* Navigation horizontal scroll */
+      .nav-list {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 0.5rem;
+      }
+
+      .nav-list::-webkit-scrollbar {
+        display: none;
+      }
+
+      .nav-list a {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+      }
+
+      /* Cards */
+      .card-grid {
+        grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+      }
+
+      .metric-card {
+        padding: var(--spacing-md) var(--spacing-sm);
+      }
+
+      .metric-value {
+        font-size: 2rem;
+      }
+
+      .metric-label {
+        font-size: 0.8125rem;
+      }
+
+      /* Key takeaways */
+      .key-takeaways {
+        padding: var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
+      }
+
+      .key-takeaways li {
+        font-size: 0.875rem;
+        padding-left: 1.25rem;
+      }
+
+      /* Tables - horizontal scroll */
+      .table-wrapper {
+        margin: 0 calc(-1 * var(--spacing-sm));
+        padding: 0 var(--spacing-sm);
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      table {
+        min-width: 500px;
+        font-size: 0.75rem;
+      }
+
+      th, td {
+        padding: 0.5rem 0.625rem;
+      }
+
+      /* Funnel */
+      .funnel-diagram {
+        padding: var(--spacing-sm) 0;
+      }
+
+      .funnel-step {
+        padding: 0.625rem 0.75rem;
+        font-size: 0.75rem;
+      }
+
+      .funnel-rate {
+        font-size: 0.625rem;
+      }
+
+      /* North Star */
+      .north-star-structure {
+        padding: var(--spacing-sm);
+      }
+
+      .ns-primary {
+        width: 150px;
+        height: 150px;
+        padding: var(--spacing-sm);
+      }
+
+      .ns-primary-value {
+        font-size: 1rem;
+      }
+
+      .ns-primary-label {
+        font-size: 0.625rem;
+      }
+
+      .ns-metric {
+        min-width: 100px;
+        padding: 0.5rem 0.75rem;
+      }
+
+      .ns-metric-label {
+        font-size: 0.6875rem;
+      }
+
+      .ns-metric-value {
+        font-size: 0.875rem;
+      }
+
+      /* Risk Matrix */
+      .risk-matrix {
+        font-size: 0.5625rem;
+      }
+
+      .risk-cell {
+        padding: 0.375rem;
+      }
+
+      /* Roadmap */
+      .roadmap {
+        gap: var(--spacing-sm);
+      }
+
+      .roadmap-quarter {
+        padding: var(--spacing-sm);
+      }
+
+      .roadmap-quarter h4 {
+        font-size: 0.75rem;
+      }
+
+      .roadmap-quarter li {
+        font-size: 0.75rem;
+        padding: 0.25rem 0;
+      }
+
+      /* Model cards */
+      .model-grid {
+        gap: var(--spacing-sm);
+      }
+
+      .model-card {
+        padding: var(--spacing-sm);
+      }
+
+      .model-card h4 {
+        font-size: 0.9375rem;
+      }
+
+      .model-card p {
+        font-size: 0.75rem;
+      }
+
+      .model-pros, .model-cons {
+        font-size: 0.6875rem;
+      }
+
+      /* Sensitivity */
+      .sensitivity-grid {
+        font-size: 0.6875rem;
+      }
+
+      .sensitivity-cell {
+        padding: 0.5rem 0.25rem;
+      }
+
+      /* SVG diagrams */
+      .chart-container svg {
+        max-height: 200px;
+      }
+
+      /* Canvas chart */
+      #pl-chart {
+        height: 280px !important;
+      }
+
+      /* Disclaimer */
+      .disclaimer {
+        padding: var(--spacing-sm);
+        font-size: 0.75rem;
+      }
+
+      /* Footer */
+      footer {
+        padding: var(--spacing-md) 0;
+        font-size: 0.75rem;
+      }
+
+      /* Section spacing */
+      section {
+        margin-bottom: var(--spacing-lg);
+        scroll-margin-top: 100px;
+      }
+    }
+
+    /* Responsive - Small Mobile (iPhone SE, mini) */
+    @media (max-width: 375px) {
+      html {
+        font-size: 13px;
+      }
+
+      .header-title h1 {
+        font-size: 1.125rem;
+      }
+
+      .metric-value {
+        font-size: 1.75rem;
+      }
+
+      .ns-primary {
+        width: 130px;
+        height: 130px;
+      }
+
+      .risk-matrix {
+        font-size: 0.5rem;
+      }
+
+      table {
+        min-width: 450px;
+      }
+    }
+
+    /* Touch-friendly improvements */
+    @media (hover: none) and (pointer: coarse) {
+      .nav-list a {
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+      }
+
+      .theme-toggle {
+        min-height: 44px;
+        min-width: 44px;
+      }
+
+      a, button {
+        -webkit-tap-highlight-color: rgba(45, 90, 39, 0.2);
+      }
+
+      /* Larger touch targets for tables on touch devices */
+      th, td {
+        padding: 0.875rem 1rem;
+      }
+
+      /* Improve scrolling on touch */
+      .table-wrapper,
+      .nav-list {
+        -webkit-overflow-scrolling: touch;
+      }
+    }
+
+    /* iPad Landscape specific */
+    @media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+      .container {
+        max-width: 900px;
+      }
+
+      .card-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .roadmap {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .model-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    /* iPad Portrait specific (768-834px) */
+    @media (min-width: 768px) and (max-width: 834px) and (orientation: portrait) {
+      .card-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .roadmap {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .ns-secondary {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+    }
+
+    /* iPad mini Landscape */
+    @media (min-width: 1024px) and (max-height: 768px) {
+      :root {
+        --spacing-xl: 3rem;
+        --spacing-lg: 2rem;
+      }
+
+      section {
+        margin-bottom: var(--spacing-lg);
+      }
+    }
+
+    /* iPad Split View / Slide Over support (narrow width on iPad) */
+    @media (min-width: 320px) and (max-width: 500px) and (min-height: 700px) {
+      /* This catches iPad Split View at 1/3 width */
+      .card-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .roadmap {
+        grid-template-columns: 1fr;
+      }
+
+      .model-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .ns-secondary {
+        flex-direction: column;
+      }
+    }
+
+    /* Large displays - ensure content doesn't stretch too wide */
+    @media (min-width: 1400px) {
+      :root {
+        --max-width: 1200px;
+      }
+
+      .container {
+        padding: 0 var(--spacing-lg);
+      }
+
+      .card-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+
+      .model-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    /* Safe area for notched iPhones */
+    @supports (padding: max(0px)) {
+      .container {
+        padding-left: max(var(--spacing-sm), env(safe-area-inset-left));
+        padding-right: max(var(--spacing-sm), env(safe-area-inset-right));
+      }
+
+      footer {
+        padding-bottom: max(var(--spacing-md), env(safe-area-inset-bottom));
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ========================================
+       Header
+  ======================================== -->
+  <header>
+    <div class="container header-content">
+      <div class="header-title">
+        <h1>畜物語 <span class="english-term">CHIKU MONOGATARI</span></h1>
+        <span class="header-subtitle">生活実装型ストーリーOS — α（Online）× Ω（Offline）収束プロジェクト</span>
+      </div>
+      <div class="header-meta">
+        <span id="version-display">v0.9</span>
+        <span>|</span>
+        <span id="date-display">2026-01-16</span>
+        <span>|</span>
+        <span>Owner: Shiozaki</span>
+        <button class="theme-toggle" id="theme-toggle">🌙 Dark</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================
+       Navigation
+  ======================================== -->
+  <nav>
+    <div class="container">
+      <ul class="nav-list" id="nav-list">
+        <li><a href="#summary">Executive Summary</a></li>
+        <li><a href="#problem">Problem</a></li>
+        <li><a href="#solution">Solution</a></li>
+        <li><a href="#product">Product</a></li>
+        <li><a href="#platform">Platform</a></li>
+        <li><a href="#business-model">Business Model</a></li>
+        <li><a href="#market">Market</a></li>
+        <li><a href="#gtm">Go-to-Market</a></li>
+        <li><a href="#metrics">Metrics</a></li>
+        <li><a href="#financials">Financials</a></li>
+        <li><a href="#tech">Tech</a></li>
+        <li><a href="#legal">Legal & Ethics</a></li>
+        <li><a href="#risks">Risks</a></li>
+        <li><a href="#roadmap">Roadmap</a></li>
+        <li><a href="#ask">Ask</a></li>
+        <li><a href="#appendix">Appendix</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ========================================
+       Main Content
+  ======================================== -->
+  <main class="container">
+    <!-- 1. Executive Summary -->
+    <section id="summary">
+      <h2>1. Executive Summary</h2>
+      <div class="key-takeaways">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li><strong>月30万円の持続可能収益</strong>を1名運営で実現する、過剰資本主義の対極モデル</li>
+          <li><strong>α（オンライン）とΩ（オフライン）の収束</strong>により、価値観が生活で検証・更新される構造</li>
+          <li><strong>依存誘導を設計原理から排除</strong>し、透明性・尊厳・参加の質を重視した持続型コミュニティ</li>
+        </ul>
+      </div>
+
+      <div class="card-grid">
+        <div class="card metric-card">
+          <div class="metric-value" id="metric-target">¥30万</div>
+          <div class="metric-label">月間目標収益</div>
+          <div class="metric-sublabel">Monthly Revenue Target</div>
+        </div>
+        <div class="card metric-card">
+          <div class="metric-value" id="metric-core">430人</div>
+          <div class="metric-label">コアフォロワー</div>
+          <div class="metric-sublabel">Core Followers</div>
+        </div>
+        <div class="card metric-card">
+          <div class="metric-value">1名</div>
+          <div class="metric-label">運営体制</div>
+          <div class="metric-sublabel">Solo Operation</div>
+        </div>
+        <div class="card metric-card">
+          <div class="metric-value">∞→30</div>
+          <div class="metric-label">成長上限の設計</div>
+          <div class="metric-sublabel">Capped Growth Model</div>
+        </div>
+      </div>
+
+      <p>「畜物語」は、従来の成長至上主義ではなく、<strong>制約条件を強みに変える</strong>ビジネスモデルです。運営者1名が家族を養える月30万円を達成すれば、それ以上の拡大を追求せず、余剰は共同体に分配されます。この「過分を拒否する」設計が、逆説的に長期的な信頼と持続性を生み出します。</p>
+
+      <p>オンライン（α）では参加型のリアルタイム更新ストーリーを展開し、オフライン（Ω）では収穫祭・共食・分配といった生活実装を通じて、理念が現実に回収されます。この循環により、「畜物語」は単なるコンテンツではなく、<strong>価値観を検証・純化するオペレーティングシステム</strong>として機能します。</p>
+    </section>
+
+    <!-- 2. Problem -->
+    <section id="problem">
+      <h2>2. Problem — 観察される構造的歪み</h2>
+      <div class="key-takeaways">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li>現代のデジタルプラットフォームは<strong>滞在時間最適化（Engagement Maximization）</strong>を追求し、依存誘導が構造化</li>
+          <li>クリエイターエコノミーは<strong>スケール圧力</strong>により、制作者の生活持続と創作の質が両立困難</li>
+          <li>「コミュニティ」を謳うサービスの多くは、<strong>実生活との接続が設計されていない</strong></li>
+        </ul>
+      </div>
+
+      <p>過去10年のプラットフォームビジネスは、広告収益モデルに依存してきました。その結果、ユーザーの滞在時間を最大化するアルゴリズム設計が普及し、<strong>注意力の搾取（Attention Harvesting）</strong>が標準化されています。</p>
+
+      <p>クリエイターにとっても、プラットフォームのインセンティブ構造は「常により多く」を要求します。フォロワー数、再生回数、エンゲージメント率——これらの指標は、<strong>創作の持続可能性よりも成長速度</strong>を優先します。結果として、バーンアウトや品質低下が蔓延しています。</p>
+
+      <p>さらに、オンラインの「コミュニティ」と呼ばれるものの多くは、<strong>ディスプレイ上の接点で完結</strong>しています。価値観の共有を謳いながら、それが生活の中で実践・検証される機会は設計されていません。</p>
+
+      <p>これは批判ではなく観察です。しかし、この構造とは異なるモデルが<strong>技術的に実装可能になった</strong>のが2026年現在です。</p>
+    </section>
+
+    <!-- 3. Solution -->
+    <section id="solution">
+      <h2>3. Solution — 畜物語：収束型プロジェクト</h2>
+      <div class="key-takeaways">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li><strong>α（オンライン）</strong>：価値観・世界観・物語の共創。フォロワー参加で毎日更新、世界線が変動</li>
+          <li><strong>Ω（オフライン）</strong>：生活・家族・農漁・分配・共食の実装。理念が現実で検証される</li>
+          <li>固定教義ではなく、<strong>Ωの反復によってαが更新・純化される「収束型」設計</strong></li>
+        </ul>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">α ↔ Ω 収束構造図</div>
+        <svg viewBox="0 0 800 300" style="width:100%;max-width:800px;display:block;margin:0 auto;">
+          <!-- Alpha Circle -->
+          <circle cx="200" cy="150" r="100" fill="none" stroke="var(--color-accent)" stroke-width="3"/>
+          <text x="200" y="140" text-anchor="middle" font-family="var(--font-display)" font-size="24" fill="var(--color-text)">α</text>
+          <text x="200" y="165" text-anchor="middle" font-family="var(--font-body)" font-size="12" fill="var(--color-text-muted)">オンライン</text>
+          <text x="200" y="185" text-anchor="middle" font-family="var(--font-body)" font-size="10" fill="var(--color-text-muted)">価値観・世界観・物語</text>
+          
+          <!-- Omega Circle -->
+          <circle cx="600" cy="150" r="100" fill="var(--color-accent-light)" stroke="var(--color-accent)" stroke-width="3"/>
+          <text x="600" y="140" text-anchor="middle" font-family="var(--font-display)" font-size="24" fill="var(--color-text)">Ω</text>
+          <text x="600" y="165" text-anchor="middle" font-family="var(--font-body)" font-size="12" fill="var(--color-text-muted)">オフライン</text>
+          <text x="600" y="185" text-anchor="middle" font-family="var(--font-body)" font-size="10" fill="var(--color-text-muted)">生活・実装・検証</text>
+          
+          <!-- Arrows -->
+          <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="var(--color-accent)"/>
+            </marker>
+          </defs>
+          <path d="M 310 120 Q 400 80 490 120" stroke="var(--color-accent)" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+          <path d="M 490 180 Q 400 220 310 180" stroke="var(--color-accent)" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+          
+          <!-- Labels -->
+          <text x="400" y="70" text-anchor="middle" font-size="10" fill="var(--color-text-muted)">参加・共創・更新</text>
+          <text x="400" y="245" text-anchor="middle" font-size="10" fill="var(--color-text-muted)">検証・反復・純化</text>
+          
+          <!-- Center -->
+          <text x="400" y="150" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--color-accent)">収束</text>
+          <text x="400" y="165" text-anchor="middle" font-family="var(--font-mono)" font-size="11" fill="var(--color-accent)">Convergence</text>
+        </svg>
+      </div>
+
+      <p>「畜物語」のアーキテクチャは、オンラインとオフラインを分離するのではなく、<strong>相互に参照・更新し合う系</strong>として設計されています。</p>
+
+      <p><strong>α（オンライン）</strong>では、住民（参加者）の投票や創作貢献によって物語が分岐・展開します。毎日の更新はフォロワーの選択を反映し、世界線そのものが変動します。これは従来の「作者→読者」の一方向配信とは異なる、<strong>参加型の物語OS</strong>です。</p>
+
+      <p><strong>Ω（オフライン）</strong>では、オンラインで醸成された価値観が「収穫祭」「共食」「おすそ分け」といった形で実生活に実装されます。ここで得られた体験・フィードバックが、再びαの物語や原理を更新します。</p>
+
+      <p>この循環により、「畜物語」は<strong>固定されたコンテンツでも教義でもなく</strong>、実践を通じて継続的に純化されるプロジェクトとなります。</p>
+    </section>
+
+    <!-- 4. Product -->
+    <section id="product">
+      <h2>4. Product — コードアニメーション＆参加型更新</h2>
+      <div class="key-takeaways">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li>静的HTML/CSS/SVGベースの<strong>軽量・保守可能なアニメーション</strong>で、毎日更新を持続可能に</li>
+          <li>住民証・観測値・投票など<strong>参加の可視化</strong>により、読者を「住民」に変換</li>
+          <li>「1ページ9コマ」フォーマットで、<strong>習慣化しやすい粒度</strong>を設計</li>
+        </ul>
+      </div>
+
+      <h3>コア体験：毎日更新の「1ページ9コマ」</h3>
+      <p>畜物語のオンライン体験は、毎日更新される「1ページ9コマ」のエピソードが中心です。各エピソードはSVGアニメーション（瞬き、浮遊、スクロール連動など）を含み、静的ながら<strong>生きている感覚</strong>を与えます。</p>
+
+      <h3>参加システム</h3>
+      <div class="model-grid">
+        <div class="model-card">
+          <h4>住民証 <span class="english-term">Resident ID</span></h4>
+          <p>メンバーに発行される一意のSVGバッジ。参加度や貢献に応じて意匠が変化。</p>
+          <div class="model-pros">ゲーミフィケーションの健全な形態</div>
+          <div class="model-cons">過度な競争を誘発しない設計が必要</div>
+        </div>
+        <div class="model-card">
+          <h4>観測値 <span class="english-term">Observation Metrics</span></h4>
+          <p>各住民の「読了」「投票」「創作貢献」を可視化。滞在時間ではなく参加の質を計測。</p>
+          <div class="model-pros">依存誘導を回避する指標設計</div>
+          <div class="model-cons">計測の透明性・説明が必要</div>
+        </div>
+        <div class="model-card">
+          <h4>世界線投票 <span class="english-term">Timeline Voting</span></h4>
+          <p>物語の分岐点で住民が投票。結果に応じてストーリーが変化し、参加感を強化。</p>
+          <div class="model-pros">エンゲージメントの自然な形態</div>
+          <div class="model-cons">少数意見の尊重設計が必要</div>
+        </div>
+        <div class="model-card">
+          <h4>創作貢献 <span class="english-term">Creative Contribution</span></h4>
+          <p>住民が二次創作やアイデアを投稿。採用されると物語に反映される。</p>
+          <div class="model-pros">コミュニティの自己増殖</div>
+          <div class="model-cons">クオリティコントロールの負荷</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Platform -->
+    <section id="platform">
+      <h2>5. Platform — オフライン実装（Ω）</h2>
+      <div class="key-takeaways">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li>年数回の<strong>収穫祭・共食</strong>で、オンラインの価値観を現実に回収</li>
+          <li>「クーポン」「金券」ではなく<strong>「招待」「おすそ分け」</strong>の設計で法務リスクを最小化</li>
+          <li>規模は意図的に<strong>小さく保ち</strong>、許認可・衛生・税務の負担を軽減</li>
+        </ul>
+      </div>
+
+      <h3>オフライン実装の形態</h3>
+      <p>畜物語のオフライン実装は、大規模イベントではなく、<strong>親密な共同体体験</strong>を重視します。</p>
+
+      <div class="model-grid">
+        <div class="model-card">
+          <h4>収穫祭 <span class="english-term">Harvest Festival</span></h4>
+          <p>年1〜2回、実際の農産物・海産物を囲んだ集まり。物語の「伏線回収」を現実で体験。</p>
+          <div class="model-pros">オンラインからオフラインへの導線</div>
+          <div class="model-cons">会場・食品衛生の確認が必要</div>
+        </div>
+        <div class="model-card">
+          <h4>共食 <span class="english-term">Communal Meal</span></h4>
+          <p>小規模（10〜20名）の食事会。住民同士の直接交流を促進。</p>
+          <div class="model-pros">関係性の深化</div>
+          <div class="model-cons">アレルギー・衛生管理の徹底</div>
+        </div>
+        <div class="model-card">
+          <h4>おすそ分け <span class="english-term">Sharing</span></h4>
+          <p>余剰農産物等を住民に分配。「招待」形式で、販売・金券化を回避。</p>
+          <div class="model-pros">過分の再分配という理念の実践</div>
+          <div class="model-cons">税務・景表法の専門家確認が必要</div>
+        </div>
+      </div>
+
+      <div class="disclaimer">
+        <h4>⚠ 法務上の注意</h4>
+        <p>オフライン実装において、「クーポン」「ポイント」「金券」といった設計は、資金決済法・景表法・食品衛生法・税法に抵触し得ます。本計画では「招待」「おすそ分け」「収穫祭」といった形式を採用し、反復継続の販売や配送を避けることで、許認可リスクを最小化します。<strong>最終的な実装にあたっては、行政書士・税理士・保健所等の専門家確認が必須です。</strong></p>
+      </div>
+    </section>
+
+    <!-- 6. Business Model -->
+    <section id="business-model">
+      <h2>6. Business Model — 複線収益設計</h2>
+      <div class="key-takeaways">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li><strong>メンバーシップ（A）を主軸</strong>とし、デジタルアイテム・協賛は補助に留める</li>
+          <li>依存誘導・搾取感を避ける設計で、<strong>長期継続率（Retention）を重視</strong></li>
+          <li>月30万円達成パターンを複数シミュレーションし、最短経路を定量提示</li>
+        </ul>
+      </div>
+
+      <h3>収益モデル比較</h3>
+      <div class="model-grid">
+        <div class="model-card recommended">
+          <h4>A. メンバーシップ</h4>
+          <p>月額支援（¥500〜¥1,980）。特典は「影響力/投票権/先行閲覧/住民証」。金券化しない。</p>
+          <div class="model-pros">定期収益で予測可能性が高い</div>
+          <div class="model-pros">ファンとの直接的な関係構築</div>
+          <div class="model-cons">初期のCV率向上が課題</div>
+        </div>
+        <div class="model-card">
+          <h4>B. デジタルアイテム</h4>
+          <p>LINEスタンプ、限定SVG壁紙など。収益柱ではなく拡散器・記念碑として位置づけ。</p>
+          <div class="model-pros">初期認知拡大に有効</div>
+          <div class="model-cons">低単価・高回転は搾取感を生む</div>
+        </div>
+        <div class="model-card">
+          <h4>C. 企業協賛</h4>
+          <p>世界観・倫理に合う企業のみ（一次産業、教育、健康）。「共同体維持費を一緒に出す」形式。</p>
+          <div class="model-pros">広告ではない持続的支援</div>
+          <div class="model-cons">選定基準の透明性が必要</div>
+        </div>
+        <div class="model-card">
+          <h4>D. オフライン実装</h4>
+          <p>収穫祭・共食の参加証。収益化ではなく「理念の実践」として設計。</p>
+          <div class="model-pros">α↔Ω循環の核</div>
+          <div class="model-cons">許認可・衛生・税務の負担</div>
+        </div>
+        <div class="model-card">
+          <h4>E. データ販売（非推奨）</h4>
+          <p>原則として実施しない。共同体の信頼を毀損するリスクが高い。</p>
+          <div class="model-cons">信頼毀損リスク</div>
+          <div class="model-cons">プライバシー懸念</div>
+        </div>
+      </div>
+
+      <h3>推奨アーキテクチャ</h3>
+      <p><strong>メンバーシップ（A）を80%以上の収益柱</strong>とし、デジタルアイテム（B）は認知拡大の入口、企業協賛（C）は年1〜2社の限定的導入とします。オフライン（D）は収益化せず、理念実装の場として維持します。</p>
+
+      <div class="chart-container">
+        <div class="chart-title">収益モデルファネル</div>
+        <div class="funnel-diagram">
+          <div class="funnel-step">認知（Awareness）— SNS・口コミ・スタンプ<span class="funnel-rate">月間訪問 2,000〜</span></div>
+          <div class="funnel-step">興味（Interest）— 無料エピソード閲覧<span class="funnel-rate">読了率 40%</span></div>
+          <div class="funnel-step">検討（Consideration）— 世界観への共感<span class="funnel-rate">リピート率 25%</span></div>
+          <div class="funnel-step">転換（Conversion）— メンバーシップ登録<span class="funnel-rate">CVR 5%</span></div>
+          <div class="funnel-step">維持（Retention）— 継続支援<span class="funnel-rate">月次Churn 5%</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Market / Audience -->
+    <section id="market">
+      <h2>7. Market / Audience — 初期430人からの拡張仮説</h2>
+      <div class="key-takeaways">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li>初期コアフォロワー430人は、<strong>共感度の高い「濃い」ベース</strong></li>
+          <li>ターゲットは「成長疲れ」「過剰消費疲れ」を感じる<strong>20〜40代</strong></li>
+          <li>拡散ではなく<strong>「共鳴」による自然増</strong>を設計</li>
+        </ul>
+      </div>
+
+      <h3>ペルソナ仮説</h3>
+      <div class="model-grid">
+        <div class="model-card">
+          <h4>コア層（初期430人）</h4>
+          <p>現在のフォロワー。世界観・価値観への高い共感。発信・口コミの起点。</p>
+          <div class="model-pros">転換率・継続率が最も高い</div>
+        </div>
+        <div class="model-card">
+          <h4>拡張層A：成長疲れ層</h4>
+          <p>クリエイター、スタートアップ経験者。「常により多く」に疲弊。持続可能な在り方を模索。</p>
+          <div class="model-pros">メッセージへの親和性高</div>
+        </div>
+        <div class="model-card">
+          <h4>拡張層B：地方・一次産業関心層</h4>
+          <p>農業、漁業、地方移住に関心。オフライン実装（Ω）への直接的共感。</p>
+          <div class="model-pros">Ωへの参加意欲高</div>
+        </div>
+        <div class="model-card">
+          <h4>拡張層C：物語好き層</h4>
+          <p>参加型コンテンツ、世界観構築に関心。投票・創作貢献の担い手。</p>
+          <div class="model-pros">αへの貢献意欲高</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. Go-to-Market -->
+    <section id="gtm">
+      <h2>8. Go-to-Market — 「共鳴」で増える設計</h2>
+      <div class="key-takeaways">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li>広告・バズ狙いではなく、<strong>既存住民の自然発信</strong>による拡大</li>
+          <li>LINEスタンプは「収益」ではなく<strong>「文化財/拡散器」</strong>として設計</li>
+          <li>成長速度より<strong>成長の質（共感度の高い層の獲得）</strong>を優先</li>
+        </ul>
+      </div>
+
+      <h3>拡大フェーズ</h3>
+      <div class="card">
+        <p><strong>Phase 1（0〜3ヶ月）：コア強化</strong><br>
+        既存430人の体験深化。住民証発行、投票システム導入。初期メンバーシップ転換。</p>
+        
+        <p><strong>Phase 2（3〜6ヶ月）：自然拡散</strong><br>
+        住民の発信による口コミ。LINEスタンプによる認知拡大。毎日更新の習慣化。</p>
+        
+        <p><strong>Phase 3（6〜12ヶ月）：オフライン接続</strong><br>
+        収穫祭の実施。参加者の体験発信。α↔Ω循環の可視化。</p>
+      </div>
+    </section>
+
+    <!-- 9. Metrics -->
+    <section id="metrics">
+      <h2>9. Metrics — North Star & KPI設計</h2>
+      <div class="key-takeaways">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li>North Star：<strong>Meaningful Returners（意味ある再訪者数）</strong></li>
+          <li>滞在時間ではなく<strong>「参加の質」</strong>を計測（読了率、投票率、創作貢献）</li>
+          <li>最終目標：<strong>Household Sustainability（運営者の生活維持）</strong></li>
+        </ul>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">North Star Metrics 構造図</div>
+        <div class="north-star-structure">
+          <div class="ns-primary">
+            <span class="ns-primary-label">North Star</span>
+            <span class="ns-primary-value">Meaningful Returners</span>
+            <span class="ns-primary-label">意味ある再訪者数</span>
+          </div>
+          <div class="ns-connector"></div>
+          <div class="ns-secondary">
+            <div class="ns-metric">
+              <div class="ns-metric-label">読了率</div>
+              <div class="ns-metric-value" id="kpi-completion">40%</div>
+            </div>
+            <div class="ns-metric">
+              <div class="ns-metric-label">7日Retention</div>
+              <div class="ns-metric-value" id="kpi-retention7">25%</div>
+            </div>
+            <div class="ns-metric">
+              <div class="ns-metric-label">投票参加率</div>
+              <div class="ns-metric-value" id="kpi-vote">15%</div>
+            </div>
+            <div class="ns-metric">
+              <div class="ns-metric-label">創作貢献率</div>
+              <div class="ns-metric-value" id="kpi-contribute">3%</div>
+            </div>
+            <div class="ns-metric">
+              <div class="ns-metric-label">月次Churn</div>
+              <div class="ns-metric-value" id="kpi-churn">5%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <h3>KPI定義</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>指標</th>
+              <th>定義</th>
+              <th>目標値</th>
+              <th>測定頻度</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Meaningful Returners</td>
+              <td>30日以内に2回以上訪問し、1エピソード以上読了した訪問者</td>
+              <td class="number-right">500人/月</td>
+              <td>週次</td>
+            </tr>
+            <tr>
+              <td>Episode Completion Rate</td>
+              <td>エピソードページ到達者のうち、最後まで読了した割合</td>
+              <td class="number-right">40%</td>
+              <td>日次</td>
+            </tr>
+            <tr>
+              <td>7-Day Retention</td>
+              <td>初回訪問から7日以内に再訪した割合</td>
+              <td class="number-right">25%</td>
+              <td>週次</td>
+            </tr>
+            <tr>
+              <td>Voting Participation</td>
+              <td>アクティブ住民のうち、月内に1回以上投票した割合</td>
+              <td class="number-right">15%</td>
+              <td>月次</td>
+            </tr>
+            <tr>
+              <td>Monthly Churn</td>
+              <td>有料会員の月次解約率</td>
+              <td class="number-right">5%以下</td>
+              <td>月次</td>
+            </tr>
+            <tr>
+              <td>Household Sustainability</td>
+              <td>運営者の月収（税引前）</td>
+              <td class="number-right">¥300,000</td>
+              <td>月次</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 10. Financials -->
+    <section id="financials">
+      <h2>10. Financials — 12ヶ月PLシミュレーション</h2>
+      <div class="key-takeaways">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li><strong>Month 8〜9で月30万円達成</strong>が基本シナリオ（CVR 5%、ARPU ¥980、Churn 5%）</li>
+          <li>固定費は月¥15,000程度と極めて軽量、<strong>損益分岐点が低い</strong></li>
+          <li>感度分析により、CVR・ARPU・Churnの変動が収益に与える影響を可視化</li>
+        </ul>
+      </div>
+
+      <h3>前提条件 <span class="english-term">Assumptions</span></h3>
+      <div class="card-grid">
+        <div class="card metric-card">
+          <div class="metric-value" id="assumption-cvr">5%</div>
+          <div class="metric-label">CVR（Free→Paid）</div>
+        </div>
+        <div class="card metric-card">
+          <div class="metric-value" id="assumption-arpu">¥980</div>
+          <div class="metric-label">ARPU（平均課金単価）</div>
+        </div>
+        <div class="card metric-card">
+          <div class="metric-value" id="assumption-churn">5%</div>
+          <div class="metric-label">月次Churn</div>
+        </div>
+        <div class="card metric-card">
+          <div class="metric-value" id="assumption-growth">10%</div>
+          <div class="metric-label">月間訪問成長率</div>
+        </div>
+      </div>
+
+      <h3>ユニットエコノミクス <span class="english-term">Unit Economics</span></h3>
+      <div class="table-wrapper">
+        <table id="unit-economics-table">
+          <thead>
+            <tr>
+              <th>指標</th>
+              <th>値</th>
+              <th>算出根拠</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Populated by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <h3>12ヶ月PL <span class="english-term">Profit & Loss</span></h3>
+      <div class="chart-container">
+        <div class="chart-title">月次売上・利益推移</div>
+        <canvas id="pl-chart" width="800" height="400"></canvas>
+        <!-- Print fallback table -->
+        <div class="print-fallback" id="pl-chart-print">
+          <p style="font-size:0.875rem;color:var(--color-text-muted);margin-bottom:1rem;">※グラフは画面表示用です。数値は下表を参照してください。</p>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table id="pl-table">
+          <thead>
+            <tr>
+              <th>月</th>
+              <th>訪問者</th>
+              <th>新規会員</th>
+              <th>累計会員</th>
+              <th>売上</th>
+              <th>コスト</th>
+              <th>利益</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Populated by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <h3>感度分析 <span class="english-term">Sensitivity Analysis</span></h3>
+      <p>CVR、ARPU、Churnの変動が、12ヶ月目の月間利益に与える影響：</p>
+      
+      <div class="sensitivity-grid" id="sensitivity-cvr">
+        <div class="sensitivity-cell sensitivity-header"></div>
+        <div class="sensitivity-cell sensitivity-header">CVR 3%</div>
+        <div class="sensitivity-cell sensitivity-header">CVR 5%</div>
+        <div class="sensitivity-cell sensitivity-header">CVR 8%</div>
+        <!-- Populated by JavaScript -->
+      </div>
+    </section>
+
+    <!-- 11. Tech Architecture -->
+    <section id="tech">
+      <h2>11. Tech Architecture — 2026年水準の個人実装</h2>
+      <div class="key-takeaways">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li><strong>静的配信（SSG）+ リアルタイムDB + SVGアニメ</strong>の組み合わせで、個人が企業レベル実装を達成可能</li>
+          <li>計測は<strong>プライバシー配慮型（最小限・オプトイン・透明性）</strong></li>
+          <li>滞在時間ではなく<strong>「参加の質」指標</strong>を重視</li>
+        </ul>
+      </div>
+
+      <h3>推奨スタック</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>レイヤー</th>
+              <th>推奨</th>
+              <th>代替案</th>
+              <th>理由</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>配信</td>
+              <td>静的HTML（SSG）</td>
+              <td>Astro, Hugo</td>
+              <td>サーバーレス、高速、保守容易</td>
+            </tr>
+            <tr>
+              <td>データ</td>
+              <td>Firebase Firestore</td>
+              <td>Supabase</td>
+              <td>リアルタイム同期、無料枠大</td>
+            </tr>
+            <tr>
+              <td>アニメーション</td>
+              <td>SVG + CSS/JS</td>
+              <td>Lottie</td>
+              <td>軽量、保守可能、SMILを回避</td>
+            </tr>
+            <tr>
+              <td>認証</td>
+              <td>Firebase Auth</td>
+              <td>Auth0</td>
+              <td>ソーシャルログイン対応、無料枠</td>
+            </tr>
+            <tr>
+              <td>決済</td>
+              <td>Stripe</td>
+              <td>Square</td>
+              <td>サブスク対応、日本法人あり</td>
+            </tr>
+            <tr>
+              <td>計測</td>
+              <td>カスタム（最小限）</td>
+              <td>Plausible</td>
+              <td>GA4を避け、プライバシー配慮</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>プライバシー・計測方針</h3>
+      <div class="card">
+        <p><strong>収集データ最小化：</strong>事業運営に必要な最小限のデータのみ収集。個人を特定できる情報は認証・決済に限定。</p>
+        <p><strong>オプトイン：</strong>計測への同意は明示的に取得。デフォルトはオプトアウト状態。</p>
+        <p><strong>透明性レポート：</strong>年次で収集データの種類・目的・保持期間を公開。</p>
+        <p><strong>児童保護：</strong>過度な課金導線を避け、未成年への配慮を設計に組み込む。</p>
+      </div>
+    </section>
+
+    <!-- 12. Legal & Ethics -->
+    <section id="legal">
+      <h2>12. Legal & Ethics — 依存誘導回避と透明性</h2>
+      <div class="key-takeaways">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li>オフライン実装は<strong>「招待」「おすそ分け」形式</strong>で、金券化・賃金化を回避</li>
+          <li>依存誘導を設計原理から排除：<strong>「長くいないと食えない」にしない</strong></li>
+          <li>収益使途・スポンサー基準を<strong>透明性レポートで公開</strong></li>
+        </ul>
+      </div>
+
+      <h3>法務リスクと対策</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>領域</th>
+              <th>リスク</th>
+              <th>対策</th>
+              <th>確認先</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>資金決済法</td>
+              <td>ポイント・クーポンが「前払式支払手段」に該当</td>
+              <td>金券化しない。「招待」「参加証」形式</td>
+              <td>行政書士、金融庁</td>
+            </tr>
+            <tr>
+              <td>景表法</td>
+              <td>過大な景品・誇大広告</td>
+              <td>「おすそ分け」は景品ではなく共同体内分配</td>
+              <td>消費者庁、弁護士</td>
+            </tr>
+            <tr>
+              <td>食品衛生法</td>
+              <td>食品の製造・販売・配送に許認可</td>
+              <td>販売しない。収穫祭は「共食」形式</td>
+              <td>保健所、行政書士</td>
+            </tr>
+            <tr>
+              <td>税務</td>
+              <td>収益・分配の税務処理</td>
+              <td>適切な記帳・申告。「贈与」の範囲内</td>
+              <td>税理士</td>
+            </tr>
+            <tr>
+              <td>特定商取引法</td>
+              <td>サブスク契約の表示義務</td>
+              <td>解約条件・価格を明示</td>
+              <td>消費者庁</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>倫理設計原則</h3>
+      <div class="card">
+        <p><strong>1. 依存誘導の排除：</strong>滞在時間をKPIにしない。「長くいないと報酬がない」設計を禁止。住民の生活・家族時間を優先。</p>
+        <p><strong>2. 搾取感の回避：</strong>低単価・高回転のガチャ・アイテム販売をしない。課金導線は透明で最小限。</p>
+        <p><strong>3. 透明性の確保：</strong>収益の使途、スポンサー選定基準、データ収集方針を年次で公開。</p>
+        <p><strong>4. 児童・未成年への配慮：</strong>過度な課金導線を避け、年齢確認を適切に実施。</p>
+        <p><strong>5. 過分の拒否：</strong>月30万円を超える収益は、共同体への分配または次年度の運営費に充当。個人の過剰蓄積を避ける。</p>
+      </div>
+
+      <div class="disclaimer">
+        <h4>⚠ 免責事項</h4>
+        <p>本資料は事業計画の概要を示すものであり、法的助言ではありません。実際の事業運営にあたっては、各領域の専門家（弁護士、税理士、行政書士、保健所等）への確認が必須です。法令の解釈・適用は個別事案により異なり得ます。</p>
+      </div>
+    </section>
+
+    <!-- 13. Risks & Mitigation -->
+    <section id="risks">
+      <h2>13. Risks & Mitigation — リスクマトリクス</h2>
+      <div class="key-takeaways">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li><strong>最大リスク：1名運営の継続性</strong>（高影響×中発生確率）</li>
+          <li>法務リスクは<strong>「やらない」設計</strong>で事前回避</li>
+          <li>各リスクに対し、具体的な緩和策を定義</li>
+        </ul>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">リスクマトリクス（Impact × Likelihood）</div>
+        <div class="risk-matrix">
+          <div class="risk-cell risk-header"></div>
+          <div class="risk-cell risk-header">低発生確率</div>
+          <div class="risk-cell risk-header">中発生確率</div>
+          <div class="risk-cell risk-header">高発生確率</div>
+          
+          <div class="risk-cell risk-label">高影響</div>
+          <div class="risk-cell risk-mid">法務違反<br>(回避設計済)</div>
+          <div class="risk-cell risk-high">運営者継続<br>(バックアップ要)</div>
+          <div class="risk-cell risk-high">—</div>
+          
+          <div class="risk-cell risk-label">中影響</div>
+          <div class="risk-cell risk-low">炎上・評判<br>(透明性対応)</div>
+          <div class="risk-cell risk-mid">収益未達<br>(複線モデル)</div>
+          <div class="risk-cell risk-mid">Churn上昇<br>(体験改善)</div>
+          
+          <div class="risk-cell risk-label">低影響</div>
+          <div class="risk-cell risk-low">競合参入<br>(差別化維持)</div>
+          <div class="risk-cell risk-low">技術トラブル<br>(バックアップ)</div>
+          <div class="risk-cell risk-low">—</div>
+        </div>
+      </div>
+
+      <h3>主要リスクと緩和策</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>リスク</th>
+              <th>影響</th>
+              <th>発生確率</th>
+              <th>緩和策</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>運営者（1名）の継続不能</td>
+              <td>高</td>
+              <td>中</td>
+              <td>ドキュメント化、代理運営の事前確保、収益の3ヶ月分バッファ</td>
+            </tr>
+            <tr>
+              <td>法務違反（食品衛生・資金決済等）</td>
+              <td>高</td>
+              <td>低</td>
+              <td>「やらない」設計、専門家事前確認、許認可不要な形式のみ実施</td>
+            </tr>
+            <tr>
+              <td>収益目標未達</td>
+              <td>中</td>
+              <td>中</td>
+              <td>複線収益モデル、コスト構造の軽量化、目標到達時期の柔軟調整</td>
+            </tr>
+            <tr>
+              <td>会員解約率（Churn）上昇</td>
+              <td>中</td>
+              <td>中高</td>
+              <td>体験品質の継続改善、住民コミュニケーション、離脱理由分析</td>
+            </tr>
+            <tr>
+              <td>炎上・評判リスク</td>
+              <td>中</td>
+              <td>低</td>
+              <td>透明性レポート、誠実な対応方針、誇大広告の回避</td>
+            </tr>
+            <tr>
+              <td>技術トラブル（サーバー、データ喪失）</td>
+              <td>低中</td>
+              <td>低</td>
+              <td>定期バックアップ、静的配信による耐障害性、マルチリージョン</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 14. Roadmap -->
+    <section id="roadmap">
+      <h2>14. Roadmap — 12ヶ月実行計画</h2>
+      <div class="key-takeaways">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li><strong>Q1：最小プロトタイプ</strong>の立ち上げ（住民証、毎日更新、メンバーシップ導線）</li>
+          <li><strong>Q2〜Q3：参加システム強化</strong>と協賛試験導入</li>
+          <li><strong>Q4：オフライン実装標準化</strong>と持続運用体制の確立</li>
+        </ul>
+      </div>
+
+      <div class="chart-container">
+        <div class="chart-title">四半期ロードマップ</div>
+        <div class="roadmap">
+          <div class="roadmap-quarter">
+            <h4>Q1（1-3月）</h4>
+            <ul>
+              <li>αプロトタイプ公開</li>
+              <li>住民証システム</li>
+              <li>毎日更新「1ページ9コマ」</li>
+              <li>メンバーシップ導線</li>
+              <li>KPI計測基盤（最小限）</li>
+            </ul>
+          </div>
+          <div class="roadmap-quarter">
+            <h4>Q2（4-6月）</h4>
+            <ul>
+              <li>投票システム導入</li>
+              <li>SVGアニメ拡張</li>
+              <li>週次リリース安定化</li>
+              <li>LINEスタンプ発売</li>
+              <li>リテンション施策</li>
+            </ul>
+          </div>
+          <div class="roadmap-quarter">
+            <h4>Q3（7-9月）</h4>
+            <ul>
+              <li>企業協賛試験導入（1社）</li>
+              <li>創作貢献システム</li>
+              <li>収穫祭PoC（小規模）</li>
+              <li>透明性レポート初版</li>
+              <li>Churn分析・改善</li>
+            </ul>
+          </div>
+          <div class="roadmap-quarter">
+            <h4>Q4（10-12月）</h4>
+            <ul>
+              <li>オフライン標準化</li>
+              <li>法務・衛生ガイドライン</li>
+              <li>運営ドキュメント整備</li>
+              <li>年間振り返り・計画</li>
+              <li>月30万円達成目標</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15. Ask -->
+    <section id="ask">
+      <h2>15. Ask — 求める支援の形</h2>
+      <div class="key-takeaways">
+        <h4>Key Takeaways</h4>
+        <ul>
+          <li>資金調達は<strong>必須ではない</strong>（固定費が軽量、メンバーシップで自立可能）</li>
+          <li>求めるのは<strong>専門知識・ネットワーク・協賛</strong></li>
+          <li>「過分を拒否する」原則に基づき、<strong>大規模投資は適さない</strong></li>
+        </ul>
+      </div>
+
+      <h3>支援の形態</h3>
+      <div class="model-grid">
+        <div class="model-card">
+          <h4>A. 専門知識の提供</h4>
+          <p>法務（食品衛生、資金決済）、税務、プライバシー、コミュニティ運営のアドバイス。</p>
+          <div class="model-pros">最も価値のある支援形態</div>
+        </div>
+        <div class="model-card">
+          <h4>B. ネットワーク紹介</h4>
+          <p>世界観に合う一次産業、教育、健康分野の企業・団体への接続。</p>
+          <div class="model-pros">協賛・オフライン実装の加速</div>
+        </div>
+        <div class="model-card">
+          <h4>C. 協賛（条件付き）</h4>
+          <p>倫理基準を満たす企業からの協賛。広告ではなく「共同体維持費」として。</p>
+          <div class="model-pros">収益の多様化</div>
+          <div class="model-cons">選定基準の厳格な適用が必要</div>
+        </div>
+        <div class="model-card">
+          <h4>D. 少額支援（任意）</h4>
+          <p>初期運営費（3〜6ヶ月分のバッファ）としての少額支援。リターンは「住民」としての参加権。</p>
+          <div class="model-cons">エクイティ・配当は設計しない</div>
+        </div>
+      </div>
+
+      <div class="disclaimer">
+        <h4>ℹ 投資に関する注意</h4>
+        <p>「畜物語」は「過分を拒否する」原則に基づき、大規模な資金調達やエクイティ投資は適しません。月30万円という小さな目標を、軽量なコスト構造とメンバーシップ収益で自立的に達成することを目指します。支援者への「リターン」は、金銭ではなく共同体への参加・体験として設計されます。</p>
+      </div>
+    </section>
+
+    <!-- 16. Appendix -->
+    <section id="appendix">
+      <h2>16. Appendix — 用語・前提・データ辞書</h2>
+      
+      <h3>用語集 <span class="english-term">Glossary</span></h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>用語</th>
+              <th>英語</th>
+              <th>定義</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>α（アルファ）</td>
+              <td>Alpha / Online</td>
+              <td>畜物語のオンライン領域。価値観・世界観・物語の共創空間。</td>
+            </tr>
+            <tr>
+              <td>Ω（オメガ）</td>
+              <td>Omega / Offline</td>
+              <td>畜物語のオフライン領域。生活・家族・農漁・分配の実装空間。</td>
+            </tr>
+            <tr>
+              <td>住民</td>
+              <td>Resident</td>
+              <td>畜物語に参加するメンバー。「ユーザー」「フォロワー」ではなく共同体の構成員。</td>
+            </tr>
+            <tr>
+              <td>住民証</td>
+              <td>Resident ID</td>
+              <td>住民に発行されるSVGバッジ。参加度に応じて意匠が変化。</td>
+            </tr>
+            <tr>
+              <td>収束</td>
+              <td>Convergence</td>
+              <td>α（原理）とΩ（実践）が相互に参照・更新し、純化されていく過程。</td>
+            </tr>
+            <tr>
+              <td>North Star</td>
+              <td>—</td>
+              <td>事業の最重要指標。畜物語では「Meaningful Returners」を設定。</td>
+            </tr>
+            <tr>
+              <td>CVR</td>
+              <td>Conversion Rate</td>
+              <td>無料訪問者が有料会員に転換する割合。</td>
+            </tr>
+            <tr>
+              <td>ARPU</td>
+              <td>Average Revenue Per User</td>
+              <td>有料会員1人あたりの平均収益。</td>
+            </tr>
+            <tr>
+              <td>LTV</td>
+              <td>Lifetime Value</td>
+              <td>顧客生涯価値。1会員が生涯にわたってもたらす収益総額。</td>
+            </tr>
+            <tr>
+              <td>Churn</td>
+              <td>—</td>
+              <td>解約率。有料会員が月次で離脱する割合。</td>
+            </tr>
+            <tr>
+              <td>CAC</td>
+              <td>Customer Acquisition Cost</td>
+              <td>顧客獲得費用。1会員を獲得するためにかかるコスト。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>前提条件サマリ</h3>
+      <div class="card" id="assumptions-summary">
+        <!-- Populated by JavaScript -->
+      </div>
+
+      <h3>変更履歴</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>バージョン</th>
+              <th>日付</th>
+              <th>変更内容</th>
+              <th>担当</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>v0.9</td>
+              <td>2026-01-16</td>
+              <td>初版作成</td>
+              <td>Shiozaki</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========================================
+       Footer
+  ======================================== -->
+  <footer>
+    <div class="container">
+      <p><strong>畜物語 事業計画書</strong> — Confidential Draft</p>
+      <p>本資料は事業計画の概要を示すものであり、法的助言・投資勧誘ではありません。</p>
+      <p>お問い合わせ：[contact@example.com]（プレースホルダ）</p>
+    </div>
+  </footer>
+
+  <!-- ========================================
+       JavaScript
+  ======================================== -->
+  <script>
+    // ============================================
+    // ASSUMPTIONS - 編集ポイント：以下の数値を変更
+    // ============================================
+    const assumptions = {
+      // 基本設定
+      version: 'v0.9',
+      date: '2026-01-16',
+      owner: 'Shiozaki',
+      
+      // 現状
+      coreFollowers: 430,
+      
+      // 目標
+      targetMonthlyRevenue: 300000,
+      
+      // メンバーシップ仮定
+      cvrFreeToPayd: 0.05,       // 5% - Free→Paid CVR
+      avgMonthlyPrice: 980,       // ¥980 - ARPU
+      monthlyChurnRate: 0.05,     // 5% - 月次解約率
+      
+      // 流入仮定
+      initialMonthlyVisitors: 2000,
+      monthlyVisitorGrowth: 0.10, // 10% - 月間成長率
+      repeatRate: 0.25,           // 25% - リピート率
+      
+      // コスト仮定
+      monthlyFixedCost: 15000,    // ¥15,000 - サーバー/ドメイン/ツール
+      operatorHoursPerWeek: 20,   // 20時間/週
+      offlineEventCostPerYear: 100000, // ¥100,000 - 年間オフラインコスト
+      
+      // 粗利率
+      digitalGrossMargin: 0.85,   // 85% - デジタル商品
+      offlineGrossMargin: 0.30,   // 30% - オフライン（変動）
+      
+      // KPI目標
+      episodeCompletionRate: 0.40,
+      retention7Day: 0.25,
+      votingParticipation: 0.15,
+      creativeContribution: 0.03
+    };
+
+    // ============================================
+    // Theme Toggle
+    // ============================================
+    const themeToggle = document.getElementById('theme-toggle');
+    const html = document.documentElement;
+
+    function setTheme(theme) {
+      html.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      themeToggle.textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
+    }
+
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    setTheme(savedTheme);
+
+    themeToggle.addEventListener('click', () => {
+      const current = html.getAttribute('data-theme');
+      setTheme(current === 'dark' ? 'light' : 'dark');
+    });
+
+    // ============================================
+    // Smooth Scroll for Navigation
+    // ============================================
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
+
+    // ============================================
+    // Unit Economics Calculation
+    // ============================================
+    function calculateUnitEconomics() {
+      const arpu = assumptions.avgMonthlyPrice;
+      const churn = assumptions.monthlyChurnRate;
+      const cvr = assumptions.cvrFreeToPayd;
+      const grossMargin = assumptions.digitalGrossMargin;
+      
+      // LTV = ARPU × 粗利率 / Churn
+      const ltv = (arpu * grossMargin) / churn;
+      
+      // CAC = 0（有機成長のため広告費なし）
+      const cac = 0;
+      
+      // 回収期間 = CAC / (ARPU × 粗利率)
+      const paybackPeriod = cac / (arpu * grossMargin) || 0;
+      
+      // LTV:CAC比率
+      const ltvCacRatio = cac > 0 ? ltv / cac : '∞';
+      
+      return { arpu, churn, cvr, grossMargin, ltv, cac, paybackPeriod, ltvCacRatio };
+    }
+
+    function renderUnitEconomics() {
+      const ue = calculateUnitEconomics();
+      const tbody = document.querySelector('#unit-economics-table tbody');
+      
+      const rows = [
+        ['ARPU', `¥${ue.arpu.toLocaleString()}`, '平均課金単価（メンバーシップ）'],
+        ['粗利率', `${(ue.grossMargin * 100).toFixed(0)}%`, 'デジタル商品の粗利率'],
+        ['月次Churn', `${(ue.churn * 100).toFixed(0)}%`, '有料会員の月次解約率'],
+        ['LTV', `¥${Math.round(ue.ltv).toLocaleString()}`, 'ARPU × 粗利率 / Churn'],
+        ['CAC', `¥${ue.cac.toLocaleString()}`, '有機成長のため広告費なし'],
+        ['LTV:CAC', ue.ltvCacRatio === '∞' ? '∞' : `${ue.ltvCacRatio.toFixed(1)}x`, 'CAC=0のため無限大'],
+        ['回収期間', `${ue.paybackPeriod.toFixed(1)}ヶ月`, 'CAC / (ARPU × 粗利率)']
+      ];
+      
+      tbody.innerHTML = rows.map(([metric, value, basis]) => `
+        <tr>
+          <td>${metric}</td>
+          <td class="number-right">${value}</td>
+          <td>${basis}</td>
+        </tr>
+      `).join('');
+    }
+
+    // ============================================
+    // 12-Month P&L Simulation
+    // ============================================
+    function calculatePL() {
+      const months = [];
+      let visitors = assumptions.initialMonthlyVisitors;
+      let totalMembers = 0;
+      
+      for (let i = 1; i <= 12; i++) {
+        // 新規会員 = 訪問者 × CVR
+        const newMembers = Math.round(visitors * assumptions.cvrFreeToPayd);
+        
+        // 解約 = 既存会員 × Churn
+        const churnedMembers = Math.round(totalMembers * assumptions.monthlyChurnRate);
+        
+        // 累計会員 = 前月会員 - 解約 + 新規
+        totalMembers = Math.max(0, totalMembers - churnedMembers + newMembers);
+        
+        // 売上 = 累計会員 × ARPU
+        const revenue = totalMembers * assumptions.avgMonthlyPrice;
+        
+        // コスト = 固定費
+        const cost = assumptions.monthlyFixedCost;
+        
+        // 利益
+        const profit = revenue - cost;
+        
+        months.push({
+          month: i,
+          visitors: Math.round(visitors),
+          newMembers,
+          totalMembers,
+          revenue,
+          cost,
+          profit
+        });
+        
+        // 来月の訪問者（成長率適用）
+        visitors = visitors * (1 + assumptions.monthlyVisitorGrowth);
+      }
+      
+      return months;
+    }
+
+    function renderPLTable() {
+      const pl = calculatePL();
+      const tbody = document.querySelector('#pl-table tbody');
+      
+      tbody.innerHTML = pl.map(m => `
+        <tr>
+          <td>M${m.month}</td>
+          <td class="number-right">${m.visitors.toLocaleString()}</td>
+          <td class="number-right">${m.newMembers}</td>
+          <td class="number-right">${m.totalMembers}</td>
+          <td class="number-right">¥${m.revenue.toLocaleString()}</td>
+          <td class="number-right">¥${m.cost.toLocaleString()}</td>
+          <td class="number-right ${m.profit >= 0 ? 'positive' : 'negative'}">¥${m.profit.toLocaleString()}</td>
+        </tr>
+      `).join('');
+    }
+
+    // ============================================
+    // Canvas Chart: Monthly Revenue & Profit
+    // ============================================
+    function renderPLChart() {
+      const canvas = document.getElementById('pl-chart');
+      const ctx = canvas.getContext('2d');
+      const pl = calculatePL();
+      
+      // High DPI support
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      const width = rect.width || 800;
+      const height = 400;
+      
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      ctx.scale(dpr, dpr);
+      
+      // Get computed styles for theming
+      const style = getComputedStyle(document.documentElement);
+      const textColor = style.getPropertyValue('--color-text').trim() || '#1A1A1A';
+      const accentColor = style.getPropertyValue('--color-accent').trim() || '#2D5A27';
+      const mutedColor = style.getPropertyValue('--color-text-muted').trim() || '#6B6B6B';
+      const borderColor = style.getPropertyValue('--color-border').trim() || '#E0E0E0';
+      
+      // Clear canvas
+      ctx.clearRect(0, 0, width, height);
+      
+      // Chart dimensions
+      const padding = { top: 40, right: 40, bottom: 60, left: 80 };
+      const chartWidth = width - padding.left - padding.right;
+      const chartHeight = height - padding.top - padding.bottom;
+      
+      // Find max values
+      const maxRevenue = Math.max(...pl.map(m => m.revenue));
+      const maxProfit = Math.max(...pl.map(m => m.profit));
+      const minProfit = Math.min(...pl.map(m => m.profit));
+      const maxY = Math.max(maxRevenue, maxProfit) * 1.1;
+      const minY = Math.min(0, minProfit) * 1.1;
+      const yRange = maxY - minY;
+      
+      // Draw grid lines
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 1;
+      const gridLines = 5;
+      for (let i = 0; i <= gridLines; i++) {
+        const y = padding.top + (chartHeight * i / gridLines);
+        ctx.beginPath();
+        ctx.moveTo(padding.left, y);
+        ctx.lineTo(padding.left + chartWidth, y);
+        ctx.stroke();
+        
+        // Y-axis labels
+        const value = maxY - (yRange * i / gridLines);
+        ctx.fillStyle = mutedColor;
+        ctx.font = '11px monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(`¥${Math.round(value / 1000)}k`, padding.left - 10, y + 4);
+      }
+      
+      // Calculate bar positions
+      const barWidth = chartWidth / pl.length * 0.7;
+      const barGap = chartWidth / pl.length * 0.3;
+      
+      // Draw zero line
+      const zeroY = padding.top + chartHeight * (maxY / yRange);
+      ctx.strokeStyle = textColor;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(padding.left, zeroY);
+      ctx.lineTo(padding.left + chartWidth, zeroY);
+      ctx.stroke();
+      
+      // Draw revenue bars
+      pl.forEach((m, i) => {
+        const x = padding.left + (i * (barWidth + barGap)) + barGap / 2;
+        const barHeight = (m.revenue / yRange) * chartHeight;
+        const y = zeroY - barHeight;
+        
+        ctx.fillStyle = accentColor;
+        ctx.globalAlpha = 0.3;
+        ctx.fillRect(x, y, barWidth / 2, barHeight);
+        ctx.globalAlpha = 1;
+      });
+      
+      // Draw profit line
+      ctx.strokeStyle = accentColor;
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      pl.forEach((m, i) => {
+        const x = padding.left + (i * (barWidth + barGap)) + barGap / 2 + barWidth / 4;
+        const y = zeroY - (m.profit / yRange) * chartHeight;
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      });
+      ctx.stroke();
+      
+      // Draw profit points
+      pl.forEach((m, i) => {
+        const x = padding.left + (i * (barWidth + barGap)) + barGap / 2 + barWidth / 4;
+        const y = zeroY - (m.profit / yRange) * chartHeight;
+        
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = accentColor;
+        ctx.fill();
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+      
+      // X-axis labels
+      ctx.fillStyle = mutedColor;
+      ctx.font = '11px monospace';
+      ctx.textAlign = 'center';
+      pl.forEach((m, i) => {
+        const x = padding.left + (i * (barWidth + barGap)) + barGap / 2 + barWidth / 4;
+        ctx.fillText(`M${m.month}`, x, height - padding.bottom + 20);
+      });
+      
+      // Legend
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'left';
+      
+      ctx.fillStyle = accentColor;
+      ctx.globalAlpha = 0.3;
+      ctx.fillRect(padding.left, padding.top - 25, 16, 12);
+      ctx.globalAlpha = 1;
+      ctx.fillStyle = textColor;
+      ctx.fillText('売上', padding.left + 22, padding.top - 15);
+      
+      ctx.beginPath();
+      ctx.arc(padding.left + 100, padding.top - 19, 5, 0, Math.PI * 2);
+      ctx.fillStyle = accentColor;
+      ctx.fill();
+      ctx.fillStyle = textColor;
+      ctx.fillText('利益', padding.left + 112, padding.top - 15);
+      
+      // Target line
+      const targetY = zeroY - (assumptions.targetMonthlyRevenue / yRange) * chartHeight;
+      ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = '#C41E3A';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(padding.left, targetY);
+      ctx.lineTo(padding.left + chartWidth, targetY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      ctx.fillStyle = '#C41E3A';
+      ctx.font = '11px monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText('目標 ¥300k', padding.left + chartWidth, targetY - 5);
+    }
+
+    // ============================================
+    // Sensitivity Analysis
+    // ============================================
+    function calculateSensitivity(cvr, arpu, churn) {
+      let visitors = assumptions.initialMonthlyVisitors;
+      let totalMembers = 0;
+      
+      for (let i = 1; i <= 12; i++) {
+        const newMembers = Math.round(visitors * cvr);
+        const churnedMembers = Math.round(totalMembers * churn);
+        totalMembers = Math.max(0, totalMembers - churnedMembers + newMembers);
+        visitors = visitors * (1 + assumptions.monthlyVisitorGrowth);
+      }
+      
+      const revenue = totalMembers * arpu;
+      const profit = revenue - assumptions.monthlyFixedCost;
+      return profit;
+    }
+
+    function renderSensitivityTable() {
+      const grid = document.getElementById('sensitivity-cvr');
+      const cvrs = [0.03, 0.05, 0.08];
+      const arpus = [500, 980, 1980];
+      const churn = assumptions.monthlyChurnRate;
+      
+      // Clear existing content except headers
+      while (grid.children.length > 4) {
+        grid.removeChild(grid.lastChild);
+      }
+      
+      arpus.forEach(arpu => {
+        // Row header
+        const rowHeader = document.createElement('div');
+        rowHeader.className = 'sensitivity-cell sensitivity-row-header';
+        rowHeader.textContent = `ARPU ¥${arpu}`;
+        grid.appendChild(rowHeader);
+        
+        cvrs.forEach(cvr => {
+          const profit = calculateSensitivity(cvr, arpu, churn);
+          const cell = document.createElement('div');
+          cell.className = 'sensitivity-cell';
+          cell.style.color = profit >= 300000 ? 'var(--color-risk-low)' : 
+                            profit >= 0 ? 'var(--color-risk-mid)' : 'var(--color-risk-high)';
+          cell.textContent = `¥${Math.round(profit / 1000)}k`;
+          grid.appendChild(cell);
+        });
+      });
+    }
+
+    // ============================================
+    // Display Assumptions Summary
+    // ============================================
+    function renderAssumptionsSummary() {
+      const container = document.getElementById('assumptions-summary');
+      container.innerHTML = `
+        <p><strong>収益前提：</strong>CVR ${(assumptions.cvrFreeToPayd * 100).toFixed(0)}%、ARPU ¥${assumptions.avgMonthlyPrice}、Churn ${(assumptions.monthlyChurnRate * 100).toFixed(0)}%</p>
+        <p><strong>流入前提：</strong>初月訪問 ${assumptions.initialMonthlyVisitors.toLocaleString()}人、成長率 ${(assumptions.monthlyVisitorGrowth * 100).toFixed(0)}%/月</p>
+        <p><strong>コスト前提：</strong>固定費 ¥${assumptions.monthlyFixedCost.toLocaleString()}/月、オフライン ¥${assumptions.offlineEventCostPerYear.toLocaleString()}/年</p>
+        <p><strong>目標：</strong>月商 ¥${assumptions.targetMonthlyRevenue.toLocaleString()}（12ヶ月目）</p>
+      `;
+    }
+
+    // ============================================
+    // Update Display Values
+    // ============================================
+    function updateDisplayValues() {
+      document.getElementById('version-display').textContent = assumptions.version;
+      document.getElementById('date-display').textContent = assumptions.date;
+      document.getElementById('metric-core').textContent = assumptions.coreFollowers + '人';
+      document.getElementById('assumption-cvr').textContent = (assumptions.cvrFreeToPayd * 100).toFixed(0) + '%';
+      document.getElementById('assumption-arpu').textContent = '¥' + assumptions.avgMonthlyPrice;
+      document.getElementById('assumption-churn').textContent = (assumptions.monthlyChurnRate * 100).toFixed(0) + '%';
+      document.getElementById('assumption-growth').textContent = (assumptions.monthlyVisitorGrowth * 100).toFixed(0) + '%';
+      document.getElementById('kpi-completion').textContent = (assumptions.episodeCompletionRate * 100).toFixed(0) + '%';
+      document.getElementById('kpi-retention7').textContent = (assumptions.retention7Day * 100).toFixed(0) + '%';
+      document.getElementById('kpi-vote').textContent = (assumptions.votingParticipation * 100).toFixed(0) + '%';
+      document.getElementById('kpi-contribute').textContent = (assumptions.creativeContribution * 100).toFixed(0) + '%';
+      document.getElementById('kpi-churn').textContent = (assumptions.monthlyChurnRate * 100).toFixed(0) + '%';
+    }
+
+    // ============================================
+    // Initialize
+    // ============================================
+    function init() {
+      updateDisplayValues();
+      renderUnitEconomics();
+      renderPLTable();
+      renderPLChart();
+      renderSensitivityTable();
+      renderAssumptionsSummary();
+    }
+
+    // Run on load
+    window.addEventListener('load', init);
+    
+    // Re-render chart on theme change (colors need update)
+    const observer = new MutationObserver(() => {
+      setTimeout(renderPLChart, 100);
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+    // Handle resize and orientation change
+    let resizeTimeout;
+    function handleResize() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        renderPLChart();
+      }, 150);
+    }
+    
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(handleResize, 100);
+    });
+  </script>
+
+  <!--
+  ============================================
+  編集ポイント一覧（Where to Edit）
+  ============================================
+  
+  1. assumptions オブジェクト（<script>冒頭）
+     - version: バージョン番号
+     - date: 日付
+     - owner: オーナー名
+     - coreFollowers: コアフォロワー数
+     - targetMonthlyRevenue: 月間目標収益
+     - cvrFreeToPayd: 無料→有料転換率
+     - avgMonthlyPrice: 平均課金単価（ARPU）
+     - monthlyChurnRate: 月次解約率
+     - initialMonthlyVisitors: 初月訪問者数
+     - monthlyVisitorGrowth: 月間訪問成長率
+     - monthlyFixedCost: 月間固定費
+     - offlineEventCostPerYear: 年間オフラインコスト
+     - digitalGrossMargin: デジタル商品粗利率
+     - episodeCompletionRate: 読了率目標
+     - retention7Day: 7日リテンション目標
+     - votingParticipation: 投票参加率目標
+     - creativeContribution: 創作貢献率目標
+  
+  2. メンバーシップ価格帯
+     - Section 6「Business Model」内の文言を修正
+  
+  3. ロードマップ項目
+     - Section 14「Roadmap」の各四半期リストを修正
+  
+  4. 連絡先
+     - <footer>内の[contact@example.com]を実際のアドレスに置換
+  
+  5. 画像プレースホルダ
+     - 必要に応じて /assets/xxx.png, /assets/xxx.svg を参照追加
+  
+  6. カラーパレット
+     - :root の CSS変数を変更（--color-accent等）
+  
+  7. 感度分析の変数
+     - renderSensitivityTable() 内の cvrs, arpus 配列を調整
+  
+  ============================================
+  -->
+</body>
+</html>
