@@ -191,7 +191,6 @@
       right: 16px;
       height: 36px;
       transform: translateY(-50%);
-      border-top: 0.5px solid #48484a;
       border-bottom: 0.5px solid #48484a;
       pointer-events: none;
     }
@@ -966,10 +965,12 @@
         tempSelectedYear = currentYear;
         setYearWheelPosition(currentYear - START_YEAR, false);
         yearPickerOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
       }
 
       function closeYearPicker() {
         yearPickerOverlay.classList.remove('active');
+        document.body.style.overflow = '';
       }
 
       yearSelector.addEventListener('click', openYearPicker);
@@ -1100,10 +1101,12 @@
         tempSelectedMonth = currentMonth;
         setMonthWheelPosition(currentMonth, false);
         monthPickerOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
       }
 
       function closeMonthPicker() {
         monthPickerOverlay.classList.remove('active');
+        document.body.style.overflow = '';
       }
 
       monthSelector.addEventListener('click', openMonthPicker);
