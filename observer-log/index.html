@@ -984,6 +984,33 @@
         if (e.target === yearPickerOverlay) closeYearPicker();
       });
 
+      // 年ホイールキーボード操作
+      function handleYearKeydown(e) {
+        if (!yearPickerOverlay.classList.contains('active')) return;
+        
+        switch (e.key) {
+          case 'ArrowUp':
+            e.preventDefault();
+            setYearWheelPosition(tempSelectedYear - START_YEAR - 1, true);
+            break;
+          case 'ArrowDown':
+            e.preventDefault();
+            setYearWheelPosition(tempSelectedYear - START_YEAR + 1, true);
+            break;
+          case 'Enter':
+            e.preventDefault();
+            currentYear = tempSelectedYear;
+            updateHeader();
+            renderCalendar();
+            closeYearPicker();
+            break;
+          case 'Escape':
+            e.preventDefault();
+            closeYearPicker();
+            break;
+        }
+      }
+
       // 年ホイールタッチ操作
       let yearStartY = 0;
       let yearLastY = 0;
@@ -1090,6 +1117,40 @@
       });
       monthPickerOverlay.addEventListener('click', (e) => {
         if (e.target === monthPickerOverlay) closeMonthPicker();
+      });
+
+      // 月ホイールキーボード操作
+      function handleMonthKeydown(e) {
+        if (!monthPickerOverlay.classList.contains('active')) return;
+        
+        switch (e.key) {
+          case 'ArrowUp':
+            e.preventDefault();
+            setMonthWheelPosition(tempSelectedMonth - 1, true);
+            break;
+          case 'ArrowDown':
+            e.preventDefault();
+            setMonthWheelPosition(tempSelectedMonth + 1, true);
+            break;
+          case 'Enter':
+            e.preventDefault();
+            currentYear = tempSelectedYear;
+            currentMonth = tempSelectedMonth;
+            updateHeader();
+            renderCalendar();
+            closeMonthPicker();
+            break;
+          case 'Escape':
+            e.preventDefault();
+            closeMonthPicker();
+            break;
+        }
+      }
+
+      // キーボードイベントリスナー
+      document.addEventListener('keydown', (e) => {
+        handleYearKeydown(e);
+        handleMonthKeydown(e);
       });
 
       // 月ホイールタッチ操作
