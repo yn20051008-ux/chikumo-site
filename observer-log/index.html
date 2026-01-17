@@ -63,45 +63,43 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 12px;
       padding: 20px 0 16px;
-      position: relative;
     }
 
-    .year-selector {
-      position: relative;
+    .selector {
       cursor: pointer;
-    }
-
-    .year-display {
-      font-size: 17px;
-      font-weight: 600;
-      color: #ff3b30;
       display: flex;
       align-items: center;
       gap: 4px;
     }
 
-    .year-display::after {
+    .selector::after {
       content: '';
       width: 6px;
       height: 6px;
-      border-right: 1.5px solid #ff3b30;
-      border-bottom: 1.5px solid #ff3b30;
+      border-right: 1.5px solid currentColor;
+      border-bottom: 1.5px solid currentColor;
       transform: rotate(45deg);
       margin-top: -2px;
     }
 
-    .month-display {
+    .year-selector {
+      font-size: 17px;
+      font-weight: 600;
+      color: #ff3b30;
+    }
+
+    .month-selector {
       font-size: 17px;
       font-weight: 600;
       color: #fff;
     }
 
     /* ━━━━━━━━━━━━━━━━━━━━━━
-       年ホイールピッカー
+       ホイールピッカー共通
     ━━━━━━━━━━━━━━━━━━━━━━ */
-    .year-picker-overlay {
+    .picker-overlay {
       position: fixed;
       inset: 0;
       background: rgba(0, 0, 0, 0.6);
@@ -113,12 +111,12 @@
       transition: opacity 0.3s, visibility 0.3s;
     }
 
-    .year-picker-overlay.active {
+    .picker-overlay.active {
       opacity: 1;
       visibility: visible;
     }
 
-    .year-picker {
+    .picker {
       position: fixed;
       bottom: 0;
       left: 0;
@@ -130,18 +128,18 @@
       transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
     }
 
-    .year-picker-overlay.active .year-picker {
+    .picker-overlay.active .picker {
       transform: translateY(0);
     }
 
-    .year-picker-header {
+    .picker-header {
       display: flex;
       justify-content: space-between;
       padding: 12px 16px;
       border-bottom: 1px solid #38383a;
     }
 
-    .year-picker-btn {
+    .picker-btn {
       background: none;
       border: none;
       color: #ff3b30;
@@ -150,7 +148,7 @@
       cursor: pointer;
     }
 
-    .year-picker-btn.done {
+    .picker-btn.done {
       font-weight: 600;
     }
 
@@ -178,7 +176,7 @@
       font-size: 22px;
       color: #fff;
       opacity: 0.4;
-      transition: opacity 0.2s, transform 0.2s;
+      transition: opacity 0.2s;
     }
 
     .wheel-item.selected {
@@ -227,18 +225,7 @@
     /* ━━━━━━━━━━━━━━━━━━━━━━
        CALENDAR GRID
     ━━━━━━━━━━━━━━━━━━━━━━ */
-    .calendar-wrapper {
-      overflow: hidden;
-      touch-action: pan-y;
-    }
-
-    .calendar-slider {
-      display: flex;
-      transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-    }
-
     .calendar {
-      flex: 0 0 100%;
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 2px 0;
@@ -255,7 +242,6 @@
       cursor: pointer;
       border-radius: 50%;
       transition: background 0.15s;
-      position: relative;
     }
 
     .day:active {
@@ -319,13 +305,11 @@
       overflow: hidden;
     }
 
-    /* 1件: ピンクドット */
     .indicator[data-count="1"] {
       width: 4px;
       background: #ff6b9d;
     }
 
-    /* 2件: 短いバー（ピンク＋水色） */
     .indicator[data-count="2"] {
       width: 16px;
     }
@@ -344,7 +328,6 @@
       border-radius: 0 2px 2px 0;
     }
 
-    /* 3件: 長いバー（ピンク＋水色＋黄色） */
     .indicator[data-count="3"] {
       width: 24px;
     }
@@ -367,7 +350,6 @@
       border-radius: 0 2px 2px 0;
     }
 
-    /* 4件以上: 長いバー（紫単色） */
     .indicator[data-count="4"] {
       width: 24px;
       background: #bf5af2;
@@ -486,12 +468,6 @@
       opacity: 0.7;
     }
 
-    .btn-delete {
-      background: #48484a;
-      width: 100%;
-      margin-top: 8px;
-    }
-
     .edit-log-item {
       display: flex;
       align-items: center;
@@ -515,9 +491,6 @@
       padding: 4px 8px;
     }
 
-    /* ━━━━━━━━━━━━━━━━━━━━━━
-       UTILITIES
-    ━━━━━━━━━━━━━━━━━━━━━━ */
     .hidden {
       display: none !important;
     }
@@ -526,13 +499,15 @@
 <body>
   <div class="container">
     <!-- ═══════════════════════════════
-         HEADER: 年・月表示
+         HEADER: 年・月セレクター
     ═══════════════════════════════ -->
     <header class="header">
-      <div class="year-selector" id="yearSelector">
-        <span class="year-display" id="yearDisplay">2026</span>
+      <div class="selector year-selector" id="yearSelector">
+        <span id="yearDisplay">2026</span>
       </div>
-      <span class="month-display" id="monthDisplay">1月</span>
+      <div class="selector month-selector" id="monthSelector">
+        <span id="monthDisplay">1月</span>
+      </div>
     </header>
 
     <!-- ═══════════════════════════════
@@ -549,15 +524,9 @@
     </div>
 
     <!-- ═══════════════════════════════
-         カレンダーグリッド（スワイプ対応）
+         カレンダーグリッド
     ═══════════════════════════════ -->
-    <div class="calendar-wrapper" id="calendarWrapper">
-      <div class="calendar-slider" id="calendarSlider">
-        <div class="calendar" id="prevCalendar"></div>
-        <div class="calendar" id="currentCalendar"></div>
-        <div class="calendar" id="nextCalendar"></div>
-      </div>
-    </div>
+    <div class="calendar" id="calendar"></div>
 
     <!-- ═══════════════════════════════
          選択日のログ表示
@@ -581,17 +550,33 @@
   </div>
 
   <!-- ═══════════════════════════════
-       年ピッカー（ホイールUI）
+       年ピッカー
   ═══════════════════════════════ -->
-  <div class="year-picker-overlay" id="yearPickerOverlay">
-    <div class="year-picker">
-      <div class="year-picker-header">
-        <button class="year-picker-btn" id="yearCancelBtn">キャンセル</button>
-        <button class="year-picker-btn done" id="yearDoneBtn">完了</button>
+  <div class="picker-overlay" id="yearPickerOverlay">
+    <div class="picker">
+      <div class="picker-header">
+        <button class="picker-btn" id="yearCancelBtn">キャンセル</button>
+        <button class="picker-btn done" id="yearDoneBtn">完了</button>
       </div>
-      <div class="wheel-container" id="wheelContainer">
+      <div class="wheel-container" id="yearWheelContainer">
         <div class="wheel-highlight"></div>
         <div class="wheel" id="yearWheel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════
+       月ピッカー
+  ═══════════════════════════════ -->
+  <div class="picker-overlay" id="monthPickerOverlay">
+    <div class="picker">
+      <div class="picker-header">
+        <button class="picker-btn" id="monthCancelBtn">キャンセル</button>
+        <button class="picker-btn done" id="monthDoneBtn">完了</button>
+      </div>
+      <div class="wheel-container" id="monthWheelContainer">
+        <div class="wheel-highlight"></div>
+        <div class="wheel" id="monthWheel"></div>
       </div>
     </div>
   </div>
@@ -616,6 +601,7 @@
       // ═══════════════════════════════
       const START_YEAR = 2026;
       const END_YEAR = 2035;
+      const ITEM_HEIGHT = 36;
 
       // ═══════════════════════════════
       // 状態管理
@@ -625,7 +611,10 @@
       let selectedDate = null;
       let logData = {};
       let isEditMode = new URLSearchParams(window.location.search).get('edit') === 'true';
+      
+      // ホイール用一時状態
       let tempSelectedYear = currentYear;
+      let tempSelectedMonth = currentMonth;
 
       // 開始年より前は開始年にセット
       if (currentYear < START_YEAR) {
@@ -640,16 +629,8 @@
       const yearDisplay = $('yearDisplay');
       const monthDisplay = $('monthDisplay');
       const yearSelector = $('yearSelector');
-      const yearPickerOverlay = $('yearPickerOverlay');
-      const yearWheel = $('yearWheel');
-      const wheelContainer = $('wheelContainer');
-      const yearCancelBtn = $('yearCancelBtn');
-      const yearDoneBtn = $('yearDoneBtn');
-      const calendarWrapper = $('calendarWrapper');
-      const calendarSlider = $('calendarSlider');
-      const prevCalendar = $('prevCalendar');
-      const currentCalendar = $('currentCalendar');
-      const nextCalendar = $('nextCalendar');
+      const monthSelector = $('monthSelector');
+      const calendar = $('calendar');
       const logDate = $('logDate');
       const logList = $('logList');
       const logEmpty = $('logEmpty');
@@ -657,123 +638,25 @@
       const addBtn = $('addBtn');
       const editLogList = $('editLogList');
 
+      // 年ピッカー
+      const yearPickerOverlay = $('yearPickerOverlay');
+      const yearWheel = $('yearWheel');
+      const yearWheelContainer = $('yearWheelContainer');
+      const yearCancelBtn = $('yearCancelBtn');
+      const yearDoneBtn = $('yearDoneBtn');
+
+      // 月ピッカー
+      const monthPickerOverlay = $('monthPickerOverlay');
+      const monthWheel = $('monthWheel');
+      const monthWheelContainer = $('monthWheelContainer');
+      const monthCancelBtn = $('monthCancelBtn');
+      const monthDoneBtn = $('monthDoneBtn');
+
       // ═══════════════════════════════
       // ユーティリティ関数
       // ═══════════════════════════════
       function formatDateKey(year, month, day) {
         return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      }
-
-      // ═══════════════════════════════
-      // 日本の祝日判定
-      // ═══════════════════════════════
-      const holidayCache = {};
-
-      function getHolidays(year) {
-        if (holidayCache[year]) return holidayCache[year];
-
-        const holidays = {};
-
-        // 固定祝日
-        holidays[`${year}-01-01`] = '元日';
-        holidays[`${year}-02-11`] = '建国記念の日';
-        holidays[`${year}-02-23`] = '天皇誕生日';
-        holidays[`${year}-04-29`] = '昭和の日';
-        holidays[`${year}-05-03`] = '憲法記念日';
-        holidays[`${year}-05-04`] = 'みどりの日';
-        holidays[`${year}-05-05`] = 'こどもの日';
-        holidays[`${year}-08-11`] = '山の日';
-        holidays[`${year}-11-03`] = '文化の日';
-        holidays[`${year}-11-23`] = '勤労感謝の日';
-
-        // ハッピーマンデー（第n月曜日）
-        holidays[getNthMonday(year, 1, 2)] = '成人の日';
-        holidays[getNthMonday(year, 7, 3)] = '海の日';
-        holidays[getNthMonday(year, 9, 3)] = '敬老の日';
-        holidays[getNthMonday(year, 10, 2)] = 'スポーツの日';
-
-        // 春分・秋分（天文学的近似式）
-        holidays[getVernalEquinox(year)] = '春分の日';
-        holidays[getAutumnalEquinox(year)] = '秋分の日';
-
-        // 振替休日を追加
-        addSubstituteHolidays(year, holidays);
-
-        // 国民の休日（祝日に挟まれた平日）
-        addCitizensHoliday(year, holidays);
-
-        holidayCache[year] = holidays;
-        return holidays;
-      }
-
-      // 第n月曜日を取得
-      function getNthMonday(year, month, n) {
-        const firstDay = new Date(year, month - 1, 1).getDay();
-        const firstMonday = firstDay === 0 ? 2 : (firstDay === 1 ? 1 : 9 - firstDay);
-        const day = firstMonday + (n - 1) * 7;
-        return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      }
-
-      // 春分の日（近似式、2000-2099年）
-      function getVernalEquinox(year) {
-        const day = Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
-        return `${year}-03-${String(day).padStart(2, '0')}`;
-      }
-
-      // 秋分の日（近似式、2000-2099年）
-      function getAutumnalEquinox(year) {
-        const day = Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
-        return `${year}-09-${String(day).padStart(2, '0')}`;
-      }
-
-      // 振替休日（祝日が日曜の場合、翌平日が休み）
-      function addSubstituteHolidays(year, holidays) {
-        const baseHolidays = Object.keys(holidays).filter(d => d.startsWith(`${year}-`));
-        
-        for (const dateKey of baseHolidays) {
-          const [y, m, d] = dateKey.split('-').map(Number);
-          const date = new Date(y, m - 1, d);
-          
-          if (date.getDay() === 0) { // 日曜日
-            let nextDay = new Date(y, m - 1, d + 1);
-            let nextKey = formatDateKey(nextDay.getFullYear(), nextDay.getMonth(), nextDay.getDate());
-            
-            // 次の平日を探す（連続祝日対応）
-            while (holidays[nextKey]) {
-              nextDay.setDate(nextDay.getDate() + 1);
-              nextKey = formatDateKey(nextDay.getFullYear(), nextDay.getMonth(), nextDay.getDate());
-            }
-            
-            holidays[nextKey] = '振替休日';
-          }
-        }
-      }
-
-      // 国民の休日（祝日に挟まれた平日）
-      function addCitizensHoliday(year, holidays) {
-        // 主に9月に発生（敬老の日と秋分の日の間）
-        const keiro = getNthMonday(year, 9, 3);
-        const shubun = getAutumnalEquinox(year);
-        
-        const keiroDate = new Date(keiro);
-        const shubunDate = new Date(shubun);
-        const diff = (shubunDate - keiroDate) / (1000 * 60 * 60 * 24);
-        
-        if (diff === 2) {
-          const middleDate = new Date(keiroDate);
-          middleDate.setDate(middleDate.getDate() + 1);
-          const middleKey = formatDateKey(middleDate.getFullYear(), middleDate.getMonth(), middleDate.getDate());
-          if (!holidays[middleKey]) {
-            holidays[middleKey] = '国民の休日';
-          }
-        }
-      }
-
-      // 祝日かどうか判定
-      function isHoliday(year, month, day) {
-        const holidays = getHolidays(year);
-        const dateKey = formatDateKey(year, month, day);
-        return holidays[dateKey] || null;
       }
 
       function formatDisplayDate(year, month, day) {
@@ -801,36 +684,146 @@
         return logData[dateKey] ? logData[dateKey].length : 0;
       }
 
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // ═══════════════════════════════
+      // 日本の祝日判定
+      // ═══════════════════════════════
+      const holidayCache = {};
+
+      function getHolidays(year) {
+        if (holidayCache[year]) return holidayCache[year];
+
+        const holidays = {};
+
+        // 固定祝日
+        holidays[`${year}-01-01`] = '元日';
+        holidays[`${year}-02-11`] = '建国記念の日';
+        holidays[`${year}-02-23`] = '天皇誕生日';
+        holidays[`${year}-04-29`] = '昭和の日';
+        holidays[`${year}-05-03`] = '憲法記念日';
+        holidays[`${year}-05-04`] = 'みどりの日';
+        holidays[`${year}-05-05`] = 'こどもの日';
+        holidays[`${year}-08-11`] = '山の日';
+        holidays[`${year}-11-03`] = '文化の日';
+        holidays[`${year}-11-23`] = '勤労感謝の日';
+
+        // ハッピーマンデー
+        holidays[getNthMonday(year, 1, 2)] = '成人の日';
+        holidays[getNthMonday(year, 7, 3)] = '海の日';
+        holidays[getNthMonday(year, 9, 3)] = '敬老の日';
+        holidays[getNthMonday(year, 10, 2)] = 'スポーツの日';
+
+        // 春分・秋分
+        holidays[getVernalEquinox(year)] = '春分の日';
+        holidays[getAutumnalEquinox(year)] = '秋分の日';
+
+        // 振替休日
+        addSubstituteHolidays(year, holidays);
+
+        // 国民の休日
+        addCitizensHoliday(year, holidays);
+
+        holidayCache[year] = holidays;
+        return holidays;
+      }
+
+      function getNthMonday(year, month, n) {
+        const firstDay = new Date(year, month - 1, 1).getDay();
+        const firstMonday = firstDay === 0 ? 2 : (firstDay === 1 ? 1 : 9 - firstDay);
+        const day = firstMonday + (n - 1) * 7;
+        return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      }
+
+      function getVernalEquinox(year) {
+        const day = Math.floor(20.8431 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
+        return `${year}-03-${String(day).padStart(2, '0')}`;
+      }
+
+      function getAutumnalEquinox(year) {
+        const day = Math.floor(23.2488 + 0.242194 * (year - 1980) - Math.floor((year - 1980) / 4));
+        return `${year}-09-${String(day).padStart(2, '0')}`;
+      }
+
+      function addSubstituteHolidays(year, holidays) {
+        const baseHolidays = Object.keys(holidays).filter(d => d.startsWith(`${year}-`));
+        
+        for (const dateKey of baseHolidays) {
+          const [y, m, d] = dateKey.split('-').map(Number);
+          const date = new Date(y, m - 1, d);
+          
+          if (date.getDay() === 0) {
+            let nextDay = new Date(y, m - 1, d + 1);
+            let nextKey = formatDateKey(nextDay.getFullYear(), nextDay.getMonth(), nextDay.getDate());
+            
+            while (holidays[nextKey]) {
+              nextDay.setDate(nextDay.getDate() + 1);
+              nextKey = formatDateKey(nextDay.getFullYear(), nextDay.getMonth(), nextDay.getDate());
+            }
+            
+            holidays[nextKey] = '振替休日';
+          }
+        }
+      }
+
+      function addCitizensHoliday(year, holidays) {
+        const keiro = getNthMonday(year, 9, 3);
+        const shubun = getAutumnalEquinox(year);
+        
+        const keiroDate = new Date(keiro);
+        const shubunDate = new Date(shubun);
+        const diff = (shubunDate - keiroDate) / (1000 * 60 * 60 * 24);
+        
+        if (diff === 2) {
+          const middleDate = new Date(keiroDate);
+          middleDate.setDate(middleDate.getDate() + 1);
+          const middleKey = formatDateKey(middleDate.getFullYear(), middleDate.getMonth(), middleDate.getDate());
+          if (!holidays[middleKey]) {
+            holidays[middleKey] = '国民の休日';
+          }
+        }
+      }
+
+      function isHoliday(year, month, day) {
+        const holidays = getHolidays(year);
+        const dateKey = formatDateKey(year, month, day);
+        return holidays[dateKey] || null;
+      }
+
       // ═══════════════════════════════
       // カレンダー描画
       // ═══════════════════════════════
-      function renderCalendar(container, year, month) {
-        container.innerHTML = '';
+      function renderCalendar() {
+        calendar.innerHTML = '';
         
-        const daysInMonth = getDaysInMonth(year, month);
-        const firstDay = getFirstDayOfMonth(year, month);
-        const daysInPrevMonth = getDaysInMonth(year, month - 1);
+        const daysInMonth = getDaysInMonth(currentYear, currentMonth);
+        const firstDay = getFirstDayOfMonth(currentYear, currentMonth);
+        const daysInPrevMonth = getDaysInMonth(currentYear, currentMonth - 1);
 
         // 前月の日付
         for (let i = firstDay - 1; i >= 0; i--) {
           const day = daysInPrevMonth - i;
-          const prevMonth = month === 0 ? 11 : month - 1;
-          const prevYear = month === 0 ? year - 1 : year;
-          container.appendChild(createDayElement(prevYear, prevMonth, day, true));
+          const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+          const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+          calendar.appendChild(createDayElement(prevYear, prevMonth, day, true));
         }
 
         // 当月の日付
         for (let day = 1; day <= daysInMonth; day++) {
-          container.appendChild(createDayElement(year, month, day, false));
+          calendar.appendChild(createDayElement(currentYear, currentMonth, day, false));
         }
 
-        // 次月の日付（6行になるまで）
-        const totalCells = container.children.length;
+        // 次月の日付
+        const totalCells = calendar.children.length;
         const remainingCells = totalCells <= 35 ? 35 - totalCells : 42 - totalCells;
         for (let day = 1; day <= remainingCells; day++) {
-          const nextMonth = month === 11 ? 0 : month + 1;
-          const nextYear = month === 11 ? year + 1 : year;
-          container.appendChild(createDayElement(nextYear, nextMonth, day, true));
+          const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
+          const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
+          calendar.appendChild(createDayElement(nextYear, nextMonth, day, true));
         }
       }
 
@@ -864,7 +857,6 @@
           indicator.className = 'indicator';
           indicator.dataset.count = Math.min(count, 4);
 
-          // 3件の場合はセグメント要素を追加
           if (count === 3) {
             for (let i = 0; i < 3; i++) {
               const seg = document.createElement('span');
@@ -882,20 +874,6 @@
         return el;
       }
 
-      function renderAllCalendars() {
-        const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
-        const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
-        const nextMonth = currentMonth === 11 ? 0 : currentMonth + 1;
-        const nextYear = currentMonth === 11 ? currentYear + 1 : currentYear;
-
-        renderCalendar(prevCalendar, prevYear, prevMonth);
-        renderCalendar(currentCalendar, currentYear, currentMonth);
-        renderCalendar(nextCalendar, nextYear, nextMonth);
-
-        calendarSlider.style.transition = 'none';
-        calendarSlider.style.transform = 'translateX(-100%)';
-      }
-
       function updateHeader() {
         yearDisplay.textContent = currentYear;
         monthDisplay.textContent = `${currentMonth + 1}月`;
@@ -906,25 +884,13 @@
       // ═══════════════════════════════
       function selectDate(year, month, day, isOtherMonth) {
         if (isOtherMonth) {
-          // 別の月をタップした場合はその月に移動
           currentYear = year;
           currentMonth = month;
           updateHeader();
-          renderAllCalendars();
         }
 
         selectedDate = formatDateKey(year, month, day);
-        
-        // 選択状態を更新
-        document.querySelectorAll('.day.selected').forEach(el => el.classList.remove('selected'));
-        document.querySelectorAll('.day').forEach(el => {
-          const numEl = el.querySelector('.day-number');
-          if (numEl && el.dataset) {
-            // 日付の特定（簡易的）
-          }
-        });
-
-        renderAllCalendars();
+        renderCalendar();
         renderLog(year, month, day);
       }
 
@@ -951,7 +917,6 @@
           ).join('');
         }
 
-        // 編集モード時のリスト
         if (isEditMode) {
           renderEditLogList(dateKey, logs);
         }
@@ -965,7 +930,6 @@
           </div>
         `).join('');
 
-        // 削除ボタンのイベント
         editLogList.querySelectorAll('.edit-log-delete').forEach(btn => {
           btn.addEventListener('click', (e) => {
             const date = e.target.dataset.date;
@@ -975,205 +939,32 @@
         });
       }
 
-      function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-      }
-
-      // ═══════════════════════════════
-      // スワイプ処理
-      // ═══════════════════════════════
-      let touchStartX = 0;
-      let touchStartY = 0;
-      let touchDeltaX = 0;
-      let isSwiping = false;
-
-      calendarWrapper.addEventListener('touchstart', (e) => {
-        touchStartX = e.touches[0].clientX;
-        touchStartY = e.touches[0].clientY;
-        touchDeltaX = 0;
-        isSwiping = false;
-        calendarSlider.style.transition = 'none';
-      }, { passive: true });
-
-      calendarWrapper.addEventListener('touchmove', (e) => {
-        const deltaX = e.touches[0].clientX - touchStartX;
-        const deltaY = e.touches[0].clientY - touchStartY;
-
-        // 横スワイプの判定
-        if (!isSwiping && Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
-          isSwiping = true;
-        }
-
-        if (isSwiping) {
-          touchDeltaX = deltaX;
-          const baseOffset = -100;
-          const movePercent = (deltaX / calendarWrapper.offsetWidth) * 100;
-          calendarSlider.style.transform = `translateX(${baseOffset + movePercent}%)`;
-        }
-      }, { passive: true });
-
-      calendarWrapper.addEventListener('touchend', () => {
-        if (!isSwiping) return;
-
-        const threshold = calendarWrapper.offsetWidth * 0.2;
-        calendarSlider.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
-
-        if (touchDeltaX > threshold) {
-          // 前月へ
-          calendarSlider.style.transform = 'translateX(0%)';
-          setTimeout(() => {
-            goToPrevMonth();
-          }, 300);
-        } else if (touchDeltaX < -threshold) {
-          // 次月へ
-          calendarSlider.style.transform = 'translateX(-200%)';
-          setTimeout(() => {
-            goToNextMonth();
-          }, 300);
-        } else {
-          // 戻す
-          calendarSlider.style.transform = 'translateX(-100%)';
-        }
-      });
-
-      // ═══════════════════════════════
-      // PCマウスホイール操作
-      // ═══════════════════════════════
-      let isWheelAnimating = false;
-      let wheelCooldown = false;
-
-      calendarWrapper.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        
-        if (wheelCooldown) return;
-
-        // スクロール強度から移動月数を計算
-        const delta = Math.abs(e.deltaY);
-        let monthsToMove;
-        
-        if (delta < 50) {
-          monthsToMove = 1;
-        } else if (delta < 100) {
-          monthsToMove = 2;
-        } else if (delta < 200) {
-          monthsToMove = 3;
-        } else {
-          monthsToMove = 5;
-        }
-
-        // クールダウン開始（連続発火防止）
-        wheelCooldown = true;
-        setTimeout(() => {
-          wheelCooldown = false;
-        }, 250);
-
-        if (e.deltaY > 0) {
-          // 下スクロール → 前月へ
-          for (let i = 0; i < monthsToMove; i++) {
-            if (currentMonth === 0) {
-              if (currentYear > START_YEAR) {
-                currentYear--;
-                currentMonth = 11;
-              } else {
-                break;
-              }
-            } else {
-              currentMonth--;
-            }
-          }
-        } else if (e.deltaY < 0) {
-          // 上スクロール → 次月へ
-          for (let i = 0; i < monthsToMove; i++) {
-            if (currentMonth === 11) {
-              if (currentYear < END_YEAR) {
-                currentYear++;
-                currentMonth = 0;
-              } else {
-                break;
-              }
-            } else {
-              currentMonth++;
-            }
-          }
-        }
-
-        updateHeader();
-        renderAllCalendars();
-      }, { passive: false });
-
-      function goToPrevMonth() {
-        if (currentMonth === 0) {
-          if (currentYear > START_YEAR) {
-            currentYear--;
-            currentMonth = 11;
-          } else {
-            renderAllCalendars();
-            return;
-          }
-        } else {
-          currentMonth--;
-        }
-        updateHeader();
-        renderAllCalendars();
-      }
-
-      function goToNextMonth() {
-        if (currentMonth === 11) {
-          if (currentYear < END_YEAR) {
-            currentYear++;
-            currentMonth = 0;
-          } else {
-            renderAllCalendars();
-            return;
-          }
-        } else {
-          currentMonth++;
-        }
-        updateHeader();
-        renderAllCalendars();
-      }
-
       // ═══════════════════════════════
       // 年ホイールピッカー
       // ═══════════════════════════════
-      const ITEM_HEIGHT = 36;
-      let wheelOffset = 0;
-      let wheelStartY = 0;
-      let wheelVelocity = 0;
-      let lastWheelY = 0;
-      let lastWheelTime = 0;
-
       function initYearWheel() {
         yearWheel.innerHTML = '';
         for (let year = START_YEAR; year <= END_YEAR; year++) {
           const item = document.createElement('div');
           item.className = 'wheel-item';
           item.textContent = year;
-          item.dataset.year = year;
           yearWheel.appendChild(item);
         }
-        setWheelPosition(currentYear - START_YEAR, false);
       }
 
-      function setWheelPosition(index, animate = true) {
-        wheelOffset = -index * ITEM_HEIGHT;
+      function setYearWheelPosition(index, animate = true) {
+        index = Math.max(0, Math.min(END_YEAR - START_YEAR, index));
         yearWheel.style.transition = animate ? 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)' : 'none';
-        yearWheel.style.transform = `translateY(${wheelOffset}px)`;
-        updateWheelSelection(index);
-        tempSelectedYear = START_YEAR + index;
-      }
-
-      function updateWheelSelection(selectedIndex) {
+        yearWheel.style.transform = `translateY(${-index * ITEM_HEIGHT}px)`;
         yearWheel.querySelectorAll('.wheel-item').forEach((item, i) => {
-          item.classList.toggle('selected', i === selectedIndex);
+          item.classList.toggle('selected', i === index);
         });
+        tempSelectedYear = START_YEAR + index;
       }
 
       function openYearPicker() {
         tempSelectedYear = currentYear;
-        setWheelPosition(currentYear - START_YEAR, false);
+        setYearWheelPosition(currentYear - START_YEAR, false);
         yearPickerOverlay.classList.add('active');
       }
 
@@ -1185,58 +976,165 @@
       yearCancelBtn.addEventListener('click', closeYearPicker);
       yearDoneBtn.addEventListener('click', () => {
         currentYear = tempSelectedYear;
-        currentMonth = 0;
         updateHeader();
-        renderAllCalendars();
+        renderCalendar();
         closeYearPicker();
       });
-
       yearPickerOverlay.addEventListener('click', (e) => {
         if (e.target === yearPickerOverlay) closeYearPicker();
       });
 
-      // ホイールタッチ操作
-      wheelContainer.addEventListener('touchstart', (e) => {
-        wheelStartY = e.touches[0].clientY;
-        lastWheelY = wheelStartY;
-        lastWheelTime = Date.now();
-        wheelVelocity = 0;
+      // 年ホイールタッチ操作
+      let yearStartY = 0;
+      let yearLastY = 0;
+      let yearLastTime = 0;
+      let yearVelocity = 0;
+
+      yearWheelContainer.addEventListener('touchstart', (e) => {
+        yearStartY = e.touches[0].clientY;
+        yearLastY = yearStartY;
+        yearLastTime = Date.now();
+        yearVelocity = 0;
         yearWheel.style.transition = 'none';
       }, { passive: true });
 
-      wheelContainer.addEventListener('touchmove', (e) => {
+      yearWheelContainer.addEventListener('touchmove', (e) => {
         const currentY = e.touches[0].clientY;
-        const deltaY = currentY - wheelStartY;
+        const deltaY = currentY - yearStartY;
         const now = Date.now();
         
-        // 速度計算
-        if (now - lastWheelTime > 0) {
-          wheelVelocity = (currentY - lastWheelY) / (now - lastWheelTime);
+        if (now - yearLastTime > 0) {
+          yearVelocity = (currentY - yearLastY) / (now - yearLastTime);
         }
-        lastWheelY = currentY;
-        lastWheelTime = now;
+        yearLastY = currentY;
+        yearLastTime = now;
 
-        const currentIndex = tempSelectedYear - START_YEAR;
-        const newOffset = -currentIndex * ITEM_HEIGHT + deltaY;
+        const newOffset = -(tempSelectedYear - START_YEAR) * ITEM_HEIGHT + deltaY;
         yearWheel.style.transform = `translateY(${newOffset}px)`;
       }, { passive: true });
 
-      wheelContainer.addEventListener('touchend', () => {
-        const currentIndex = tempSelectedYear - START_YEAR;
-        const deltaOffset = wheelOffset - (-currentIndex * ITEM_HEIGHT);
-        
-        // 慣性スクロール
-        let momentum = wheelVelocity * 150;
-        let targetOffset = -currentIndex * ITEM_HEIGHT + 
-                          (parseFloat(yearWheel.style.transform.match(/-?\d+\.?\d*/)?.[0] || 0) - wheelOffset) +
-                          momentum;
+      yearWheelContainer.addEventListener('touchend', () => {
+        const currentOffset = parseFloat(yearWheel.style.transform.match(/-?\d+\.?\d*/)?.[0] || 0);
+        const momentum = yearVelocity * 150;
+        const targetOffset = currentOffset + momentum;
 
-        // インデックスを計算
         let targetIndex = Math.round(-targetOffset / ITEM_HEIGHT);
-        targetIndex = Math.max(0, Math.min(END_YEAR - START_YEAR, targetIndex));
-
-        setWheelPosition(targetIndex, true);
+        setYearWheelPosition(targetIndex, true);
       });
+
+      yearWheelContainer.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const currentIndex = tempSelectedYear - START_YEAR;
+        let newIndex = currentIndex + (e.deltaY > 0 ? 1 : -1);
+        setYearWheelPosition(newIndex, true);
+      }, { passive: false });
+
+      // ═══════════════════════════════
+      // 月ホイールピッカー
+      // ═══════════════════════════════
+      function initMonthWheel() {
+        monthWheel.innerHTML = '';
+        for (let month = 1; month <= 12; month++) {
+          const item = document.createElement('div');
+          item.className = 'wheel-item';
+          item.textContent = `${month}月`;
+          monthWheel.appendChild(item);
+        }
+      }
+
+      function setMonthWheelPosition(index, animate = true) {
+        // 月のループ処理
+        if (index < 0) {
+          if (tempSelectedYear > START_YEAR) {
+            tempSelectedYear--;
+            index = 11;
+          } else {
+            index = 0;
+          }
+        } else if (index > 11) {
+          if (tempSelectedYear < END_YEAR) {
+            tempSelectedYear++;
+            index = 0;
+          } else {
+            index = 11;
+          }
+        }
+
+        monthWheel.style.transition = animate ? 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)' : 'none';
+        monthWheel.style.transform = `translateY(${-index * ITEM_HEIGHT}px)`;
+        monthWheel.querySelectorAll('.wheel-item').forEach((item, i) => {
+          item.classList.toggle('selected', i === index);
+        });
+        tempSelectedMonth = index;
+      }
+
+      function openMonthPicker() {
+        tempSelectedYear = currentYear;
+        tempSelectedMonth = currentMonth;
+        setMonthWheelPosition(currentMonth, false);
+        monthPickerOverlay.classList.add('active');
+      }
+
+      function closeMonthPicker() {
+        monthPickerOverlay.classList.remove('active');
+      }
+
+      monthSelector.addEventListener('click', openMonthPicker);
+      monthCancelBtn.addEventListener('click', closeMonthPicker);
+      monthDoneBtn.addEventListener('click', () => {
+        currentYear = tempSelectedYear;
+        currentMonth = tempSelectedMonth;
+        updateHeader();
+        renderCalendar();
+        closeMonthPicker();
+      });
+      monthPickerOverlay.addEventListener('click', (e) => {
+        if (e.target === monthPickerOverlay) closeMonthPicker();
+      });
+
+      // 月ホイールタッチ操作
+      let monthStartY = 0;
+      let monthLastY = 0;
+      let monthLastTime = 0;
+      let monthVelocity = 0;
+
+      monthWheelContainer.addEventListener('touchstart', (e) => {
+        monthStartY = e.touches[0].clientY;
+        monthLastY = monthStartY;
+        monthLastTime = Date.now();
+        monthVelocity = 0;
+        monthWheel.style.transition = 'none';
+      }, { passive: true });
+
+      monthWheelContainer.addEventListener('touchmove', (e) => {
+        const currentY = e.touches[0].clientY;
+        const deltaY = currentY - monthStartY;
+        const now = Date.now();
+        
+        if (now - monthLastTime > 0) {
+          monthVelocity = (currentY - monthLastY) / (now - monthLastTime);
+        }
+        monthLastY = currentY;
+        monthLastTime = now;
+
+        const newOffset = -tempSelectedMonth * ITEM_HEIGHT + deltaY;
+        monthWheel.style.transform = `translateY(${newOffset}px)`;
+      }, { passive: true });
+
+      monthWheelContainer.addEventListener('touchend', () => {
+        const currentOffset = parseFloat(monthWheel.style.transform.match(/-?\d+\.?\d*/)?.[0] || 0);
+        const momentum = monthVelocity * 150;
+        const targetOffset = currentOffset + momentum;
+
+        let targetIndex = Math.round(-targetOffset / ITEM_HEIGHT);
+        setMonthWheelPosition(targetIndex, true);
+      });
+
+      monthWheelContainer.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        let newIndex = tempSelectedMonth + (e.deltaY > 0 ? 1 : -1);
+        setMonthWheelPosition(newIndex, true);
+      }, { passive: false });
 
       // ═══════════════════════════════
       // データ読み込み・保存（Firebase）
@@ -1252,7 +1150,7 @@
           console.error('Firebaseからの読み込みに失敗:', e);
         }
         
-        renderAllCalendars();
+        renderCalendar();
         
         // 今日の日付を選択
         const today = new Date();
@@ -1281,9 +1179,8 @@
         logData[dateKey].push(text.trim());
         saveData();
         
-        // 再描画
         const [year, month, day] = dateKey.split('-').map(Number);
-        renderAllCalendars();
+        renderCalendar();
         renderLog(year, month - 1, day);
       }
 
@@ -1296,13 +1193,11 @@
         }
         saveData();
         
-        // 再描画
         const [year, month, day] = dateKey.split('-').map(Number);
-        renderAllCalendars();
+        renderCalendar();
         renderLog(year, month - 1, day);
       }
 
-      // 編集UIのイベント
       if (isEditMode) {
         document.body.classList.add('edit-mode');
         
@@ -1326,6 +1221,7 @@
       // ═══════════════════════════════
       function init() {
         initYearWheel();
+        initMonthWheel();
         updateHeader();
         loadData();
       }
