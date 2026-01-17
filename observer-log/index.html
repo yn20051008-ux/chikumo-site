@@ -1038,6 +1038,39 @@
         }
       });
 
+      // ═══════════════════════════════
+      // PCマウスホイール操作
+      // ═══════════════════════════════
+      let wheelTimeout = null;
+      let isWheelAnimating = false;
+
+      calendarWrapper.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        
+        if (isWheelAnimating) return;
+
+        // スクロール方向を判定
+        if (e.deltaY > 0) {
+          // 下スクロール → 前月へ
+          isWheelAnimating = true;
+          calendarSlider.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
+          calendarSlider.style.transform = 'translateX(0%)';
+          setTimeout(() => {
+            goToPrevMonth();
+            isWheelAnimating = false;
+          }, 300);
+        } else if (e.deltaY < 0) {
+          // 上スクロール → 次月へ
+          isWheelAnimating = true;
+          calendarSlider.style.transition = 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)';
+          calendarSlider.style.transform = 'translateX(-200%)';
+          setTimeout(() => {
+            goToNextMonth();
+            isWheelAnimating = false;
+          }, 300);
+        }
+      }, { passive: false });
+
       function goToPrevMonth() {
         if (currentMonth === 0) {
           if (currentYear > START_YEAR) {
