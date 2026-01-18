@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stage 4 - 大気圏突入 | 畜物語</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+```
+body {
+  font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+  background: linear-gradient(180deg, #1a1a2e 0%, #4a1a1a 50%, #8b3a3a 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #fff;
+}
+
+.stage-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.stage-header h1 {
+  font-size: 1.5rem;
+  color: #ffb6c1;
+  margin-bottom: 5px;
+}
+
+.stage-header p {
+  font-size: 0.9rem;
+  color: #ffd1dc;
+}
+
+.heat-display {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+}
+
+.heat-bar {
+  width: 280px;
+  height: 25px;
+  background: #333;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid #ff69b4;
+  margin-bottom: 5px;
+}
+
+.heat-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #90ee90, #ffd700, #ff6b6b);
+  transition: width 0.2s;
+  border-radius: 10px;
+}
+
+.heat-label {
+  display: flex;
+  justify-content: space-between;
+  width: 280px;
+  font-size: 0.7rem;
+  color: #aaa;
+}
+
+.game-area {
+  width: 320px;
+  height: 350px;
+  background: linear-gradient(180deg, 
+    rgba(0,0,0,0.3) 0%, 
+    rgba(255,100,50,0.2) 50%,
+    rgba(255,200,100,0.3) 100%);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  border: 3px solid #ff69b4;
+  margin-bottom: 15px;
+}
+
+.ship {
+  position: absolute;
+  font-size: 2.5rem;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 10px #ff6b00);
+  transition: filter 0.2s;
+}
+
+.ship.hot {
+  filter: drop-shadow(0 0 20px #ff0000) brightness(1.5);
+}
+
+.safe-zone {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 60px;
+  border: 3px dashed rgba(144, 238, 144, 0.6);
+  border-radius: 10px;
+  top: 50%;
+  margin-top: -30px;
+}
+
+.safe-label {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  color: #90ee90;
+  white-space: nowrap;
+}
+
+.altitude {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  writing-mode: vertical-rl;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.instruction {
+  font-size: 0.85rem;
+  color: #ffd1dc;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.control-area {
+  display: flex;
+  gap: 15px;
+}
+
+.control-btn {
+  width: 80px;
+  height: 80px;
+  font-size: 2rem;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ff85a2, #ff5c8d);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+  transition: transform 0.1s;
+}
+
+.control-btn:active {
+  transform: scale(0.95);
+}
+
+.game-btn {
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: bold;
+  background: linear-gradient(145deg, #ff85a2, #ff5c8d);
+  color: #fff;
+  box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+  margin-top: 20px;
+}
+
+.result-screen {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.result-screen.show {
+  display: flex;
+}
+
+.result-icon {
+  font-size: 5rem;
+  margin-bottom: 15px;
+}
+
+.result-text {
+  font-size: 1.8rem;
+  margin-bottom: 30px;
+}
+
+.result-text.success { color: #90ee90; }
+.result-text.fail { color: #ff6b6b; }
+
+.nav-btn {
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  margin: 5px;
+  transition: all 0.3s;
+}
+
+.map-btn {
+  background: linear-gradient(145deg, #87ceeb, #4fc3f7);
+  color: #fff;
+}
+
+.retry-btn {
+  background: linear-gradient(145deg, #ff85a2, #ff5c8d);
+  color: #fff;
+}
+
+.hidden { display: none !important; }
+```
+
+  </style>
+</head>
+<body>
+  <div class="stage-header">
+    <h1>🔥 Stage 4 - 大気圏突入</h1>
+    <p>機体温度を管理しながら5秒耐えよう！</p>
+  </div>
+
+  <div class="heat-display">
+    温度: <span id="heatValue">50</span>%
+  </div>
+  <div class="heat-bar">
+    <div class="heat-fill" id="heatFill" style="width: 50%"></div>
+  </div>
+  <div class="heat-label">
+    <span>冷却</span>
+    <span>危険</span>
+    <span>オーバーヒート</span>
+  </div>
+
+  <div class="game-area" id="gameArea">
+    <div class="safe-zone">
+      <span class="safe-label">安全ゾーン (40-60%)</span>
+    </div>
+    <div class="ship" id="ship">🚀</div>
+    <div class="altitude">▲ 高度</div>
+  </div>
+
+  <p class="instruction" id="instruction">上下ボタンで温度を40〜60%に保とう！</p>
+
+  <div class="control-area hidden" id="controls">
+    <button class="control-btn" onpointerdown="startCool()" onpointerup="stopControl()" onpointerleave="stopControl()">❄️</button>
+    <button class="control-btn" onpointerdown="startHeat()" onpointerup="stopControl()" onpointerleave="stopControl()">🔥</button>
+  </div>
+
+<button class="game-btn" id="startBtn" onclick="startGame()">ゲームスタート</button>
+
+  <div class="result-screen" id="resultScreen">
+    <div class="result-icon" id="resultIcon"></div>
+    <div class="result-text" id="resultText"></div>
+    <button class="nav-btn map-btn hidden" id="mapBtn" onclick="goToMap()">🗺️ ステージマップへ</button>
+    <button class="nav-btn retry-btn" id="retryBtn" onclick="retry()">🔄 もう一度挑戦</button>
+  </div>
+
+  <script>
+    // ==========================================
+    // localStorage 設定
+    // ==========================================
+    const SAVE_KEY = 'save.map_chikusei_v1';
+    const STAGE_ID = 'stage-04';
+
+    // ゲーム変数
+    let heat = 50;
+    let isPlaying = false;
+    let controlDirection = 0;
+    let surviveTime = 0;
+    const TARGET_TIME = 5;
+    let gameLoop = null;
+
+    // ==========================================
+    // セーブデータ管理
+    // ==========================================
+    function loadSaveData() {
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function markStageCleared() {
+      let saveData = loadSaveData();
+      if (!saveData) {
+        saveData = { version: 1, stages: {} };
+      }
+      saveData.stages[STAGE_ID] = {
+        cleared: true,
+        clearedAt: new Date().toISOString()
+      };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+    }
+
+    // ==========================================
+    // ゲームロジック
+    // ==========================================
+    function startGame() {
+      document.getElementById('startBtn').classList.add('hidden');
+      document.getElementById('controls').classList.remove('hidden');
+      document.getElementById('resultScreen').classList.remove('show');
+      
+      heat = 50;
+      surviveTime = 0;
+      isPlaying = true;
+      
+      updateDisplay();
+      gameLoop = setInterval(update, 100);
+    }
+
+    function update() {
+      if (!isPlaying) return;
+      
+      // 自然上昇（大気圏突入で熱くなる）
+      heat += 1.5;
+      
+      // プレイヤー操作
+      heat += controlDirection * 3;
+      
+      // 範囲制限
+      heat = Math.max(0, Math.min(100, heat));
+      
+      updateDisplay();
+      
+      // 判定
+      if (heat >= 100) {
+        endGame(false, 'オーバーヒート！');
+        return;
+      }
+      
+      if (heat <= 0) {
+        endGame(false, '冷却しすぎ！');
+        return;
+      }
+      
+      // 安全ゾーン内なら生存時間加算
+      if (heat >= 40 && heat <= 60) {
+        surviveTime += 0.1;
+        if (surviveTime >= TARGET_TIME) {
+          endGame(true, '突入成功！');
+        }
+      }
+      
+      document.getElementById('instruction').textContent = 
+        `安全ゾーン維持: ${surviveTime.toFixed(1)} / ${TARGET_TIME}秒`;
+    }
+
+    function updateDisplay() {
+      document.getElementById('heatValue').textContent = Math.round(heat);
+      document.getElementById('heatFill').style.width = heat + '%';
+      
+      const ship = document.getElementById('ship');
+      if (heat > 70) {
+        ship.classList.add('hot');
+      } else {
+        ship.classList.remove('hot');
+      }
+    }
+
+    function startCool() { controlDirection = -1; }
+    function startHeat() { controlDirection = 1; }
+    function stopControl() { controlDirection = 0; }
+
+    function endGame(isSuccess, message) {
+      isPlaying = false;
+      clearInterval(gameLoop);
+      
+      document.getElementById('controls').classList.add('hidden');
+      
+      const resultScreen = document.getElementById('resultScreen');
+      const resultIcon = document.getElementById('resultIcon');
+      const resultText = document.getElementById('resultText');
+      const mapBtn = document.getElementById('mapBtn');
+      
+      resultScreen.classList.add('show');
+      
+      if (isSuccess) {
+        resultIcon.textContent = '🎉';
+        resultText.textContent = message;
+        resultText.className = 'result-text success';
+        mapBtn.classList.remove('hidden');
+        markStageCleared();
+      } else {
+        resultIcon.textContent = '💥';
+        resultText.textContent = message;
+        resultText.className = 'result-text fail';
+        mapBtn.classList.add('hidden');
+      }
+    }
+
+    function retry() {
+      document.getElementById('resultScreen').classList.remove('show');
+      document.getElementById('startBtn').classList.remove('hidden');
+      document.getElementById('instruction').textContent = '上下ボタンで温度を40〜60%に保とう！';
+      heat = 50;
+      updateDisplay();
+    }
+
+    function goToMap() {
+      window.location.href = 'index.html';
+    }
+
+    // キーボード操作
+    document.addEventListener('keydown', (e) => {
+      if (!isPlaying) return;
+      if (e.key === 'ArrowUp') controlDirection = 1;
+      if (e.key === 'ArrowDown') controlDirection = -1;
+    });
+
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        controlDirection = 0;
+      }
+    });
+  </script>
+
+</body>
+</html>
