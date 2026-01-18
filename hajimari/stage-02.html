@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stage 2 - 小惑星帯 | 畜物語</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+```
+body {
+  font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #fff;
+  overflow: hidden;
+}
+
+.stage-header {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.stage-header h1 {
+  font-size: 1.5rem;
+  color: #ffb6c1;
+  margin-bottom: 5px;
+}
+
+.stage-header p {
+  font-size: 0.9rem;
+  color: #ffd1dc;
+}
+
+.score-display {
+  font-size: 1.2rem;
+  color: #ffd700;
+  margin-bottom: 10px;
+}
+
+.game-area {
+  width: 320px;
+  height: 400px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  border: 3px solid #ff69b4;
+  touch-action: none;
+}
+
+.player {
+  position: absolute;
+  bottom: 20px;
+  font-size: 2rem;
+  transition: left 0.1s ease-out;
+  z-index: 10;
+}
+
+.asteroid {
+  position: absolute;
+  font-size: 1.5rem;
+  animation: fall linear forwards;
+}
+
+@keyframes fall {
+  from { top: -40px; }
+  to { top: 420px; }
+}
+
+.instruction {
+  font-size: 0.85rem;
+  color: #ffd1dc;
+  margin: 15px 0;
+  text-align: center;
+}
+
+.game-btn {
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: bold;
+  background: linear-gradient(145deg, #ff85a2, #ff5c8d);
+  color: #fff;
+  box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+}
+
+.game-btn:hover {
+  transform: scale(1.05);
+}
+
+.result-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  justify-content: center;
+  border-radius: 20px;
+  z-index: 100;
+}
+
+.result-screen.show {
+  display: flex;
+}
+
+.result-icon {
+  font-size: 4rem;
+  margin-bottom: 10px;
+}
+
+.result-text {
+  font-size: 1.5rem;
+  margin-bottom: 10px;
+}
+
+.result-text.success {
+  color: #90ee90;
+}
+
+.result-text.fail {
+  color: #ff6b6b;
+}
+
+.result-score {
+  font-size: 1rem;
+  color: #ffd700;
+  margin-bottom: 20px;
+}
+
+.nav-btn {
+  padding: 12px 30px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  margin: 5px;
+  transition: all 0.3s;
+}
+
+.map-btn {
+  background: linear-gradient(145deg, #87ceeb, #4fc3f7);
+  color: #fff;
+}
+
+.retry-btn {
+  background: linear-gradient(145deg, #ff85a2, #ff5c8d);
+  color: #fff;
+}
+
+.nav-btn:hover {
+  transform: scale(1.05);
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* モバイル用コントロール */
+.mobile-controls {
+  display: flex;
+  gap: 20px;
+  margin-top: 15px;
+}
+
+.control-btn {
+  width: 70px;
+  height: 70px;
+  font-size: 2rem;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ff85a2, #ff5c8d);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+}
+
+.control-btn:active {
+  transform: scale(0.95);
+}
+```
+
+  </style>
+</head>
+<body>
+  <div class="stage-header">
+    <h1>☄️ Stage 2 - 小惑星帯</h1>
+    <p>小惑星を40回避けよう！</p>
+  </div>
+
+  <div class="score-display">避けた数: <span id="score">0</span> / 40</div>
+
+  <div class="game-area" id="gameArea">
+    <div class="player" id="player">🚀</div>
+
+```
+<div class="result-screen" id="resultScreen">
+  <div class="result-icon" id="resultIcon"></div>
+  <div class="result-text" id="resultText"></div>
+  <div class="result-score" id="resultScore"></div>
+  <button class="nav-btn map-btn hidden" id="mapBtn" onclick="goToMap()">🗺️ ステージマップへ</button>
+  <button class="nav-btn retry-btn" id="retryBtn" onclick="retry()">🔄 もう一度挑戦</button>
+</div>
+```
+
+  </div>
+
+  <p class="instruction">← → キーまたはボタンで移動！</p>
+
+  <div class="mobile-controls" id="mobileControls">
+    <button class="control-btn" onpointerdown="moveLeft()" onpointerup="stopMove()">◀</button>
+    <button class="control-btn" onpointerdown="moveRight()" onpointerup="stopMove()">▶</button>
+  </div>
+
+<button class="game-btn" id="startBtn" onclick="startGame()">ゲームスタート</button>
+
+  <script>
+    // ==========================================
+    // localStorage 設定
+    // ==========================================
+    const SAVE_KEY = 'save.map_chikusei_v1';
+    const STAGE_ID = 'stage-02';
+    const TARGET_SCORE = 40;
+
+    // ゲーム変数
+    let playerX = 140;
+    let score = 0;
+    let isPlaying = false;
+    let moveDirection = 0;
+    let gameLoop = null;
+    let spawnLoop = null;
+    let asteroids = [];
+
+    // ==========================================
+    // セーブデータ管理
+    // ==========================================
+    function loadSaveData() {
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function markStageCleared() {
+      let saveData = loadSaveData();
+      if (!saveData) {
+        saveData = { version: 1, stages: {} };
+      }
+      saveData.stages[STAGE_ID] = {
+        cleared: true,
+        clearedAt: new Date().toISOString()
+      };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+    }
+
+    // ==========================================
+    // ゲームロジック
+    // ==========================================
+    function startGame() {
+      document.getElementById('startBtn').classList.add('hidden');
+      document.getElementById('resultScreen').classList.remove('show');
+      
+      playerX = 140;
+      score = 0;
+      asteroids = [];
+      isPlaying = true;
+      
+      updateScore();
+      updatePlayerPosition();
+      
+      // 既存の小惑星を削除
+      document.querySelectorAll('.asteroid').forEach(a => a.remove());
+      
+      // ゲームループ開始
+      gameLoop = setInterval(update, 16);
+      spawnLoop = setInterval(spawnAsteroid, 800);
+    }
+
+    function update() {
+      if (!isPlaying) return;
+      
+      // プレイヤー移動
+      playerX += moveDirection * 5;
+      playerX = Math.max(10, Math.min(280, playerX));
+      updatePlayerPosition();
+      
+      // 小惑星との衝突判定
+      checkCollisions();
+    }
+
+    function spawnAsteroid() {
+      if (!isPlaying) return;
+      
+      const asteroid = document.createElement('div');
+      asteroid.className = 'asteroid';
+      asteroid.textContent = ['☄️', '🪨', '💫'][Math.floor(Math.random() * 3)];
+      asteroid.style.left = (Math.random() * 280 + 10) + 'px';
+      asteroid.style.animationDuration = (2 + Math.random()) + 's';
+      
+      const gameArea = document.getElementById('gameArea');
+      gameArea.appendChild(asteroid);
+      
+      const asteroidData = {
+        element: asteroid,
+        x: parseFloat(asteroid.style.left),
+        passed: false
+      };
+      asteroids.push(asteroidData);
+      
+      // アニメーション終了時に削除
+      asteroid.addEventListener('animationend', () => {
+        if (!asteroidData.passed && isPlaying) {
+          asteroidData.passed = true;
+          score++;
+          updateScore();
+          
+          if (score >= TARGET_SCORE) {
+            endGame(true);
+          }
+        }
+        asteroid.remove();
+        asteroids = asteroids.filter(a => a !== asteroidData);
+      });
+    }
+
+    function checkCollisions() {
+      const playerRect = {
+        left: playerX - 15,
+        right: playerX + 15,
+        top: 360,
+        bottom: 400
+      };
+      
+      asteroids.forEach(asteroidData => {
+        if (asteroidData.passed) return;
+        
+        const asteroid = asteroidData.element;
+        const rect = asteroid.getBoundingClientRect();
+        const gameRect = document.getElementById('gameArea').getBoundingClientRect();
+        
+        const asteroidY = rect.top - gameRect.top;
+        const asteroidX = asteroidData.x;
+        
+        // 衝突判定
+        if (asteroidY > 340 && asteroidY < 400) {
+          if (Math.abs(asteroidX - playerX) < 35) {
+            endGame(false);
+          }
+        }
+      });
+    }
+
+    function updateScore() {
+      document.getElementById('score').textContent = score;
+    }
+
+    function updatePlayerPosition() {
+      document.getElementById('player').style.left = playerX + 'px';
+    }
+
+    function endGame(isSuccess) {
+      isPlaying = false;
+      clearInterval(gameLoop);
+      clearInterval(spawnLoop);
+      
+      const resultScreen = document.getElementById('resultScreen');
+      const resultIcon = document.getElementById('resultIcon');
+      const resultText = document.getElementById('resultText');
+      const resultScore = document.getElementById('resultScore');
+      const mapBtn = document.getElementById('mapBtn');
+      
+      resultScreen.classList.add('show');
+      resultScore.textContent = `避けた数: ${score} / ${TARGET_SCORE}`;
+      
+      if (isSuccess) {
+        resultIcon.textContent = '🎉';
+        resultText.textContent = 'クリア！';
+        resultText.className = 'result-text success';
+        mapBtn.classList.remove('hidden');
+        markStageCleared();
+      } else {
+        resultIcon.textContent = '💥';
+        resultText.textContent = '衝突！';
+        resultText.className = 'result-text fail';
+        mapBtn.classList.add('hidden');
+      }
+    }
+
+    function retry() {
+      document.getElementById('startBtn').classList.remove('hidden');
+      document.getElementById('resultScreen').classList.remove('show');
+      document.querySelectorAll('.asteroid').forEach(a => a.remove());
+      asteroids = [];
+      score = 0;
+      updateScore();
+    }
+
+    function goToMap() {
+      window.location.href = 'index.html';
+    }
+
+    // 操作
+    function moveLeft() { moveDirection = -1; }
+    function moveRight() { moveDirection = 1; }
+    function stopMove() { moveDirection = 0; }
+
+    // キーボード操作
+    document.addEventListener('keydown', (e) => {
+      if (!isPlaying) return;
+      if (e.key === 'ArrowLeft') moveDirection = -1;
+      if (e.key === 'ArrowRight') moveDirection = 1;
+    });
+
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        moveDirection = 0;
+      }
+    });
+  </script>
+
+</body>
+</html>
