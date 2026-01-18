@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stage 1 - 軌道突入 | 畜物語</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+```
+body {
+  font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #fff;
+}
+
+.stage-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.stage-header h1 {
+  font-size: 1.5rem;
+  color: #ffb6c1;
+  margin-bottom: 5px;
+}
+
+.stage-header p {
+  font-size: 0.9rem;
+  color: #ffd1dc;
+}
+
+.game-area {
+  width: 300px;
+  height: 300px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  border: 3px solid #ff69b4;
+}
+
+/* タイミングゲーム用 */
+.orbit-ring {
+  width: 200px;
+  height: 200px;
+  border: 4px solid rgba(255, 105, 180, 0.3);
+  border-radius: 50%;
+  position: relative;
+}
+
+.target-zone {
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 20px;
+  background: #90ee90;
+  border-radius: 5px;
+}
+
+.rocket {
+  position: absolute;
+  font-size: 1.5rem;
+  transform-origin: center center;
+}
+
+.instruction {
+  font-size: 0.9rem;
+  color: #ffd1dc;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.game-btn {
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: bold;
+}
+
+.start-btn {
+  background: linear-gradient(145deg, #ff85a2, #ff5c8d);
+  color: #fff;
+  box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+}
+
+.start-btn:hover {
+  transform: scale(1.05);
+}
+
+.action-btn {
+  background: linear-gradient(145deg, #ffd700, #ffa500);
+  color: #333;
+}
+
+/* 結果画面 */
+.result-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.result-screen.show {
+  display: flex;
+}
+
+.result-icon {
+  font-size: 4rem;
+  margin-bottom: 10px;
+}
+
+.result-text {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+
+.result-text.success {
+  color: #90ee90;
+}
+
+.result-text.fail {
+  color: #ff6b6b;
+}
+
+.nav-btn {
+  padding: 12px 30px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  margin: 5px;
+  transition: all 0.3s;
+}
+
+.map-btn {
+  background: linear-gradient(145deg, #87ceeb, #4fc3f7);
+  color: #fff;
+}
+
+.retry-btn {
+  background: linear-gradient(145deg, #ff85a2, #ff5c8d);
+  color: #fff;
+}
+
+.nav-btn:hover {
+  transform: scale(1.05);
+}
+
+.hidden {
+  display: none !important;
+}
+```
+
+  </style>
+</head>
+<body>
+  <div class="stage-header">
+    <h1>🛸 Stage 1 - 軌道突入</h1>
+    <p>タイミングよくボタンを押して軌道に乗ろう！</p>
+  </div>
+
+  <!-- ゲーム画面 -->
+
+  <div class="game-area" id="gameArea">
+    <div class="orbit-ring">
+      <div class="target-zone"></div>
+      <div class="rocket" id="rocket">🚀</div>
+    </div>
+  </div>
+
+  <p class="instruction" id="instruction">緑のゾーンでボタンを押してね！</p>
+
+<button class="game-btn start-btn" id="startBtn" onclick="startGame()">ゲームスタート</button>
+<button class="game-btn action-btn hidden" id="actionBtn" onclick="checkTiming()">🎯 発射！</button>
+
+  <!-- 結果画面 -->
+
+  <div class="result-screen" id="resultScreen">
+    <div class="result-icon" id="resultIcon"></div>
+    <div class="result-text" id="resultText"></div>
+    <button class="nav-btn map-btn hidden" id="mapBtn" onclick="goToMap()">🗺️ ステージマップへ</button>
+    <button class="nav-btn retry-btn" id="retryBtn" onclick="retry()">🔄 もう一度挑戦</button>
+  </div>
+
+  <script>
+    // ==========================================
+    // localStorage 設定
+    // ==========================================
+    const SAVE_KEY = 'save.map_chikusei_v1';
+    const STAGE_ID = 'stage-01';
+
+    // ゲーム変数
+    let angle = 0;
+    let isPlaying = false;
+    let animationId = null;
+
+    // ==========================================
+    // セーブデータ管理
+    // ==========================================
+    function loadSaveData() {
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function markStageCleared() {
+      let saveData = loadSaveData();
+      if (!saveData) {
+        saveData = {
+          version: 1,
+          stages: {}
+        };
+      }
+      saveData.stages[STAGE_ID] = {
+        cleared: true,
+        clearedAt: new Date().toISOString()
+      };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+    }
+
+    // ==========================================
+    // ゲームロジック
+    // ==========================================
+    function startGame() {
+      document.getElementById('startBtn').classList.add('hidden');
+      document.getElementById('actionBtn').classList.remove('hidden');
+      document.getElementById('resultScreen').classList.remove('show');
+      document.getElementById('gameArea').classList.remove('hidden');
+      
+      isPlaying = true;
+      angle = 0;
+      animate();
+    }
+
+    function animate() {
+      if (!isPlaying) return;
+      
+      angle += 3; // 回転速度
+      if (angle >= 360) angle = 0;
+      
+      const rocket = document.getElementById('rocket');
+      const radius = 96; // 軌道の半径
+      const radian = (angle - 90) * (Math.PI / 180);
+      const x = Math.cos(radian) * radius + 96;
+      const y = Math.sin(radian) * radius + 96;
+      
+      rocket.style.left = x + 'px';
+      rocket.style.top = y + 'px';
+      rocket.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+      
+      animationId = requestAnimationFrame(animate);
+    }
+
+    function checkTiming() {
+      if (!isPlaying) return;
+      
+      isPlaying = false;
+      cancelAnimationFrame(animationId);
+      
+      // 成功判定：角度が350〜360 または 0〜10 の範囲
+      const isSuccess = (angle >= 350 || angle <= 10);
+      
+      showResult(isSuccess);
+    }
+
+    function showResult(isSuccess) {
+      document.getElementById('gameArea').classList.add('hidden');
+      document.getElementById('actionBtn').classList.add('hidden');
+      document.getElementById('instruction').classList.add('hidden');
+      
+      const resultScreen = document.getElementById('resultScreen');
+      const resultIcon = document.getElementById('resultIcon');
+      const resultText = document.getElementById('resultText');
+      const mapBtn = document.getElementById('mapBtn');
+      
+      resultScreen.classList.add('show');
+      
+      if (isSuccess) {
+        resultIcon.textContent = '🎉';
+        resultText.textContent = 'クリア！';
+        resultText.className = 'result-text success';
+        mapBtn.classList.remove('hidden');
+        markStageCleared();
+      } else {
+        resultIcon.textContent = '💫';
+        resultText.textContent = '失敗...';
+        resultText.className = 'result-text fail';
+        mapBtn.classList.add('hidden');
+      }
+    }
+
+    function retry() {
+      document.getElementById('resultScreen').classList.remove('show');
+      document.getElementById('instruction').classList.remove('hidden');
+      document.getElementById('startBtn').classList.remove('hidden');
+      document.getElementById('gameArea').classList.remove('hidden');
+    }
+
+    function goToMap() {
+      window.location.href = 'index.html';
+    }
+  </script>
+
+</body>
+</html>
