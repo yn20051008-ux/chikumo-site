@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>畜物語 - ステージマップ</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+```
+body {
+  font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  color: #fff;
+}
+
+h1 {
+  font-size: 1.8rem;
+  color: #ffb6c1;
+  text-shadow: 0 0 10px rgba(255, 182, 193, 0.5);
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: 0.9rem;
+  color: #ffd1dc;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.map-container {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* 道（ステージ間の線） */
+.path-line {
+  width: 4px;
+  height: 40px;
+  background: linear-gradient(180deg, #ff69b4, #ff1493);
+  border-radius: 2px;
+  opacity: 0.3;
+  transition: opacity 0.3s;
+}
+
+.path-line.active {
+  opacity: 1;
+  box-shadow: 0 0 10px rgba(255, 105, 180, 0.5);
+}
+
+/* ステージノード */
+.stage-node {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.stage-node.locked {
+  background: linear-gradient(145deg, #3a3a5a, #2a2a4a);
+  border: 3px dashed #555;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.stage-node.available {
+  background: linear-gradient(145deg, #ff85a2, #ff5c8d);
+  border: 4px solid #fff;
+  box-shadow: 0 0 20px rgba(255, 105, 180, 0.6);
+  animation: pulse 2s infinite;
+}
+
+.stage-node.cleared {
+  background: linear-gradient(145deg, #87ceeb, #4fc3f7);
+  border: 4px solid #fff;
+  box-shadow: 0 0 15px rgba(135, 206, 235, 0.5);
+}
+
+.stage-node:hover:not(.locked) {
+  transform: scale(1.1);
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 105, 180, 0.6); }
+  50% { box-shadow: 0 0 30px rgba(255, 105, 180, 0.9); }
+}
+
+.stage-icon {
+  font-size: 2rem;
+  margin-bottom: 5px;
+}
+
+.stage-name {
+  font-size: 0.75rem;
+  text-align: center;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.stage-status {
+  position: absolute;
+  bottom: -8px;
+  background: #ffd700;
+  color: #333;
+  font-size: 0.6rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+.stage-node.locked .stage-status {
+  background: #666;
+  color: #999;
+}
+
+.stage-node.cleared .stage-status {
+  background: #90ee90;
+  color: #228b22;
+}
+
+/* スタート・ゴール表示 */
+.location-label {
+  font-size: 0.8rem;
+  color: #ffd1dc;
+  padding: 5px 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  margin: 10px 0;
+}
+
+/* リセットボタン */
+.reset-btn {
+  margin-top: 40px;
+  padding: 10px 20px;
+  background: transparent;
+  border: 2px solid #ff69b4;
+  color: #ff69b4;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.3s;
+}
+
+.reset-btn:hover {
+  background: #ff69b4;
+  color: #fff;
+}
+
+/* プログレス表示 */
+.progress-bar {
+  width: 100%;
+  max-width: 300px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  margin-top: 30px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff69b4, #ff1493);
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  font-size: 0.8rem;
+  color: #ffd1dc;
+  margin-top: 8px;
+}
+```
+
+  </style>
+</head>
+<body>
+  <h1>🚀 畜物語 🌟</h1>
+  <p class="subtitle">〜 畜星編 〜</p>
+
+  <div class="location-label">🌍 地球（出発地点）</div>
+
+  <div class="map-container" id="mapContainer">
+    <!-- JavaScriptで動的に生成 -->
+  </div>
+
+  <div class="location-label">⭐ 畜星（目的地）</div>
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+  <p class="progress-text" id="progressText">0 / 5 ステージクリア</p>
+
+<button class="reset-btn" onclick="resetSaveData()">🔄 セーブデータをリセット</button>
+
+  <script>
+    // ==========================================
+    // localStorage 設定
+    // ==========================================
+    const SAVE_KEY = 'save.map_chikusei_v1';
+    const SAVE_VERSION = 1;
+
+    // ステージ定義
+    const STAGES = [
+      { id: 'stage-01', name: '軌道突入', icon: '🛸', file: 'stage-01.html' },
+      { id: 'stage-02', name: '小惑星帯', icon: '☄️', file: 'stage-02.html' },
+      { id: 'stage-03', name: 'ドッキング', icon: '🛰️', file: 'stage-03.html' },
+      { id: 'stage-04', name: '大気圏突入', icon: '🔥', file: 'stage-04.html' },
+      { id: 'stage-05', name: '畜星到着', icon: '🌟', file: 'stage-05.html' },
+    ];
+
+    // ==========================================
+    // セーブデータ管理
+    // ==========================================
+    function getDefaultSaveData() {
+      const stages = {};
+      STAGES.forEach(stage => {
+        stages[stage.id] = { cleared: false, clearedAt: null };
+      });
+      return { version: SAVE_VERSION, stages };
+    }
+
+    function loadSaveData() {
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return getDefaultSaveData();
+        
+        const data = JSON.parse(raw);
+        if (data.version !== SAVE_VERSION) {
+          console.log('セーブデータのバージョンが異なります。リセットします。');
+          return getDefaultSaveData();
+        }
+        return data;
+      } catch (e) {
+        console.error('セーブデータの読み込みに失敗:', e);
+        return getDefaultSaveData();
+      }
+    }
+
+    function saveSaveData(data) {
+      try {
+        localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+      } catch (e) {
+        console.error('セーブデータの保存に失敗:', e);
+      }
+    }
+
+    function resetSaveData() {
+      if (confirm('本当にセーブデータをリセットしますか？\n（この操作は取り消せません）')) {
+        localStorage.removeItem(SAVE_KEY);
+        location.reload();
+      }
+    }
+
+    // ==========================================
+    // ステージ開放判定
+    // ==========================================
+    function isStageUnlocked(stageIndex, saveData) {
+      // 最初のステージは常に開放
+      if (stageIndex === 0) return true;
+      
+      // 前のステージがクリア済みなら開放
+      const prevStageId = STAGES[stageIndex - 1].id;
+      return saveData.stages[prevStageId]?.cleared === true;
+    }
+
+    function isStageCleared(stageId, saveData) {
+      return saveData.stages[stageId]?.cleared === true;
+    }
+
+    // ==========================================
+    // マップ描画
+    // ==========================================
+    function renderMap() {
+      const saveData = loadSaveData();
+      const container = document.getElementById('mapContainer');
+      container.innerHTML = '';
+
+      let clearedCount = 0;
+
+      STAGES.forEach((stage, index) => {
+        const unlocked = isStageUnlocked(index, saveData);
+        const cleared = isStageCleared(stage.id, saveData);
+
+        if (cleared) clearedCount++;
+
+        // パス（線）を追加（最初のステージ以外）
+        if (index > 0) {
+          const pathLine = document.createElement('div');
+          pathLine.className = 'path-line';
+          if (unlocked) pathLine.classList.add('active');
+          container.appendChild(pathLine);
+        }
+
+        // ステージノード
+        const node = document.createElement('a');
+        node.className = 'stage-node';
+        
+        if (!unlocked) {
+          node.classList.add('locked');
+          node.href = '#';
+          node.onclick = (e) => {
+            e.preventDefault();
+            alert('🔒 このステージはまだ開放されていません！\n前のステージをクリアしてね！');
+          };
+        } else if (cleared) {
+          node.classList.add('cleared');
+          node.href = stage.file;
+        } else {
+          node.classList.add('available');
+          node.href = stage.file;
+        }
+
+        // ステータステキスト
+        let statusText = '';
+        if (!unlocked) {
+          statusText = '🔒 未開放';
+        } else if (cleared) {
+          statusText = '✅ クリア済';
+        } else {
+          statusText = '▶ 挑戦可能';
+        }
+
+        node.innerHTML = `
+          <span class="stage-icon">${stage.icon}</span>
+          <span class="stage-name">${stage.name}</span>
+          <span class="stage-status">${statusText}</span>
+        `;
+
+        container.appendChild(node);
+      });
+
+      // プログレスバー更新
+      const progressFill = document.getElementById('progressFill');
+      const progressText = document.getElementById('progressText');
+      const percentage = (clearedCount / STAGES.length) * 100;
+      progressFill.style.width = percentage + '%';
+      progressText.textContent = `${clearedCount} / ${STAGES.length} ステージクリア`;
+    }
+
+    // 初期化
+    document.addEventListener('DOMContentLoaded', renderMap);
+  </script>
+
+</body>
+</html>
