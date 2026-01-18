@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stage 3 - ドッキング | 畜物語</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+```
+body {
+  font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #fff;
+}
+
+.stage-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.stage-header h1 {
+  font-size: 1.5rem;
+  color: #ffb6c1;
+  margin-bottom: 5px;
+}
+
+.stage-header p {
+  font-size: 0.9rem;
+  color: #ffd1dc;
+}
+
+.condition-list {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  min-width: 280px;
+}
+
+.condition-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.95rem;
+}
+
+.condition-item:last-child {
+  border-bottom: none;
+}
+
+.condition-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.condition-check.incomplete {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid #888;
+}
+
+.condition-check.complete {
+  background: #90ee90;
+  border: 2px solid #228b22;
+}
+
+.game-area {
+  width: 320px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 20px;
+  border: 3px solid #ff69b4;
+}
+
+.task-section {
+  margin-bottom: 20px;
+}
+
+.task-title {
+  font-size: 0.9rem;
+  color: #ffd1dc;
+  margin-bottom: 10px;
+}
+
+/* スライダー */
+.slider-container {
+  margin-bottom: 15px;
+}
+
+.slider-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #aaa;
+  margin-bottom: 5px;
+}
+
+input[type="range"] {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: #333;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ff85a2, #ff5c8d);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.slider-value {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #ffd700;
+  margin-top: 5px;
+}
+
+/* ボタングループ */
+.button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.toggle-btn {
+  flex: 1;
+  min-width: 80px;
+  padding: 10px;
+  border: 2px solid #ff69b4;
+  background: transparent;
+  color: #ff69b4;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.9rem;
+}
+
+.toggle-btn.active {
+  background: linear-gradient(145deg, #ff85a2, #ff5c8d);
+  color: #fff;
+  border-color: #ff5c8d;
+}
+
+/* 結果 */
+.dock-btn {
+  width: 100%;
+  padding: 15px;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: bold;
+  margin-top: 20px;
+}
+
+.dock-btn.ready {
+  background: linear-gradient(145deg, #90ee90, #32cd32);
+  color: #fff;
+  box-shadow: 0 5px 15px rgba(50, 205, 50, 0.4);
+}
+
+.dock-btn.not-ready {
+  background: #444;
+  color: #888;
+  cursor: not-allowed;
+}
+
+.dock-btn.ready:hover {
+  transform: scale(1.02);
+}
+
+.result-screen {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.result-screen.show {
+  display: flex;
+}
+
+.result-icon {
+  font-size: 5rem;
+  margin-bottom: 15px;
+}
+
+.result-text {
+  font-size: 1.8rem;
+  color: #90ee90;
+  margin-bottom: 30px;
+}
+
+.nav-btn {
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  margin: 5px;
+  transition: all 0.3s;
+  background: linear-gradient(145deg, #87ceeb, #4fc3f7);
+  color: #fff;
+}
+
+.nav-btn:hover {
+  transform: scale(1.05);
+}
+```
+
+  </style>
+</head>
+<body>
+  <div class="stage-header">
+    <h1>🛰️ Stage 3 - ドッキング</h1>
+    <p>すべての条件を満たしてドッキングしよう！</p>
+  </div>
+
+  <div class="condition-list">
+    <div class="condition-item">
+      <div class="condition-check incomplete" id="check1">✓</div>
+      <span>接近速度を 5 m/s 以下にする</span>
+    </div>
+    <div class="condition-item">
+      <div class="condition-check incomplete" id="check2">✓</div>
+      <span>角度を 0° に調整する</span>
+    </div>
+    <div class="condition-item">
+      <div class="condition-check incomplete" id="check3">✓</div>
+      <span>電力モードを「節約」にする</span>
+    </div>
+  </div>
+
+  <div class="game-area">
+    <div class="task-section">
+      <div class="task-title">🚀 接近速度</div>
+      <div class="slider-container">
+        <div class="slider-label">
+          <span>0 m/s</span>
+          <span>20 m/s</span>
+        </div>
+        <input type="range" id="speedSlider" min="0" max="20" value="15" oninput="updateConditions()">
+        <div class="slider-value"><span id="speedValue">15</span> m/s</div>
+      </div>
+    </div>
+
+```
+<div class="task-section">
+  <div class="task-title">📐 角度調整</div>
+  <div class="slider-container">
+    <div class="slider-label">
+      <span>-30°</span>
+      <span>+30°</span>
+    </div>
+    <input type="range" id="angleSlider" min="-30" max="30" value="20" oninput="updateConditions()">
+    <div class="slider-value"><span id="angleValue">20</span>°</div>
+  </div>
+</div>
+
+<div class="task-section">
+  <div class="task-title">⚡ 電力モード</div>
+  <div class="button-group">
+    <button class="toggle-btn active" id="powerFull" onclick="setPowerMode('full')">フル</button>
+    <button class="toggle-btn" id="powerNormal" onclick="setPowerMode('normal')">通常</button>
+    <button class="toggle-btn" id="powerSave" onclick="setPowerMode('save')">節約</button>
+  </div>
+</div>
+
+<button class="dock-btn not-ready" id="dockBtn" onclick="tryDock()">
+  🔗 ドッキング実行
+</button>
+```
+
+  </div>
+
+  <div class="result-screen" id="resultScreen">
+    <div class="result-icon">🎉</div>
+    <div class="result-text">ドッキング成功！</div>
+    <button class="nav-btn" onclick="goToMap()">🗺️ ステージマップへ</button>
+  </div>
+
+  <script>
+    // ==========================================
+    // localStorage 設定
+    // ==========================================
+    const SAVE_KEY = 'save.map_chikusei_v1';
+    const STAGE_ID = 'stage-03';
+
+    // 状態
+    let powerMode = 'full';
+
+    // ==========================================
+    // セーブデータ管理
+    // ==========================================
+    function loadSaveData() {
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function markStageCleared() {
+      let saveData = loadSaveData();
+      if (!saveData) {
+        saveData = { version: 1, stages: {} };
+      }
+      saveData.stages[STAGE_ID] = {
+        cleared: true,
+        clearedAt: new Date().toISOString()
+      };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+    }
+
+    // ==========================================
+    // ゲームロジック
+    // ==========================================
+    function setPowerMode(mode) {
+      powerMode = mode;
+      
+      document.getElementById('powerFull').classList.remove('active');
+      document.getElementById('powerNormal').classList.remove('active');
+      document.getElementById('powerSave').classList.remove('active');
+      
+      if (mode === 'full') document.getElementById('powerFull').classList.add('active');
+      if (mode === 'normal') document.getElementById('powerNormal').classList.add('active');
+      if (mode === 'save') document.getElementById('powerSave').classList.add('active');
+      
+      updateConditions();
+    }
+
+    function updateConditions() {
+      const speed = parseInt(document.getElementById('speedSlider').value);
+      const angle = parseInt(document.getElementById('angleSlider').value);
+      
+      document.getElementById('speedValue').textContent = speed;
+      document.getElementById('angleValue').textContent = angle;
+      
+      // 条件判定
+      const cond1 = speed <= 5;
+      const cond2 = angle === 0;
+      const cond3 = powerMode === 'save';
+      
+      // チェックマーク更新
+      updateCheck('check1', cond1);
+      updateCheck('check2', cond2);
+      updateCheck('check3', cond3);
+      
+      // ドッキングボタン更新
+      const dockBtn = document.getElementById('dockBtn');
+      if (cond1 && cond2 && cond3) {
+        dockBtn.className = 'dock-btn ready';
+        dockBtn.textContent = '🔗 ドッキング実行';
+      } else {
+        dockBtn.className = 'dock-btn not-ready';
+        dockBtn.textContent = '⚠️ 条件未達成';
+      }
+    }
+
+    function updateCheck(id, isComplete) {
+      const el = document.getElementById(id);
+      if (isComplete) {
+        el.className = 'condition-check complete';
+      } else {
+        el.className = 'condition-check incomplete';
+      }
+    }
+
+    function tryDock() {
+      const speed = parseInt(document.getElementById('speedSlider').value);
+      const angle = parseInt(document.getElementById('angleSlider').value);
+      
+      if (speed <= 5 && angle === 0 && powerMode === 'save') {
+        markStageCleared();
+        document.getElementById('resultScreen').classList.add('show');
+      }
+    }
+
+    function goToMap() {
+      window.location.href = 'index.html';
+    }
+
+    // 初期化
+    updateConditions();
+  </script>
+
+</body>
+</html>
