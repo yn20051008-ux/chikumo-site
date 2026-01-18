@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stage 5 - 畜星到着 | 畜物語</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+```
+body {
+  font-family: 'Hiragino Kaku Gothic ProN', 'メイリオ', sans-serif;
+  background: linear-gradient(180deg, #1a1a2e 0%, #2d1b4e 50%, #4a2c7a 100%);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  color: #fff;
+}
+
+.stage-header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.stage-header h1 {
+  font-size: 1.5rem;
+  color: #ffb6c1;
+  margin-bottom: 5px;
+}
+
+.stage-header p {
+  font-size: 0.9rem;
+  color: #ffd1dc;
+}
+
+.game-area {
+  width: 320px;
+  height: 400px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  border: 3px solid #ff69b4;
+  margin-bottom: 15px;
+}
+
+.landing-pad {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 20px;
+  background: linear-gradient(90deg, #90ee90, #32cd32);
+  border-radius: 5px;
+  box-shadow: 0 0 20px rgba(50, 205, 50, 0.5);
+}
+
+.landing-pad::before {
+  content: '着陸地点';
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  color: #90ee90;
+  white-space: nowrap;
+}
+
+.ship {
+  position: absolute;
+  font-size: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: top 0.05s linear;
+}
+
+.fuel-display {
+  font-size: 1rem;
+  margin-bottom: 10px;
+  color: #ffd700;
+}
+
+.fuel-bar {
+  width: 280px;
+  height: 20px;
+  background: #333;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 2px solid #ff69b4;
+  margin-bottom: 20px;
+}
+
+.fuel-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #ff6b6b, #ffd700, #90ee90);
+  transition: width 0.2s;
+}
+
+.velocity-display {
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+.velocity-value {
+  color: #90ee90;
+}
+
+.velocity-value.danger {
+  color: #ff6b6b;
+}
+
+.instruction {
+  font-size: 0.85rem;
+  color: #ffd1dc;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.thrust-btn {
+  width: 120px;
+  height: 120px;
+  font-size: 3rem;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #ff85a2, #ff5c8d);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 5px 20px rgba(255, 105, 180, 0.5);
+  transition: transform 0.1s;
+}
+
+.thrust-btn:active {
+  transform: scale(0.95);
+  box-shadow: 0 2px 10px rgba(255, 105, 180, 0.5);
+}
+
+.game-btn {
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-weight: bold;
+  background: linear-gradient(145deg, #ff85a2, #ff5c8d);
+  color: #fff;
+  box-shadow: 0 5px 15px rgba(255, 105, 180, 0.4);
+}
+
+.result-screen {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.95);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.result-screen.show {
+  display: flex;
+}
+
+.result-icon {
+  font-size: 5rem;
+  margin-bottom: 15px;
+}
+
+.result-text {
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+}
+
+.result-text.success { color: #90ee90; }
+.result-text.fail { color: #ff6b6b; }
+
+.result-sub {
+  font-size: 1rem;
+  color: #ffd1dc;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.nav-btn {
+  padding: 15px 40px;
+  font-size: 1.1rem;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  margin: 5px;
+  transition: all 0.3s;
+}
+
+.map-btn {
+  background: linear-gradient(145deg, #87ceeb, #4fc3f7);
+  color: #fff;
+}
+
+.retry-btn {
+  background: linear-gradient(145deg, #ff85a2, #ff5c8d);
+  color: #fff;
+}
+
+.hidden { display: none !important; }
+
+/* 星の装飾 */
+.star {
+  position: absolute;
+  background: #fff;
+  border-radius: 50%;
+  animation: twinkle 2s infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+```
+
+  </style>
+</head>
+<body>
+  <div class="stage-header">
+    <h1>🌟 Stage 5 - 畜星到着</h1>
+    <p>ゆっくり着陸しよう！（速度5以下で着地）</p>
+  </div>
+
+  <div class="fuel-display">
+    燃料: <span id="fuelValue">100</span>%
+  </div>
+  <div class="fuel-bar">
+    <div class="fuel-fill" id="fuelFill" style="width: 100%"></div>
+  </div>
+
+  <div class="velocity-display">
+    落下速度: <span class="velocity-value" id="velocityValue">0</span> m/s
+  </div>
+
+  <div class="game-area" id="gameArea">
+    <div class="landing-pad"></div>
+    <div class="ship" id="ship" style="top: 30px;">🚀</div>
+  </div>
+
+  <p class="instruction" id="instruction">ボタンを押して逆噴射！</p>
+
+<button class="thrust-btn hidden" id="thrustBtn" 
+onpointerdown="startThrust()" 
+onpointerup="stopThrust()" 
+onpointerleave="stopThrust()">🔥</button>
+
+<button class="game-btn" id="startBtn" onclick="startGame()">ゲームスタート</button>
+
+  <div class="result-screen" id="resultScreen">
+    <div class="result-icon" id="resultIcon"></div>
+    <div class="result-text" id="resultText"></div>
+    <div class="result-sub" id="resultSub"></div>
+    <button class="nav-btn map-btn hidden" id="mapBtn" onclick="goToMap()">🗺️ ステージマップへ</button>
+    <button class="nav-btn retry-btn" id="retryBtn" onclick="retry()">🔄 もう一度挑戦</button>
+  </div>
+
+  <script>
+    // ==========================================
+    // localStorage 設定
+    // ==========================================
+    const SAVE_KEY = 'save.map_chikusei_v1';
+    const STAGE_ID = 'stage-05';
+
+    // ゲーム変数
+    let shipY = 30;
+    let velocity = 0;
+    let fuel = 100;
+    let isThrusting = false;
+    let isPlaying = false;
+    let gameLoop = null;
+
+    const GRAVITY = 0.15;
+    const THRUST = 0.4;
+    const FUEL_CONSUMPTION = 0.5;
+    const GROUND_Y = 330;
+    const SAFE_VELOCITY = 5;
+
+    // ==========================================
+    // セーブデータ管理
+    // ==========================================
+    function loadSaveData() {
+      try {
+        const raw = localStorage.getItem(SAVE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function markStageCleared() {
+      let saveData = loadSaveData();
+      if (!saveData) {
+        saveData = { version: 1, stages: {} };
+      }
+      saveData.stages[STAGE_ID] = {
+        cleared: true,
+        clearedAt: new Date().toISOString()
+      };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+    }
+
+    // ==========================================
+    // ゲームロジック
+    // ==========================================
+    function startGame() {
+      document.getElementById('startBtn').classList.add('hidden');
+      document.getElementById('thrustBtn').classList.remove('hidden');
+      document.getElementById('resultScreen').classList.remove('show');
+      
+      shipY = 30;
+      velocity = 0;
+      fuel = 100;
+      isPlaying = true;
+      
+      updateDisplay();
+      gameLoop = setInterval(update, 50);
+    }
+
+    function update() {
+      if (!isPlaying) return;
+      
+      // 重力
+      velocity += GRAVITY;
+      
+      // 逆噴射
+      if (isThrusting && fuel > 0) {
+        velocity -= THRUST;
+        fuel -= FUEL_CONSUMPTION;
+        fuel = Math.max(0, fuel);
+      }
+      
+      // 移動
+      shipY += velocity;
+      
+      updateDisplay();
+      
+      // 着地判定
+      if (shipY >= GROUND_Y) {
+        shipY = GROUND_Y;
+        
+        if (velocity <= SAFE_VELOCITY) {
+          endGame(true, '着陸成功！', `着陸速度: ${velocity.toFixed(1)} m/s`);
+        } else {
+          endGame(false, '墜落...', `着陸速度: ${velocity.toFixed(1)} m/s（速すぎ！）`);
+        }
+      }
+    }
+
+    function updateDisplay() {
+      document.getElementById('ship').style.top = shipY + 'px';
+      document.getElementById('fuelValue').textContent = Math.round(fuel);
+      document.getElementById('fuelFill').style.width = fuel + '%';
+      
+      const velocityEl = document.getElementById('velocityValue');
+      velocityEl.textContent = velocity.toFixed(1);
+      
+      if (velocity > SAFE_VELOCITY) {
+        velocityEl.className = 'velocity-value danger';
+      } else {
+        velocityEl.className = 'velocity-value';
+      }
+    }
+
+    function startThrust() {
+      isThrusting = true;
+    }
+
+    function stopThrust() {
+      isThrusting = false;
+    }
+
+    function endGame(isSuccess, message, subMessage) {
+      isPlaying = false;
+      clearInterval(gameLoop);
+      
+      document.getElementById('thrustBtn').classList.add('hidden');
+      
+      const resultScreen = document.getElementById('resultScreen');
+      const resultIcon = document.getElementById('resultIcon');
+      const resultText = document.getElementById('resultText');
+      const resultSub = document.getElementById('resultSub');
+      const mapBtn = document.getElementById('mapBtn');
+      
+      resultScreen.classList.add('show');
+      resultSub.textContent = subMessage;
+      
+      if (isSuccess) {
+        resultIcon.textContent = '🎊';
+        resultText.textContent = message;
+        resultText.className = 'result-text success';
+        resultSub.innerHTML = subMessage + '<br><br>🌟 畜星編クリア！おめでとう！ 🌟';
+        mapBtn.classList.remove('hidden');
+        markStageCleared();
+      } else {
+        resultIcon.textContent = '💥';
+        resultText.textContent = message;
+        resultText.className = 'result-text fail';
+        mapBtn.classList.add('hidden');
+      }
+    }
+
+    function retry() {
+      document.getElementById('resultScreen').classList.remove('show');
+      document.getElementById('startBtn').classList.remove('hidden');
+    }
+
+    function goToMap() {
+      window.location.href = 'index.html';
+    }
+
+    // キーボード操作（スペースキー）
+    document.addEventListener('keydown', (e) => {
+      if (!isPlaying) return;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        isThrusting = true;
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      if (e.code === 'Space') {
+        isThrusting = false;
+      }
+    });
+
+    // 星の装飾を追加
+    function createStars() {
+      const gameArea = document.getElementById('gameArea');
+      for (let i = 0; i < 20; i++) {
+        const star = document.createElement('div');
+        star.className = 'star';
+        star.style.width = (Math.random() * 3 + 1) + 'px';
+        star.style.height = star.style.width;
+        star.style.left = Math.random() * 100 + '%';
+        star.style.top = Math.random() * 60 + '%';
+        star.style.animationDelay = Math.random() * 2 + 's';
+        gameArea.appendChild(star);
+      }
+    }
+    createStars();
+  </script>
+
+</body>
+</html>
