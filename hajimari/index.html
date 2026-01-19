@@ -15,67 +15,33 @@
 
     body {
       font-family: 'Zen Maru Gothic', 'Hiragino Kaku Gothic ProN', sans-serif;
-      background: linear-gradient(180deg, #0d0d2b 0%, #1a1a4e 30%, #2d2d6b 60%, #1a1a4e 100%);
+      background: #000;
       min-height: 100vh;
       overflow-x: hidden;
       color: #fff;
     }
 
-    /* 星空背景 */
-    .stars-container {
+    /* Canvas背景 */
+    .cosmos-canvas {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
-      pointer-events: none;
       z-index: 0;
     }
 
-    .star {
-      position: absolute;
-      background: #fff;
-      border-radius: 50%;
-      animation: twinkle 2s ease-in-out infinite;
-    }
-
-    @keyframes twinkle {
-      0%, 100% { opacity: 0.3; transform: scale(1); }
-      50% { opacity: 1; transform: scale(1.2); }
-    }
-
-    /* 流れ星 */
-    .shooting-star {
-      position: absolute;
-      width: 4px;
-      height: 4px;
-      background: linear-gradient(90deg, #fff, transparent);
-      border-radius: 50%;
-      animation: shoot 3s ease-in-out infinite;
-      opacity: 0;
-    }
-
-    .shooting-star::before {
-      content: '';
-      position: absolute;
-      width: 80px;
-      height: 2px;
-      background: linear-gradient(90deg, rgba(255,255,255,0.8), transparent);
-      right: 4px;
-      top: 1px;
-    }
-
-    @keyframes shoot {
-      0% { transform: translateX(0) translateY(0); opacity: 0; }
-      10% { opacity: 1; }
-      70% { opacity: 1; }
-      100% { transform: translateX(-300px) translateY(300px); opacity: 0; }
+    /* コンテンツラッパー */
+    .content-wrapper {
+      position: relative;
+      z-index: 10;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
     /* ヘッダー */
     .header {
-      position: relative;
-      z-index: 10;
       text-align: center;
       padding: 30px 20px 20px;
     }
@@ -100,10 +66,10 @@
 
     /* メインマップエリア */
     .map-wrapper {
-      position: relative;
-      z-index: 5;
+      flex: 1;
       padding: 20px;
-      min-height: 70vh;
+      display: flex;
+      justify-content: center;
     }
 
     .map-container {
@@ -111,7 +77,6 @@
       width: 100%;
       max-width: 400px;
       height: 500px;
-      margin: 0 auto;
     }
 
     /* 星座の線（ステージ間の接続） */
@@ -317,8 +282,6 @@
 
     /* プログレスバー */
     .progress-section {
-      position: relative;
-      z-index: 10;
       padding: 20px;
       display: flex;
       flex-direction: column;
@@ -406,9 +369,10 @@
 
     /* キラキラパーティクル */
     .sparkle {
-      position: absolute;
+      position: fixed;
       pointer-events: none;
       animation: sparkle-fade 1s ease-out forwards;
+      z-index: 1000;
     }
 
     @keyframes sparkle-fade {
@@ -419,91 +383,319 @@
   </style>
 </head>
 <body>
-  <!-- 星空背景 -->
-  <div class="stars-container" id="starsContainer"></div>
+  <!-- Canvas背景 -->
+  <canvas class="cosmos-canvas" id="cosmosCanvas"></canvas>
 
-  <!-- ヘッダー -->
-  <header class="header">
-    <h1 class="title">✨ 畜物語 ✨</h1>
-    <p class="subtitle">〜 畜星編 〜</p>
-  </header>
+  <!-- コンテンツ -->
+  <div class="content-wrapper">
+    <!-- ヘッダー -->
+    <header class="header">
+      <h1 class="title">✨ 畜物語 ✨</h1>
+      <p class="subtitle">〜 畜星編 〜</p>
+    </header>
 
-  <!-- マップ -->
-  <div class="map-wrapper">
-    <div class="map-container" id="mapContainer">
-      <!-- 地球マーカー -->
-      <div class="location-marker" style="left: 20px; top: 420px;">
-        <span class="location-icon">🌍</span>
-        <span class="location-label">地球</span>
+    <!-- マップ -->
+    <div class="map-wrapper">
+      <div class="map-container" id="mapContainer">
+        <!-- 地球マーカー -->
+        <div class="location-marker" style="left: 20px; top: 420px;">
+          <span class="location-icon">🌍</span>
+          <span class="location-label">地球</span>
+        </div>
+
+        <!-- 畜星マーカー -->
+        <div class="location-marker" style="right: 20px; top: 20px;">
+          <span class="location-icon">⭐</span>
+          <span class="location-label">畜星</span>
+        </div>
+
+        <!-- コッコちゃん＆ロケット -->
+        <div class="kokko-rocket" id="kokkoRocket">
+          <img class="kokko-character" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyOTcuOCAzODkuNCI+PGRlZnM+PHN0eWxlPi5zdDl7ZmlsbDojZmZmfTwvc3R5bGU+PC9kZWZzPjxwYXRoIGQ9Ik0xMjMuMiAzNDcuOWMtMy4yIDctMjMgNC45LTIxLjktMS4yLjUtMi4zIDUuNy0yLjYgOC42LTQuNiAxLjctMS4yLS4yLTUuNiAxLjYtNi4yIDQuNC0xLjYgMTMuNyA3LjUgMTEuNyAxMiIgZmlsbD0iI2RmOTUzYiIvPjxwYXRoIGQ9Ik0xMTIuNiAzNTUuM3EtNC4xIDAtNy41LTEuMWMtNy4yLTIuMy03LTYuNy02LjctOCAuNi0zLjIgMy44LTQuMiA2LjMtNWwzLTEuMnYtMWMwLTEuNi0uMi00LjkgMi44LTYgNC4xLTEuNCA5IDEuOSAxMiA1LjEgMy41IDMuOCA0LjggOCAzLjQgMTEtMiA0LjUtNy43IDYuMi0xMy4zIDYuMlptLTcuOS03LjhjMS4yLjggNC40IDEuOSA4LjYgMS44IDMuNi0uMiA2LjUtMS4yIDcuMS0yLjYuMi0uMyAwLTItMi00LjFhMTMgMTMgMCAwIDAtNC43LTMuN2MwIDEuOCAwIDQuMi0yIDUuN3EtMi42IDEuNS01IDIuMnoiLz48cGF0aCBkPSJNMTk3LjggMzQ2LjdjMy4yIDQuMi0xOCA5LjctMjEuOC45LTEuNy00IDctMTEuMyAxMS4zLTExLjggMy4yIDExIDcuMyA3IDEwLjQgMTEiIGZpbGw9IiNlZGEwM2YiLz48cGF0aCBkPSJNMTg2IDM1NS4zaC0uOHEtOS4yLS40LTEyLTYuNmMtLjUtMS4zLS44LTMuNS45LTYuNSAyLjUtNC4zIDguNy04LjkgMTIuOC05LjRsMi41LS4zLjcgMi40YzEuNyA1LjcgMy4xIDYuMiA1IDYuOCAxLjQuNCAzLjMgMSA1IDMuMmE0IDQgMCAwIDEgLjUgNC44Yy0xLjggMy41LTguOCA1LjYtMTQuNyA1LjZabS0uNi0xNS43Yy0zLjEgMS43LTYuOCA1LjUtNi42IDYuOC44IDEuOCAzIDIuNSA0LjkgMi43IDQgLjYgOC4yLS41IDEwLjMtMS41bC0uOC0uMmMtMi45LTEtNS42LTIuMy03LjgtNy44Wm0xMCA5Ii8+PHBhdGggZD0iTTE5MiA3MC41YzM3IDguMyA2Ny43IDM0IDgxLjEgNjkgNS4zIDEzLjkgNi40IDI5LjUgNS4zIDQ0LjUtMiAzMC0xOS40IDU1LjgtNDYgNjguNy0xNC40IDcgMTIuNiAxMy41IDEzLjYgMzguNC4zIDUuMy0xLjcgMTEtNi44IDExLjYtMy45LjUtMTAuMy0xLjUtMTAuNy02LjFsLTEuMS0xMS44Yy0uMy0yLjQtMi44LTMuNi00LjctMy4xLTEuNS40LTIuOCAyLjUtMi42IDQuNyAxIDE2LjgtNS4zIDM0LTIwLjYgNDIuMi0yNC41IDEzLTcxLjMgMTIuNi05NiAxLjVBNDAgNDAgMCAwIDEgNzkgMjg3LjNjLjQtMi4yLTEuNi00LjctMy4yLTQuNy01LjIgMC00LjYgNy4yLTUuMiAxMi4yLS42IDUuOC01LjcgOC41LTEwLjcgOC0xMy0xLjItOC4zLTI1LjYgMTAtNDEuOSAxLjItMSAyLjEtMi45IDEuOC0zLjlzLS4zLTMuMi0zLTRjLTcuNS0yLTE5LjQtMTItMjUuNi0xNi43LTI3LjktMzItMjkuNy04MS43LTYuNy0xMTcuOEExMDYgMTA2IDAgMCAxIDk2LjEgNzRjNS0xLjQgMTAuOS00LjUgMTUuMy00LjdsNC0yLjJxMzUuNi0zLjcgNzAuOC4yIDMuNi4yIDUuOCAzLjJaIiBmaWxsPSIjZjVlOGM2Ii8+PHBhdGggZD0iTTE1MC44IDM0MS40Yy0xOC40IDAtMzYuNS0zLjItNDguNC04LjZBNDIuNSA0Mi41IDAgMCAxIDc2IDI4N3EwLS43LS42LTEuMy0xLjQuNS0xLjcgNi43IDAgMS42LS4yIDIuOGMtLjggNy44LTcuOCAxMS40LTE0IDEwLjhxLTctLjgtOS4yLTcuNWMtMy40LTEwLjUgNC4zLTI4IDE3LjYtMzkuN3EuNi0uNy44LTEuMmwtLjEtLjNjLS4yLTEtLjMtMS4xLS44LTEuMy03LTItMTcuMi05LjktMjMuOS0xNS4xbC0yLjctMi4xLS4yLS4yLS4yLS4yYy0yOC4zLTMyLjUtMzEuMi04My41LTctMTIxLjQgMTQuMi0yMi4yIDM2LTM4LjQgNjEuNC00NS43bDUuMi0xLjlhNDIgNDIgMCAwIDEgMTAtM2w0LTIgLjctLjFjMjMuNy0yLjUgNDcuNy0yLjUgNzEuMi4ycTQuMS4yIDcuMiAzLjRhMTE1IDExNSAwIDAgMSA4Mi4zIDcwLjdxNy4zIDE5LjMgNS41IDQ1LjdhODUgODUgMCAwIDEtNDcuOCA3MS4yYy0yLjIgMS0yLjUgMS44LTIuNSAxLjggMCAuOSAyLjYgMy44IDQuNCA1LjggNS4xIDUuNyAxMyAxNC4zIDEzLjUgMjggLjQgOC0zLjQgMTQtOS41IDE0LjctMyAuNC03LjUtLjQtMTAuNy0zYTkgOSAwIDAgMS0zLjMtNS44bC0xLjEtMTEuN3EwLS4yLS4zLS41bC0uNS0uMXEtLjUuNC0uNSAxLjZjMS4zIDE5LjgtNy4yIDM3LTIyLjIgNDUtMTMuMSA3LTMxLjggMTAuMi01MC4xIDEwLjJabS03NS02MS44YTYgNiAwIDAgMSA0LjQgMi4zIDggOCAwIDAgMSAxLjggNS45IDM3IDM3IDAgMCAwIDIyLjggMzkuNmMyMi44IDEwLjIgNjguNCAxMS44IDkzLjMtMS41IDE1LjMtOC4yIDE5LjktMjUuNyAxOS0zOS4zLS4yLTMuNiAxLjktNyA0LjgtNy44cTMtLjcgNS42IDFhNyA3IDAgMCAxIDIuOSA0LjhsMSAxMS43cS0uMi40IDEuMiAxLjhhOSA5IDAgMCAwIDYuMiAxLjZjMy42LS40IDQuNC01LjUgNC4yLTguNS0uNS0xMS41LTcuMS0xOC44LTEyLTI0LjItMy42LTQtNi41LTcuMi01LjctMTEgLjYtMy4yIDMuNi01IDUuNy02YTc5IDc5IDAgMCAwIDQ0LjUtNjYuMnExLjctMjUuMS01LjItNDMuMWMtMTIuOS0zNC00Mi40LTU5LTc5LTY3LjJsLTEtLjMtLjYtLjhxLTEuNi0yLTMuNy0yaC0uMmEzMjQgMzI0IDAgMCAwLTY5LjQtLjNsLTQuOCAyLjJhMzQgMzQgMCAwIDAtOSAyLjZxLTIuOCAxLjItNS43IDJjLTI0IDctNDQuNSAyMi4zLTU4IDQzLjItMjIuNyAzNS42LTIwIDgzLjUgNi4zIDExNGwyLjUgMmM2IDQuNiAxNS45IDEyLjQgMjEuOCAxNGE3IDcgMCAwIDEgNSA1LjhsLjEuM2MuNyAyLjQtLjggNS4zLTIuNiA3LTEyLjQgMTEtMTguMyAyNi0xNiAzMy4zcTEgMy4xIDQuMiAzLjRjMy4zLjMgNy0xLjIgNy41LTUuNGwuMi0yLjZjLjMtNC42LjgtMTIuMyA3LjktMTIuM1oiLz48cGF0aCBkPSJtMTkyLjUgNzMuNy0zLS42YTEyNCAxMjQgMCAwIDAtODEuMi0uNGwtLjYtMS44YTQzIDQzIDAgMCAxIDEuNC0zMy43YzQuNS04LjIgMTEuOS0xNCAyMC4zLTE2IDcuMy0xLjYgMTQuNyAwIDIwLjggNC41IDUuMyAzLjggNyAxMSA4LjQgMTYuOS42IDIuNiAxLjcgNyAyLjYgNy40LjcgMCAxLjgtMS41IDIuOC0yLjggMi44LTMuNCA3LTguNyAxNi03LjggNi44LjcgMTIgNS40IDE0LjEgMTIuNmEzMiAzMiAwIDAgMS0xIDIwLjJ6bS0zNi4yLTguMXExNi42LS4yIDMyLjggMi44YTI3IDI3IDAgMCAwIC4yLTE1Yy0xLjUtNS4zLTUtOC41LTkuNy05LTYuNC0uNi05IDIuNy0xMS42IDYtMS45IDIuMi0zLjggNC42LTcgNC42LTQuNi0uMi02LTUuNi03LjMtMTEuMy0xLjMtNS4yLTIuNy0xMS4yLTYuNC0xNHEtNy43LTUuNS0xNi44LTMuNWMtNyAxLjUtMTMuMiA2LjUtMTcgMTMuNC01IDkuNC0zLjggMjAtMS42IDI4bDEzLjItLjhxMTUuNS0xIDMxLjItMS4yIi8+PHBhdGggZD0iTTE4OS42IDczYTMyMyAzMjMgMCAwIDAtNzguMy0uNyA0MSA0MSAwIDAgMSAxLjItMzEuNWM3LjMtMTMuOCAyMy42LTIwLjEgMzYuMi0xMC42IDguMyA2LjIgNi40IDI0LjQgMTIgMjQuNiA0LjkgMCA2LTExLjcgMTguMS0xMC41cTIuMy4zIDQuNCAxLjNjNC42IDIuMiA2LjQgNy4yIDcuMiA5LjRhMjYgMjYgMCAwIDEtLjggMThaIiBmaWxsPSIjZTI2YTNhIi8+PHBhdGggZD0iTTIzNS42IDIxOS42Yy04LjQgMS0xNS43LTMuMi0xOS4yLTkuNS00LTcuMi0yLjctMTUuNiAyLjQtMjEuOCA1LjgtNy4yIDE1LTkuNSAyMy4yLTUuNnMxMyAxMS45IDExLjUgMjAuN2MtMS41IDguNS04IDE1LjEtMTcuOSAxNi4yIiBmaWxsPSIjZWNhNjc4Ii8+PHBhdGggZD0iTTY4IDIxNy42Yy01LjguNi0xMSAwLTE0LjktMi43YTE4IDE4IDAgMCAxLTcuNS0xNC4yYy0uNS05LjYgNi0xOSAxNS41LTIwLjIgMTEuOS0xLjYgMjEgNC41IDIzLjEgMTUuN2ExOC40IDE4LjQgMCAwIDEtMTYuMSAyMS40IiBmaWxsPSIjZWVhYTdkIi8+PHBhdGggZD0iTTE3MS45IDIxMS44Yy00IDguOC0xMy4yIDEyLTIxLjQgMTIuMS04LjguMy0xNy44LTMuMi0yMi4yLTEyLTMuMi02LjMtMy4xLTE2LS4zLTIyLjYgMy44LTguOCAxMy4zLTEyLjEgMjEuOC0xMi42czE4IDQgMjIuMiAxM2EyOSAyOSAwIDAgMS0uMiAyMloiIGZpbGw9IiMxNTI1MjYiLz48cGF0aCBkPSJNMTY0LjkgMTkwLjhjOSAxMC42LTI5LjUgOS0zMC44IDQuOC0uMy0xLjIgMC0zLjIgMS4yLTQuOCA3LjItOS4yIDIyLTguOCAyOS42IDAiIGZpbGw9IiNmM2E0M2QiLz48cGF0aCBkPSJNMTY3IDIwNGMtMS41IDEwLTEwIDEzLjUtMTguOSAxMi42LTcuNS0uNy0xNC40LTMuNy0xNC45LTEyLjcgMTEuMyAzIDIxLjQgMi4xIDMzLjguMSIgZmlsbD0iI2VjOWYzZSIvPjxwYXRoIGQ9Ik0yMTIgMTM0LjVjLTIuNSA0LjMtOC4yLTQuNy0yMS4xLTIuNy0xLjMuMi0zLjQtLjctMy41LTEuNyAwLS45LjMtMi43IDEuNy0zLjcgOS45LTYuNyAyNiAyLjggMjIuOSA4IiBmaWxsPSIjMTgyNjI4Ii8+PHBhdGggZD0iTTExMS4yIDEzMGMuMyA0LjgtNy4yLTEuNy0xOSA1LjEtMS40LjgtMy43LjctNC4yLS41LTIuOC02LjggMTItMTMgMjEuNi04LjUgMS42LjcgMS42IDMgMS42IDMuOSIgZmlsbD0iIzFhMjcyOSIvPjxwYXRoIGQ9Ik0xMTkuNiAxNzkuNWExNyAxNyAwIDAgMS0xNiAxMC44QTE3IDE3IDAgMCAxIDg3LjggMTc5YTE3IDE3IDAgMCAxIDYuNC0xOS4zYzUuOS00LjQgMTQuNC00LjUgMjAtLjFzOC41IDEyLjMgNS4zIDIwIiBmaWxsPSIjMTQyODJiIi8+PHBhdGggZD0iTTE4OC43IDE4OC40Yy04LjctNC42LTEwLjgtMTQuNy03LTIyLjhzMTMuNS0xMS41IDIyLTcuNyAxMS4zIDE0IDcuNyAyMi41LTEzLjggMTIuNi0yMi43IDhaIiBmaWxsPSIjMTQyNzJiIi8+PHBhdGggZD0iTTEwNy4zIDE2Ni4xYzIuMy0xIDQuMi44IDQuNiAyLjMuNSAxLjgtLjIgMy42LTEuOSA0LjMtMS43LjgtMy43LjEtNC40LTEuNHMtLjYtNC4xIDEuNy01LjJNMTk5LjEgMTY2LjNjMi4xLTEuMSA0IC4yIDQuOCAxLjYuOSAxLjcuMiAzLjktMS41IDQuN3MtMy41LjQtNC40LS44Yy0xLjItMS41LTEuMi00LjMgMS4xLTUuNSIgY2xhc3M9InN0OSIvPjwvc3ZnPg==" alt="コッコちゃん">
+          <div class="rocket-body">
+            <svg viewBox="0 0 70 240">
+              <defs>
+                <linearGradient id="rocketBody" x1="0%" x2="100%">
+                  <stop offset="0%" stop-color="#888"/>
+                  <stop offset="50%" stop-color="#f8f8f8"/>
+                  <stop offset="100%" stop-color="#888"/>
+                </linearGradient>
+                <linearGradient id="rocketNose" x1="0%" x2="100%">
+                  <stop offset="0%" stop-color="#1a1a1a"/>
+                  <stop offset="50%" stop-color="#444"/>
+                  <stop offset="100%" stop-color="#1a1a1a"/>
+                </linearGradient>
+                <linearGradient id="flameGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#ff3300"/>
+                  <stop offset="50%" stop-color="#ffbb00"/>
+                  <stop offset="100%" stop-color="rgba(255,255,0,0)"/>
+                </linearGradient>
+                <filter id="flameGlow" x="-100%" y="-20%" width="300%" height="150%">
+                  <feGaussianBlur stdDeviation="3"/>
+                </filter>
+              </defs>
+              <path d="M35,0 C25,15 22,35 22,50 L48,50 C48,35 45,15 35,0 Z" fill="url(#rocketNose)"/>
+              <rect x="22" y="50" width="26" height="40" fill="url(#rocketBody)"/>
+              <rect x="20" y="90" width="30" height="12" fill="#333"/>
+              <rect x="20" y="102" width="30" height="90" fill="url(#rocketBody)"/>
+              <rect x="6" y="105" width="12" height="18" fill="#333" rx="1"/>
+              <rect x="52" y="105" width="12" height="18" fill="#333" rx="1"/>
+              <path d="M20,175 L5,198 L9,200 L22,180" fill="#333"/>
+              <path d="M50,175 L65,198 L61,200 L48,180" fill="#333"/>
+              <path d="M20,192 L17,202 L53,202 L50,192" fill="#333"/>
+              <g class="flame">
+                <ellipse cx="35" cy="255" rx="32" ry="45" fill="url(#flameGrad)" filter="url(#flameGlow)" opacity="0.5"/>
+                <path d="M24,208 Q18,235 15,270 Q26,305 35,315 Q44,305 55,270 Q52,235 46,208 Z" fill="url(#flameGrad)" filter="url(#flameGlow)"/>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- ステージノードはJSで生成 -->
       </div>
+    </div>
 
-      <!-- 畜星マーカー -->
-      <div class="location-marker" style="right: 20px; top: 20px;">
-        <span class="location-icon">⭐</span>
-        <span class="location-label">畜星</span>
-      </div>
-
-      <!-- コッコちゃん＆ロケット -->
-      <div class="kokko-rocket" id="kokkoRocket">
-        <img class="kokko-character" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyOTcuOCAzODkuNCI+PGRlZnM+PHN0eWxlPi5zdDl7ZmlsbDojZmZmfTwvc3R5bGU+PC9kZWZzPjxwYXRoIGQ9Ik0xMjMuMiAzNDcuOWMtMy4yIDctMjMgNC45LTIxLjktMS4yLjUtMi4zIDUuNy0yLjYgOC42LTQuNiAxLjctMS4yLS4yLTUuNiAxLjYtNi4yIDQuNC0xLjYgMTMuNyA3LjUgMTEuNyAxMiIgZmlsbD0iI2RmOTUzYiIvPjxwYXRoIGQ9Ik0xMTIuNiAzNTUuM3EtNC4xIDAtNy41LTEuMWMtNy4yLTIuMy03LTYuNy02LjctOCAuNi0zLjIgMy44LTQuMiA2LjMtNWwzLTEuMnYtMWMwLTEuNi0uMi00LjkgMi44LTYgNC4xLTEuNCA5IDEuOSAxMiA1LjEgMy41IDMuOCA0LjggOCAzLjQgMTEtMiA0LjUtNy43IDYuMi0xMy4zIDYuMlptLTcuOS03LjhjMS4yLjggNC40IDEuOSA4LjYgMS44IDMuNi0uMiA2LjUtMS4yIDcuMS0yLjYuMi0uMyAwLTItMi00LjFhMTMgMTMgMCAwIDAtNC43LTMuN2MwIDEuOCAwIDQuMi0yIDUuN3EtMi42IDEuNS01IDIuMnoiLz48cGF0aCBkPSJNMTk3LjggMzQ2LjdjMy4yIDQuMi0xOCA5LjctMjEuOC45LTEuNy00IDctMTEuMyAxMS4zLTExLjggMy4yIDExIDcuMyA3IDEwLjQgMTEiIGZpbGw9IiNlZGEwM2YiLz48cGF0aCBkPSJNMTg2IDM1NS4zaC0uOHEtOS4yLS40LTEyLTYuNmMtLjUtMS4zLS44LTMuNS45LTYuNSAyLjUtNC4zIDguNy04LjkgMTIuOC05LjRsMi41LS4zLjcgMi40YzEuNyA1LjcgMy4xIDYuMiA1IDYuOCAxLjQuNCAzLjMgMSA1IDMuMmE0IDQgMCAwIDEgLjUgNC44Yy0xLjggMy41LTguOCA1LjYtMTQuNyA1LjZabS0uNi0xNS43Yy0zLjEgMS43LTYuOCA1LjUtNi42IDYuOC44IDEuOCAzIDIuNSA0LjkgMi43IDQgLjYgOC4yLS41IDEwLjMtMS41bC0uOC0uMmMtMi45LTEtNS42LTIuMy03LjgtNy44Wm0xMCA5Ii8+PHBhdGggZD0iTTE5MiA3MC41YzM3IDguMyA2Ny43IDM0IDgxLjEgNjkgNS4zIDEzLjkgNi40IDI5LjUgNS4zIDQ0LjUtMiAzMC0xOS40IDU1LjgtNDYgNjguNy0xNC40IDcgMTIuNiAxMy41IDEzLjYgMzguNC4zIDUuMy0xLjcgMTEtNi44IDExLjYtMy45LjUtMTAuMy0xLjUtMTAuNy02LjFsLTEuMS0xMS44Yy0uMy0yLjQtMi44LTMuNi00LjctMy4xLTEuNS40LTIuOCAyLjUtMi42IDQuNyAxIDE2LjgtNS4zIDM0LTIwLjYgNDIuMi0yNC41IDEzLTcxLjMgMTIuNi05NiAxLjVBNDAgNDAgMCAwIDEgNzkgMjg3LjNjLjQtMi4yLTEuNi00LjctMy4yLTQuNy01LjIgMC00LjYgNy4yLTUuMiAxMi4yLS42IDUuOC01LjcgOC41LTEwLjcgOC0xMy0xLjItOC4zLTI1LjYgMTAtNDEuOSAxLjItMSAyLjEtMi45IDEuOC0zLjlzLS4zLTMuMi0zLTRjLTcuNS0yLTE5LjQtMTItMjUuNi0xNi43LTI3LjktMzItMjkuNy04MS43LTYuNy0xMTcuOEExMDYgMTA2IDAgMCAxIDk2LjEgNzRjNS0xLjQgMTAuOS00LjUgMTUuMy00LjdsNC0yLjJxMzUuNi0zLjcgNzAuOC4yIDMuNi4yIDUuOCAzLjJaIiBmaWxsPSIjZjVlOGM2Ii8+PHBhdGggZD0iTTE1MC44IDM0MS40Yy0xOC40IDAtMzYuNS0zLjItNDguNC04LjZBNDIuNSA0Mi41IDAgMCAxIDc2IDI4N3EwLS43LS42LTEuMy0xLjQuNS0xLjcgNi43IDAgMS42LS4yIDIuOGMtLjggNy44LTcuOCAxMS40LTE0IDEwLjhxLTctLjgtOS4yLTcuNWMtMy40LTEwLjUgNC4zLTI4IDE3LjYtMzkuN3EuNi0uNy44LTEuMmwtLjEtLjNjLS4yLTEtLjMtMS4xLS44LTEuMy03LTItMTcuMi05LjktMjMuOS0xNS4xbC0yLjctMi4xLS4yLS4yLS4yLS4yYy0yOC4zLTMyLjUtMzEuMi04My41LTctMTIxLjQgMTQuMi0yMi4yIDM2LTM4LjQgNjEuNC00NS43bDUuMi0xLjlhNDIgNDIgMCAwIDEgMTAtM2w0LTIgLjctLjFjMjMuNy0yLjUgNDcuNy0yLjUgNzEuMi4ycTQuMS4yIDcuMiAzLjRhMTE1IDExNSAwIDAgMSA4Mi4zIDcwLjdxNy4zIDE5LjMgNS41IDQ1LjdhODUgODUgMCAwIDEtNDcuOCA3MS4yYy0yLjIgMS0yLjUgMS44LTIuNSAxLjggMCAuOSAyLjYgMy44IDQuNCA1LjggNS4xIDUuNyAxMyAxNC4zIDEzLjUgMjggLjQgOC0zLjQgMTQtOS41IDE0LjctMyAuNC03LjUtLjQtMTAuNy0zYTkgOSAwIDAgMS0zLjMtNS44bC0xLjEtMTEuN3EwLS4yLS4zLS41bC0uNS0uMXEtLjUuNC0uNSAxLjZjMS4zIDE5LjgtNy4yIDM3LTIyLjIgNDUtMTMuMSA3LTMxLjggMTAuMi01MC4xIDEwLjJabS03NS02MS44YTYgNiAwIDAgMSA0LjQgMi4zIDggOCAwIDAgMSAxLjggNS45IDM3IDM3IDAgMCAwIDIyLjggMzkuNmMyMi44IDEwLjIgNjguNCAxMS44IDkzLjMtMS41IDE1LjMtOC4yIDE5LjktMjUuNyAxOS0zOS4zLS4yLTMuNiAxLjktNyA0LjgtNy44cTMtLjcgNS42IDFhNyA3IDAgMCAxIDIuOSA0LjhsMSAxMS43cS0uMi40IDEuMiAxLjhhOSA5IDAgMCAwIDYuMiAxLjZjMy42LS40IDQuNC01LjUgNC4yLTguNS0uNS0xMS41LTcuMS0xOC44LTEyLTI0LjItMy42LTQtNi41LTcuMi01LjctMTEgLjYtMy4yIDMuNi01IDUuNy02YTc5IDc5IDAgMCAwIDQ0LjUtNjYuMnExLjctMjUuMS01LjItNDMuMWMtMTIuOS0zNC00Mi40LTU5LTc5LTY3LjJsLTEtLjMtLjYtLjhxLTEuNi0yLTMuNy0yaC0uMmEzMjQgMzI0IDAgMCAwLTY5LjQtLjNsLTQuOCAyLjJhMzQgMzQgMCAwIDAtOSAyLjZxLTIuOCAxLjItNS43IDJjLTI0IDctNDQuNSAyMi4zLTU4IDQzLjItMjIuNyAzNS42LTIwIDgzLjUgNi4zIDExNGwyLjUgMmM2IDQuNiAxNS45IDEyLjQgMjEuOCAxNGE3IDcgMCAwIDEgNSA1LjhsLjEuM2MuNyAyLjQtLjggNS4zLTIuNiA3LTEyLjQgMTEtMTguMyAyNi0xNiAzMy4zcTEgMy4xIDQuMiAzLjRjMy4zLjMgNy0xLjIgNy41LTUuNGwuMi0yLjZjLjMtNC42LjgtMTIuMyA3LjktMTIuM1oiLz48cGF0aCBkPSJtMTkyLjUgNzMuNy0zLS42YTEyNCAxMjQgMCAwIDAtODEuMi0uNGwtLjYtMS44YTQzIDQzIDAgMCAxIDEuNC0zMy43YzQuNS04LjIgMTEuOS0xNCAyMC4zLTE2IDcuMy0xLjYgMTQuNyAwIDIwLjggNC41IDUuMyAzLjggNyAxMSA4LjQgMTYuOS42IDIuNiAxLjcgNyAyLjYgNy40LjcgMCAxLjgtMS41IDIuOC0yLjggMi44LTMuNCA3LTguNyAxNi03LjggNi44LjcgMTIgNS40IDE0LjEgMTIuNmEzMiAzMiAwIDAgMS0xIDIwLjJ6bS0zNi4yLTguMXExNi42LS4yIDMyLjggMi44YTI3IDI3IDAgMCAwIC4yLTE1Yy0xLjUtNS4zLTUtOC41LTkuNy05LTYuNC0uNi05IDIuNy0xMS42IDYtMS45IDIuMi0zLjggNC42LTcgNC42LTQuNi0uMi02LTUuNi03LjMtMTEuMy0xLjMtNS4yLTIuNy0xMS4yLTYuNC0xNHEtNy43LTUuNS0xNi44LTMuNWMtNyAxLjUtMTMuMiA2LjUtMTcgMTMuNC01IDkuNC0zLjggMjAtMS42IDI4bDEzLjItLjhxMTUuNS0xIDMxLjItMS4yIi8+PHBhdGggZD0iTTE4OS42IDczYTMyMyAzMjMgMCAwIDAtNzguMy0uNyA0MSA0MSAwIDAgMSAxLjItMzEuNWM3LjMtMTMuOCAyMy42LTIwLjEgMzYuMi0xMC42IDguMyA2LjIgNi40IDI0LjQgMTIgMjQuNiA0LjkgMCA2LTExLjcgMTguMS0xMC41cTIuMy4zIDQuNCAxLjNjNC42IDIuMiA2LjQgNy4yIDcuMiA5LjRhMjYgMjYgMCAwIDEtLjggMThaIiBmaWxsPSIjZTI2YTNhIi8+PHBhdGggZD0iTTIzNS42IDIxOS42Yy04LjQgMS0xNS43LTMuMi0xOS4yLTkuNS00LTcuMi0yLjctMTUuNiAyLjQtMjEuOCA1LjgtNy4yIDE1LTkuNSAyMy4yLTUuNnMxMyAxMS45IDExLjUgMjAuN2MtMS41IDguNS04IDE1LjEtMTcuOSAxNi4yIiBmaWxsPSIjZWNhNjc4Ii8+PHBhdGggZD0iTTY4IDIxNy42Yy01LjguNi0xMSAwLTE0LjktMi43YTE4IDE4IDAgMCAxLTcuNS0xNC4yYy0uNS05LjYgNi0xOSAxNS41LTIwLjIgMTEuOS0xLjYgMjEgNC41IDIzLjEgMTUuN2ExOC40IDE4LjQgMCAwIDEtMTYuMSAyMS40IiBmaWxsPSIjZWVhYTdkIi8+PHBhdGggZD0iTTE3MS45IDIxMS44Yy00IDguOC0xMy4yIDEyLTIxLjQgMTIuMS04LjguMy0xNy44LTMuMi0yMi4yLTEyLTMuMi02LjMtMy4xLTE2LS4zLTIyLjYgMy44LTguOCAxMy4zLTEyLjEgMjEuOC0xMi42czE4IDQgMjIuMiAxM2EyOSAyOSAwIDAgMS0uMiAyMloiIGZpbGw9IiMxNTI1MjYiLz48cGF0aCBkPSJNMTY0LjkgMTkwLjhjOSAxMC42LTI5LjUgOS0zMC44IDQuOC0uMy0xLjIgMC0zLjIgMS4yLTQuOCA3LjItOS4yIDIyLTguOCAyOS42IDAiIGZpbGw9IiNmM2E0M2QiLz48cGF0aCBkPSJNMTY3IDIwNGMtMS41IDEwLTEwIDEzLjUtMTguOSAxMi42LTcuNS0uNy0xNC40LTMuNy0xNC45LTEyLjcgMTEuMyAzIDIxLjQgMi4xIDMzLjguMSIgZmlsbD0iI2VjOWYzZSIvPjxwYXRoIGQ9Ik0yMTIgMTM0LjVjLTIuNSA0LjMtOC4yLTQuNy0yMS4xLTIuNy0xLjMuMi0zLjQtLjctMy41LTEuNyAwLS45LjMtMi43IDEuNy0zLjcgOS45LTYuNyAyNiAyLjggMjIuOSA4IiBmaWxsPSIjMTgyNjI4Ii8+PHBhdGggZD0iTTExMS4yIDEzMGMuMyA0LjgtNy4yLTEuNy0xOSA1LjEtMS40LjgtMy43LjctNC4yLS41LTIuOC02LjggMTItMTMgMjEuNi04LjUgMS42LjcgMS42IDMgMS42IDMuOSIgZmlsbD0iIzFhMjcyOSIvPjxwYXRoIGQ9Ik0xMTkuNiAxNzkuNWExNyAxNyAwIDAgMS0xNiAxMC44QTE3IDE3IDAgMCAxIDg3LjggMTc5YTE3IDE3IDAgMCAxIDYuNC0xOS4zYzUuOS00LjQgMTQuNC00LjUgMjAtLjFzOC41IDEyLjMgNS4zIDIwIiBmaWxsPSIjMTQyODJiIi8+PHBhdGggZD0iTTE4OC43IDE4OC40Yy04LjctNC42LTEwLjgtMTQuNy03LTIyLjhzMTMuNS0xMS41IDIyLTcuNyAxMS4zIDE0IDcuNyAyMi41LTEzLjggMTIuNi0yMi43IDhaIiBmaWxsPSIjMTQyNzJiIi8+PHBhdGggZD0iTTEwNy4zIDE2Ni4xYzIuMy0xIDQuMi44IDQuNiAyLjMuNSAxLjgtLjIgMy42LTEuOSA0LjMtMS43LjgtMy43LjEtNC40LTEuNHMtLjYtNC4xIDEuNy01LjJNMTk5LjEgMTY2LjNjMi4xLTEuMSA0IC4yIDQuOCAxLjYuOSAxLjcuMiAzLjktMS41IDQuN3MtMy41LjQtNC40LS44Yy0xLjItMS41LTEuMi00LjMgMS4xLTUuNSIgY2xhc3M9InN0OSIvPjwvc3ZnPg==" alt="コッコちゃん">
-        <div class="rocket-body">
-          <svg viewBox="0 0 70 240">
-            <defs>
-              <linearGradient id="rocketBody" x1="0%" x2="100%">
-                <stop offset="0%" stop-color="#888"/>
-                <stop offset="50%" stop-color="#f8f8f8"/>
-                <stop offset="100%" stop-color="#888"/>
-              </linearGradient>
-              <linearGradient id="rocketNose" x1="0%" x2="100%">
-                <stop offset="0%" stop-color="#1a1a1a"/>
-                <stop offset="50%" stop-color="#444"/>
-                <stop offset="100%" stop-color="#1a1a1a"/>
-              </linearGradient>
-              <linearGradient id="flameGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stop-color="#ff3300"/>
-                <stop offset="50%" stop-color="#ffbb00"/>
-                <stop offset="100%" stop-color="rgba(255,255,0,0)"/>
-              </linearGradient>
-              <filter id="flameGlow" x="-100%" y="-20%" width="300%" height="150%">
-                <feGaussianBlur stdDeviation="3"/>
-              </filter>
-            </defs>
-            <path d="M35,0 C25,15 22,35 22,50 L48,50 C48,35 45,15 35,0 Z" fill="url(#rocketNose)"/>
-            <rect x="22" y="50" width="26" height="40" fill="url(#rocketBody)"/>
-            <rect x="20" y="90" width="30" height="12" fill="#333"/>
-            <rect x="20" y="102" width="30" height="90" fill="url(#rocketBody)"/>
-            <rect x="6" y="105" width="12" height="18" fill="#333" rx="1"/>
-            <rect x="52" y="105" width="12" height="18" fill="#333" rx="1"/>
-            <path d="M20,175 L5,198 L9,200 L22,180" fill="#333"/>
-            <path d="M50,175 L65,198 L61,200 L48,180" fill="#333"/>
-            <path d="M20,192 L17,202 L53,202 L50,192" fill="#333"/>
-            <g class="flame">
-              <ellipse cx="35" cy="255" rx="32" ry="45" fill="url(#flameGrad)" filter="url(#flameGlow)" opacity="0.5"/>
-              <path d="M24,208 Q18,235 15,270 Q26,305 35,315 Q44,305 55,270 Q52,235 46,208 Z" fill="url(#flameGrad)" filter="url(#flameGlow)"/>
-            </g>
-          </svg>
+    <!-- プログレス -->
+    <div class="progress-section">
+      <div class="progress-container">
+        <div class="progress-header">
+          <span class="progress-title">🚀 旅の進み具合</span>
+          <span class="progress-count" id="progressCount">0 / 5</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressFill" style="width: 0%"></div>
         </div>
       </div>
-
-      <!-- ステージノードはJSで生成 -->
+      <button class="reset-btn" onclick="resetSaveData()">🔄 セーブデータをリセット</button>
     </div>
-  </div>
-
-  <!-- プログレス -->
-  <div class="progress-section">
-    <div class="progress-container">
-      <div class="progress-header">
-        <span class="progress-title">🚀 旅の進み具合</span>
-        <span class="progress-count" id="progressCount">0 / 5</span>
-      </div>
-      <div class="progress-bar">
-        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
-      </div>
-    </div>
-    <button class="reset-btn" onclick="resetSaveData()">🔄 セーブデータをリセット</button>
   </div>
 
   <script>
+    // ==========================================
+    // Canvas宇宙背景
+    // ==========================================
+    (function() {
+      const canvas = document.getElementById('cosmosCanvas');
+      const ctx = canvas.getContext('2d');
+      let w = canvas.width = window.innerWidth;
+      let h = canvas.height = window.innerHeight;
+      let frame = 0;
+      let mouse = { x: 0.5, y: 0.5 };
+
+      // 星クラス
+      class Star {
+        constructor() { this.reset(); }
+        reset() {
+          this.x = Math.random() * w;
+          this.y = Math.random() * h;
+          this.z = Math.random();
+          this.baseRadius = 0.3 + Math.random() * 2.5;
+          this.twinkleSpeed = 0.015 + Math.random() * 0.035;
+          this.twinkleOffset = Math.random() * Math.PI * 2;
+          this.drawX = this.x;
+          this.drawY = this.y;
+          const temp = Math.random();
+          if (temp > 0.92) { this.hue = Math.random() * 30; this.sat = 80; }
+          else if (temp > 0.85) { this.hue = 30 + Math.random() * 30; this.sat = 70; }
+          else if (temp > 0.6) { this.hue = 45 + Math.random() * 15; this.sat = 40; }
+          else if (temp > 0.3) { this.hue = 60; this.sat = 10; }
+          else { this.hue = 200 + Math.random() * 40; this.sat = 60; }
+        }
+        update(t, mouse) {
+          this.twinkle = (Math.sin(t * this.twinkleSpeed + this.twinkleOffset) + 1) / 2;
+          const parallax = (1 - this.z) * 30;
+          this.drawX = this.x + (mouse.x - 0.5) * parallax;
+          this.drawY = this.y + (mouse.y - 0.5) * parallax;
+        }
+        draw(ctx) {
+          const r = this.baseRadius * (0.5 + this.z * 0.5) * (0.7 + this.twinkle * 0.3);
+          const alpha = (0.3 + this.z * 0.7) * (0.5 + this.twinkle * 0.5);
+          ctx.beginPath();
+          ctx.arc(this.drawX, this.drawY, r, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, 95%, ${alpha})`;
+          ctx.fill();
+          const glow = ctx.createRadialGradient(this.drawX, this.drawY, 0, this.drawX, this.drawY, r * 6);
+          glow.addColorStop(0, `hsla(${this.hue}, ${this.sat}%, 80%, ${alpha * 0.4})`);
+          glow.addColorStop(0.5, `hsla(${this.hue}, ${this.sat}%, 60%, ${alpha * 0.1})`);
+          glow.addColorStop(1, 'transparent');
+          ctx.beginPath();
+          ctx.arc(this.drawX, this.drawY, r * 6, 0, Math.PI * 2);
+          ctx.fillStyle = glow;
+          ctx.fill();
+          if (this.baseRadius > 1.8 && this.twinkle > 0.6) {
+            ctx.strokeStyle = `hsla(${this.hue}, ${this.sat}%, 90%, ${alpha * 0.3})`;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(this.drawX - r * 4, this.drawY);
+            ctx.lineTo(this.drawX + r * 4, this.drawY);
+            ctx.moveTo(this.drawX, this.drawY - r * 4);
+            ctx.lineTo(this.drawX, this.drawY + r * 4);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // 星雲クラス
+      class Nebula {
+        constructor() {
+          this.x = Math.random() * w;
+          this.y = Math.random() * h;
+          this.radius = 150 + Math.random() * 250;
+          this.hue = Math.random() * 360;
+          this.rotation = Math.random() * Math.PI * 2;
+          this.rotSpeed = (Math.random() - 0.5) * 0.0005;
+        }
+        update() { this.rotation += this.rotSpeed; }
+        draw(ctx) {
+          ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.rotation);
+          for (let i = 0; i < 3; i++) {
+            const grad = ctx.createRadialGradient(i * 20 - 20, i * 10 - 10, 0, 0, 0, this.radius * (0.8 + i * 0.2));
+            const hue = (this.hue + i * 40) % 360;
+            grad.addColorStop(0, `hsla(${hue}, 70%, 50%, 0.04)`);
+            grad.addColorStop(0.4, `hsla(${hue}, 60%, 40%, 0.02)`);
+            grad.addColorStop(1, 'transparent');
+            ctx.beginPath();
+            ctx.ellipse(0, 0, this.radius * (1 + i * 0.3), this.radius * 0.5 * (1 + i * 0.2), i * 0.3, 0, Math.PI * 2);
+            ctx.fillStyle = grad;
+            ctx.fill();
+          }
+          ctx.restore();
+        }
+      }
+
+      // 銀河クラス
+      class Galaxy {
+        constructor(x, y, size) {
+          this.x = x; this.y = y; this.size = size;
+          this.rotation = Math.random() * Math.PI * 2;
+          this.rotSpeed = 0.0008;
+          this.arms = 2 + Math.floor(Math.random() * 3);
+          this.hue = Math.random() * 60 + 200;
+          this.particles = [];
+          for (let i = 0; i < 800; i++) {
+            const arm = i % this.arms;
+            const dist = Math.pow(Math.random(), 0.5) * this.size;
+            const armAngle = (arm / this.arms) * Math.PI * 2;
+            const spiral = dist * 0.015;
+            const spread = (Math.random() - 0.5) * 0.5 * (dist / this.size);
+            this.particles.push({ dist, angle: armAngle + spiral + spread, size: 0.3 + Math.random() * 1.2, bright: Math.random() });
+          }
+        }
+        update() { this.rotation += this.rotSpeed; }
+        draw(ctx) {
+          ctx.save();
+          ctx.translate(this.x, this.y);
+          ctx.rotate(this.rotation);
+          const core = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size * 0.3);
+          core.addColorStop(0, `hsla(${this.hue + 40}, 40%, 90%, 0.3)`);
+          core.addColorStop(0.3, `hsla(${this.hue + 20}, 50%, 60%, 0.1)`);
+          core.addColorStop(1, 'transparent');
+          ctx.beginPath();
+          ctx.arc(0, 0, this.size * 0.3, 0, Math.PI * 2);
+          ctx.fillStyle = core;
+          ctx.fill();
+          this.particles.forEach(p => {
+            const x = Math.cos(p.angle) * p.dist;
+            const y = Math.sin(p.angle) * p.dist * 0.4;
+            const fade = 1 - (p.dist / this.size) * 0.7;
+            ctx.beginPath();
+            ctx.arc(x, y, p.size * fade, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${this.hue + p.bright * 60}, ${30 + p.bright * 40}%, ${70 + p.bright * 25}%, ${fade * 0.6})`;
+            ctx.fill();
+          });
+          ctx.restore();
+        }
+      }
+
+      // オーロラクラス
+      class Aurora {
+        constructor() {
+          this.waves = [];
+          for (let i = 0; i < 5; i++) {
+            this.waves.push({
+              y: h * 0.1 + i * 30,
+              amplitude: 20 + Math.random() * 40,
+              frequency: 0.002 + Math.random() * 0.003,
+              speed: 0.01 + Math.random() * 0.02,
+              phase: Math.random() * Math.PI * 2,
+              hue: 140 + i * 20,
+              alpha: 0.03 - i * 0.005
+            });
+          }
+        }
+        update() { this.waves.forEach(wave => { wave.phase += wave.speed; }); }
+        draw(ctx) {
+          this.waves.forEach(wave => {
+            ctx.beginPath();
+            ctx.moveTo(0, wave.y);
+            for (let x = 0; x <= w; x += 5) {
+              const y = wave.y + Math.sin(x * wave.frequency + wave.phase) * wave.amplitude;
+              ctx.lineTo(x, y);
+            }
+            ctx.lineTo(w, h * 0.4);
+            ctx.lineTo(0, h * 0.4);
+            ctx.closePath();
+            const grad = ctx.createLinearGradient(0, wave.y - wave.amplitude, 0, h * 0.4);
+            grad.addColorStop(0, `hsla(${wave.hue}, 80%, 60%, ${wave.alpha})`);
+            grad.addColorStop(0.5, `hsla(${wave.hue + 30}, 70%, 50%, ${wave.alpha * 0.5})`);
+            grad.addColorStop(1, 'transparent');
+            ctx.fillStyle = grad;
+            ctx.fill();
+          });
+        }
+      }
+
+      // 初期化
+      const stars = [];
+      for (let i = 0; i < 600; i++) stars.push(new Star());
+      const nebulae = [];
+      for (let i = 0; i < 3; i++) nebulae.push(new Nebula());
+      const galaxy = new Galaxy(w * 0.75, h * 0.35, 180);
+      const aurora = new Aurora();
+
+      // アニメーションループ
+      function animate() {
+        frame++;
+        const bg = ctx.createRadialGradient(w * 0.3, h * 0.3, 0, w / 2, h / 2, Math.max(w, h));
+        bg.addColorStop(0, '#0d0d1a');
+        bg.addColorStop(0.5, '#070711');
+        bg.addColorStop(1, '#020204');
+        ctx.fillStyle = bg;
+        ctx.fillRect(0, 0, w, h);
+
+        aurora.update();
+        aurora.draw(ctx);
+        nebulae.forEach(n => { n.update(); n.draw(ctx); });
+        galaxy.update();
+        galaxy.draw(ctx);
+        stars.forEach(s => { s.update(frame, mouse); s.draw(ctx); });
+
+        // ビネット効果
+        const vignette = ctx.createRadialGradient(w / 2, h / 2, h * 0.3, w / 2, h / 2, Math.max(w, h) * 0.8);
+        vignette.addColorStop(0, 'transparent');
+        vignette.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+        ctx.fillStyle = vignette;
+        ctx.fillRect(0, 0, w, h);
+
+        requestAnimationFrame(animate);
+      }
+
+      // イベント
+      window.addEventListener('mousemove', (e) => {
+        mouse.x = e.clientX / w;
+        mouse.y = e.clientY / h;
+      });
+      window.addEventListener('resize', () => {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+        stars.forEach(s => s.reset());
+      });
+
+      animate();
+    })();
+
     // ==========================================
     // localStorage 設定
     // ==========================================
@@ -560,59 +752,18 @@
     }
 
     // ==========================================
-    // 星空生成
-    // ==========================================
-    function createStars() {
-      const container = document.getElementById('starsContainer');
-      for (let i = 0; i < 100; i++) {
-        const star = document.createElement('div');
-        star.className = 'star';
-        const size = Math.random() * 3 + 1;
-        star.style.width = size + 'px';
-        star.style.height = size + 'px';
-        star.style.left = Math.random() * 100 + '%';
-        star.style.top = Math.random() * 100 + '%';
-        star.style.animationDelay = Math.random() * 2 + 's';
-        container.appendChild(star);
-      }
-
-      // 流れ星
-      for (let i = 0; i < 3; i++) {
-        const shooting = document.createElement('div');
-        shooting.className = 'shooting-star';
-        shooting.style.left = (50 + Math.random() * 50) + '%';
-        shooting.style.top = Math.random() * 30 + '%';
-        shooting.style.animationDelay = (i * 5 + Math.random() * 3) + 's';
-        container.appendChild(shooting);
-      }
-    }
-
-    // ==========================================
-    // 星型SVG生成
-    // ==========================================
-    function createStarSVG(fillColor, strokeColor) {
-      return `<svg viewBox="0 0 100 100">
-        <polygon points="50,5 61,35 95,35 68,57 79,91 50,70 21,91 32,57 5,35 39,35"
-          fill="${fillColor}" stroke="${strokeColor}" stroke-width="3"/>
-      </svg>`;
-    }
-
-    // ==========================================
     // 星座の線を描画
     // ==========================================
     function drawConstellationLines(saveData) {
       const container = document.getElementById('mapContainer');
-
       for (let i = 0; i < STAGES.length - 1; i++) {
         const from = STAGES[i];
         const to = STAGES[i + 1];
         const unlocked = isStageUnlocked(i + 1, saveData);
-
         const dx = to.x - from.x;
         const dy = to.y - from.y;
         const length = Math.sqrt(dx * dx + dy * dy);
         const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-
         const line = document.createElement('div');
         line.className = 'constellation-line' + (unlocked ? ' active' : '');
         line.style.width = length + 'px';
@@ -629,11 +780,7 @@
     function renderMap() {
       const saveData = loadSaveData();
       const container = document.getElementById('mapContainer');
-
-      // 既存ノードと線をクリア
       container.querySelectorAll('.stage-node, .constellation-line').forEach(el => el.remove());
-
-      // 星座の線を描画
       drawConstellationLines(saveData);
 
       let clearedCount = 0;
@@ -642,15 +789,9 @@
       STAGES.forEach((stage, index) => {
         const unlocked = isStageUnlocked(index, saveData);
         const cleared = isStageCleared(stage.id, saveData);
+        if (cleared) { clearedCount++; currentStageIndex = index + 1; }
+        else if (unlocked && currentStageIndex === index) { currentStageIndex = index; }
 
-        if (cleared) {
-          clearedCount++;
-          currentStageIndex = index + 1;
-        } else if (unlocked && currentStageIndex === index) {
-          currentStageIndex = index;
-        }
-
-        // ステージノード作成
         const node = document.createElement('a');
         node.className = 'stage-node';
         node.style.left = stage.x + 'px';
@@ -662,10 +803,7 @@
           starColor = '#4a4a6a';
           strokeColor = '#3a3a5a';
           node.href = '#';
-          node.onclick = (e) => {
-            e.preventDefault();
-            alert('🔒 まだ開放されていないよ！\n前のステージをクリアしてね！');
-          };
+          node.onclick = (e) => { e.preventDefault(); alert('🔒 まだ開放されていないよ！\n前のステージをクリアしてね！'); };
         } else if (cleared) {
           node.classList.add('cleared');
           starColor = 'url(#clearedGrad)';
@@ -699,20 +837,14 @@
           ${cleared ? '<div class="clear-badge">✓</div>' : ''}
         `;
 
-        // クリックでキラキラ
         node.addEventListener('click', (e) => {
-          if (!node.classList.contains('locked')) {
-            createSparkles(e.clientX, e.clientY);
-          }
+          if (!node.classList.contains('locked')) createSparkles(e.clientX, e.clientY);
         });
 
         container.appendChild(node);
       });
 
-      // コッコちゃんの位置更新
       updateKokkoPosition(currentStageIndex);
-
-      // プログレス更新
       document.getElementById('progressCount').textContent = `${clearedCount} / ${STAGES.length}`;
       document.getElementById('progressFill').style.width = (clearedCount / STAGES.length * 100) + '%';
     }
@@ -740,8 +872,6 @@
         sparkle.style.top = y + (Math.random() - 0.5) * 60 + 'px';
         sparkle.style.color = colors[Math.floor(Math.random() * colors.length)];
         sparkle.style.fontSize = (Math.random() * 15 + 10) + 'px';
-        sparkle.style.position = 'fixed';
-        sparkle.style.zIndex = '1000';
         document.body.appendChild(sparkle);
         setTimeout(() => sparkle.remove(), 1000);
       }
@@ -750,10 +880,7 @@
     // ==========================================
     // 初期化
     // ==========================================
-    document.addEventListener('DOMContentLoaded', () => {
-      createStars();
-      renderMap();
-    });
+    document.addEventListener('DOMContentLoaded', renderMap);
   </script>
 </body>
 </html>
