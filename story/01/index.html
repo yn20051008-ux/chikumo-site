@@ -536,7 +536,34 @@
 
             // ランダムなサイズと速度を選択
             const size = CONFIG.METEOR_SIZES[Math.floor(Math.random() * CONFIG.METEOR_SIZES.length)];
-            const speed = CONFIG.METEOR_SPEEDS[Math.floor(Math.random() * CONFIG.METEOR_SPEEDS.length)];
+            const speedIndex = Math.floor(Math.random() * CONFIG.METEOR_SPEEDS.length);
+            const speed = CONFIG.METEOR_SPEEDS[speedIndex];
+
+            // 速度段階ごとの色パレット（遅い→速い: 0〜4）
+            const colorPalettes = [
+                // 0) 基本(現状)
+                { core: '#8b7355', mid: '#6b5344', edge: '#3a2518', crater: '#4a3728' },
+                // 1) 明るく
+                { core: '#a98c68', mid: '#85614c', edge: '#4d2f1c', crater: '#5c4030' },
+                // 2) やや赤
+                { core: '#b9705f', mid: '#8b4037', edge: '#56201a', crater: '#6a2f28' },
+                // 3) オレンジ
+                { core: '#d37a2f', mid: '#a6531f', edge: '#6a3314', crater: '#7a3f1a' },
+                // 4) 黄色
+                { core: '#f2d36a', mid: '#cda94a', edge: '#8f6b2a', crater: '#a07b2a' }
+            ];
+
+            // 速度段階ごとのグロー強度（全段階に付与、速い2段階は強め）
+            const glowFilters = [
+                'drop-shadow(0 0 3px rgba(255, 200, 140, 0.15))',
+                'drop-shadow(0 0 4px rgba(255, 200, 140, 0.2))',
+                'drop-shadow(0 0 5px rgba(255, 120, 90, 0.35))',
+                'drop-shadow(0 0 8px rgba(255, 140, 60, 0.6)) drop-shadow(0 0 16px rgba(255, 110, 40, 0.4))',
+                'drop-shadow(0 0 10px rgba(255, 220, 100, 0.7)) drop-shadow(0 0 20px rgba(255, 160, 60, 0.5))'
+            ];
+
+            const colors = colorPalettes[speedIndex];
+            const glow = glowFilters[speedIndex];
 
             // 隕石オブジェクトの作成
             const meteor = {
@@ -547,26 +574,28 @@
                 rotSpeed: (Math.random() - 0.5) * 0.5,  // 回転速度
                 size: size,
                 speed: speed,
+                speedIndex: speedIndex,      // 速度段階を保持
                 element: null
             };
 
             // DOM要素の作成
             const el = document.createElement('div');
             el.className = 'meteor';
+            el.style.filter = glow;  // グローエフェクトを適用
             el.innerHTML = `
                 <svg viewBox="0 0 100 100" style="width:${size}px; height:${size}px;">
                     <defs>
                         <radialGradient id="mg-${id}">
-                            <stop offset="0%" stop-color="#8b7355"/>
-                            <stop offset="50%" stop-color="#6b5344"/>
-                            <stop offset="100%" stop-color="#3a2518"/>
+                            <stop offset="0%" stop-color="${colors.core}"/>
+                            <stop offset="50%" stop-color="${colors.mid}"/>
+                            <stop offset="100%" stop-color="${colors.edge}"/>
                         </radialGradient>
                     </defs>
                     <!-- 隕石本体 -->
                     <circle cx="50" cy="50" r="45" fill="url(#mg-${id})"/>
                     <!-- クレーター（装飾） -->
-                    <ellipse cx="35" cy="35" rx="12" ry="10" fill="#4a3728" opacity="0.6"/>
-                    <ellipse cx="60" cy="55" rx="8" ry="7" fill="#4a3728" opacity="0.5"/>
+                    <ellipse cx="35" cy="35" rx="12" ry="10" fill="${colors.crater}" opacity="0.6"/>
+                    <ellipse cx="60" cy="55" rx="8" ry="7" fill="${colors.crater}" opacity="0.5"/>
                 </svg>
             `;
 
@@ -615,7 +644,10 @@
                 // 隕石の半径をビューポート基準の%に変換
                 const gameWidth = $game.offsetWidth;
                 const gameHeight = $game.offsetHeight;
-                const meteorRadiusPercent = (m.size / 2) / gameWidth * 100;
+                let meteorRadiusPercent = (m.size / 2) / gameWidth * 100;
+
+                // 一番大きい隕石（250px）だけ当たり判定を緩和
+                if (m.size === 250) meteorRadiusPercent *= 0.7;
 
                 // ロケットの当たり判定（中心と半径）
                 // ロケットは細長いので、見た目より小さめの円で判定（プレイヤー有利）
