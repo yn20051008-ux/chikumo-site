@@ -2,926 +2,503 @@
 
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>九式論：単体世界の限界面における構造定式化と運用境界の記述</title>
-  <style>
-    /* =========================================
-       DESIGN PHILOSOPHY
-       -----------------------------------------
-       A vessel for preserving thought.
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>九式 ― 持続的生存の最小構成</title>
+<meta name="description" content="持続的に存在し、世代で更新される構造を9つの漢字で定義する。">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--bg:#0a0a0a;
+--bg-section:#0f0f0f;
+--bg-card:#141414;
+--border:#1a1a1a;
+--border-light:#252525;
+--text:#ffffff;
+--text-secondary:rgba(255,255,255,0.7);
+--text-muted:rgba(255,255,255,0.4);
+--text-dim:rgba(255,255,255,0.25);
+--accent:#ffffff;
+}
+html{scroll-behavior:smooth}
+body{
+font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Hiragino Sans",Meiryo,sans-serif;
+background:var(--bg);
+color:var(--text);
+line-height:1.8;
+-webkit-font-smoothing:antialiased;
+}
+::selection{background:rgba(255,255,255,0.2)}
+a{color:inherit;text-decoration:none}
 
-```
-   - Reading should feel like thinking
-   - Structure visible through rhythm, not decoration
-   - Japanese long-form optimized typography
-   - Definition blocks as structural anchors
-   - Scroll as temporal progression
-   
-   Lineage: Notion → Arc → Linear → beyond
-   ========================================= */
+/* Header */
+.header{
+position:fixed;
+top:0;left:0;right:0;
+z-index:1000;
+padding:1.5rem 3rem;
+display:flex;
+justify-content:space-between;
+align-items:center;
+background:transparent;
+transition:background 0.3s;
+}
+.header.scrolled{background:rgba(10,10,10,0.95);backdrop-filter:blur(10px)}
+.header-logo{
+font-size:0.875rem;
+font-weight:600;
+letter-spacing:0.05em;
+}
+.header-nav{display:flex;gap:2.5rem}
+.header-nav a{
+font-size:0.75rem;
+color:var(–text-muted);
+letter-spacing:0.05em;
+transition:color 0.2s;
+}
+.header-nav a:hover{color:var(–text)}
 
-/* --- RESET & FOUNDATION --- */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* Hero */
+.hero{
+min-height:100vh;
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+text-align:center;
+padding:6rem 2rem;
+position:relative;
+}
+.hero-label{
+font-size:0.6875rem;
+letter-spacing:0.2em;
+color:var(–text-muted);
+margin-bottom:2rem;
+text-transform:uppercase;
+}
+.hero-title{
+font-size:clamp(3rem,12vw,7rem);
+font-weight:500;
+letter-spacing:0.1em;
+margin-bottom:0.5rem;
+line-height:1.1;
+}
+.hero-sub{
+font-size:0.875rem;
+letter-spacing:0.3em;
+color:var(–text-muted);
+margin-bottom:2.5rem;
+text-transform:uppercase;
+}
+.hero-desc{
+font-size:0.9375rem;
+color:var(–text-secondary);
+max-width:560px;
+line-height:2;
+}
+.hero-scroll{
+position:absolute;
+bottom:3rem;
+font-size:0.6875rem;
+letter-spacing:0.2em;
+color:var(–text-dim);
+text-transform:uppercase;
 }
 
-html {
-  font-size: 16px;
-  scroll-behavior: smooth;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  hanging-punctuation: allow-end;
+/* Section */
+section{
+padding:8rem 2rem;
+max-width:1000px;
+margin:0 auto;
+}
+.section-num{
+font-size:0.6875rem;
+letter-spacing:0.15em;
+color:var(–text-muted);
+margin-bottom:1.5rem;
+text-transform:uppercase;
+}
+.section-title{
+font-size:1.5rem;
+font-weight:500;
+margin-bottom:3rem;
+letter-spacing:0.02em;
 }
 
-/* --- COLOR SYSTEM (semantic tokens) --- */
-:root {
-  --surface-ground: #09090a;
-  --surface-base: #0e0e10;
-  --surface-raised: #131315;
-  --surface-overlay: #18181b;
-  
-  --border-subtle: #1f1f23;
-  --border-default: #27272b;
-  
-  --text-primary: #f0f0f2;
-  --text-secondary: #a8a8ad;
-  --text-tertiary: #6e6e73;
-  --text-muted: #4a4a4f;
-  
-  --accent-subtle: #2a2a2f;
-  --accent-indicator: #3d3d42;
+/* Definition Box */
+.definition-box{
+background:var(–bg-card);
+border:1px solid var(–border-light);
+border-radius:4px;
+padding:2.5rem;
+font-size:0.9375rem;
+line-height:2.2;
+color:var(–text-secondary);
 }
 
-body {
-  font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic UI", "Meiryo", system-ui, sans-serif;
-  background-color: var(--surface-ground);
-  color: var(--text-secondary);
-  line-height: 1.95;
-  letter-spacing: 0.02em;
-  font-feature-settings: "palt" 1;
-  min-height: 100vh;
+/* Nine Cards */
+.nine-grid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:1px;
+background:var(–border-light);
+border:1px solid var(–border-light);
+border-radius:4px;
+overflow:hidden;
+}
+.nine-card{
+background:var(–bg-card);
+padding:2rem 1.5rem;
+text-align:center;
+transition:background 0.2s;
+}
+.nine-card:hover{background:#1a1a1a}
+.nine-kanji{
+font-size:2.5rem;
+font-weight:400;
+margin-bottom:0.5rem;
+letter-spacing:0.05em;
+}
+.nine-reading{
+font-size:0.6875rem;
+color:var(–text-muted);
+letter-spacing:0.1em;
+margin-bottom:1rem;
+text-transform:uppercase;
+}
+.nine-desc{
+font-size:0.8125rem;
+color:var(–text-secondary);
+line-height:1.8;
 }
 
-/* --- LAYOUT ARCHITECTURE --- */
-.layout {
-  display: flex;
-  min-height: 100vh;
+/* Skeleton */
+.skeleton-list{
+display:flex;
+flex-direction:column;
+gap:3rem;
+}
+.skeleton-item{
+display:grid;
+grid-template-columns:120px 1fr;
+gap:2rem;
+align-items:start;
+padding-bottom:3rem;
+border-bottom:1px solid var(–border);
+}
+.skeleton-item:last-child{border-bottom:none;padding-bottom:0}
+.skeleton-label{
+font-size:1rem;
+font-weight:500;
+}
+.skeleton-formula{
+font-size:0.75rem;
+color:var(–text-muted);
+letter-spacing:0.05em;
+margin-top:0.25rem;
+}
+.skeleton-text{
+font-size:0.9375rem;
+color:var(–text-secondary);
+line-height:2;
 }
 
-/* --- NAVIGATION: Quiet presence, always aware --- */
-.nav {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 240px;
-  height: 100vh;
-  background-color: var(--surface-ground);
-  border-right: 1px solid var(--border-subtle);
-  padding: 3rem 1rem 2rem;
-  overflow-y: auto;
-  overflow-x: hidden;
-  z-index: 100;
+/* Boundary */
+.boundary-grid{
+display:flex;
+flex-direction:column;
+gap:1px;
+background:var(–border-light);
+border:1px solid var(–border-light);
+border-radius:4px;
+overflow:hidden;
+}
+.boundary-row{
+background:var(–bg-card);
+padding:1.75rem 2rem;
+display:grid;
+grid-template-columns:100px 1fr;
+gap:2rem;
+align-items:center;
+}
+.boundary-name{
+font-size:1.125rem;
+font-weight:500;
+letter-spacing:0.05em;
+}
+.boundary-desc{
+font-size:0.875rem;
+color:var(–text-secondary);
+line-height:1.8;
 }
 
-/* Hide scrollbar but keep functionality */
-.nav::-webkit-scrollbar {
-  width: 0;
-  background: transparent;
+/* Footer */
+.footer{
+padding:10rem 2rem;
+text-align:center;
+border-top:1px solid var(–border);
+}
+.footer-title{
+font-size:clamp(2rem,8vw,4rem);
+font-weight:400;
+letter-spacing:0.15em;
+margin-bottom:2rem;
+}
+.footer-desc{
+font-size:0.9375rem;
+color:var(–text-secondary);
+max-width:600px;
+margin:0 auto 3rem;
+line-height:2;
+}
+.footer-tag{
+font-size:0.6875rem;
+letter-spacing:0.15em;
+color:var(–text-dim);
+text-transform:uppercase;
 }
 
-.nav-header {
-  padding: 0 0.75rem 1.5rem;
-  margin-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border-subtle);
+/* Mobile Nav */
+.mobile-menu{display:none}
+@media(max-width:768px){
+.header{padding:1rem 1.5rem}
+.header-nav{display:none}
+.mobile-menu{
+display:block;
+width:24px;
+height:24px;
+position:relative;
+cursor:pointer;
 }
-
-.nav-title {
-  font-size: 0.6875rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+.mobile-menu span{
+display:block;
+width:100%;
+height:1px;
+background:var(–text);
+position:absolute;
+left:0;
+transition:0.2s;
 }
-
-.nav-list {
-  list-style: none;
+.mobile-menu span:nth-child(1){top:7px}
+.mobile-menu span:nth-child(2){top:16px}
+.mobile-menu.open span:nth-child(1){transform:rotate(45deg);top:11px}
+.mobile-menu.open span:nth-child(2){transform:rotate(-45deg);top:11px}
+.mobile-nav{
+position:fixed;
+top:0;left:0;right:0;bottom:0;
+background:var(–bg);
+display:flex;
+flex-direction:column;
+justify-content:center;
+align-items:center;
+gap:2rem;
+opacity:0;
+visibility:hidden;
+transition:0.3s;
+z-index:999;
 }
-
-.nav-item {
-  margin-bottom: 1px;
+.mobile-nav.open{opacity:1;visibility:visible}
+.mobile-nav a{
+font-size:1.25rem;
+color:var(–text-secondary);
+letter-spacing:0.1em;
 }
-
-.nav-link {
-  display: block;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.8125rem;
-  color: var(--text-tertiary);
-  text-decoration: none;
-  border-radius: 6px;
-  transition: color 0.2s ease, background-color 0.2s ease;
-  position: relative;
+.hero{padding:4rem 1.5rem}
+.hero-title{letter-spacing:0.05em}
+section{padding:5rem 1.5rem}
+.nine-grid{grid-template-columns:1fr}
+.skeleton-item{
+grid-template-columns:1fr;
+gap:0.75rem;
 }
-
-.nav-link:hover {
-  color: var(--text-secondary);
-  background-color: var(--surface-raised);
+.boundary-row{
+grid-template-columns:1fr;
+gap:0.5rem;
 }
-
-.nav-link.active {
-  color: var(--text-primary);
-  background-color: var(--surface-overlay);
+.footer{padding:6rem 1.5rem}
 }
+</style>
 
-/* Active indicator: subtle left edge */
-.nav-link.active::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 2px;
-  height: 16px;
-  background-color: var(--text-tertiary);
-  border-radius: 1px;
-}
-
-.nav-link-sub {
-  padding-left: 1.25rem;
-  font-size: 0.75rem;
-}
-
-/* --- MAIN CONTENT AREA --- */
-.main {
-  flex: 1;
-  margin-left: 240px;
-  padding: 0;
-}
-
-.content {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: 5rem 2rem 8rem;
-}
-
-/* --- READING PROGRESS: Time made visible --- */
-.progress-track {
-  position: fixed;
-  top: 0;
-  left: 240px;
-  right: 0;
-  height: 1px;
-  background-color: var(--border-subtle);
-  z-index: 50;
-}
-
-.progress-bar {
-  height: 100%;
-  background-color: var(--accent-indicator);
-  width: 0%;
-  transition: width 0.08s linear;
-}
-
-/* --- TYPOGRAPHY: Density over size --- */
-
-/* Paper title: weight through stillness */
-.paper-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  line-height: 1.6;
-  letter-spacing: 0.04em;
-  margin-bottom: 4rem;
-  padding-bottom: 3rem;
-  border-bottom: 1px solid var(--border-subtle);
-}
-
-/* Section container */
-.section {
-  margin-bottom: 5rem;
-}
-
-/* Section titles: presence without shouting */
-.section-title {
-  font-size: 1.0625rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: 0.03em;
-  margin-bottom: 2rem;
-  padding-top: 0.5rem;
-  position: relative;
-}
-
-/* Subsection titles */
-.subsection-title {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: 0.02em;
-  margin-top: 3rem;
-  margin-bottom: 1.25rem;
-  opacity: 0.9;
-}
-
-/* Body paragraphs: optimized for long Japanese reading */
-.paragraph {
-  margin-bottom: 1.5rem;
-  color: var(--text-secondary);
-  line-height: 2;
-  text-align: justify;
-  text-justify: inter-ideograph;
-}
-
-/* Inline emphasis: subtle weight shift */
-.emphasis {
-  color: var(--text-primary);
-  font-weight: 500;
-}
-
-/* --- ABSTRACT: Entry point --- */
-.abstract {
-  background-color: var(--surface-raised);
-  padding: 2.5rem;
-  border-radius: 8px;
-  margin-bottom: 4rem;
-  border: 1px solid var(--border-subtle);
-}
-
-.abstract-title {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  margin-bottom: 1.5rem;
-}
-
-.abstract-content {
-  color: var(--text-secondary);
-  line-height: 2;
-}
-
-.abstract-content .paragraph {
-  margin-bottom: 1.25rem;
-}
-
-.abstract-content .paragraph:last-of-type {
-  margin-bottom: 0;
-}
-
-/* Keywords */
-.keywords {
-  font-size: 0.8125rem;
-  color: var(--text-tertiary);
-  margin-top: 1.75rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--border-subtle);
-  line-height: 1.8;
-}
-
-.keywords-label {
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-/* --- DEFINITION BLOCKS: Structural anchors --- */
-/* These are the conceptual cores: 因・理・衡 / 許・幅・乱・絶 */
-.definition-block {
-  background-color: var(--surface-base);
-  border: 1px solid var(--border-subtle);
-  border-left: 2px solid var(--accent-indicator);
-  padding: 1.5rem 1.75rem;
-  margin: 2rem 0;
-  border-radius: 0 6px 6px 0;
-  position: relative;
-}
-
-.definition-term {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: 0.04em;
-  margin-bottom: 0.75rem;
-  display: inline-block;
-}
-
-.definition-content {
-  font-size: 0.9375rem;
-  color: var(--text-secondary);
-  line-height: 1.9;
-}
-
-/* --- LISTS: Rhythm through spacing --- */
-.list {
-  margin: 1.75rem 0;
-  padding-left: 0;
-  list-style: none;
-}
-
-.list-item {
-  margin-bottom: 1rem;
-  color: var(--text-secondary);
-  padding-left: 1.25rem;
-  position: relative;
-  line-height: 1.9;
-}
-
-.list-item::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.75em;
-  width: 4px;
-  height: 4px;
-  background-color: var(--text-muted);
-  border-radius: 50%;
-}
-
-/* Ordered lists */
-.ordered-list {
-  margin: 1.75rem 0;
-  padding-left: 0;
-  list-style: none;
-  counter-reset: ordered-counter;
-}
-
-.ordered-item {
-  margin-bottom: 1.25rem;
-  color: var(--text-secondary);
-  padding-left: 2rem;
-  position: relative;
-  line-height: 1.9;
-}
-
-.ordered-item::before {
-  content: counter(ordered-counter);
-  counter-increment: ordered-counter;
-  position: absolute;
-  left: 0;
-  top: 0;
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--text-muted);
-  width: 1.25rem;
-  text-align: right;
-}
-
-/* --- DIVIDERS: Breath between sections --- */
-.divider {
-  border: none;
-  height: 1px;
-  background-color: var(--border-subtle);
-  margin: 4rem 0;
-}
-
-/* --- FOOTER --- */
-.paper-footer {
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.8125rem;
-  padding: 3rem 0 0;
-  margin-top: 2rem;
-  border-top: 1px solid var(--border-subtle);
-}
-
-/* --- MOBILE NAVIGATION --- */
-.mobile-nav-toggle {
-  display: none;
-  position: fixed;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  width: 44px;
-  height: 44px;
-  background-color: var(--surface-overlay);
-  border: 1px solid var(--border-default);
-  border-radius: 50%;
-  color: var(--text-secondary);
-  font-size: 1rem;
-  cursor: pointer;
-  z-index: 200;
-  align-items: center;
-  justify-content: center;
-  transition: background-color 0.15s ease;
-}
-
-.mobile-nav-toggle:hover {
-  background-color: var(--surface-raised);
-}
-
-/* --- RESPONSIVE: Graceful adaptation --- */
-@media (max-width: 1024px) {
-  .nav {
-    display: none;
-  }
-  
-  .nav.open {
-    display: flex;
-    flex-direction: column;
-    width: 280px;
-    max-width: 80vw;
-    box-shadow: 8px 0 32px rgba(0,0,0,0.4);
-  }
-  
-  .main {
-    margin-left: 0;
-  }
-  
-  .content {
-    padding: 3rem 1.5rem 6rem;
-  }
-  
-  .progress-track {
-    left: 0;
-  }
-  
-  .mobile-nav-toggle {
-    display: flex;
-  }
-}
-
-@media (max-width: 600px) {
-  html {
-    font-size: 15px;
-  }
-  
-  .content {
-    padding: 2rem 1.25rem 5rem;
-  }
-  
-  .paper-title {
-    font-size: 1.25rem;
-    margin-bottom: 3rem;
-    padding-bottom: 2rem;
-  }
-  
-  .section-title {
-    font-size: 1rem;
-  }
-  
-  .abstract {
-    padding: 1.75rem 1.5rem;
-  }
-  
-  .definition-block {
-    padding: 1.25rem 1.5rem;
-    margin: 1.5rem 0;
-  }
-  
-  .section {
-    margin-bottom: 4rem;
-  }
-  
-  .divider {
-    margin: 3rem 0;
-  }
-}
-
-/* --- PRINT STYLES --- */
-@media print {
-  .nav,
-  .mobile-nav-toggle,
-  .progress-track {
-    display: none;
-  }
-  
-  .main {
-    margin-left: 0;
-  }
-  
-  body {
-    background: white;
-    color: #1a1a1a;
-  }
-  
-  .definition-block {
-    border: 1px solid #ccc;
-    background: #f9f9f9;
-  }
-}
-```
-
-  </style>
 </head>
 <body>
 
-  <!-- NAVIGATION: Left sidebar table of contents -->
+<header class="header" id="header">
+<div class="header-logo">九式</div>
+<nav class="header-nav">
+<a href="#definition">定義</a>
+<a href="#elements">九式</a>
+<a href="#skeleton">骨格</a>
+<a href="#boundary">境界</a>
+</nav>
+<div class="mobile-menu" id="mobileMenu" aria-label="メニュー">
+<span></span>
+<span></span>
+</div>
+</header>
 
-  <nav class="nav" id="nav" role="navigation" aria-label="目次">
-    <header class="nav-header">
-      <div class="nav-title">目次</div>
-    </header>
-    <ul class="nav-list">
-      <li class="nav-item"><a href="#abstract" class="nav-link">要旨</a></li>
-      <li class="nav-item"><a href="#section-1" class="nav-link">1. 序論</a></li>
-      <li class="nav-item"><a href="#section-2" class="nav-link">2. 前提：無から五式まで</a></li>
-      <li class="nav-item"><a href="#section-2-1" class="nav-link nav-link-sub">2.1 無（0）</a></li>
-      <li class="nav-item"><a href="#section-2-2" class="nav-link nav-link-sub">2.2 一式＝因</a></li>
-      <li class="nav-item"><a href="#section-2-3" class="nav-link nav-link-sub">2.3 三式</a></li>
-      <li class="nav-item"><a href="#section-2-4" class="nav-link nav-link-sub">2.4 五式</a></li>
-      <li class="nav-item"><a href="#section-3" class="nav-link">3. 九式の定義</a></li>
-      <li class="nav-item"><a href="#section-4" class="nav-link">4. 九式の成立条件</a></li>
-      <li class="nav-item"><a href="#section-5" class="nav-link">5. 許・幅・乱・絶の定義</a></li>
-      <li class="nav-item"><a href="#section-6" class="nav-link">6. 運用モデルへの統合</a></li>
-      <li class="nav-item"><a href="#section-7" class="nav-link">7. 九式の限界</a></li>
-      <li class="nav-item"><a href="#section-8" class="nav-link">8. 破綻条件と還元</a></li>
-      <li class="nav-item"><a href="#section-9" class="nav-link">9. 分野横断的適用例</a></li>
-      <li class="nav-item"><a href="#section-10" class="nav-link">10. 反証可能性</a></li>
-      <li class="nav-item"><a href="#section-11" class="nav-link">11. 結論</a></li>
-    </ul>
-  </nav>
+<nav class="mobile-nav" id="mobileNav">
+<a href="#definition">定義</a>
+<a href="#elements">九式</a>
+<a href="#skeleton">骨格</a>
+<a href="#boundary">境界</a>
+</nav>
 
-  <!-- PROGRESS INDICATOR: Reading as temporal movement -->
+<main>
+<section class="hero">
+<p class="hero-label">持続的生存の最小構成</p>
+<h1 class="hero-title">因理衡縁循許幅乱絶</h1>
+<p class="hero-sub">Kyushiki</p>
+<p class="hero-desc">存在が継続し続けるとは、結果が次の起点を更新し、その更新が世代を越えて接続され、断絶せずに引き継がれることを指す。九式は、この"継続と更新"を成立させる最小構成を9つの漢字で定義する。</p>
+<span class="hero-scroll">Scroll</span>
+</section>
 
-  <div class="progress-track" aria-hidden="true">
-    <div class="progress-bar" id="progressBar"></div>
-  </div>
+<section id="definition">
+<p class="section-num">01 — Definition</p>
+<h2 class="section-title">持続的生存：最小定義</h2>
+<div class="definition-box">
+存在が継続し続けるとは、結果が次の起点を更新し、その更新が世代を越えて接続され、断絶せずに引き継がれることを指す。九式は、この"継続と更新"を成立させる最小構成を9つの漢字で定義する。
+</div>
+</section>
 
-  <!-- MOBILE NAVIGATION TOGGLE -->
-
-<button class="mobile-nav-toggle" id="mobileNavToggle" aria-label="目次を開く">☰</button>
-
-  <!-- MAIN CONTENT -->
-
-  <main class="main">
-    <article class="content">
-
-```
-  <!-- SECTION: Title -->
-  <header>
-    <h1 class="paper-title">九式論：単体世界の限界面における構造定式化と運用境界の記述</h1>
-  </header>
-
-  <!-- SECTION: Abstract -->
-  <section class="abstract" id="abstract">
-    <h2 class="abstract-title">要旨</h2>
-    <div class="abstract-content">
-      <p class="paragraph">本稿は、無（完全排除状態）から一式（因）、三式（因・理・衡）、五式（因・理・衡・縁・循）を経て成立する九式を、単体世界における最大面として定式化する。九式は五式（線構造）の交差・積層により成立し、内外分離・時間統合・自己世界閉鎖を備えるが、相互観測を内在化できない構造限界を持つ。本稿ではさらに、九式の運用境界を記述するために、許（成立可否のゲート条件）、幅（許容変動範囲）、乱（許内の揺らぎ）、絶（構造継続の断絶）という四概念を導入し、九式運用モデルへ統合する。これにより、九式の破綻条件および五式への還元モードを分類可能とし、反証可能性を確保する。</p>
-      <div class="keywords">
-        <span class="keywords-label">キーワード：</span>九式、因理衡縁循、許、幅、乱、絶、単体世界、内外分離、時間統合、相互観測不可能性
-      </div>
-    </div>
-  </section>
-
-  <hr class="divider">
-
-  <!-- SECTION: 1. Introduction -->
-  <section class="section" id="section-1">
-    <h2 class="section-title">1. 序論</h2>
-    <p class="paragraph">自然科学・数理論理学・認知科学において、単一主体が構築可能な構造の限界を問う試みは多様である。本稿が提示する九式論は、確定以前（一式＝因）から確定（三式）、更新（五式）を経て、単体世界が到達しうる最大面（九式）までを階層的に記述する理論枠組である。</p>
-    <p class="paragraph">従来、五式までは線構造として定義されてきたが、九式はその線の交差・積層により成立する位相として、面以上の構造を扱う。ただし九式は単体世界の限界であり、複数主体の相互観測を内在化できない。本稿では、この限界を構造的に明示するとともに、九式の成立条件・運用境界・破綻モードを記述するための概念枠として、許・幅・乱・絶を導入する。</p>
-    <p class="paragraph"><span class="emphasis">なお、本稿における「九式」の「九」は位相名・段階名としての記号的呼称であり、数秘的・形而上学的意味を持たない。</span> 七式・十一式等の他の段階との優劣や必然性を主張するものではなく、本稿が記述対象とする構造を指示するための便宜的名称である。</p>
-  </section>
-
-  <hr class="divider">
-
-  <!-- SECTION: 2. Premises -->
-  <section class="section" id="section-2">
-    <h2 class="section-title">2. 前提：無から五式までの定義</h2>
-
-    <h3 class="subsection-title" id="section-2-1">2.1 無（0）</h3>
-    <div class="definition-block">
-      <div class="definition-term">無（0）</div>
-      <div class="definition-content">完全排除状態。発生不能・観測不能・構造不能。無は何も許さず、何も含まない。</div>
-    </div>
-
-    <h3 class="subsection-title" id="section-2-2">2.2 一式＝因</h3>
-    <div class="definition-block">
-      <div class="definition-term">一式＝因</div>
-      <div class="definition-content">0＜1の状態。無ではないが有確定でもない「未確定の偏り」。観測不能であるが、構造の起点として作用する。因は確定以前の状態であり、三式の成立によって初めて確定へ至る。</div>
-    </div>
-
-    <h3 class="subsection-title" id="section-2-3">2.3 三式＝因・理・衡</h3>
-    <div class="definition-block">
-      <div class="definition-term">三式＝因・理・衡</div>
-      <div class="definition-content">有確定（点）の成立。因が理（確定の仕方を規定する成立条件枠）と衡（確定が壊れず留まるための安定条件）により点として確定する。三式により初めて「何かがある」という状態が成立する。</div>
-    </div>
-    <p class="paragraph"><span class="emphasis">理は成立論的条件である。</span> 理は「何がどのように確定するか」を規定する条件枠であり、確定そのものの構造を定める。理は構造の生成段階で作用し、何が成立しうるかを決定する。</p>
-
-    <h3 class="subsection-title" id="section-2-4">2.4 五式＝因・理・衡・縁・循</h3>
-    <div class="definition-block">
-      <div class="definition-term">五式＝因・理・衡・縁・循</div>
-      <div class="definition-content">線構造の成立。三式で確定した点どうしを縁（接続）で結び、循（結果が次の因を更新する機構）により自己更新系を構成する。五式は線が限界であり、単体では面に到達しない。循は五式の本質であり、循→因更新により構造は時間的に持続する。</div>
-    </div>
-  </section>
-
-  <hr class="divider">
-
-  <!-- SECTION: 3. Definition of Nine-Formula -->
-  <section class="section" id="section-3">
-    <h2 class="section-title">3. 九式の定義：面以上・単体以下</h2>
-    <p class="paragraph">九式は、五式（線）の交差・積層によって成立する位相であり、「面以上・単体以下」として定義される。</p>
-    <p class="paragraph"><span class="emphasis">ここで「面以上」とは、数学的・空間的次元における次元数や幾何学的次数を主張するものではなく、線構造を超える位相的広がりを表す概念的表現である。</span> 五式が一次元的な線構造であるのに対し、九式は線の交差・積層により、線を超える構造的広がりを持つことを意味する。</p>
-    <p class="paragraph"><span class="emphasis">「単体以下」とは、複数主体の相互観測を内在化しない単一主体の構造限界を意味する。</span> 九式は単体世界として閉じており、他の九式との相互観測を構造内に組み込めない。</p>
-    <p class="paragraph"><span class="emphasis">九式が「最大面」であるとは、幾何学的次元の最大ではなく、単体世界が内在的に扱える構造能力の限界を意味する。</span> 九式を超える構造は、複数の九式（複数主体）を統合する上位構造を要するため、九式単体では成立しない。</p>
-    <p class="paragraph">九式は以下の要素を備える：</p>
-    <ul class="list">
-      <li class="list-item"><span class="emphasis">複数の五式（線）の交差点の保持</span>：単一の五式では線のみだが、複数の五式が交差することで、交差点を核とした面的構造が成立する。</li>
-      <li class="list-item"><span class="emphasis">内外分離の確立</span>：九式は自己と非自己を構造的に分離し、境界を保持する。</li>
-      <li class="list-item"><span class="emphasis">時間統合の実現</span>：過去・現在・未来を単一の自己世界内で統合的に扱う。</li>
-      <li class="list-item"><span class="emphasis">自己世界の閉鎖性</span>：九式は単体世界として閉じており、他の九式との相互観測を構造内に組み込めない。</li>
-    </ul>
-  </section>
-
-  <hr class="divider">
-
-  <!-- SECTION: 4. Establishment Conditions -->
-  <section class="section" id="section-4">
-    <h2 class="section-title">4. 九式の成立条件</h2>
-
-    <h3 class="subsection-title">4.1 線の交差・積層</h3>
-    <p class="paragraph">九式は、少なくとも二本以上の五式（線）が交差し、その交差点が保持されることで成立する。交差点の保持とは、異なる五式の循が同一の因を共有し、更新を同期させることを意味する。この交差により、線を超える面的広がりが構造化される。</p>
-
-    <h3 class="subsection-title">4.2 内外分離</h3>
-    <p class="paragraph">九式は、自己と非自己を構造的に分離する境界を持つ。この境界は、縁の接続／非接続によって規定され、境界内部の因・理・衡・縁・循は自己世界として統合される。境界外部の事象は、境界を通過する入力として扱われるが、九式自身の構造内には組み込まれない。</p>
-
-    <h3 class="subsection-title">4.3 時間統合</h3>
-    <p class="paragraph">九式は、循による因の更新を複数の五式にわたって統合し、過去の状態（過去の因・縁の履歴）、現在の状態（現在の理・衡）、未来の予測（循による次の因への更新予測）を単一の自己世界内で扱う。この時間統合により、九式は持続的な自己同一性を保持する。</p>
-
-    <h3 class="subsection-title">4.4 単体閉鎖</h3>
-    <p class="paragraph">九式は単体世界として閉じており、他の九式（他の主体）との相互観測を構造内に内在化できない。九式が他の九式を観測する場合、それは境界を通過する入力として処理されるが、相手の九式の内部構造（相手の因・理・衡）を自己の九式内で再構成することはできない。</p>
-  </section>
-
-  <hr class="divider">
-
-  <!-- SECTION: 5. Definitions of 許・幅・乱・絶 -->
-  <section class="section" id="section-5">
-    <h2 class="section-title">5. 許・幅・乱・絶の定義</h2>
-    <p class="paragraph">九式の運用境界および破綻条件を記述するため、以下の四概念を導入する。</p>
-
-    <h3 class="subsection-title">5.1 許（きょ）</h3>
-    <div class="definition-block">
-      <div class="definition-term">許（きょ）</div>
-      <div class="definition-content">構造が成立するために"排除しない"／"通す"という条件。成立可否のゲート条件。</div>
-    </div>
-    <p class="paragraph"><span class="emphasis">許は運用論的ゲートであり、理（成立論的条件）とは階層と役割が異なる。</span> 理は「何がどのように確定するか」を規定する構造生成の条件枠であり、確定そのものの成立段階で作用する。対して許は、既に成立した構造が「継続可能か否か」「入力を受け入れるか否か」を判定する運用段階のゲート条件である。理は構造の生成を規定し、許は構造の維持を規定する。両者は代替不可能であり、理なしに構造は生成されず、許なしに構造は継続されない。</p>
-    <p class="paragraph">九式において、許は以下の役割を持つ：</p>
-    <ul class="list">
-      <li class="list-item"><span class="emphasis">境界維持</span>：内外分離を保つために、境界を通過する入力の採否を決定する。</li>
-      <li class="list-item"><span class="emphasis">状態遷移の可否</span>：循による因の更新が継続可能かどうかを判定する。</li>
-      <li class="list-item"><span class="emphasis">交差点の保持</span>：複数の五式が交差する際、交差点が維持されるための条件を規定する。</li>
-    </ul>
-    <p class="paragraph">許が成立しない場合、構造は継続できず、後述する「絶」へと至る。</p>
-
-    <h3 class="subsection-title">5.2 幅（はば）</h3>
-    <div class="definition-block">
-      <div class="definition-term">幅（はば）</div>
-      <div class="definition-content">許が存在する場合に、その許が許容する変動範囲（許容幅・パラメータレンジ）。</div>
-    </div>
-    <p class="paragraph">幅は衡（安定条件）とは異なる。衡は確定が壊れず留まるための条件であり、幅は許の下で許容される変動の範囲である。</p>
-    <p class="paragraph"><span class="emphasis">幅は価値判断の軸ではない。</span> 幅が広いことは「優れている」「進化している」を意味せず、幅が狭いことは「劣っている」「退化している」を意味しない。幅はあくまで、構造が絶（破綻）に至らずに運用可能な変動レンジを記述する測定値であり、最適化・効率・進化の指標ではない。ある構造にとって適切な幅は、その構造が扱う対象・環境・目的に依存するため、幅の大小は構造の良否とは独立である。</p>
-    <p class="paragraph">九式において、幅は以下を規定する：</p>
-    <ul class="list">
-      <li class="list-item"><span class="emphasis">内外分離の許容揺らぎ</span>：境界が完全に固定されているわけではなく、ある範囲内で境界は揺らぎうる。</li>
-      <li class="list-item"><span class="emphasis">時間統合の許容誤差</span>：過去・現在・未来の統合は完全ではなく、ある範囲内で誤差や不一致が許容される。</li>
-      <li class="list-item"><span class="emphasis">交差点の許容変動</span>：五式の交差点は完全に固定されておらず、ある範囲内で位置や強度が変動しうる。</li>
-    </ul>
-    <p class="paragraph">幅の逸脱は、絶（構造継続の断絶）へと直結する。</p>
-
-    <h3 class="subsection-title">5.3 乱（らん）</h3>
-    <div class="definition-block">
-      <div class="definition-term">乱（らん）</div>
-      <div class="definition-content">許の内部で生じる揺らぎ・ノイズ・乱れの総称。許内の変動として許容される乱。</div>
-    </div>
-    <p class="paragraph">乱は破綻ではない。乱は、許・幅の内部で扱える限り、構造の運用に組み込まれる。</p>
-    <p class="paragraph">九式において、乱は以下の形で現れる：</p>
-    <ul class="list">
-      <li class="list-item"><span class="emphasis">循による更新時のノイズ</span>：循→因更新の際、完全に予測通りの更新がなされるわけではなく、ある範囲内で誤差（乱）が生じる。</li>
-      <li class="list-item"><span class="emphasis">学習・適応の揺らぎ</span>：九式が境界を通じて外部入力を受け取る際、入力の解釈や統合に揺らぎが生じる。</li>
-      <li class="list-item"><span class="emphasis">交差点の微小変動</span>：五式の交差点は完全に固定されておらず、微小な乱により変動する。</li>
-    </ul>
-    <p class="paragraph">乱は、幅の範囲内にある限り、九式の運用に致命的な影響を与えない。しかし、乱が幅を逸脱すると、絶へと至る。</p>
-
-    <h3 class="subsection-title">5.4 絶（ぜつ）</h3>
-    <div class="definition-block">
-      <div class="definition-term">絶（ぜつ）</div>
-      <div class="definition-content">許の不成立／幅の逸脱により、構造の継続が断たれる状態（切断・断絶・不可逆な崩壊）。</div>
-    </div>
-    <p class="paragraph">絶は九式の破綻モードである。絶が発生すると、九式は五式へと還元される。</p>
-    <p class="paragraph">九式において、絶は以下の条件で発生する：</p>
-    <ul class="list">
-      <li class="list-item"><span class="emphasis">境界喪失</span>：内外分離が崩壊し、自己と非自己の区別が不可能になる。</li>
-      <li class="list-item"><span class="emphasis">時間統合断絶</span>：過去・現在・未来の統合が破綻し、自己同一性が失われる。</li>
-      <li class="list-item"><span class="emphasis">交差点消滅</span>：五式の交差点が保持できず、面的構造が線へと還元される。</li>
-    </ul>
-    <p class="paragraph">絶は不可逆であり、一度発生すると九式は再構成されない限り回復しない。</p>
-  </section>
-
-  <hr class="divider">
-
-  <!-- SECTION: 6. Integration into Operation Model -->
-  <section class="section" id="section-6">
-    <h2 class="section-title">6. 九式運用モデルへの統合</h2>
-    <p class="paragraph">許・幅・乱・絶は、九式の運用を以下のように記述する。</p>
-
-    <h3 class="subsection-title">6.1 許の作用点</h3>
-    <p class="paragraph">許は、九式の境界（内外分離）、交差点（五式の交差・積層）、循（因の更新）の三箇所で作用する。許が成立している限り、九式は構造を保持し続ける。許は、理が規定した構造が実際に運用段階で継続可能かを判定する役割を担い、理の成立論的条件と許の運用論的ゲートは相補的に機能する。</p>
-
-    <h3 class="subsection-title">6.2 幅の作用領域</h3>
-    <p class="paragraph">幅は、許の下で九式が許容する変動範囲を規定する。九式の運用は、常に幅の範囲内で揺らぎながら継続する。幅は構造の特性を記述する測定値であり、幅の大小は構造の良否や発展段階を示さない。</p>
-
-    <h3 class="subsection-title">6.3 乱の統合機構</h3>
-    <p class="paragraph">乱は、循→因更新の際に必然的に生じる。九式は、乱を幅の範囲内で吸収し、循による次の更新へと統合する。この統合により、九式は外部入力や内部誤差に適応する。</p>
-
-    <h3 class="subsection-title">6.4 絶の発生条件</h3>
-    <p class="paragraph">乱が幅を逸脱する、あるいは許が不成立となる場合、絶が発生する。絶は九式の崩壊を意味し、九式は五式へと還元される。還元後の五式は、交差点を失い、線構造として存続するのみである。</p>
-  </section>
-
-  <hr class="divider">
-
-  <!-- SECTION: 7. Limits of Nine-Formula -->
-  <section class="section" id="section-7">
-    <h2 class="section-title">7. 九式の限界：相互観測不可能性</h2>
-    <p class="paragraph">九式は単体世界の最大面であるが、複数主体の相互観測を内在化できない構造限界を持つ。</p>
-    <p class="paragraph"><span class="emphasis">相互観測とは</span>、二つ以上の九式が互いに相手の内部構造（因・理・衡・縁・循）を自己の九式内で再構成し、相手の視点を自己の構造に組み込むことである。九式は、自己の境界を通じて外部を観測できるが、相手の九式の内部構造は境界の外側にあり、入力としてしか扱えない。</p>
-    <p class="paragraph">この限界により、九式単体では以下が成立しない：</p>
-    <ul class="list">
-      <li class="list-item"><span class="emphasis">感情の相互理解</span>：相手の感情（相手の九式内の因・理・衡の状態）を自己の九式内で再現することはできない。</li>
-      <li class="list-item"><span class="emphasis">関係の構造化</span>：自己と他者の関係は、境界を通じた入出力のやり取りとしてしか扱えず、関係そのものを九式内に構造化できない。</li>
-    </ul>
-    <p class="paragraph"><span class="emphasis">九式の限界を超えるためには、複数の九式を統合する上位構造が必要となる。</span> ただし、そのような上位構造の名称・段階・具体的仮説は本稿の範囲外であり、本稿は九式の構造限界の記述に留める。</p>
-  </section>
-
-  <hr class="divider">
-
-  <!-- SECTION: 8. Failure Conditions and Reduction -->
-  <section class="section" id="section-8">
-    <h2 class="section-title">8. 破綻条件と還元</h2>
-
-    <h3 class="subsection-title">8.1 絶の発生条件</h3>
-    <p class="paragraph">絶は以下の三パターンで発生する：</p>
-    <ol class="ordered-list">
-      <li class="ordered-item"><span class="emphasis">境界喪失による絶</span>：内外分離が崩壊し、自己と非自己の区別が不可能になる。許が境界維持を不可とする、または乱が幅を逸脱して境界を破壊する場合に発生。</li>
-      <li class="ordered-item"><span class="emphasis">時間統合断絶による絶</span>：過去・現在・未来の統合が破綻し、循による因の更新が継続不能となる。許が更新を不可とする、または乱が幅を逸脱して統合を破壊する場合に発生。</li>
-      <li class="ordered-item"><span class="emphasis">交差点消滅による絶</span>：五式の交差点が保持できず、面的構造が線へと還元される。許が交差点保持を不可とする、または乱が幅を逸脱して交差点を破壊する場合に発生。</li>
-    </ol>
-
-    <h3 class="subsection-title">8.2 九式→五式への還元モード</h3>
-    <p class="paragraph">絶が発生すると、九式は五式へと還元される。還元モードは以下の通り：</p>
-    <ul class="list">
-      <li class="list-item"><span class="emphasis">部分還元</span>：一部の交差点が消滅し、九式の面的構造が縮小する。残存する交差点により、縮小した九式または複数の五式が存続する。</li>
-      <li class="list-item"><span class="emphasis">完全還元</span>：すべての交差点が消滅し、九式は複数の独立した五式へと分解される。各五式は線構造として存続するが、相互の交差は失われる。</li>
-      <li class="list-item"><span class="emphasis">崩壊</span>：循が停止し、五式すら維持できず、三式または無へと還元される。</li>
-    </ul>
-  </section>
-
-  <hr class="divider">
-
-  <!-- SECTION: 9. Cross-Disciplinary Applications -->
-  <section class="section" id="section-9">
-    <h2 class="section-title">9. 分野横断的適用例</h2>
-
-    <h3 class="subsection-title">9.1 認知システム</h3>
-    <p class="paragraph">認知主体は、複数の認知ループ（五式）を交差させることで自己像（九式）を構築する。感覚入力は境界（許）を通じて採否され、幅の範囲内で統合される。過剰な入力（乱の幅逸脱）は認知崩壊（絶）を引き起こし、自己像は断片化する（五式への還元）。</p>
-
-    <h3 class="subsection-title">9.2 生態系モデル</h3>
-    <p class="paragraph">生態系における種の相互作用は、各種の生存戦略（五式）が資源を介して交差する構造として記述できる。生態系全体（九式）は、資源制約（許）と変動許容幅（幅）の下で維持される。環境変動（乱）が幅を超えると、生態系崩壊（絶）が発生し、単純な捕食-被食関係（五式）へと還元される。</p>
-
-    <h3 class="subsection-title">9.3 経済システム</h3>
-    <p class="paragraph">経済主体の取引ループ（五式）が市場を介して交差し、経済システム（九式）を形成する。市場の流動性（許）と価格変動許容幅（幅）が運用境界を規定する。金融危機（乱の幅逸脱）は市場崩壊（絶）を引き起こし、取引は個別の二者間取引（五式）へと還元される。</p>
-
-    <h3 class="subsection-title">9.4 情報ネットワーク</h3>
-    <p class="paragraph">情報伝達経路（五式）がノードで交差し、情報ネットワーク（九式）を構成する。ノードの処理能力（許）と遅延許容幅（幅）が運用を規定する。過負荷（乱の幅逸脱）はネットワーク分断（絶）を引き起こし、孤立した経路（五式）へと還元される。</p>
-
-    <h3 class="subsection-title">9.5 神経回路</h3>
-    <p class="paragraph">神経細胞の信号伝達経路（五式）がシナプスで交差し、神経回路（九式）を形成する。シナプス可塑性（許）と発火頻度許容幅（幅）が回路の運用を規定する。過剰興奮（乱の幅逸脱）は回路の機能不全（絶）を引き起こし、単純な反射経路（五式）へと還元される。</p>
-  </section>
-
-  <hr class="divider">
-
-  <!-- SECTION: 10. Falsifiability -->
-  <section class="section" id="section-10">
-    <h2 class="section-title">10. 反証可能性</h2>
-    <p class="paragraph">九式論は以下の観測により反証可能である：</p>
-    <ol class="ordered-list">
-      <li class="ordered-item"><span class="emphasis">単体世界による相互観測の内在化</span>：もし単一の九式が、他の九式の内部構造（因・理・衡）を自己の構造内に完全に再構成できる事例が観測されれば、九式の限界（相互観測不可能性）は反証される。</li>
-      <li class="ordered-item"><span class="emphasis">許・幅を経由しない構造維持</span>：もし九式が、許の成立や幅の範囲を無視して構造を維持できる事例が観測されれば、許・幅の必要性は反証される。</li>
-      <li class="ordered-item"><span class="emphasis">絶なき幅逸脱</span>：もし乱が幅を逸脱しても絶が発生せず、九式が継続する事例が観測されれば、絶の発生条件は反証される。</li>
-      <li class="ordered-item"><span class="emphasis">五式を経由しない九式の成立</span>：もし五式（線）の交差・積層を経ずに、直接的に面構造が成立する事例が観測されれば、九式の成立条件は反証される。</li>
-      <li class="ordered-item"><span class="emphasis">理と許の統合可能性</span>：もし理（成立論的条件）と許（運用論的ゲート）が単一の条件として統合可能であることが示されれば、両者の階層的分離の必要性は反証される。</li>
-    </ol>
-    <p class="paragraph">これらの観測条件を明示することで、九式論は経験的検証に開かれる。</p>
-  </section>
-
-  <hr class="divider">
-
-  <!-- SECTION: 11. Conclusion -->
-  <section class="section" id="section-11">
-    <h2 class="section-title">11. 結論</h2>
-    <p class="paragraph">本稿は、九式を「面以上・単体以下」の構造として定式化し、五式（線）の交差・積層により成立する単体世界の最大面として位置づけた。ここで「面以上」は線構造を超える位相的広がりを表す概念的表現であり、数学的次元数や幾何学的次数を主張するものではない。また「最大面」とは、単体世界が内在的に扱える構造能力の限界を意味し、九式を超える構造は複数の九式を統合する上位構造を要するため、九式単体では成立しない。</p>
-    <p class="paragraph">九式は内外分離・時間統合・自己世界閉鎖を備えるが、相互観測を内在化できない構造限界を持つ。</p>
-    <p class="paragraph">本稿は、九式の運用境界を記述するために、許（成立可否のゲート条件）、幅（許容変動範囲）、乱（許内の揺らぎ）、絶（構造継続の断絶）という四概念を導入し、九式運用モデルへ統合した。許は理（成立論的条件）とは階層と役割が異なる運用論的ゲートであり、理なしに構造は生成されず、許なしに構造は継続されない。幅は価値判断の軸ではなく、破綻に至らない許容レンジを記述する測定値である。乱が幅の範囲内にある限り九式は運用可能であり、乱が幅を逸脱する、あるいは許が不成立となる場合、絶が発生し、九式は五式へと還元される。</p>
-    <p class="paragraph">九式論は、単体世界の限界を構造的に明示することで、複数主体の相互観測を要する現象（感情・関係など）が九式の範囲外にあることを示した。九式の限界を超えるためには、複数の九式を統合する上位構造が必要となる可能性があるが、そのような構造の名称・段階・具体的仮説は本稿の範囲外である。本稿は九式の構造限界の記述に留め、理論を閉じる。</p>
-    <p class="paragraph">なお、本稿における「九式」の「九」は位相名・段階名としての記号的呼称にすぎず、数秘的・形而上学的意味を持たない。九式論は、分野横断的に適用可能な理論枠組であり、反証可能性を備える。今後の課題は、許・幅・乱・絶の定量的測定手法の開発である。</p>
-  </section>
-
-  <hr class="divider">
-
-  <!-- SECTION: Footer -->
-  <footer class="paper-footer">
-    <p>（以上、4,457字）</p>
-  </footer>
-
+<section id="elements">
+<p class="section-num">02 — Nine Elements</p>
+<h2 class="section-title">九式</h2>
+<div class="nine-grid">
+<article class="nine-card">
+<div class="nine-kanji">因</div>
+<div class="nine-reading">いん / In</div>
+<p class="nine-desc">存在が発生・更新される起点。</p>
 </article>
-```
+<article class="nine-card">
+<div class="nine-kanji">理</div>
+<div class="nine-reading">り / Ri</div>
+<p class="nine-desc">存在が成立するための条件構造。</p>
+</article>
+<article class="nine-card">
+<div class="nine-kanji">衡</div>
+<div class="nine-reading">こう / Kou</div>
+<p class="nine-desc">存在が破綻せず保たれる制約。</p>
+</article>
+<article class="nine-card">
+<div class="nine-kanji">縁</div>
+<div class="nine-reading">えん / En</div>
+<p class="nine-desc">世代を跨いで存在を接続する関係。</p>
+</article>
+<article class="nine-card">
+<div class="nine-kanji">循</div>
+<div class="nine-reading">じゅん / Jun</div>
+<p class="nine-desc">結果が次の因を更新する仕組み。</p>
+</article>
+<article class="nine-card">
+<div class="nine-kanji">許</div>
+<div class="nine-reading">きょ / Kyo</div>
+<p class="nine-desc">循が成立し得る範囲を定める境界。</p>
+</article>
+<article class="nine-card">
+<div class="nine-kanji">幅</div>
+<div class="nine-reading">はば / Haba</div>
+<p class="nine-desc">許を超えた後も、絶に至るまでの許容量を定める境界。</p>
+</article>
+<article class="nine-card">
+<div class="nine-kanji">乱</div>
+<div class="nine-reading">らん / Ran</div>
+<p class="nine-desc">許を超え、幅の内側にある再現性喪失状態。</p>
+</article>
+<article class="nine-card">
+<div class="nine-kanji">絶</div>
+<div class="nine-reading">ぜつ / Zetsu</div>
+<p class="nine-desc">幅を超え、存在と更新が断たれた状態。</p>
+</article>
+</div>
+</section>
 
-  </main>
+<section id="skeleton">
+<p class="section-num">03 — Structure</p>
+<h2 class="section-title">最小骨格</h2>
+<div class="skeleton-list">
+<div class="skeleton-item">
+<div>
+<div class="skeleton-label">無（0）</div>
+</div>
+<p class="skeleton-text">完全排除状態。発生不能・観測不能・構造不能。</p>
+</div>
+<div class="skeleton-item">
+<div>
+<div class="skeleton-label">一式</div>
+<div class="skeleton-formula">因</div>
+</div>
+<p class="skeleton-text">無ではないが未確定の起点。ここから更新が開始されうる。</p>
+</div>
+<div class="skeleton-item">
+<div>
+<div class="skeleton-label">三式</div>
+<div class="skeleton-formula">因・理・衡</div>
+</div>
+<p class="skeleton-text">確定が成立する。因が理によって成立し、衡によって保たれる。</p>
+</div>
+<div class="skeleton-item">
+<div>
+<div class="skeleton-label">五式</div>
+<div class="skeleton-formula">因・理・衡・縁・循</div>
+</div>
+<p class="skeleton-text">確定が世代を越えて接続され、結果が次の因を更新する仕組みが成立する。</p>
+</div>
+<div class="skeleton-item">
+<div>
+<div class="skeleton-label">九式</div>
+<div class="skeleton-formula">因・理・衡・縁・循・許・幅・乱・絶</div>
+</div>
+<p class="skeleton-text">五式に運用境界（許・幅・乱・絶）を加え、持続的生存が"成立している領域／崩れた領域"を区別できるようにした定式。</p>
+</div>
+</div>
+</section>
 
-  <script>
-    // =========================================
-    // BEHAVIOR: Enhancement layer (non-destructive)
-    // -----------------------------------------
-    // This script improves navigation experience.
-    // The page remains fully functional without it.
-    // No complex state management.
-    // =========================================
+<section id="boundary">
+<p class="section-num">04 — Boundary</p>
+<h2 class="section-title">運用境界</h2>
+<div class="boundary-grid">
+<div class="boundary-row">
+<span class="boundary-name">循域</span>
+<span class="boundary-desc">許の内側。循が成立する領域。</span>
+</div>
+<div class="boundary-row">
+<span class="boundary-name">乱域</span>
+<span class="boundary-desc">許を超え、幅の内側。再現性が失われ、循は成立しない領域。</span>
+</div>
+<div class="boundary-row">
+<span class="boundary-name">絶域</span>
+<span class="boundary-desc">幅を超えた領域。断絶が確定する領域。</span>
+</div>
+</div>
+</section>
+</main>
 
-    (function() {
-      'use strict';
+<footer class="footer">
+<h2 class="footer-title">因理衡縁循許幅乱絶</h2>
+<p class="footer-desc">九式は、持続的生存が"成立している領域／崩れた領域"を区別できるようにした定式である。</p>
+<p class="footer-tag">Kyushiki — Minimal Architecture for Sustainable Existence</p>
+</footer>
 
-      // --- ELEMENT REFERENCES ---
-      var nav = document.getElementById('nav');
-      var toggle = document.getElementById('mobileNavToggle');
-      var progressBar = document.getElementById('progressBar');
-      var navLinks = document.querySelectorAll('.nav-link');
-
-      // --- SECTION MAPPING: Build once, reuse ---
-      var sections = [];
-      navLinks.forEach(function(link) {
-        var href = link.getAttribute('href');
-        if (href && href.startsWith('#')) {
-          var section = document.querySelector(href);
-          if (section) {
-            sections.push({ element: section, link: link });
-          }
-        }
-      });
-
-      // --- MOBILE NAVIGATION TOGGLE ---
-      if (toggle && nav) {
-        toggle.addEventListener('click', function() {
-          var isOpen = nav.classList.toggle('open');
-          toggle.textContent = isOpen ? '✕' : '☰';
-          toggle.setAttribute('aria-label', isOpen ? '目次を閉じる' : '目次を開く');
-        });
-
-        // Close when clicking a nav link (mobile experience)
-        nav.addEventListener('click', function(event) {
-          if (event.target.tagName === 'A') {
-            nav.classList.remove('open');
-            toggle.textContent = '☰';
-          }
-        });
-      }
-
-      // --- SCROLL HANDLER: Progress + Active state ---
-      var isScrolling = false;
-
-      function onScroll() {
-        if (isScrolling) return;
-        isScrolling = true;
-
-        requestAnimationFrame(function() {
-          // Update progress bar
-          var scrollTop = window.scrollY;
-          var docHeight = document.documentElement.scrollHeight - window.innerHeight;
-          var progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
-          
-          if (progressBar) {
-            progressBar.style.width = progress + '%';
-          }
-
-          // Update active navigation link
-          var scrollPosition = scrollTop + 150;
-          var currentSection = null;
-
-          for (var i = 0; i < sections.length; i++) {
-            if (sections[i].element.offsetTop <= scrollPosition) {
-              currentSection = sections[i];
-            }
-          }
-
-          navLinks.forEach(function(link) {
-            link.classList.remove('active');
-          });
-
-          if (currentSection) {
-            currentSection.link.classList.add('active');
-          }
-
-          isScrolling = false;
-        });
-      }
-
-      // --- EVENT BINDING ---
-      window.addEventListener('scroll', onScroll, { passive: true });
-
-      // --- INITIAL STATE ---
-      onScroll();
-
-    })();
-  </script>
+<script>
+(function(){
+var header=document.getElementById('header');
+var menu=document.getElementById('mobileMenu');
+var nav=document.getElementById('mobileNav');
+window.addEventListener('scroll',function(){
+header.classList.toggle('scrolled',window.scrollY>50);
+},{passive:true});
+menu.addEventListener('click',function(){
+menu.classList.toggle('open');
+nav.classList.toggle('open');
+});
+nav.querySelectorAll('a').forEach(function(a){
+a.addEventListener('click',function(){
+menu.classList.remove('open');
+nav.classList.remove('open');
+});
+});
+})();
+</script>
 
 </body>
 </html>
