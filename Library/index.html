@@ -26,34 +26,34 @@ html,body{
 }
 body{
   font-family:Georgia,"Hiragino Mincho ProN","Yu Mincho",serif;
-  color:var(--text);
+  color:#4a4035;
   overflow-x:hidden;
 }
 
-/* Plaster wall background */
 .wall{
 min-height:100vh;
 position:relative;
-background:
+background-color:#d4c8b8;
+background-image:
 radial-gradient(ellipse 80% 50% at 20% 10%,rgba(255,250,240,0.4) 0%,transparent 50%),
 radial-gradient(ellipse 60% 40% at 85% 15%,rgba(255,245,230,0.3) 0%,transparent 40%),
 radial-gradient(ellipse 100% 80% at 50% 100%,rgba(160,140,120,0.15) 0%,transparent 50%),
-linear-gradient(180deg,var(–wall-light) 0%,var(–wall-base) 40%,var(–wall-shadow) 100%);
+linear-gradient(180deg,#e8dfd2 0%,#d4c8b8 40%,#b8a890 100%);
 }
 .wall::before{
 content:””;
 position:absolute;
 inset:0;
-background:
-url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 200 200’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘n’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘0.8’ numOctaves=‘4’ stitchTiles=‘stitch’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23n)’/%3E%3C/svg%3E”);
-opacity:0.03;
+background-image:
+repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.008) 2px,rgba(0,0,0,0.008) 4px),
+repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(0,0,0,0.005) 2px,rgba(0,0,0,0.005) 4px);
 pointer-events:none;
 }
 .wall::after{
 content:””;
 position:absolute;
 inset:0;
-background:
+background-image:
 linear-gradient(135deg,transparent 0%,transparent 40%,rgba(0,0,0,0.03) 100%),
 radial-gradient(ellipse 50% 30% at 15% 8%,rgba(255,255,255,0.15) 0%,transparent 70%);
 pointer-events:none;
@@ -78,10 +78,10 @@ font-size:2.5rem;
 font-weight:400;
 letter-spacing:0.02em;
 margin-bottom:0.3rem;
-color:var(–text);
+color:#4a4035;
 }
 .title-area p{
-color:var(–text-muted);
+color:#7a7060;
 font-style:italic;
 font-size:1.1rem;
 }
@@ -93,19 +93,20 @@ max-width:400px;
 .search-box input{
 width:100%;
 padding:0.9rem 1rem 0.9rem 2.8rem;
-background:var(–search-bg);
-border:1px solid var(–search-border);
+background-color:rgba(139,107,74,0.25);
+border:1px solid rgba(139,107,74,0.3);
 border-radius:8px;
-color:var(–text);
+color:#4a4035;
 font-size:1rem;
 font-family:inherit;
 outline:none;
-backdrop-filter:blur(8px);
 -webkit-backdrop-filter:blur(8px);
+backdrop-filter:blur(8px);
 }
-.search-box input::placeholder{color:var(–text-muted)}
+.search-box input::-webkit-input-placeholder{color:#7a7060}
+.search-box input::placeholder{color:#7a7060}
 .search-box input:focus{
-background:rgba(139,107,74,0.32);
+background-color:rgba(139,107,74,0.32);
 border-color:rgba(139,107,74,0.4);
 }
 .search-box svg{
@@ -113,7 +114,7 @@ position:absolute;
 left:0.9rem;top:50%;
 transform:translateY(-50%);
 width:18px;height:18px;
-stroke:var(–text-muted);
+stroke:#7a7060;
 stroke-width:2;
 fill:none;
 }
@@ -141,22 +142,21 @@ min-height:220px;
 position:relative;
 }
 
-/* Wooden shelf */
 .shelf-board{
 height:24px;
 position:relative;
-background:
-linear-gradient(90deg,
-var(–wood-dark) 0%,
-var(–wood-mid) 5%,
-var(–wood-light) 15%,
-var(–wood-mid) 30%,
-var(–wood-dark) 45%,
-var(–wood-mid) 55%,
-var(–wood-light) 70%,
-var(–wood-mid) 85%,
-var(–wood-dark) 95%,
-var(–wood-mid) 100%
+background-color:#5c4332;
+background-image:linear-gradient(90deg,
+#3a2820 0%,
+#5c4332 5%,
+#8b6b4a 15%,
+#5c4332 30%,
+#3a2820 45%,
+#5c4332 55%,
+#8b6b4a 70%,
+#5c4332 85%,
+#3a2820 95%,
+#5c4332 100%
 );
 box-shadow:
 0 4px 8px rgba(0,0,0,0.25),
@@ -170,8 +170,7 @@ border-radius:1px;
 content:””;
 position:absolute;
 inset:0;
-background:
-repeating-linear-gradient(90deg,
+background-image:repeating-linear-gradient(90deg,
 transparent 0px,
 transparent 40px,
 rgba(0,0,0,0.03) 40px,
@@ -188,11 +187,10 @@ content:””;
 position:absolute;
 left:0;right:0;top:100%;
 height:60px;
-background:linear-gradient(180deg,rgba(0,0,0,0.18) 0%,rgba(0,0,0,0.08) 30%,transparent 100%);
+background-image:linear-gradient(180deg,rgba(0,0,0,0.18) 0%,rgba(0,0,0,0.08) 30%,transparent 100%);
 pointer-events:none;
 }
 
-/* Book styling - leather bound appearance */
 .book{
 display:flex;
 align-items:center;
@@ -206,8 +204,8 @@ position:relative;
 padding:15px 12px;
 text-align:center;
 transition:transform 0.25s ease,box-shadow 0.25s ease;
-background:
-linear-gradient(135deg,
+background-color:#252220;
+background-image:linear-gradient(135deg,
 #3a3530 0%,
 #2d2825 20%,
 #252220 50%,
@@ -222,14 +220,13 @@ inset 1px 1px 2px rgba(255,255,255,0.05),
 inset -1px -1px 2px rgba(0,0,0,0.3);
 }
 
-/* Book spine (right edge thickness) */
 .book::after{
 content:””;
 position:absolute;
 top:2px;bottom:2px;right:-8px;
 width:8px;
-background:
-linear-gradient(90deg,
+background-color:#1f1c18;
+background-image:linear-gradient(90deg,
 #1a1815 0%,
 #2a2520 40%,
 #1f1c18 100%
@@ -240,19 +237,17 @@ box-shadow:
 inset -1px 0 2px rgba(0,0,0,0.4);
 }
 
-/* Book texture overlay */
 .book::before{
 content:””;
 position:absolute;
 inset:0;
-background:
-url(“data:image/svg+xml,%3Csvg viewBox=‘0 0 100 100’ xmlns=‘http://www.w3.org/2000/svg’%3E%3Cfilter id=‘n’%3E%3CfeTurbulence type=‘fractalNoise’ baseFrequency=‘1.5’ numOctaves=‘3’/%3E%3C/filter%3E%3Crect width=‘100%25’ height=‘100%25’ filter=‘url(%23n)’/%3E%3C/svg%3E”);
-opacity:0.04;
+background-image:
+repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,0.01) 3px,rgba(255,255,255,0.01) 6px),
+repeating-linear-gradient(90deg,transparent,transparent 5px,rgba(0,0,0,0.02) 5px,rgba(0,0,0,0.02) 10px);
 border-radius:2px;
 pointer-events:none;
 }
 
-/* Book shadow on shelf */
 .book-shadow{
 position:absolute;
 bottom:-4px;
@@ -260,7 +255,7 @@ left:50%;
 transform:translateX(-50%);
 width:90%;
 height:8px;
-background:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(0,0,0,0.4) 0%,transparent 70%);
+background-image:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(0,0,0,0.4) 0%,transparent 70%);
 pointer-events:none;
 z-index:-1;
 }
@@ -284,7 +279,6 @@ outline-offset:4px;
 display:none;
 }
 
-/* Gold embossed title */
 .book-title{
 font-size:1.3rem;
 font-weight:500;
@@ -301,7 +295,7 @@ z-index:1;
 .no-results{
 text-align:center;
 padding:3rem;
-color:var(–text-muted);
+color:#7a7060;
 font-style:italic;
 display:none;
 }
@@ -336,41 +330,41 @@ display:none;
 </div>
 
 <script>
-const BOOKS = [
+var BOOKS = [
   { id: 1, title: "五式", url: "https://chikumo.jp/Goshiki/" },
   { id: 2, title: "九式", url: "https://chikumo.jp/Kyushiki/" }
 ];
 
-let shelves = [];
+var shelves = [];
 
 function buildShelves() {
-  const container = document.getElementById("bookshelf");
+  var container = document.getElementById("bookshelf");
   container.innerHTML = "";
   shelves = [];
   
-  const numShelves = Math.ceil(BOOKS.length / 3);
+  var numShelves = Math.ceil(BOOKS.length / 3);
   
-  for (let s = 0; s < numShelves; s++) {
-    const shelf = document.createElement("div");
+  for (var s = 0; s < numShelves; s++) {
+    var shelf = document.createElement("div");
     shelf.className = "shelf visible";
     
-    const booksArea = document.createElement("div");
+    var booksArea = document.createElement("div");
     booksArea.className = "shelf-books";
     
-    const startIdx = s * 3;
-    const shelfBooks = [];
+    var startIdx = s * 3;
+    var shelfBooks = [];
     
-    for (let i = 0; i < 3; i++) {
-      const bookIdx = startIdx + i;
+    for (var i = 0; i < 3; i++) {
+      var bookIdx = startIdx + i;
       if (bookIdx < BOOKS.length) {
-        const bookData = BOOKS[bookIdx];
-        const book = createBook(bookData);
+        var bookData = BOOKS[bookIdx];
+        var book = createBook(bookData);
         booksArea.appendChild(book);
         shelfBooks.push({ el: book, data: bookData });
       }
     }
     
-    const board = document.createElement("div");
+    var board = document.createElement("div");
     board.className = "shelf-board";
     
     shelf.appendChild(booksArea);
@@ -382,17 +376,17 @@ function buildShelves() {
 }
 
 function createBook(data) {
-  const book = document.createElement("a");
+  var book = document.createElement("a");
   book.className = "book";
   book.href = data.url;
   book.target = "_blank";
   book.rel = "noopener noreferrer";
   
-  const shadow = document.createElement("div");
+  var shadow = document.createElement("div");
   shadow.className = "book-shadow";
   book.appendChild(shadow);
   
-  const title = document.createElement("span");
+  var title = document.createElement("span");
   title.className = "book-title";
   title.textContent = data.title;
   book.appendChild(title);
@@ -401,24 +395,41 @@ function createBook(data) {
 }
 
 function filter(query) {
-  const q = query.toLowerCase().trim();
-  let total = 0;
+  var q = query.toLowerCase().trim();
+  var total = 0;
   
-  shelves.forEach(shelf => {
-    let visible = 0;
-    shelf.books.forEach(({ el, data }) => {
-      const match = q === "" || data.title.toLowerCase().includes(q);
-      el.classList.toggle("hidden", !match);
-      if (match) visible++;
-    });
-    shelf.el.classList.toggle("visible", visible > 0);
+  for (var i = 0; i < shelves.length; i++) {
+    var shelf = shelves[i];
+    var visible = 0;
+    for (var j = 0; j < shelf.books.length; j++) {
+      var item = shelf.books[j];
+      var match = q === "" || item.data.title.toLowerCase().indexOf(q) !== -1;
+      if (match) {
+        item.el.classList.remove("hidden");
+        visible++;
+      } else {
+        item.el.classList.add("hidden");
+      }
+    }
+    if (visible > 0) {
+      shelf.el.classList.add("visible");
+    } else {
+      shelf.el.classList.remove("visible");
+    }
     total += visible;
-  });
+  }
   
-  document.getElementById("noResults").classList.toggle("show", total === 0);
+  var noResults = document.getElementById("noResults");
+  if (total === 0) {
+    noResults.classList.add("show");
+  } else {
+    noResults.classList.remove("show");
+  }
 }
 
-document.getElementById("search").oninput = e => filter(e.target.value);
+document.getElementById("search").oninput = function(e) {
+  filter(e.target.value);
+};
 
 buildShelves();
 </script>
