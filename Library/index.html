@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Library</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0c0a08;
+  --wood-top:#5a4530;
+  --wood-front:#3d2a1a;
+  --wood-shadow:#1a1008;
+  --text:#e8e4dc;
+  --text-muted:#8a857c;
+  --glass:rgba(255,255,255,0.06);
+}
+body{
+  min-height:100vh;
+  background:var(--bg);
+  font-family:Georgia,"Hiragino Mincho ProN","Yu Mincho",serif;
+  color:var(--text);
+}
+.container{
+  max-width:700px;
+  margin:0 auto;
+  padding:2rem 1rem 4rem;
+}
+header{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:1rem;
+  margin-bottom:2.5rem;
+}
+.title-area h1{
+  font-size:2.5rem;
+  font-weight:400;
+  letter-spacing:0.02em;
+  margin-bottom:0.2rem;
+}
+.title-area p{
+  color:var(--text-muted);
+  font-style:italic;
+}
+.search-box{
+  position:relative;
+  width:100%;
+  max-width:280px;
+}
+.search-box input{
+  width:100%;
+  padding:0.8rem 1rem 0.8rem 2.5rem;
+  background:var(--glass);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:6px;
+  color:var(--text);
+  font-size:1rem;
+  font-family:inherit;
+  outline:none;
+}
+.search-box input::placeholder{color:var(--text-muted)}
+.search-box input:focus{background:rgba(255,255,255,0.09)}
+.search-box svg{
+  position:absolute;
+  left:0.8rem;top:50%;
+  transform:translateY(-50%);
+  width:16px;height:16px;
+  stroke:var(--text-muted);
+  stroke-width:2;
+  fill:none;
+}
+
+.bookshelf{
+display:flex;
+flex-direction:column;
+}
+
+.shelf{
+display:none;
+}
+.shelf.visible{
+display:block;
+}
+
+.shelf-books{
+display:flex;
+justify-content:center;
+align-items:flex-end;
+gap:20px;
+padding:30px 20px 0;
+min-height:180px;
+}
+
+.shelf-board{
+height:14px;
+background:linear-gradient(180deg,var(–wood-top) 0%,var(–wood-front) 60%,var(–wood-shadow) 100%);
+box-shadow:0 4px 12px rgba(0,0,0,0.6);
+position:relative;
+}
+.shelf-board::after{
+content:””;
+position:absolute;
+left:0;right:0;top:100%;
+height:25px;
+background:linear-gradient(180deg,rgba(0,0,0,0.35) 0%,transparent 100%);
+pointer-events:none;
+}
+
+.book{
+display:flex;
+align-items:center;
+justify-content:center;
+width:130px;
+height:180px;
+flex-shrink:0;
+border-radius:2px;
+text-decoration:none;
+position:relative;
+padding:15px 12px;
+text-align:center;
+transition:transform 0.2s ease,box-shadow 0.2s ease,filter 0.2s ease;
+}
+
+.book::after{
+content:””;
+position:absolute;
+top:3px;bottom:3px;right:-5px;
+width:5px;
+background:linear-gradient(90deg,rgba(0,0,0,0.4) 0%,rgba(0,0,0,0.15) 100%);
+border-radius:0 2px 2px 0;
+}
+
+.book:hover{
+transform:translateY(-6px);
+box-shadow:0 12px 28px rgba(0,0,0,0.5);
+filter:brightness(1.1);
+z-index:5;
+}
+
+.book:focus{
+outline:2px solid rgba(255,255,255,0.3);
+outline-offset:3px;
+}
+
+.book.hidden{
+display:none;
+}
+
+.book-title{
+font-size:1.1rem;
+font-weight:600;
+color:rgba(255,255,255,0.92);
+line-height:1.4;
+text-shadow:0 1px 3px rgba(0,0,0,0.5);
+}
+
+.no-results{
+text-align:center;
+padding:3rem;
+color:var(–text-muted);
+font-style:italic;
+display:none;
+}
+.no-results.show{display:block}
+
+@media(max-width:500px){
+.shelf-books{gap:12px;padding:20px 10px 0}
+.book{width:100px;height:150px;padding:10px 8px}
+.book-title{font-size:0.95rem}
+}
+</style>
+
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="title-area">
+      <h1>Library</h1>
+      <p>Select a Book</p>
+    </div>
+    <div class="search-box">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16" y1="16" x2="21" y2="21"/></svg>
+      <input type="text" id="search" placeholder="Search">
+    </div>
+  </header>
+  <main class="bookshelf" id="bookshelf"></main>
+  <p class="no-results" id="noResults">No books found</p>
+</div>
+
+<script>
+const BOOKS = [
+  { id: 1, title: "五式", url: "https://chikumo.jp/Goshiki/" },
+  { id: 2, title: "九式", url: "https://chikumo.jp/Kyushiki/" }
+];
+
+const COLORS = [
+  { bg: "linear-gradient(170deg,#3a3430 0%,#252220 100%)" },
+  { bg: "linear-gradient(170deg,#4a4035 0%,#302820 100%)" },
+  { bg: "linear-gradient(170deg,#3f3a38 0%,#282625 100%)" }
+];
+
+let shelves = [];
+
+function buildShelves() {
+  const container = document.getElementById("bookshelf");
+  container.innerHTML = "";
+  shelves = [];
+  
+  const numShelves = Math.ceil(BOOKS.length / 3);
+  
+  for (let s = 0; s < numShelves; s++) {
+    const shelf = document.createElement("div");
+    shelf.className = "shelf visible";
+    
+    const booksArea = document.createElement("div");
+    booksArea.className = "shelf-books";
+    
+    const startIdx = s * 3;
+    const shelfBooks = [];
+    
+    for (let i = 0; i < 3; i++) {
+      const bookIdx = startIdx + i;
+      if (bookIdx < BOOKS.length) {
+        const bookData = BOOKS[bookIdx];
+        const color = COLORS[bookIdx % COLORS.length];
+        const book = createBook(bookData, color);
+        booksArea.appendChild(book);
+        shelfBooks.push({ el: book, data: bookData });
+      }
+    }
+    
+    const board = document.createElement("div");
+    board.className = "shelf-board";
+    
+    shelf.appendChild(booksArea);
+    shelf.appendChild(board);
+    container.appendChild(shelf);
+    
+    shelves.push({ el: shelf, books: shelfBooks });
+  }
+}
+
+function createBook(data, color) {
+  const book = document.createElement("a");
+  book.className = "book";
+  book.href = data.url;
+  book.target = "_blank";
+  book.rel = "noopener noreferrer";
+  book.style.background = color.bg;
+  book.innerHTML = `<span class="book-title">${data.title}</span>`;
+  return book;
+}
+
+function filter(query) {
+  const q = query.toLowerCase().trim();
+  let total = 0;
+  
+  shelves.forEach(shelf => {
+    let visible = 0;
+    shelf.books.forEach(({ el, data }) => {
+      const match = q === "" || data.title.toLowerCase().includes(q);
+      el.classList.toggle("hidden", !match);
+      if (match) visible++;
+    });
+    shelf.el.classList.toggle("visible", visible > 0);
+    total += visible;
+  });
+  
+  document.getElementById("noResults").classList.toggle("show", total === 0);
+}
+
+document.getElementById("search").oninput = e => filter(e.target.value);
+
+buildShelves();
+</script>
+
+</body>
+</html>
