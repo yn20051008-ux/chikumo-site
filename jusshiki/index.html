@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>十式 ― 構造成立の観測アーキテクチャ</title>
+  <style>
+    /* ===== macOS Tahoe 26風デザイン ===== */
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px;
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+    }
+
+    /* macOS風システムフォント */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro JP", "SF Pro Display", "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
+      line-height: 1.6;
+      color: #1d1d1f;
+      background: linear-gradient(180deg, #e5e5e7 0%, #d1d1d6 50%, #c7c7cc 100%);
+      padding: 1.25rem 1rem;
+      max-width: 680px;
+      margin: 0 auto;
+      min-height: 100vh;
+      overflow-x: hidden;
+      width: 100%;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* デスクトップのみ固定背景を有効化（性能最適化） */
+    @media (min-width: 768px) and (hover: hover) {
+      body {
+        background-attachment: fixed;
+      }
+    }
+
+    /* 微細なノイズテクスチャ（擬似要素） */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.6;
+    }
+
+    /* ヘッダー */
+    .site-header {
+      margin-bottom: 2rem;
+      position: relative;
+      z-index: 2;
+      animation: fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+      color: #1d1d1f;
+      padding-bottom: 1rem;
+      margin-bottom: 0;
+      position: relative;
+    }
+
+    h1::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 60px;
+      height: 3px;
+      background: linear-gradient(90deg, #007aff 0%, rgba(0, 122, 255, 0) 100%);
+      border-radius: 2px;
+    }
+
+    /* ガラスモーフィズム - カード型セクション（高コントラスト版） */
+    .content-section {
+      position: relative;
+      z-index: 2;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 18px;
+      box-shadow:
+        0 1px 0 0 rgba(255, 255, 255, 1) inset,
+        0 2px 4px rgba(0, 0, 0, 0.06),
+        0 8px 16px rgba(0, 0, 0, 0.08),
+        0 16px 32px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem 1.25rem;
+      margin-bottom: 1rem;
+      border: 0.5px solid rgba(0, 0, 0, 0.08);
+      opacity: 0;
+      animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* backdrop-filter対応時のみ有効化 */
+    @supports (backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px)) {
+      .content-section {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: saturate(180%) blur(20px);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+      }
+    }
+
+    .content-section:hover {
+      box-shadow:
+        0 1px 0 0 rgba(255, 255, 255, 1) inset,
+        0 4px 8px rgba(0, 0, 0, 0.08),
+        0 12px 24px rgba(0, 0, 0, 0.1),
+        0 24px 48px rgba(0, 0, 0, 0.12);
+      transform: translateY(-1px);
+      border-color: rgba(0, 0, 0, 0.12);
+    }
+
+    /* アニメーション遅延 - 控えめに */
+    .content-section:nth-child(1) { animation-delay: 0.05s; }
+    .content-section:nth-child(2) { animation-delay: 0.1s; }
+    .content-section:nth-child(3) { animation-delay: 0.15s; }
+    .content-section:nth-child(4) { animation-delay: 0.2s; }
+    .content-section:nth-child(5) { animation-delay: 0.25s; }
+    .content-section:nth-child(6) { animation-delay: 0.3s; }
+    .content-section:nth-child(7) { animation-delay: 0.35s; }
+    .content-section:nth-child(8) { animation-delay: 0.4s; }
+
+    h2 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #1d1d1f;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h2::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 1.125rem;
+      background: linear-gradient(180deg, #007aff 0%, #005ecb 100%);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.625rem;
+      color: #1d1d1f;
+      letter-spacing: -0.01em;
+    }
+
+    p {
+      margin-bottom: 1rem;
+      color: #1d1d1f;
+      font-size: 0.9375rem;
+      line-height: 1.7;
+      letter-spacing: 0.01em;
+      font-weight: 400;
+    }
+
+    /* リスト */
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    ul li {
+      position: relative;
+      padding-left: 1.25rem;
+      margin-bottom: 0.625rem;
+      color: #1d1d1f;
+      font-size: 0.9375rem;
+      line-height: 1.7;
+      font-weight: 400;
+      display: flex;
+      align-items: center;
+    }
+
+    ul li::before {
+      content: "—";
+      position: absolute;
+      left: 0;
+      color: #007aff;
+      font-weight: 500;
+    }
+
+    /* 定義リスト */
+    ol.definitions {
+      list-style: none;
+      padding-left: 0;
+      counter-reset: def-counter;
+    }
+
+    ol.definitions > li {
+      margin-bottom: 0.75rem;
+      padding-left: 0;
+    }
+
+    .definition-item {
+      padding: 1rem;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.9);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      border: 0.5px solid rgba(0, 0, 0, 0.08);
+      min-height: 44px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    /* backdrop-filter対応時のみ有効化 */
+    @supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
+      .definition-item {
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+      }
+    }
+
+    .definition-item:active {
+      transform: scale(0.98);
+      background: rgba(0, 122, 255, 0.15);
+    }
+
+    /* アクティブ状態のテキストを濃く（ライトモード） */
+    .definition-item:active p {
+      color: #000000;
+      font-weight: 500;
+    }
+
+    .definition-item:active .number {
+      color: #005ecb;
+      font-weight: 700;
+    }
+
+    .definition-item:active .kanji {
+      color: #000000;
+    }
+
+    @media (hover: hover) {
+      .definition-item:hover {
+        background: rgba(255, 255, 255, 0.9);
+        transform: translateX(4px);
+        border-color: rgba(0, 122, 255, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.12);
+      }
+    }
+
+    ol.definitions > li > h3 {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+    }
+
+    ol.definitions > li > h3 .number {
+      font-size: clamp(1rem, 0.875rem + 0.5vw, 1.25rem);
+      color: #007aff;
+      min-width: 1.6em;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    ol.definitions > li > h3 .kanji {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1d1d1f;
+      letter-spacing: 0.02em;
+    }
+
+    ol.definitions > li > p {
+      padding-left: 2.125rem;
+      margin-bottom: 0;
+      color: #1d1d1f;
+      line-height: 1.7;
+      font-size: 0.9375rem;
+      font-weight: 400;
+    }
+
+    /* サマリーセクション */
+    .summary-section {
+      background: rgba(0, 122, 255, 0.1);
+      border-left: 3px solid #007aff;
+      padding: 1.5rem 1.25rem;
+      margin-top: 1.5rem;
+    }
+
+    /* backdrop-filter対応時のみ有効化 */
+    @supports (backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px)) {
+      .summary-section {
+        background: rgba(0, 122, 255, 0.06);
+        backdrop-filter: saturate(180%) blur(20px);
+        -webkit-backdrop-filter: saturate(180%) blur(20px);
+      }
+    }
+
+    .summary-section p {
+      margin-bottom: 0;
+      color: #000000;
+      font-weight: 500;
+      line-height: 1.7;
+      font-size: 1rem;
+    }
+
+    /* アニメーション定義 */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ==== iPhone最適化 (360-430px) ==== */
+    @media (max-width: 430px) {
+      html {
+        font-size: 15px;
+      }
+
+      body {
+        padding: 1rem 1rem;
+        max-width: 100%;
+      }
+
+      h1 {
+        font-size: 1.375rem;
+        line-height: 1.35;
+      }
+
+      h2 {
+        font-size: 1.0625rem;
+      }
+
+      .content-section {
+        padding: 1.25rem 1rem;
+        border-radius: 16px;
+        margin-bottom: 0.875rem;
+      }
+
+      ol.definitions > li > h3 .kanji {
+        font-size: 1.125rem;
+      }
+
+      ol.definitions > li > p {
+        padding-left: 2rem;
+      }
+
+      .summary-section {
+        padding: 1.25rem 1rem;
+      }
+    }
+
+    @media (min-width: 431px) and (max-width: 639px) {
+      body {
+        padding: 1.5rem 1.25rem;
+      }
+    }
+
+    /* タブレット・デスクトップ */
+    @media (min-width: 640px) {
+      body {
+        padding: 3rem 2rem;
+        max-width: 720px;
+      }
+
+      h1 {
+        font-size: 1.875rem;
+      }
+
+      h2 {
+        font-size: 1.25rem;
+      }
+
+      .content-section {
+        padding: 2rem 1.75rem;
+        margin-bottom: 1.5rem;
+      }
+
+      ol.definitions > li > h3 .kanji {
+        font-size: 1.5rem;
+      }
+
+      .summary-section {
+        padding: 2rem 1.75rem;
+      }
+    }
+
+    @media (min-width: 768px) {
+      body {
+        padding: 4rem 2.5rem;
+        max-width: 800px;
+      }
+
+      h1 {
+        font-size: 2.125rem;
+      }
+
+      h2 {
+        font-size: 1.375rem;
+      }
+
+      .content-section {
+        padding: 2.5rem 2rem;
+        margin-bottom: 1.75rem;
+      }
+
+      ol.definitions > li > h3 .kanji {
+        font-size: 1.625rem;
+      }
+
+      .summary-section {
+        padding: 2.5rem 2rem;
+      }
+    }
+
+    /* アクセシビリティ: フォーカス状態 */
+    a:focus-visible,
+    button:focus-visible,
+    .interactive-element:focus-visible {
+      outline: 3px solid #007aff;
+      outline-offset: 4px;
+      border-radius: 4px;
+      box-shadow: 0 0 0 6px rgba(0, 122, 255, 0.15);
+    }
+
+    /* タップハイライト無効化（カスタム効果を使用） */
+    * {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* プリント時の最適化 */
+    @media print {
+      body {
+        background: white;
+        max-width: 100%;
+      }
+
+      body::before {
+        display: none;
+      }
+
+      .content-section {
+        box-shadow: none;
+        border: 1px solid #d2d2d7;
+        page-break-inside: avoid;
+        background: white;
+      }
+
+      h1 {
+        color: #1d1d1f;
+      }
+    }
+
+    /* 縮小モーション設定を尊重 */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+
+      .ripple {
+        display: none !important;
+      }
+
+      .content-section:hover,
+      .definition-item:hover,
+      ul li:hover {
+        transform: none !important;
+      }
+    }
+
+    /* ===== インタラクティブフィードバック ===== */
+
+    /* リップル効果 */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(0, 122, 255, 0.4);
+      transform: scale(0);
+      animation: ripple-animation 0.6s ease-out;
+      pointer-events: none;
+    }
+
+    @keyframes ripple-animation {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    /* インタラクティブ要素の共通スタイル */
+    .interactive-element {
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .interactive-element:focus {
+      outline: none;
+    }
+
+    /* 選択状態のスタイル */
+    .content-section.selected {
+      background: rgba(0, 122, 255, 0.08);
+      border-color: rgba(0, 122, 255, 0.3);
+      box-shadow:
+        0 1px 0 0 rgba(0, 122, 255, 0.15) inset,
+        0 4px 8px rgba(0, 122, 255, 0.15),
+        0 12px 24px rgba(0, 122, 255, 0.2),
+        0 24px 48px rgba(0, 122, 255, 0.25);
+    }
+
+    /* 選択状態のセクション内テキストを濃く */
+    .content-section.selected p,
+    .content-section.selected ul li {
+      color: #000000;
+      font-weight: 500;
+    }
+
+    .content-section.selected h2 {
+      color: #000000;
+    }
+
+    .definition-item.selected {
+      background: rgba(0, 122, 255, 0.12);
+      border-color: rgba(0, 122, 255, 0.4);
+      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
+      transform: translateX(8px);
+    }
+
+    /* 選択状態でも漢字が読みやすいように */
+    .definition-item.selected .kanji {
+      color: #1d1d1f;
+    }
+
+    /* 選択状態の本文テキストを濃く */
+    .definition-item.selected p {
+      color: #000000;
+      font-weight: 500;
+    }
+
+    /* 選択状態の番号も濃く */
+    .definition-item.selected .number {
+      color: #005ecb;
+      font-weight: 700;
+    }
+
+    /* タップ時のフィードバック強化 */
+    .content-section:active {
+      transform: scale(0.99);
+      background: rgba(0, 122, 255, 0.12);
+    }
+
+    /* アクティブ状態のセクション内テキストを濃く */
+    .content-section:active p,
+    .content-section:active ul li {
+      color: #000000;
+      font-weight: 500;
+    }
+
+    .content-section:active h2 {
+      color: #000000;
+    }
+
+    .definition-item:active {
+      background: rgba(0, 122, 255, 0.15);
+    }
+
+    /* PCのhover効果を追加強化 */
+    @media (hover: hover) {
+      .content-section:hover {
+        cursor: pointer;
+      }
+    }
+
+    /* ダークモード対応（高コントラスト版） */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: linear-gradient(180deg, #000000 0%, #1c1c1e 50%, #2c2c2e 100%);
+        color: #ffffff;
+      }
+
+      h1, h2, h3 {
+        color: #ffffff;
+      }
+
+      p, ul li, ol.definitions > li > p {
+        color: #e8e8ed;
+        font-weight: 450;
+      }
+
+      /* 定義リストの漢字を白系に（高コントラスト） */
+      ol.definitions > li > h3 .kanji {
+        color: #ffffff;
+      }
+
+      /* カード背景 - 明るく不透明に */
+      .content-section {
+        background: rgba(44, 44, 46, 0.95);
+        border-color: rgba(255, 255, 255, 0.15);
+        box-shadow:
+          0 0.5px 0 1px rgba(255, 255, 255, 0.1) inset,
+          0 2px 4px rgba(0, 0, 0, 0.5),
+          0 8px 16px rgba(0, 0, 0, 0.6),
+          0 16px 32px rgba(0, 0, 0, 0.7);
+      }
+
+      .content-section:hover {
+        box-shadow:
+          0 0.5px 0 1px rgba(255, 255, 255, 0.12) inset,
+          0 4px 8px rgba(0, 0, 0, 0.6),
+          0 12px 24px rgba(0, 0, 0, 0.7),
+          0 24px 48px rgba(0, 0, 0, 0.8);
+        border-color: rgba(255, 255, 255, 0.2);
+      }
+
+      /* 定義アイテム - より明るく */
+      .definition-item {
+        background: rgba(58, 58, 60, 0.9);
+        border-color: rgba(255, 255, 255, 0.12);
+      }
+
+      .definition-item:hover {
+        background: rgba(72, 72, 74, 0.95);
+        border-color: rgba(10, 132, 255, 0.4);
+      }
+
+      /* ホバー状態でも漢字は白系を維持 */
+      .definition-item:hover .kanji {
+        color: #ffffff;
+      }
+
+      /* ホバー状態の本文テキストも白系に */
+      .definition-item:hover p {
+        color: #ffffff;
+        font-weight: 500;
+      }
+
+      /* ホバー状態の番号も明るく */
+      .definition-item:hover .number {
+        color: #5ac8fa;
+      }
+
+      .definition-item:active {
+        background: rgba(72, 72, 74, 1);
+      }
+
+      /* サマリーセクション - より明るく */
+      .summary-section {
+        background: rgba(10, 132, 255, 0.25);
+        border-color: #0a84ff;
+      }
+
+      /* サマリーセクションのテキストを純白に */
+      .summary-section p {
+        color: #ffffff;
+      }
+
+      ul li::before {
+        color: #0a84ff;
+      }
+
+      ol.definitions > li > h3 .number {
+        color: #0a84ff;
+      }
+
+      h2::before {
+        background: linear-gradient(180deg, #0a84ff 0%, #0066cc 100%);
+      }
+
+      /* ダークモード時の選択状態 */
+      .content-section.selected {
+        background: rgba(10, 132, 255, 0.2);
+        border-color: rgba(10, 132, 255, 0.5);
+      }
+
+      /* 選択状態のセクション内テキストを純白に */
+      .content-section.selected p,
+      .content-section.selected ul li {
+        color: #ffffff;
+        font-weight: 500;
+      }
+
+      .content-section.selected h2 {
+        color: #ffffff;
+      }
+
+      .definition-item.selected {
+        background: rgba(10, 132, 255, 0.25);
+        border-color: rgba(10, 132, 255, 0.6);
+      }
+
+      /* 選択状態でも漢字は白系を維持 */
+      .definition-item.selected .kanji {
+        color: #ffffff;
+      }
+
+      /* 選択状態の本文テキストを純白に（高コントラスト） */
+      .definition-item.selected p {
+        color: #ffffff;
+        font-weight: 500;
+      }
+
+      /* 選択状態の番号も明るく */
+      .definition-item.selected .number {
+        color: #5ac8fa;
+        font-weight: 700;
+      }
+
+      /* ダークモード時のタップフィードバック */
+      .content-section:active {
+        background: rgba(10, 132, 255, 0.25);
+      }
+
+      /* アクティブ状態のセクション内テキストを純白に */
+      .content-section:active p,
+      .content-section:active ul li {
+        color: #ffffff;
+        font-weight: 500;
+      }
+
+      .content-section:active h2 {
+        color: #ffffff;
+      }
+
+      .definition-item:active {
+        background: rgba(10, 132, 255, 0.3);
+      }
+
+      /* アクティブ状態でも漢字は白系を維持 */
+      .definition-item:active .kanji {
+        color: #ffffff;
+      }
+
+      /* アクティブ状態の本文テキストも白系に */
+      .definition-item:active p {
+        color: #ffffff;
+        font-weight: 500;
+      }
+
+      /* アクティブ状態の番号も明るく */
+      .definition-item:active .number {
+        color: #5ac8fa;
+      }
+
+      /* ダークモード時のリップル */
+      .ripple {
+        background: rgba(10, 132, 255, 0.5);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header" role="banner">
+    <h1>十式 ― 構造成立の観測アーキテクチャ</h1>
+  </header>
+
+  <main>
+    <section class="content-section" aria-labelledby="heading-purpose">
+      <h2 id="heading-purpose">目的</h2>
+      <p>十式は、構造実体の成立・遷移・停止を観測するための構造である。<br>
+      十式自体は更新されない。更新対象は五式（構造実体）のみである。</p>
+    </section>
+
+    <section class="content-section" aria-labelledby="heading-premise">
+      <h2 id="heading-premise">前提固定</h2>
+      <ul>
+        <li>五式は構造実体であり、更新対象である</li>
+        <li>十式は観測・判定・遷移のための構造であり、更新されない</li>
+        <li>循・乱・絶は領域であり、実体ではない</li>
+      </ul>
+    </section>
+
+    <section class="content-section" aria-labelledby="heading-isshiki">
+      <h2 id="heading-isshiki">一式</h2>
+      <h3>認</h3>
+      <p>未確定だが存在している状態</p>
+    </section>
+
+    <section class="content-section" aria-labelledby="heading-sanshiki">
+      <h2 id="heading-sanshiki">三式</h2>
+      <p>認・理・衡</p>
+      <ul>
+        <li>認：未確定だが存在している</li>
+        <li>理：構造・筋道</li>
+        <li>衡：揺れて存在している状態（評価を含まない）</li>
+      </ul>
+      <p>三式は、存在が「有」として成立するための最小構成である。</p>
+    </section>
+
+    <section class="content-section" aria-labelledby="heading-goshiki">
+      <h2 id="heading-goshiki">五式</h2>
+      <p>認・理・衡・縁・継</p>
+      <ul>
+        <li>認：未確定だが存在している</li>
+        <li>理：構造・筋道</li>
+        <li>衡：揺れて存在している状態</li>
+        <li>縁：相互参照関係への遷移が観測される</li>
+        <li>継：次の認へ遷移する</li>
+      </ul>
+      <p>五式は、更新・差分・継承を行う構造実体である。</p>
+    </section>
+
+    <section class="content-section" aria-labelledby="heading-jusshiki">
+      <h2 id="heading-jusshiki">十式 定義</h2>
+      <ol class="definitions">
+        <li class="definition-item">
+          <h3><span class="number">①</span><span class="kanji">認</span></h3>
+          <p>未確定だが存在している状態</p>
+        </li>
+        <li class="definition-item">
+          <h3><span class="number">②</span><span class="kanji">理</span></h3>
+          <p>構造・筋道</p>
+        </li>
+        <li class="definition-item">
+          <h3><span class="number">③</span><span class="kanji">衡</span></h3>
+          <p>揺れて存在している状態（評価を含まない）</p>
+        </li>
+        <li class="definition-item">
+          <h3><span class="number">④</span><span class="kanji">縁</span></h3>
+          <p>複数の理が相互参照関係へ遷移したことが観測される状態</p>
+        </li>
+        <li class="definition-item">
+          <h3><span class="number">⑤</span><span class="kanji">幅</span></h3>
+          <p>構造が崩壊しない値の幅</p>
+        </li>
+        <li class="definition-item">
+          <h3><span class="number">⑥</span><span class="kanji">許</span></h3>
+          <p>その幅の中で、再現可能と定義された正常幅</p>
+        </li>
+        <li class="definition-item">
+          <h3><span class="number">⑦</span><span class="kanji">循</span></h3>
+          <p>再現性のある領域</p>
+        </li>
+        <li class="definition-item">
+          <h3><span class="number">⑧</span><span class="kanji">乱</span></h3>
+          <p>再現性のない領域</p>
+        </li>
+        <li class="definition-item">
+          <h3><span class="number">⑨</span><span class="kanji">絶</span></h3>
+          <p>構造不成立領域</p>
+        </li>
+        <li class="definition-item">
+          <h3><span class="number">⑩</span><span class="kanji">継</span></h3>
+          <p>循の内側で成立していた構造実体（五式）が、差分を伴って次の認へ遷移すること</p>
+        </li>
+      </ol>
+    </section>
+
+    <section class="content-section" aria-labelledby="heading-rules">
+      <h2 id="heading-rules">補足ルール</h2>
+      <ul>
+        <li>五式は構造実体であり、更新対象である</li>
+        <li>十式は観測・判定・遷移構造であり、更新されない</li>
+        <li>循・乱・絶は領域であり、実体ではない</li>
+        <li>継は領域の更新ではなく、実体（五式）の遷移である</li>
+        <li>循・乱・絶は更新・操作・評価の対象ではない</li>
+        <li>解釈・比喩・感情語を用いてはならない</li>
+      </ul>
+    </section>
+
+    <section class="summary summary-section content-section" aria-labelledby="heading-summary">
+      <h2 id="heading-summary" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;">まとめ</h2>
+      <p>十式とは、成立した構造実体のみが、再現性領域を通過し、次の構造へ更新されるための観測アーキテクチャである。</p>
+    </section>
+  </main>
+
+  <script>
+    // ===== インタラクティブフィードバック実装 =====
+
+    (function() {
+      'use strict';
+
+      // prefers-reduced-motionチェック
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // リップル効果を生成
+      function createRipple(event, element) {
+        // reduced-motion時はリップル無効
+        if (prefersReducedMotion) return;
+
+        const ripple = document.createElement('span');
+        ripple.classList.add('ripple');
+
+        const rect = element.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        const x = event.clientX - rect.left - size / 2;
+        const y = event.clientY - rect.top - size / 2;
+
+        ripple.style.width = ripple.style.height = size + 'px';
+        ripple.style.left = x + 'px';
+        ripple.style.top = y + 'px';
+
+        element.appendChild(ripple);
+
+        // アニメーション終了後に削除
+        ripple.addEventListener('animationend', () => {
+          ripple.remove();
+        });
+      }
+
+      // 振動フィードバック（サポート環境のみ）
+      function triggerVibration(duration = 10) {
+        if ('vibrate' in navigator) {
+          navigator.vibrate(duration);
+        }
+      }
+
+      // aria-pressed更新
+      function updateAriaPressed(element, isPressed) {
+        element.setAttribute('aria-pressed', isPressed ? 'true' : 'false');
+      }
+
+      // インタラクティブ要素の初期化
+      function initInteractiveElements() {
+        // セクションカード
+        const sections = document.querySelectorAll('.content-section');
+        sections.forEach(section => {
+          section.classList.add('interactive-element');
+          section.setAttribute('role', 'button');
+          section.setAttribute('aria-pressed', 'false');
+          section.setAttribute('tabindex', '0');
+
+          section.addEventListener('click', function(e) {
+            // リップル効果
+            createRipple(e, this);
+
+            // 振動フィードバック
+            triggerVibration(10);
+
+            // 選択状態トグル
+            const isSelected = this.classList.toggle('selected');
+            updateAriaPressed(this, isSelected);
+          });
+        });
+
+        // 定義アイテム
+        const definitionItems = document.querySelectorAll('.definition-item');
+        definitionItems.forEach(item => {
+          item.classList.add('interactive-element');
+          item.setAttribute('role', 'button');
+          item.setAttribute('aria-pressed', 'false');
+          item.setAttribute('tabindex', '0');
+
+          item.addEventListener('click', function(e) {
+            // 親セクションへの伝播を防ぐ
+            e.stopPropagation();
+
+            createRipple(e, this);
+            triggerVibration(8);
+
+            const isSelected = this.classList.toggle('selected');
+            updateAriaPressed(this, isSelected);
+          });
+        });
+      }
+
+      // キーボードアクセシビリティ
+      function addKeyboardSupport() {
+        const interactiveElements = document.querySelectorAll('.interactive-element');
+
+        interactiveElements.forEach(element => {
+          // Enterキーまたはスペースキーで選択
+          element.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+
+              // クリックイベントをシミュレート（中心位置でリップル生成）
+              const rect = this.getBoundingClientRect();
+              const fakeEvent = {
+                clientX: rect.left + rect.width / 2,
+                clientY: rect.top + rect.height / 2
+              };
+              createRipple(fakeEvent, this);
+
+              triggerVibration(10);
+
+              const isSelected = this.classList.toggle('selected');
+              updateAriaPressed(this, isSelected);
+            }
+          });
+        });
+      }
+
+      // DOMContentLoaded後に初期化
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+          initInteractiveElements();
+          addKeyboardSupport();
+        });
+      } else {
+        initInteractiveElements();
+        addKeyboardSupport();
+      }
+    })();
+  </script>
+</body>
+</html>
