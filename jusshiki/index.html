@@ -3,806 +3,941 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>十式 ― 構造成立の観測アーキテクチャ</title>
+  <meta name="description" content="十式は、構造実体の成立・遷移・停止が観測される際に用いられる固定構造である。十式自体は更新されない。">
+  <title>十式（jusshiki）｜構造実体の成立・遷移・停止を観測する固定構造</title>
   <style>
-    /* ===== macOS Tahoe 26風デザイン ===== */
-
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    :root {
+      --primary: #0066cc;
+      --primary-light: #e6f2ff;
+      --primary-dark: #004999;
+      --text: #1a1a1a;
+      --text-light: #666666;
+      --text-lighter: #999999;
+      --bg: #ffffff;
+      --border: #e0e0e0;
+      --border-light: #f0f0f0;
+      --accent-region: #fff8e6;
+      --accent-region-border: #ffd966;
+      --accent-jun: #e6fff2;
+      --accent-ran: #ffe6e6;
+      --accent-zetsu: #f0f0f0;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
     }
 
-    html {
-      font-size: 16px;
-      scroll-behavior: smooth;
-      overflow-x: hidden;
-    }
-
-    /* macOS風システムフォント */
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro JP", "SF Pro Display", "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", "Meiryo", sans-serif;
-      line-height: 1.6;
-      color: #1d1d1f;
-      background: linear-gradient(180deg, #e5e5e7 0%, #d1d1d6 50%, #c7c7cc 100%);
-      padding: 1.25rem 1rem;
-      max-width: 680px;
-      margin: 0 auto;
-      min-height: 100vh;
-      overflow-x: hidden;
-      width: 100%;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-      text-rendering: optimizeLegibility;
-    }
-
-    /* デスクトップのみ固定背景を有効化（性能最適化） */
-    @media (min-width: 768px) and (hover: hover) {
-      body {
-        background-attachment: fixed;
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --primary: #4d9fff;
+        --primary-light: #1a2f4d;
+        --primary-dark: #6bb0ff;
+        --text: #e0e0e0;
+        --text-light: #a0a0a0;
+        --text-lighter: #707070;
+        --bg: #0d0d0d;
+        --border: #2a2a2a;
+        --border-light: #1a1a1a;
+        --accent-region: #2d2416;
+        --accent-region-border: #8c6d1f;
+        --accent-jun: #0d2618;
+        --accent-ran: #2d0d0d;
+        --accent-zetsu: #1a1a1a;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+        --shadow-md: 0 4px 12px rgba(0,0,0,0.4);
+        --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
       }
     }
 
-    /* 微細なノイズテクスチャ（擬似要素） */
-    body::before {
-      content: '';
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 80px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    .site-header {
       position: fixed;
       top: 0;
       left: 0;
       right: 0;
-      bottom: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 1;
-      opacity: 0.6;
-    }
-
-    /* ヘッダー */
-    .site-header {
-      margin-bottom: 2rem;
-      position: relative;
-      z-index: 2;
-      animation: fadeInDown 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    h1 {
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-      line-height: 1.3;
-      color: #1d1d1f;
-      padding-bottom: 1rem;
-      margin-bottom: 0;
-      position: relative;
-    }
-
-    h1::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 60px;
-      height: 3px;
-      background: linear-gradient(90deg, #007aff 0%, rgba(0, 122, 255, 0) 100%);
-      border-radius: 2px;
-    }
-
-    /* ガラスモーフィズム - カード型セクション（高コントラスト版） */
-    .content-section {
-      position: relative;
-      z-index: 2;
+      z-index: 1000;
       background: rgba(255, 255, 255, 0.95);
-      border-radius: 18px;
-      box-shadow:
-        0 1px 0 0 rgba(255, 255, 255, 1) inset,
-        0 2px 4px rgba(0, 0, 0, 0.06),
-        0 8px 16px rgba(0, 0, 0, 0.08),
-        0 16px 32px rgba(0, 0, 0, 0.1);
-      padding: 1.5rem 1.25rem;
-      margin-bottom: 1rem;
-      border: 0.5px solid rgba(0, 0, 0, 0.08);
-      opacity: 0;
-      animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.3s ease;
     }
 
-    /* backdrop-filter対応時のみ有効化 */
-    @supports (backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px)) {
-      .content-section {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: saturate(180%) blur(20px);
-        -webkit-backdrop-filter: saturate(180%) blur(20px);
+    @media (prefers-color-scheme: dark) {
+      .site-header {
+        background: rgba(13, 13, 13, 0.95);
       }
     }
 
-    .content-section:hover {
-      box-shadow:
-        0 1px 0 0 rgba(255, 255, 255, 1) inset,
-        0 4px 8px rgba(0, 0, 0, 0.08),
-        0 12px 24px rgba(0, 0, 0, 0.1),
-        0 24px 48px rgba(0, 0, 0, 0.12);
-      transform: translateY(-1px);
-      border-color: rgba(0, 0, 0, 0.12);
+    .header-inner {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    /* アニメーション遅延 - 控えめに */
-    .content-section:nth-child(1) { animation-delay: 0.05s; }
-    .content-section:nth-child(2) { animation-delay: 0.1s; }
-    .content-section:nth-child(3) { animation-delay: 0.15s; }
-    .content-section:nth-child(4) { animation-delay: 0.2s; }
-    .content-section:nth-child(5) { animation-delay: 0.25s; }
-    .content-section:nth-child(6) { animation-delay: 0.3s; }
-    .content-section:nth-child(7) { animation-delay: 0.35s; }
-    .content-section:nth-child(8) { animation-delay: 0.4s; }
+    .site-logo {
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .site-nav {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    .site-nav a {
+      color: var(--text-light);
+      text-decoration: none;
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      transition: color 0.3s ease;
+      position: relative;
+    }
+
+    .site-nav a::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--primary);
+      transition: width 0.3s ease;
+    }
+
+    .site-nav a:hover {
+      color: var(--primary);
+    }
+
+    .site-nav a:hover::after {
+      width: 100%;
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 8rem 2rem 6rem;
+      position: relative;
+      background: linear-gradient(180deg, var(--bg) 0%, var(--primary-light) 100%);
+    }
+
+    .hero-content {
+      max-width: 900px;
+      animation: fadeInUp 1s ease;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 300;
+      letter-spacing: 0.15em;
+      margin-bottom: 1.5rem;
+      line-height: 1.3;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1rem, 2vw, 1.25rem);
+      color: var(--text-light);
+      margin-bottom: 3rem;
+      line-height: 1.8;
+      font-weight: 400;
+    }
+
+    .hero-notice {
+      font-size: 0.95rem;
+      color: var(--text);
+      padding: 1.25rem 2rem;
+      background: var(--bg);
+      border: 2px solid var(--primary);
+      border-radius: 8px;
+      display: inline-block;
+      box-shadow: var(--shadow-md);
+      font-weight: 500;
+      letter-spacing: 0.03em;
+    }
+
+    .scroll-indicator {
+      position: absolute;
+      bottom: 3rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      color: var(--text-lighter);
+      animation: bounce 2s infinite;
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% {
+        transform: translateX(-50%) translateY(0);
+      }
+      40% {
+        transform: translateX(-50%) translateY(-10px);
+      }
+      60% {
+        transform: translateX(-50%) translateY(-5px);
+      }
+    }
+
+    main {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 6rem 2rem;
+    }
+
+    section {
+      margin-bottom: 10rem;
+      scroll-margin-top: 100px;
+    }
+
+    section:target {
+      animation: highlight 1.5s ease;
+    }
+
+    @keyframes highlight {
+      0% {
+        background: var(--primary-light);
+      }
+      100% {
+        background: transparent;
+      }
+    }
 
     h2 {
-      font-size: 1.125rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-      color: #1d1d1f;
-      letter-spacing: -0.01em;
-      line-height: 1.3;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+      font-size: clamp(1.75rem, 3vw, 2.5rem);
+      font-weight: 400;
+      margin-bottom: 3rem;
+      padding-bottom: 1rem;
+      border-bottom: 2px solid var(--border);
+      letter-spacing: 0.08em;
+      position: relative;
     }
 
     h2::before {
       content: '';
-      display: inline-block;
-      width: 3px;
-      height: 1.125rem;
-      background: linear-gradient(180deg, #007aff 0%, #005ecb 100%);
-      border-radius: 2px;
-      flex-shrink: 0;
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 80px;
+      height: 2px;
+      background: var(--primary);
     }
 
     h3 {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-bottom: 0.625rem;
-      color: #1d1d1f;
-      letter-spacing: -0.01em;
+      font-size: clamp(1.25rem, 2vw, 1.5rem);
+      font-weight: 500;
+      margin-bottom: 1rem;
+      margin-top: 2.5rem;
+      letter-spacing: 0.05em;
+      color: var(--text);
     }
 
     p {
-      margin-bottom: 1rem;
-      color: #1d1d1f;
-      font-size: 0.9375rem;
-      line-height: 1.7;
-      letter-spacing: 0.01em;
-      font-weight: 400;
+      margin-bottom: 1.25rem;
+      line-height: 2;
     }
 
-    /* リスト */
     ul {
       list-style: none;
-      padding-left: 0;
+      margin-bottom: 2rem;
     }
 
     ul li {
+      padding: 0.75rem 0 0.75rem 2rem;
       position: relative;
-      padding-left: 1.25rem;
-      margin-bottom: 0.625rem;
-      color: #1d1d1f;
-      font-size: 0.9375rem;
-      line-height: 1.7;
-      font-weight: 400;
-      display: flex;
-      align-items: center;
+      line-height: 1.9;
+      transition: transform 0.2s ease;
     }
 
     ul li::before {
-      content: "—";
+      content: "−";
       position: absolute;
-      left: 0;
-      color: #007aff;
-      font-weight: 500;
+      left: 0.5rem;
+      color: var(--primary);
+      font-weight: 600;
     }
 
-    /* 定義リスト */
-    ol.definitions {
-      list-style: none;
-      padding-left: 0;
-      counter-reset: def-counter;
+    ul li:hover {
+      transform: translateX(5px);
     }
 
-    ol.definitions > li {
-      margin-bottom: 0.75rem;
-      padding-left: 0;
+    .definition-section {
+      background: var(--primary-light);
+      padding: 3rem;
+      border-radius: 16px;
+      margin-bottom: 4rem;
+      box-shadow: var(--shadow-sm);
     }
 
-    .definition-item {
-      padding: 1rem;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.9);
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      border: 0.5px solid rgba(0, 0, 0, 0.08);
-      min-height: 44px;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    }
-
-    /* backdrop-filter対応時のみ有効化 */
-    @supports (backdrop-filter: blur(10px)) or (-webkit-backdrop-filter: blur(10px)) {
-      .definition-item {
-        background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-      }
-    }
-
-    .definition-item:active {
-      transform: scale(0.98);
-      background: rgba(0, 122, 255, 0.15);
-    }
-
-    /* アクティブ状態のテキストを濃く（ライトモード） */
-    .definition-item:active p {
-      color: #000000;
-      font-weight: 500;
-    }
-
-    .definition-item:active .number {
-      color: #005ecb;
-      font-weight: 700;
-    }
-
-    .definition-item:active .kanji {
-      color: #000000;
-    }
-
-    @media (hover: hover) {
-      .definition-item:hover {
-        background: rgba(255, 255, 255, 0.9);
-        transform: translateX(4px);
-        border-color: rgba(0, 122, 255, 0.2);
-        box-shadow: 0 4px 12px rgba(0, 122, 255, 0.12);
-      }
-    }
-
-    ol.definitions > li > h3 {
+    /* 構造視覚化：一式→三式→五式 */
+    .structure-visual {
       display: flex;
-      align-items: baseline;
-      gap: 0.75rem;
+      justify-content: center;
+      align-items: center;
+      gap: 2rem;
+      margin: 4rem 0;
+      padding: 3rem;
+      background: var(--bg);
+      border-radius: 16px;
+      box-shadow: var(--shadow-md);
+      flex-wrap: wrap;
+    }
+
+    .structure-item {
+      position: relative;
+      text-align: center;
+    }
+
+    .structure-item::after {
+      content: '→';
+      position: absolute;
+      right: -2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 2rem;
+      color: var(--primary);
+      font-weight: 300;
+    }
+
+    .structure-item:last-child::after {
+      display: none;
+    }
+
+    .structure-circle {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      border: 3px solid var(--primary);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: var(--bg);
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .structure-circle:hover {
+      transform: scale(1.1);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary-dark);
+    }
+
+    .structure-label {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--primary);
       margin-bottom: 0.5rem;
     }
 
-    ol.definitions > li > h3 .number {
-      font-size: clamp(1rem, 0.875rem + 0.5vw, 1.25rem);
-      color: #007aff;
-      min-width: 1.6em;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-      flex-shrink: 0;
+    .structure-chars {
+      font-size: 0.85rem;
+      color: var(--text-light);
+      line-height: 1.6;
     }
 
-    ol.definitions > li > h3 .kanji {
-      font-size: 1.25rem;
-      font-weight: 700;
-      color: #1d1d1f;
-      letter-spacing: 0.02em;
+    /* 五式遷移フロー図 */
+    .flow-diagram {
+      background: linear-gradient(135deg, var(--primary-light) 0%, var(--bg) 100%);
+      padding: 4rem 2rem;
+      border-radius: 16px;
+      margin: 4rem 0;
+      box-shadow: var(--shadow-md);
     }
 
-    ol.definitions > li > p {
-      padding-left: 2.125rem;
-      margin-bottom: 0;
-      color: #1d1d1f;
-      line-height: 1.7;
-      font-size: 0.9375rem;
-      font-weight: 400;
-    }
-
-    /* サマリーセクション */
-    .summary-section {
-      background: rgba(0, 122, 255, 0.1);
-      border-left: 3px solid #007aff;
-      padding: 1.5rem 1.25rem;
-      margin-top: 1.5rem;
-    }
-
-    /* backdrop-filter対応時のみ有効化 */
-    @supports (backdrop-filter: blur(20px)) or (-webkit-backdrop-filter: blur(20px)) {
-      .summary-section {
-        background: rgba(0, 122, 255, 0.06);
-        backdrop-filter: saturate(180%) blur(20px);
-        -webkit-backdrop-filter: saturate(180%) blur(20px);
-      }
-    }
-
-    .summary-section p {
-      margin-bottom: 0;
-      color: #000000;
+    .flow-title {
+      text-align: center;
+      font-size: 1.3rem;
       font-weight: 500;
-      line-height: 1.7;
-      font-size: 1rem;
+      margin-bottom: 3rem;
+      color: var(--text);
     }
 
-    /* アニメーション定義 */
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    .flow-chain {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      max-width: 1000px;
+      margin: 0 auto;
     }
 
-    @keyframes fadeInDown {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+    .flow-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
     }
 
-    /* ==== iPhone最適化 (360-430px) ==== */
-    @media (max-width: 430px) {
-      html {
-        font-size: 15px;
-      }
-
-      body {
-        padding: 1rem 1rem;
-        max-width: 100%;
-      }
-
-      h1 {
-        font-size: 1.375rem;
-        line-height: 1.35;
-      }
-
-      h2 {
-        font-size: 1.0625rem;
-      }
-
-      .content-section {
-        padding: 1.25rem 1rem;
-        border-radius: 16px;
-        margin-bottom: 0.875rem;
-      }
-
-      ol.definitions > li > h3 .kanji {
-        font-size: 1.125rem;
-      }
-
-      ol.definitions > li > p {
-        padding-left: 2rem;
-      }
-
-      .summary-section {
-        padding: 1.25rem 1rem;
-      }
-    }
-
-    @media (min-width: 431px) and (max-width: 639px) {
-      body {
-        padding: 1.5rem 1.25rem;
-      }
-    }
-
-    /* タブレット・デスクトップ */
-    @media (min-width: 640px) {
-      body {
-        padding: 3rem 2rem;
-        max-width: 720px;
-      }
-
-      h1 {
-        font-size: 1.875rem;
-      }
-
-      h2 {
-        font-size: 1.25rem;
-      }
-
-      .content-section {
-        padding: 2rem 1.75rem;
-        margin-bottom: 1.5rem;
-      }
-
-      ol.definitions > li > h3 .kanji {
-        font-size: 1.5rem;
-      }
-
-      .summary-section {
-        padding: 2rem 1.75rem;
-      }
-    }
-
-    @media (min-width: 768px) {
-      body {
-        padding: 4rem 2.5rem;
-        max-width: 800px;
-      }
-
-      h1 {
-        font-size: 2.125rem;
-      }
-
-      h2 {
-        font-size: 1.375rem;
-      }
-
-      .content-section {
-        padding: 2.5rem 2rem;
-        margin-bottom: 1.75rem;
-      }
-
-      ol.definitions > li > h3 .kanji {
-        font-size: 1.625rem;
-      }
-
-      .summary-section {
-        padding: 2.5rem 2rem;
-      }
-    }
-
-    /* アクセシビリティ: フォーカス状態 */
-    a:focus-visible,
-    button:focus-visible,
-    .interactive-element:focus-visible {
-      outline: 3px solid #007aff;
-      outline-offset: 4px;
-      border-radius: 4px;
-      box-shadow: 0 0 0 6px rgba(0, 122, 255, 0.15);
-    }
-
-    /* タップハイライト無効化（カスタム効果を使用） */
-    * {
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    /* プリント時の最適化 */
-    @media print {
-      body {
-        background: white;
-        max-width: 100%;
-      }
-
-      body::before {
-        display: none;
-      }
-
-      .content-section {
-        box-shadow: none;
-        border: 1px solid #d2d2d7;
-        page-break-inside: avoid;
-        background: white;
-      }
-
-      h1 {
-        color: #1d1d1f;
-      }
-    }
-
-    /* 縮小モーション設定を尊重 */
-    @media (prefers-reduced-motion: reduce) {
-      *,
-      *::before,
-      *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-      }
-
-      .ripple {
-        display: none !important;
-      }
-
-      .content-section:hover,
-      .definition-item:hover,
-      ul li:hover {
-        transform: none !important;
-      }
-    }
-
-    /* ===== インタラクティブフィードバック ===== */
-
-    /* リップル効果 */
-    .ripple {
+    .flow-node::after {
+      content: '';
       position: absolute;
-      border-radius: 50%;
-      background: rgba(0, 122, 255, 0.4);
-      transform: scale(0);
-      animation: ripple-animation 0.6s ease-out;
-      pointer-events: none;
+      right: -1.5rem;
+      top: 50%;
+      width: 1.5rem;
+      height: 2px;
+      background: var(--primary);
+      transform: translateY(-50%);
     }
 
-    @keyframes ripple-animation {
-      to {
-        transform: scale(4);
-        opacity: 0;
+    .flow-node::before {
+      content: '';
+      position: absolute;
+      right: -1.65rem;
+      top: 50%;
+      width: 0;
+      height: 0;
+      border-left: 6px solid var(--primary);
+      border-top: 4px solid transparent;
+      border-bottom: 4px solid transparent;
+      transform: translateY(-50%);
+    }
+
+    .flow-node:last-child::after,
+    .flow-node:last-child::before {
+      display: none;
+    }
+
+    .flow-box {
+      background: var(--bg);
+      padding: 1.5rem 2rem;
+      border-radius: 12px;
+      border: 2px solid var(--primary);
+      min-width: 120px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+    }
+
+    .flow-box:hover {
+      transform: translateY(-5px);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary-dark);
+    }
+
+    .flow-kanji {
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .flow-label {
+      font-size: 0.8rem;
+      color: var(--text-light);
+    }
+
+    /* 領域視覚化：循・乱・絶 */
+    .region-diagram {
+      margin: 5rem 0;
+      padding: 3rem;
+      background: var(--bg);
+      border-radius: 16px;
+      box-shadow: var(--shadow-md);
+    }
+
+    .region-title {
+      text-align: center;
+      font-size: 1.3rem;
+      font-weight: 500;
+      margin-bottom: 3rem;
+      color: var(--text);
+    }
+
+    .region-layers {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .region-layer {
+      padding: 2rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+
+    .region-layer:hover {
+      transform: translateX(10px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .region-jun {
+      background: var(--accent-jun);
+      border: 3px solid #00cc66;
+      padding: 3rem 2rem;
+    }
+
+    .region-ran {
+      background: var(--accent-ran);
+      border: 3px dashed #cc0000;
+    }
+
+    .region-zetsu {
+      background: var(--accent-zetsu);
+      border: 3px dotted #666666;
+    }
+
+    .region-layer-title {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .region-label {
+      font-size: 0.9rem;
+      padding: 0.4rem 1rem;
+      border-radius: 20px;
+      background: rgba(0, 0, 0, 0.1);
+      font-weight: 500;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .region-label {
+        background: rgba(255, 255, 255, 0.1);
       }
     }
 
-    /* インタラクティブ要素の共通スタイル */
-    .interactive-element {
-      cursor: pointer;
-      user-select: none;
-      -webkit-user-select: none;
+    .region-layer-desc {
+      font-size: 1rem;
+      color: var(--text);
+      line-height: 1.8;
+    }
+
+    .goshiki-in-jun {
+      background: rgba(255, 255, 255, 0.8);
+      border: 2px solid var(--primary);
+      padding: 2rem;
+      border-radius: 8px;
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .goshiki-in-jun {
+        background: rgba(0, 0, 0, 0.3);
+      }
+    }
+
+    .goshiki-in-jun strong {
+      font-size: 1.2rem;
+      color: var(--primary);
+    }
+
+    /* 十式定義グリッド */
+    .definitions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 2rem;
+      margin-top: 4rem;
+    }
+
+    .definition-card {
+      background: var(--bg);
+      padding: 2.5rem;
+      border-radius: 16px;
+      border-left: 5px solid var(--primary);
+      box-shadow: var(--shadow-md);
+      transition: all 0.3s ease;
       position: relative;
       overflow: hidden;
     }
 
-    .interactive-element:focus {
-      outline: none;
+    .definition-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--primary-light) 0%, transparent 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
     }
 
-    /* 選択状態のスタイル */
-    .content-section.selected {
-      background: rgba(0, 122, 255, 0.08);
-      border-color: rgba(0, 122, 255, 0.3);
-      box-shadow:
-        0 1px 0 0 rgba(0, 122, 255, 0.15) inset,
-        0 4px 8px rgba(0, 122, 255, 0.15),
-        0 12px 24px rgba(0, 122, 255, 0.2),
-        0 24px 48px rgba(0, 122, 255, 0.25);
+    .definition-card:hover {
+      transform: translateY(-6px);
+      box-shadow: var(--shadow-lg);
     }
 
-    /* 選択状態のセクション内テキストを濃く */
-    .content-section.selected p,
-    .content-section.selected ul li {
-      color: #000000;
-      font-weight: 500;
+    .definition-card:hover::before {
+      opacity: 1;
     }
 
-    .content-section.selected h2 {
-      color: #000000;
-    }
-
-    .definition-item.selected {
-      background: rgba(0, 122, 255, 0.12);
-      border-color: rgba(0, 122, 255, 0.4);
-      box-shadow: 0 4px 12px rgba(0, 122, 255, 0.2);
-      transform: translateX(8px);
-    }
-
-    /* 選択状態でも漢字が読みやすいように */
-    .definition-item.selected .kanji {
-      color: #1d1d1f;
-    }
-
-    /* 選択状態の本文テキストを濃く */
-    .definition-item.selected p {
-      color: #000000;
-      font-weight: 500;
-    }
-
-    /* 選択状態の番号も濃く */
-    .definition-item.selected .number {
-      color: #005ecb;
+    .definition-number {
+      font-size: 2.5rem;
       font-weight: 700;
+      margin-bottom: 1.25rem;
+      color: var(--primary);
+      letter-spacing: 0.05em;
     }
 
-    /* タップ時のフィードバック強化 */
-    .content-section:active {
-      transform: scale(0.99);
-      background: rgba(0, 122, 255, 0.12);
+    .definition-text {
+      line-height: 2;
+      color: var(--text);
+      margin-bottom: 0;
+      font-size: 1.05rem;
     }
 
-    /* アクティブ状態のセクション内テキストを濃く */
-    .content-section:active p,
-    .content-section:active ul li {
-      color: #000000;
-      font-weight: 500;
+    .definition-note {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border-light);
+      line-height: 1.8;
     }
 
-    .content-section:active h2 {
-      color: #000000;
+    .region-card {
+      border-left-color: #ffd966;
     }
 
-    .definition-item:active {
-      background: rgba(0, 122, 255, 0.15);
+    .region-card .definition-number {
+      color: #cc8800;
     }
 
-    /* PCのhover効果を追加強化 */
-    @media (hover: hover) {
-      .content-section:hover {
-        cursor: pointer;
-      }
-    }
-
-    /* ダークモード対応（高コントラスト版） */
     @media (prefers-color-scheme: dark) {
-      body {
-        background: linear-gradient(180deg, #000000 0%, #1c1c1e 50%, #2c2c2e 100%);
-        color: #ffffff;
+      .region-card .definition-number {
+        color: #ffaa00;
+      }
+    }
+
+    .region-card::after {
+      content: '領域';
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      font-size: 0.75rem;
+      padding: 0.3rem 0.8rem;
+      background: var(--accent-region-border);
+      color: #663300;
+      border-radius: 20px;
+      font-weight: 600;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .region-card::after {
+        background: #8c6d1f;
+        color: #ffe6b3;
+      }
+    }
+
+    hr {
+      border: none;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--border), transparent);
+      margin: 8rem 0;
+    }
+
+    .rules-list {
+      background: var(--bg);
+      padding: 3rem;
+      border-radius: 16px;
+      border: 2px solid var(--border);
+      box-shadow: var(--shadow-md);
+    }
+
+    .rules-list ul li {
+      padding: 1.25rem 0 1.25rem 2rem;
+      border-bottom: 1px solid var(--border-light);
+      font-size: 1.05rem;
+    }
+
+    .rules-list ul li:last-child {
+      border-bottom: none;
+    }
+
+    /* 構造マップ全体図 */
+    .structure-map {
+      background: linear-gradient(135deg, var(--primary-light) 0%, var(--bg) 100%);
+      padding: 4rem 2rem;
+      border-radius: 16px;
+      margin: 5rem 0;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .map-title {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin-bottom: 3rem;
+      color: var(--text);
+    }
+
+    .map-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .map-section {
+      background: var(--bg);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      border: 2px solid var(--border);
+      transition: all 0.3s ease;
+    }
+
+    .map-section:hover {
+      transform: scale(1.05);
+      box-shadow: var(--shadow-lg);
+      border-color: var(--primary);
+    }
+
+    .map-section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .map-section-content {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      line-height: 1.8;
+      text-align: center;
+    }
+
+    .map-goshiki {
+      grid-column: 1 / -1;
+      background: var(--primary-light);
+      border: 3px solid var(--primary);
+    }
+
+    @media (max-width: 1024px) {
+      .map-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
 
-      h1, h2, h3 {
-        color: #ffffff;
+      .map-goshiki {
+        grid-column: 1 / -1;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .site-nav {
+        display: none;
       }
 
-      p, ul li, ol.definitions > li > p {
-        color: #e8e8ed;
-        font-weight: 450;
+      .header-inner {
+        padding: 1rem 1.5rem;
       }
 
-      /* 定義リストの漢字を白系に（高コントラスト） */
-      ol.definitions > li > h3 .kanji {
-        color: #ffffff;
+      .hero {
+        padding: 6rem 1.5rem 4rem;
       }
 
-      /* カード背景 - 明るく不透明に */
-      .content-section {
-        background: rgba(44, 44, 46, 0.95);
-        border-color: rgba(255, 255, 255, 0.15);
-        box-shadow:
-          0 0.5px 0 1px rgba(255, 255, 255, 0.1) inset,
-          0 2px 4px rgba(0, 0, 0, 0.5),
-          0 8px 16px rgba(0, 0, 0, 0.6),
-          0 16px 32px rgba(0, 0, 0, 0.7);
+      main {
+        padding: 4rem 1.5rem;
       }
 
-      .content-section:hover {
-        box-shadow:
-          0 0.5px 0 1px rgba(255, 255, 255, 0.12) inset,
-          0 4px 8px rgba(0, 0, 0, 0.6),
-          0 12px 24px rgba(0, 0, 0, 0.7),
-          0 24px 48px rgba(0, 0, 0, 0.8);
-        border-color: rgba(255, 255, 255, 0.2);
+      section {
+        margin-bottom: 6rem;
       }
 
-      /* 定義アイテム - より明るく */
-      .definition-item {
-        background: rgba(58, 58, 60, 0.9);
-        border-color: rgba(255, 255, 255, 0.12);
+      .structure-visual {
+        flex-direction: column;
+        gap: 1rem;
+        padding: 2rem 1rem;
       }
 
-      .definition-item:hover {
-        background: rgba(72, 72, 74, 0.95);
-        border-color: rgba(10, 132, 255, 0.4);
+      .structure-item::after {
+        content: '↓';
+        right: auto;
+        top: auto;
+        bottom: -1.5rem;
+        left: 50%;
+        transform: translateX(-50%);
       }
 
-      /* ホバー状態でも漢字は白系を維持 */
-      .definition-item:hover .kanji {
-        color: #ffffff;
+      .structure-item:last-child::after {
+        display: none;
       }
 
-      /* ホバー状態の本文テキストも白系に */
-      .definition-item:hover p {
-        color: #ffffff;
-        font-weight: 500;
+      .flow-chain {
+        flex-direction: column;
+        gap: 1rem;
       }
 
-      /* ホバー状態の番号も明るく */
-      .definition-item:hover .number {
-        color: #5ac8fa;
+      .flow-node::after {
+        right: auto;
+        top: auto;
+        bottom: -1rem;
+        left: 50%;
+        width: 2px;
+        height: 1rem;
+        transform: translateX(-50%);
       }
 
-      .definition-item:active {
-        background: rgba(72, 72, 74, 1);
+      .flow-node::before {
+        right: auto;
+        top: auto;
+        bottom: -1.3rem;
+        left: 50%;
+        transform: translateX(-50%) rotate(90deg);
       }
 
-      /* サマリーセクション - より明るく */
-      .summary-section {
-        background: rgba(10, 132, 255, 0.25);
-        border-color: #0a84ff;
+      .definitions-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
       }
 
-      /* サマリーセクションのテキストを純白に */
-      .summary-section p {
-        color: #ffffff;
+      .definition-section {
+        padding: 2rem 1.5rem;
       }
 
-      ul li::before {
-        color: #0a84ff;
+      .rules-list {
+        padding: 2rem 1.5rem;
       }
 
-      ol.definitions > li > h3 .number {
-        color: #0a84ff;
+      .region-diagram {
+        padding: 2rem 1rem;
       }
 
-      h2::before {
-        background: linear-gradient(180deg, #0a84ff 0%, #0066cc 100%);
+      .flow-diagram {
+        padding: 3rem 1.5rem;
       }
 
-      /* ダークモード時の選択状態 */
-      .content-section.selected {
-        background: rgba(10, 132, 255, 0.2);
-        border-color: rgba(10, 132, 255, 0.5);
+      .map-grid {
+        grid-template-columns: 1fr;
       }
 
-      /* 選択状態のセクション内テキストを純白に */
-      .content-section.selected p,
-      .content-section.selected ul li {
-        color: #ffffff;
-        font-weight: 500;
+      .map-goshiki {
+        grid-column: 1;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation: none !important;
+        transition: none !important;
       }
 
-      .content-section.selected h2 {
-        color: #ffffff;
+      html {
+        scroll-behavior: auto;
+      }
+    }
+
+    @media print {
+      .site-header,
+      .scroll-indicator {
+        display: none;
       }
 
-      .definition-item.selected {
-        background: rgba(10, 132, 255, 0.25);
-        border-color: rgba(10, 132, 255, 0.6);
+      .hero {
+        min-height: auto;
+        padding: 2rem;
+        background: white;
       }
 
-      /* 選択状態でも漢字は白系を維持 */
-      .definition-item.selected .kanji {
-        color: #ffffff;
+      main {
+        max-width: 100%;
+        padding: 2rem;
       }
 
-      /* 選択状態の本文テキストを純白に（高コントラスト） */
-      .definition-item.selected p {
-        color: #ffffff;
-        font-weight: 500;
+      section {
+        page-break-inside: avoid;
+        margin-bottom: 3rem;
       }
 
-      /* 選択状態の番号も明るく */
-      .definition-item.selected .number {
-        color: #5ac8fa;
-        font-weight: 700;
+      .definition-card,
+      .structure-circle,
+      .flow-box,
+      .region-layer {
+        break-inside: avoid;
+        box-shadow: none;
       }
 
-      /* ダークモード時のタップフィードバック */
-      .content-section:active {
-        background: rgba(10, 132, 255, 0.25);
-      }
-
-      /* アクティブ状態のセクション内テキストを純白に */
-      .content-section:active p,
-      .content-section:active ul li {
-        color: #ffffff;
-        font-weight: 500;
-      }
-
-      .content-section:active h2 {
-        color: #ffffff;
-      }
-
-      .definition-item:active {
-        background: rgba(10, 132, 255, 0.3);
-      }
-
-      /* アクティブ状態でも漢字は白系を維持 */
-      .definition-item:active .kanji {
-        color: #ffffff;
-      }
-
-      /* アクティブ状態の本文テキストも白系に */
-      .definition-item:active p {
-        color: #ffffff;
-        font-weight: 500;
-      }
-
-      /* アクティブ状態の番号も明るく */
-      .definition-item:active .number {
-        color: #5ac8fa;
-      }
-
-      /* ダークモード時のリップル */
-      .ripple {
-        background: rgba(10, 132, 255, 0.5);
+      .definitions-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
       }
     }
   </style>
 </head>
 <body>
-  <header class="site-header" role="banner">
-    <h1>十式 ― 構造成立の観測アーキテクチャ</h1>
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="#" class="site-logo">十式</a>
+      <nav class="site-nav">
+        <a href="#definition">定義</a>
+        <a href="#structure">構造</a>
+        <a href="#flow">遷移</a>
+        <a href="#jusshiki-def">十式</a>
+        <a href="#rules">ルール</a>
+      </nav>
+    </div>
   </header>
 
+  <div class="hero">
+    <div class="hero-content">
+      <h1>十式（jusshiki）</h1>
+      <p class="hero-subtitle">構造実体の成立・遷移・停止を観測する固定構造</p>
+      <div class="hero-notice">十式は更新されない。更新対象は五式のみである。</div>
+    </div>
+    <div class="scroll-indicator">SCROLL</div>
+  </div>
+
   <main>
-    <section class="content-section" aria-labelledby="heading-purpose">
-      <h2 id="heading-purpose">目的</h2>
-      <p>十式は、構造実体の成立・遷移・停止を観測するための構造である。<br>
-      十式自体は更新されない。更新対象は五式（構造実体）のみである。</p>
+    <section id="definition">
+      <h2>定義</h2>
+      <div class="definition-section">
+        <p>十式は、構造実体の成立・遷移・停止が観測される際に用いられる固定構造である。<br>十式自体は更新されない。更新対象は五式（構造実体）のみである。</p>
+      </div>
     </section>
 
-    <section class="content-section" aria-labelledby="heading-premise">
-      <h2 id="heading-premise">前提固定</h2>
+    <section id="premise">
+      <h2>前提固定</h2>
       <ul>
         <li>五式は構造実体であり、更新対象である</li>
         <li>十式は観測・判定・遷移のための構造であり、更新されない</li>
@@ -810,25 +945,44 @@
       </ul>
     </section>
 
-    <section class="content-section" aria-labelledby="heading-isshiki">
-      <h2 id="heading-isshiki">一式</h2>
+    <hr>
+
+    <section id="structure">
+      <h2>構造</h2>
+
+      <div class="structure-visual">
+        <div class="structure-item">
+          <div class="structure-circle">
+            <div class="structure-label">一式</div>
+            <div class="structure-chars">認</div>
+          </div>
+        </div>
+        <div class="structure-item">
+          <div class="structure-circle">
+            <div class="structure-label">三式</div>
+            <div class="structure-chars">認・理・衡</div>
+          </div>
+        </div>
+        <div class="structure-item">
+          <div class="structure-circle">
+            <div class="structure-label">五式</div>
+            <div class="structure-chars">認・理・衡<br>縁・継</div>
+          </div>
+        </div>
+      </div>
+
       <h3>認</h3>
       <p>未確定だが存在している状態</p>
-    </section>
 
-    <section class="content-section" aria-labelledby="heading-sanshiki">
-      <h2 id="heading-sanshiki">三式</h2>
+      <h3>三式</h3>
       <p>認・理・衡</p>
       <ul>
         <li>認：未確定だが存在している</li>
         <li>理：構造・筋道</li>
         <li>衡：揺れて存在している状態（評価を含まない）</li>
       </ul>
-      <p>三式は、存在が「有」として成立するための最小構成である。</p>
-    </section>
 
-    <section class="content-section" aria-labelledby="heading-goshiki">
-      <h2 id="heading-goshiki">五式</h2>
+      <h3>五式</h3>
       <p>認・理・衡・縁・継</p>
       <ul>
         <li>認：未確定だが存在している</li>
@@ -837,201 +991,174 @@
         <li>縁：相互参照関係への遷移が観測される</li>
         <li>継：次の認へ遷移する</li>
       </ul>
-      <p>五式は、更新・差分・継承を行う構造実体である。</p>
     </section>
 
-    <section class="content-section" aria-labelledby="heading-jusshiki">
-      <h2 id="heading-jusshiki">十式 定義</h2>
-      <ol class="definitions">
-        <li class="definition-item">
-          <h3><span class="number">①</span><span class="kanji">認</span></h3>
-          <p>未確定だが存在している状態</p>
-        </li>
-        <li class="definition-item">
-          <h3><span class="number">②</span><span class="kanji">理</span></h3>
-          <p>構造・筋道</p>
-        </li>
-        <li class="definition-item">
-          <h3><span class="number">③</span><span class="kanji">衡</span></h3>
-          <p>揺れて存在している状態（評価を含まない）</p>
-        </li>
-        <li class="definition-item">
-          <h3><span class="number">④</span><span class="kanji">縁</span></h3>
-          <p>複数の理が相互参照関係へ遷移したことが観測される状態</p>
-        </li>
-        <li class="definition-item">
-          <h3><span class="number">⑤</span><span class="kanji">幅</span></h3>
-          <p>構造が崩壊しない値の幅</p>
-        </li>
-        <li class="definition-item">
-          <h3><span class="number">⑥</span><span class="kanji">許</span></h3>
-          <p>その幅の中で、再現可能と定義された正常幅</p>
-        </li>
-        <li class="definition-item">
-          <h3><span class="number">⑦</span><span class="kanji">循</span></h3>
-          <p>再現性のある領域</p>
-        </li>
-        <li class="definition-item">
-          <h3><span class="number">⑧</span><span class="kanji">乱</span></h3>
-          <p>再現性のない領域</p>
-        </li>
-        <li class="definition-item">
-          <h3><span class="number">⑨</span><span class="kanji">絶</span></h3>
-          <p>構造不成立領域</p>
-        </li>
-        <li class="definition-item">
-          <h3><span class="number">⑩</span><span class="kanji">継</span></h3>
-          <p>循の内側で成立していた構造実体（五式）が、差分を伴って次の認へ遷移すること</p>
-        </li>
-      </ol>
+    <section id="flow">
+      <div class="flow-diagram">
+        <div class="flow-title">五式の遷移構造</div>
+        <div class="flow-chain">
+          <div class="flow-node">
+            <div class="flow-box">
+              <div class="flow-kanji">認</div>
+              <div class="flow-label">未確定</div>
+            </div>
+          </div>
+          <div class="flow-node">
+            <div class="flow-box">
+              <div class="flow-kanji">理</div>
+              <div class="flow-label">構造</div>
+            </div>
+          </div>
+          <div class="flow-node">
+            <div class="flow-box">
+              <div class="flow-kanji">衡</div>
+              <div class="flow-label">揺れ</div>
+            </div>
+          </div>
+          <div class="flow-node">
+            <div class="flow-box">
+              <div class="flow-kanji">縁</div>
+              <div class="flow-label">相互参照</div>
+            </div>
+          </div>
+          <div class="flow-node">
+            <div class="flow-box">
+              <div class="flow-kanji">継</div>
+              <div class="flow-label">次へ遷移</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="region-diagram">
+        <div class="region-title">領域と構造実体の関係</div>
+        <div class="region-layers">
+          <div class="region-layer region-jun">
+            <div class="region-layer-title">
+              ⑦ 循
+              <span class="region-label">領域</span>
+            </div>
+            <div class="region-layer-desc">再現性のある領域</div>
+            <div class="goshiki-in-jun">
+              <strong>五式（構造実体）</strong> は循の内側で成立し、更新される
+            </div>
+          </div>
+          <div class="region-layer region-ran">
+            <div class="region-layer-title">
+              ⑧ 乱
+              <span class="region-label">領域</span>
+            </div>
+            <div class="region-layer-desc">再現性のない領域</div>
+          </div>
+          <div class="region-layer region-zetsu">
+            <div class="region-layer-title">
+              ⑨ 絶
+              <span class="region-label">領域</span>
+            </div>
+            <div class="region-layer-desc">構造不成立領域</div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section class="content-section" aria-labelledby="heading-rules">
-      <h2 id="heading-rules">補足ルール</h2>
-      <ul>
-        <li>五式は構造実体であり、更新対象である</li>
-        <li>十式は観測・判定・遷移構造であり、更新されない</li>
-        <li>循・乱・絶は領域であり、実体ではない</li>
-        <li>継は領域の更新ではなく、実体（五式）の遷移である</li>
-        <li>循・乱・絶は更新・操作・評価の対象ではない</li>
-        <li>解釈・比喩・感情語を用いてはならない</li>
-      </ul>
+    <hr>
+
+    <section id="jusshiki-def">
+      <h2>十式 定義（順序固定・入替不可）</h2>
+
+      <div class="structure-map">
+        <div class="map-title">十式の構造全体図</div>
+        <div class="map-grid">
+          <div class="map-section">
+            <div class="map-section-title">観測構造</div>
+            <div class="map-section-content">認・理・衡・縁<br>幅・許</div>
+          </div>
+          <div class="map-section map-goshiki">
+            <div class="map-section-title">五式（構造実体）</div>
+            <div class="map-section-content">認・理・衡・縁・継<br>更新対象</div>
+          </div>
+          <div class="map-section">
+            <div class="map-section-title">領域</div>
+            <div class="map-section-content">循・乱・絶<br>実体ではない</div>
+          </div>
+          <div class="map-section">
+            <div class="map-section-title">遷移位置</div>
+            <div class="map-section-content">継<br>観測された位置</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="definitions-grid">
+        <article class="definition-card">
+          <div class="definition-number">① 認</div>
+          <p class="definition-text">未確定だが存在している状態</p>
+        </article>
+
+        <article class="definition-card">
+          <div class="definition-number">② 理</div>
+          <p class="definition-text">構造・筋道</p>
+        </article>
+
+        <article class="definition-card">
+          <div class="definition-number">③ 衡</div>
+          <p class="definition-text">揺れて存在している状態（評価を含まない）</p>
+        </article>
+
+        <article class="definition-card">
+          <div class="definition-number">④ 縁</div>
+          <p class="definition-text">複数の理が相互参照関係へ遷移したことが観測される状態</p>
+        </article>
+
+        <article class="definition-card">
+          <div class="definition-number">⑤ 幅</div>
+          <p class="definition-text">構造が崩壊しない値の幅</p>
+        </article>
+
+        <article class="definition-card">
+          <div class="definition-number">⑥ 許</div>
+          <p class="definition-text">その幅の中で、再現可能と定義された正常幅</p>
+          <p class="definition-note">※ 許は構造の所有者が担う役割であり、差分の帰属先を保持する</p>
+        </article>
+
+        <article class="definition-card region-card">
+          <div class="definition-number">⑦ 循</div>
+          <p class="definition-text">再現性のある領域</p>
+        </article>
+
+        <article class="definition-card region-card">
+          <div class="definition-number">⑧ 乱</div>
+          <p class="definition-text">再現性のない領域</p>
+        </article>
+
+        <article class="definition-card region-card">
+          <div class="definition-number">⑨ 絶</div>
+          <p class="definition-text">構造不成立領域</p>
+        </article>
+
+        <article class="definition-card">
+          <div class="definition-number">⑩ 継</div>
+          <p class="definition-text">循の内側で成立していた構造実体（五式）が、差分を伴って次の認へ遷移すること</p>
+          <p class="definition-note">※ 継は、構造実体（五式）が差分を伴って次の認へ遷移したという<br>　 構造更新が観測された位置を指す</p>
+        </article>
+      </div>
     </section>
 
-    <section class="summary summary-section content-section" aria-labelledby="heading-summary">
-      <h2 id="heading-summary" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0;">まとめ</h2>
-      <p>十式とは、成立した構造実体のみが、再現性領域を通過し、次の構造へ更新されるための観測アーキテクチャである。</p>
+    <hr>
+
+    <section id="rules">
+      <h2>補足ルール（固定）</h2>
+      <div class="rules-list">
+        <ul>
+          <li>五式は構造実体であり、更新対象である</li>
+          <li>十式は観測・判定・遷移構造であり、更新されない</li>
+          <li>循・乱・絶は領域であり、実体ではない</li>
+          <li>継は領域の更新ではなく、実体（五式）の遷移である</li>
+          <li>循・乱・絶は更新・操作・評価の対象ではない</li>
+          <li>解釈・比喩・感情語を用いてはならない</li>
+          <li>許（構造の所有者）が役割を放棄した場合、差分は帰属せず、衡は停止する</li>
+        </ul>
+      </div>
     </section>
   </main>
-
-  <script>
-    // ===== インタラクティブフィードバック実装 =====
-
-    (function() {
-      'use strict';
-
-      // prefers-reduced-motionチェック
-      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-      // リップル効果を生成
-      function createRipple(event, element) {
-        // reduced-motion時はリップル無効
-        if (prefersReducedMotion) return;
-
-        const ripple = document.createElement('span');
-        ripple.classList.add('ripple');
-
-        const rect = element.getBoundingClientRect();
-        const size = Math.max(rect.width, rect.height);
-        const x = event.clientX - rect.left - size / 2;
-        const y = event.clientY - rect.top - size / 2;
-
-        ripple.style.width = ripple.style.height = size + 'px';
-        ripple.style.left = x + 'px';
-        ripple.style.top = y + 'px';
-
-        element.appendChild(ripple);
-
-        // アニメーション終了後に削除
-        ripple.addEventListener('animationend', () => {
-          ripple.remove();
-        });
-      }
-
-      // 振動フィードバック（サポート環境のみ）
-      function triggerVibration(duration = 10) {
-        if ('vibrate' in navigator) {
-          navigator.vibrate(duration);
-        }
-      }
-
-      // aria-pressed更新
-      function updateAriaPressed(element, isPressed) {
-        element.setAttribute('aria-pressed', isPressed ? 'true' : 'false');
-      }
-
-      // インタラクティブ要素の初期化
-      function initInteractiveElements() {
-        // セクションカード
-        const sections = document.querySelectorAll('.content-section');
-        sections.forEach(section => {
-          section.classList.add('interactive-element');
-          section.setAttribute('role', 'button');
-          section.setAttribute('aria-pressed', 'false');
-          section.setAttribute('tabindex', '0');
-
-          section.addEventListener('click', function(e) {
-            // リップル効果
-            createRipple(e, this);
-
-            // 振動フィードバック
-            triggerVibration(10);
-
-            // 選択状態トグル
-            const isSelected = this.classList.toggle('selected');
-            updateAriaPressed(this, isSelected);
-          });
-        });
-
-        // 定義アイテム
-        const definitionItems = document.querySelectorAll('.definition-item');
-        definitionItems.forEach(item => {
-          item.classList.add('interactive-element');
-          item.setAttribute('role', 'button');
-          item.setAttribute('aria-pressed', 'false');
-          item.setAttribute('tabindex', '0');
-
-          item.addEventListener('click', function(e) {
-            // 親セクションへの伝播を防ぐ
-            e.stopPropagation();
-
-            createRipple(e, this);
-            triggerVibration(8);
-
-            const isSelected = this.classList.toggle('selected');
-            updateAriaPressed(this, isSelected);
-          });
-        });
-      }
-
-      // キーボードアクセシビリティ
-      function addKeyboardSupport() {
-        const interactiveElements = document.querySelectorAll('.interactive-element');
-
-        interactiveElements.forEach(element => {
-          // Enterキーまたはスペースキーで選択
-          element.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-
-              // クリックイベントをシミュレート（中心位置でリップル生成）
-              const rect = this.getBoundingClientRect();
-              const fakeEvent = {
-                clientX: rect.left + rect.width / 2,
-                clientY: rect.top + rect.height / 2
-              };
-              createRipple(fakeEvent, this);
-
-              triggerVibration(10);
-
-              const isSelected = this.classList.toggle('selected');
-              updateAriaPressed(this, isSelected);
-            }
-          });
-        });
-      }
-
-      // DOMContentLoaded後に初期化
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-          initInteractiveElements();
-          addKeyboardSupport();
-        });
-      } else {
-        initInteractiveElements();
-        addKeyboardSupport();
-      }
-    })();
-  </script>
 </body>
 </html>
