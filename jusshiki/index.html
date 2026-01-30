@@ -3,30 +3,41 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>十式 ― 共通観測鍵</title>
   <style>
-    * {
+    *, *::before, *::after {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
     }
     html {
       scroll-behavior: smooth;
+      overflow-x: hidden;
     }
     body {
       background: #0a0a0c;
       color: #fff;
       font-family: "SF Pro Display", "Hiragino Kaku Gothic ProN", "Noto Sans JP", -apple-system, sans-serif;
-      overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
       line-height: 1.6;
+      overflow-x: hidden;
+      width: 100%;
     }
 
 ```
+.wrapper {
+  width: 100%;
+  overflow-x: hidden;
+  position: relative;
+}
+
 .noise-overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
   opacity: 0.03;
   pointer-events: none;
@@ -50,19 +61,22 @@
   to { opacity: 1; transform: translateY(0); }
 }
 
+/* Hero */
 .hero {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
-  padding: 60px 24px;
+  padding: 60px 20px;
+  overflow: hidden;
 }
 .hero-bg {
   position: absolute;
-  width: 600px;
-  height: 600px;
+  width: 500px;
+  height: 500px;
   border-radius: 50%;
   background: radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 70%);
   top: 50%;
@@ -75,16 +89,19 @@
   position: relative;
   z-index: 1;
   animation: fadeInUp 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
+  max-width: 600px;
+  padding: 0 20px;
 }
 .hero-subtitle {
-  font-size: 14px;
+  font-size: 13px;
   letter-spacing: 0.3em;
   color: rgba(255,255,255,0.4);
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   font-weight: 300;
 }
 .hero-title {
-  font-size: clamp(72px, 15vw, 160px);
+  font-size: clamp(56px, 12vw, 140px);
   font-weight: 200;
   letter-spacing: -0.02em;
   margin: 0;
@@ -95,25 +112,24 @@
   line-height: 1;
 }
 .hero-desc {
-  font-size: 18px;
+  font-size: clamp(14px, 3vw, 17px);
   color: rgba(255,255,255,0.5);
-  margin-top: 32px;
+  margin-top: 28px;
   font-weight: 300;
-  max-width: 480px;
   line-height: 1.8;
 }
 .hero-tags {
-  margin-top: 64px;
+  margin-top: 48px;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
   flex-wrap: wrap;
 }
 .hero-tag {
-  padding: 8px 20px;
+  padding: 7px 16px;
   border-radius: 100px;
   border: 1px solid rgba(255,255,255,0.15);
-  font-size: 13px;
+  font-size: 12px;
   color: rgba(255,255,255,0.6);
   animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
@@ -123,161 +139,165 @@
 
 .scroll-indicator {
   position: absolute;
-  bottom: 40px;
+  bottom: 30px;
   left: 50%;
   transform: translateX(-50%);
   opacity: 0.4;
 }
 .scroll-indicator-box {
-  width: 24px;
-  height: 40px;
-  border-radius: 12px;
+  width: 22px;
+  height: 36px;
+  border-radius: 11px;
   border: 1px solid rgba(255,255,255,0.3);
   display: flex;
   justify-content: center;
-  padding-top: 8px;
+  padding-top: 7px;
 }
 .scroll-indicator-dot {
   width: 3px;
-  height: 8px;
+  height: 7px;
   border-radius: 2px;
   background: rgba(255,255,255,0.5);
   animation: scrollPulse 2s ease-in-out infinite;
 }
 
-section {
-  padding: 120px 24px;
-  max-width: 900px;
+/* Sections */
+.section {
+  padding: 100px 20px;
+  max-width: 800px;
   margin: 0 auto;
+  width: 100%;
 }
 .section-label {
-  font-size: 12px;
+  font-size: 11px;
   letter-spacing: 0.2em;
   color: rgba(255,255,255,0.3);
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 .section-title {
-  font-size: clamp(32px, 5vw, 48px);
+  font-size: clamp(26px, 5vw, 42px);
   font-weight: 300;
   color: #fff;
-  margin-bottom: 64px;
+  margin-bottom: 50px;
 }
 
+/* Premise */
 .premise-card {
   display: flex;
   align-items: flex-start;
-  gap: 24px;
-  padding: 32px;
+  gap: 14px;
+  padding: 22px;
   background: rgba(255,255,255,0.02);
-  border-radius: 16px;
+  border-radius: 14px;
   border: 1px solid rgba(255,255,255,0.06);
-  margin-bottom: 24px;
+  margin-bottom: 18px;
 }
 .premise-bar {
   width: 4px;
-  height: 48px;
+  min-height: 44px;
   border-radius: 2px;
   flex-shrink: 0;
 }
 .premise-title {
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 500;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 .premise-desc {
-  font-size: 16px;
+  font-size: 14px;
   color: rgba(255,255,255,0.6);
   margin: 0;
 }
 
-.jushiki-section {
-  max-width: 800px;
-}
+/* Jushiki List */
 .section-note {
-  font-size: 14px;
+  font-size: 13px;
   color: rgba(255,255,255,0.4);
-  margin-bottom: 48px;
+  margin-bottom: 40px;
 }
 .category-legend {
   display: flex;
-  gap: 24px;
-  margin-bottom: 40px;
+  gap: 20px;
+  margin-bottom: 32px;
   flex-wrap: wrap;
 }
 .category-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 .category-dot {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 3px;
 }
 .category-label {
-  font-size: 13px;
+  font-size: 12px;
   color: rgba(255,255,255,0.5);
 }
 
 .jushiki-card {
   display: flex;
-  gap: 20px;
-  padding: 28px 32px;
-  border-radius: 16px;
-  margin-bottom: 12px;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 14px;
+  margin-bottom: 10px;
 }
 .jushiki-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 .jushiki-name {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 600;
 }
 .jushiki-num {
-  font-size: 13px;
+  font-size: 12px;
   color: rgba(255,255,255,0.4);
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 .jushiki-desc {
-  font-size: 15px;
+  font-size: 14px;
   color: rgba(255,255,255,0.8);
   margin: 0;
+  line-height: 1.5;
 }
 .jushiki-sub {
-  font-size: 13px;
+  font-size: 12px;
   color: rgba(255,255,255,0.4);
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
+/* Animation Section */
 .animation-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 100%;
+  padding: 100px 20px;
+  overflow: hidden;
 }
 .cycle-counter {
-  padding: 10px 24px;
+  padding: 9px 20px;
   border-radius: 100px;
   background: rgba(255,255,255,0.05);
-  margin-bottom: 48px;
+  margin-bottom: 40px;
   color: #f5d742;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
 }
 .animation-visual {
   position: relative;
-  width: 340px;
-  height: 340px;
+  width: 280px;
+  height: 280px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 48px;
+  margin-bottom: 40px;
 }
 .region-circle {
   position: absolute;
@@ -286,20 +306,20 @@ section {
   border-width: 1px;
 }
 .region-zetsu {
-  width: 320px;
-  height: 320px;
+  width: 260px;
+  height: 260px;
   border-color: rgba(239, 68, 68, 0.3);
   animation: rotate 25s linear infinite;
 }
 .region-ran {
-  width: 280px;
-  height: 280px;
+  width: 220px;
+  height: 220px;
   border-color: rgba(245, 215, 66, 0.3);
   animation: rotateReverse 20s linear infinite;
 }
 .region-jun {
-  width: 240px;
-  height: 240px;
+  width: 180px;
+  height: 180px;
   border-color: rgba(139, 92, 246, 0.3);
   animation: rotate 15s linear infinite;
 }
@@ -314,11 +334,11 @@ section {
 .current-state {
   display: flex;
   align-items: center;
-  gap: 20px;
-  margin-bottom: 48px;
+  gap: 16px;
+  margin-bottom: 40px;
 }
 .current-character {
-  font-size: 24px;
+  font-size: 20px;
   font-weight: 300;
   color: #fff;
 }
@@ -326,26 +346,28 @@ section {
   color: rgba(255,255,255,0.2);
 }
 .current-element {
-  font-size: 22px;
+  font-size: 18px;
   color: #a78bfa;
   font-weight: 500;
 }
 
 .step-indicators {
   display: flex;
-  gap: 8px;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 .step-box {
-  width: 48px;
-  height: 48px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.4s ease;
   background: rgba(255,255,255,0.03);
   border: 1px solid rgba(255,255,255,0.08);
-  font-size: 16px;
+  font-size: 14px;
   color: rgba(255,255,255,0.4);
 }
 .step-box.active {
@@ -358,288 +380,313 @@ section {
 .region-labels {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-top: 48px;
+  gap: 10px;
+  margin-top: 40px;
   width: 100%;
-  max-width: 400px;
+  max-width: 320px;
 }
 .region-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 16px 12px;
+  gap: 6px;
+  padding: 14px 10px;
   background: rgba(255,255,255,0.02);
-  border-radius: 12px;
+  border-radius: 10px;
 }
 .region-icon {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 500;
 }
 .region-desc {
-  font-size: 12px;
+  font-size: 11px;
   color: rgba(255,255,255,0.5);
   text-align: center;
 }
 
+/* Rules */
 .rule-card {
   display: flex;
   align-items: flex-start;
-  gap: 16px;
-  padding: 20px 24px;
+  gap: 12px;
+  padding: 16px 18px;
   background: rgba(255,255,255,0.02);
-  border-radius: 12px;
-  margin-bottom: 16px;
+  border-radius: 10px;
+  margin-bottom: 12px;
 }
 .rule-num {
   color: rgba(255,255,255,0.2);
-  font-size: 14px;
+  font-size: 12px;
   font-family: monospace;
+  flex-shrink: 0;
 }
 .rule-text {
-  font-size: 15px;
+  font-size: 13px;
   color: rgba(255,255,255,0.7);
   margin: 0;
+  line-height: 1.6;
 }
 
 .relation-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 400;
   color: rgba(255,255,255,0.6);
-  margin: 80px 0 32px;
+  margin: 60px 0 24px;
 }
 .relation-card {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 24px;
+  gap: 10px;
+  padding: 14px 16px;
   background: rgba(139, 92, 246, 0.05);
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid rgba(139, 92, 246, 0.1);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   flex-wrap: wrap;
 }
 .relation-from, .relation-to {
-  font-size: 14px;
+  font-size: 13px;
   color: #a78bfa;
   font-weight: 500;
 }
 .relation-arrow {
   color: rgba(255,255,255,0.2);
 }
-.relation-spacer {
-  flex: 1;
-  min-width: 100px;
-}
 .relation-desc {
-  font-size: 13px;
+  font-size: 11px;
   color: rgba(255,255,255,0.4);
+  width: 100%;
+  margin-top: 6px;
 }
 
+/* Footer */
 footer {
-  padding: 80px 24px;
+  padding: 50px 20px;
   text-align: center;
   border-top: 1px solid rgba(255,255,255,0.05);
-  max-width: 900px;
-  margin: 0 auto;
 }
 .footer-text {
-  font-size: 13px;
+  font-size: 11px;
   color: rgba(255,255,255,0.25);
-  letter-spacing: 0.05em;
+  letter-spacing: 0.02em;
+  line-height: 1.8;
+}
+
+/* Desktop */
+@media (min-width: 640px) {
+  .hero {
+    padding: 80px 40px;
+  }
+  .section {
+    padding: 120px 40px;
+  }
+  .animation-section {
+    padding: 120px 40px;
+  }
+  .animation-visual {
+    width: 320px;
+    height: 320px;
+  }
+  .region-zetsu {
+    width: 300px;
+    height: 300px;
+  }
+  .region-ran {
+    width: 260px;
+    height: 260px;
+  }
+  .region-jun {
+    width: 220px;
+    height: 220px;
+  }
+  .relation-desc {
+    width: auto;
+    margin-top: 0;
+    margin-left: auto;
+  }
 }
 ```
 
   </style>
 </head>
 <body>
-  <div class="noise-overlay"></div>
+  <div class="wrapper">
+    <div class="noise-overlay"></div>
 
-  <section class="hero">
-    <div class="hero-bg"></div>
-    <div class="hero-content">
-      <p class="hero-subtitle">共通観測鍵</p>
-      <h1 class="hero-title">十式</h1>
-      <p class="hero-desc">構造実体の成立・遷移・停止が観測される際に用いられる固定構造</p>
-      <div class="hero-tags">
-        <span class="hero-tag">非人為論理</span>
-        <span class="hero-tag">同視座圧縮</span>
-        <span class="hero-tag">配列固定</span>
-      </div>
+```
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-content">
+    <p class="hero-subtitle">共通観測鍵</p>
+    <h1 class="hero-title">十式</h1>
+    <p class="hero-desc">構造実体の成立・遷移・停止が観測される際に用いられる固定構造</p>
+    <div class="hero-tags">
+      <span class="hero-tag">非人為論理</span>
+      <span class="hero-tag">同視座圧縮</span>
+      <span class="hero-tag">配列固定</span>
     </div>
-    <div class="scroll-indicator">
-      <div class="scroll-indicator-box">
-        <div class="scroll-indicator-dot"></div>
-      </div>
+  </div>
+  <div class="scroll-indicator">
+    <div class="scroll-indicator-box">
+      <div class="scroll-indicator-dot"></div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <section>
-    <p class="section-label">PREMISE</p>
-    <h2 class="section-title">前提固定</h2>
-
-```
-<div class="premise-card">
-  <div class="premise-bar" style="background: #8b5cf6;"></div>
-  <div>
-    <h3 class="premise-title" style="color: #8b5cf6;">五式</h3>
-    <p class="premise-desc">構造実体であり、更新対象である</p>
+<div class="section">
+  <p class="section-label">PREMISE</p>
+  <h2 class="section-title">前提固定</h2>
+  
+  <div class="premise-card">
+    <div class="premise-bar" style="background: #8b5cf6;"></div>
+    <div>
+      <h3 class="premise-title" style="color: #8b5cf6;">五式</h3>
+      <p class="premise-desc">構造実体であり、更新対象である</p>
+    </div>
+  </div>
+  
+  <div class="premise-card">
+    <div class="premise-bar" style="background: #3b82f6;"></div>
+    <div>
+      <h3 class="premise-title" style="color: #3b82f6;">十式</h3>
+      <p class="premise-desc">観測・判定・遷移構造であり、更新されない</p>
+    </div>
+  </div>
+  
+  <div class="premise-card">
+    <div class="premise-bar" style="background: #f59e0b;"></div>
+    <div>
+      <h3 class="premise-title" style="color: #f59e0b;">循・乱・絶</h3>
+      <p class="premise-desc">領域であり、実体ではない</p>
+    </div>
   </div>
 </div>
 
-<div class="premise-card">
-  <div class="premise-bar" style="background: #3b82f6;"></div>
-  <div>
-    <h3 class="premise-title" style="color: #3b82f6;">十式</h3>
-    <p class="premise-desc">観測・判定・遷移構造であり、更新されない</p>
+<div class="section">
+  <p class="section-label">DEFINITION</p>
+  <h2 class="section-title" style="margin-bottom: 20px;">十式定義</h2>
+  <p class="section-note">順序固定・入替不可</p>
+  
+  <div class="category-legend">
+    <div class="category-item">
+      <div class="category-dot" style="background: #8b5cf6;"></div>
+      <span class="category-label">構造実体</span>
+    </div>
+    <div class="category-item">
+      <div class="category-dot" style="background: #3b82f6;"></div>
+      <span class="category-label">境界定義</span>
+    </div>
+    <div class="category-item">
+      <div class="category-dot" style="background: #f59e0b;"></div>
+      <span class="category-label">領域</span>
+    </div>
+  </div>
+  
+  <div id="jushiki-list"></div>
+</div>
+
+<div class="animation-section">
+  <p class="section-label">VISUALIZATION</p>
+  <h2 class="section-title" style="margin-bottom: 14px; text-align: center;">五式の構造更新</h2>
+  <p class="section-note" style="margin-bottom: 50px;">構造実体の継続的遷移</p>
+  
+  <div class="cycle-counter">循環 #<span id="cycle-count">1</span></div>
+  
+  <div class="animation-visual">
+    <div class="region-circle region-zetsu"></div>
+    <div class="region-circle region-ran"></div>
+    <div class="region-circle region-jun"></div>
+    <div class="character-container" id="character-container">
+      <div id="character-display"></div>
+    </div>
+  </div>
+  
+  <div class="current-state">
+    <span class="current-character" id="current-character">卵</span>
+    <span class="current-divider">|</span>
+    <span class="current-element" id="current-element">認</span>
+  </div>
+  
+  <div class="step-indicators" id="step-indicators"></div>
+  
+  <div class="region-labels">
+    <div class="region-card" style="border: 1px solid rgba(139, 92, 246, 0.2);">
+      <div class="region-icon" style="background: rgba(139, 92, 246, 0.2); color: #8b5cf6;">循</div>
+      <span class="region-desc">再現性あり</span>
+    </div>
+    <div class="region-card" style="border: 1px solid rgba(245, 215, 66, 0.2);">
+      <div class="region-icon" style="background: rgba(245, 215, 66, 0.2); color: #f5d742;">乱</div>
+      <span class="region-desc">再現性なし</span>
+    </div>
+    <div class="region-card" style="border: 1px solid rgba(239, 68, 68, 0.2);">
+      <div class="region-icon" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">絶</div>
+      <span class="region-desc">構造不成立</span>
+    </div>
   </div>
 </div>
 
-<div class="premise-card">
-  <div class="premise-bar" style="background: #f59e0b;"></div>
-  <div>
-    <h3 class="premise-title" style="color: #f59e0b;">循・乱・絶</h3>
-    <p class="premise-desc">領域であり、実体ではない</p>
+<div class="section">
+  <p class="section-label">RULES</p>
+  <h2 class="section-title">補足ルール</h2>
+  
+  <div class="rule-card">
+    <span class="rule-num">01</span>
+    <p class="rule-text">循・乱・絶は更新・操作・評価の対象ではない</p>
   </div>
-</div>
-```
-
-  </section>
-
-  <section class="jushiki-section">
-    <p class="section-label">DEFINITION</p>
-    <h2 class="section-title" style="margin-bottom: 24px;">十式定義</h2>
-    <p class="section-note">順序固定・入替不可</p>
-
-```
-<div class="category-legend">
-  <div class="category-item">
-    <div class="category-dot" style="background: #8b5cf6;"></div>
-    <span class="category-label">構造実体</span>
+  <div class="rule-card">
+    <span class="rule-num">02</span>
+    <p class="rule-text">継は領域の更新ではなく、実体（五式）の遷移である</p>
   </div>
-  <div class="category-item">
-    <div class="category-dot" style="background: #3b82f6;"></div>
-    <span class="category-label">境界定義</span>
+  <div class="rule-card">
+    <span class="rule-num">03</span>
+    <p class="rule-text">許（構造の所有者）が役割を放棄した場合、差分は帰属せず、衡は停止する</p>
   </div>
-  <div class="category-item">
-    <div class="category-dot" style="background: #f59e0b;"></div>
-    <span class="category-label">領域</span>
+  <div class="rule-card">
+    <span class="rule-num">04</span>
+    <p class="rule-text">解釈・比喩・感情語を用いてはならない</p>
   </div>
-</div>
-
-<div id="jushiki-list"></div>
-```
-
-  </section>
-
-  <section class="animation-section">
-    <p class="section-label">VISUALIZATION</p>
-    <h2 class="section-title" style="margin-bottom: 16px; text-align: center;">五式の構造更新</h2>
-    <p class="section-note" style="margin-bottom: 64px;">構造実体の継続的遷移</p>
-
-```
-<div class="cycle-counter">循環 #<span id="cycle-count">1</span></div>
-
-<div class="animation-visual">
-  <div class="region-circle region-zetsu"></div>
-  <div class="region-circle region-ran"></div>
-  <div class="region-circle region-jun"></div>
-  <div class="character-container" id="character-container">
-    <div id="character-display"></div>
+  
+  <h3 class="relation-title">衡と継の関係</h3>
+  
+  <div class="relation-card">
+    <span class="relation-from">衡停止</span>
+    <span class="relation-arrow">→</span>
+    <span class="relation-to">縁が働かない</span>
+    <span class="relation-desc">構造の揺らぎが止まると関係性も停止</span>
+  </div>
+  <div class="relation-card">
+    <span class="relation-from">縁不動</span>
+    <span class="relation-arrow">→</span>
+    <span class="relation-to">継が発生しない</span>
+    <span class="relation-desc">参照関係がなければ遷移は起きない</span>
+  </div>
+  <div class="relation-card">
+    <span class="relation-from">継なし</span>
+    <span class="relation-arrow">→</span>
+    <span class="relation-to">五式は更新されない</span>
+    <span class="relation-desc">遷移がなければ構造は変化しない</span>
   </div>
 </div>
 
-<div class="current-state">
-  <span class="current-character" id="current-character">卵</span>
-  <span class="current-divider">|</span>
-  <span class="current-element" id="current-element">認</span>
-</div>
-
-<div class="step-indicators" id="step-indicators"></div>
-
-<div class="region-labels">
-  <div class="region-card" style="border: 1px solid rgba(139, 92, 246, 0.2);">
-    <div class="region-icon" style="background: rgba(139, 92, 246, 0.2); color: #8b5cf6;">循</div>
-    <span class="region-desc">再現性あり</span>
-  </div>
-  <div class="region-card" style="border: 1px solid rgba(245, 215, 66, 0.2);">
-    <div class="region-icon" style="background: rgba(245, 215, 66, 0.2); color: #f5d742;">乱</div>
-    <span class="region-desc">再現性なし</span>
-  </div>
-  <div class="region-card" style="border: 1px solid rgba(239, 68, 68, 0.2);">
-    <div class="region-icon" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">絶</div>
-    <span class="region-desc">構造不成立</span>
-  </div>
-</div>
-```
-
-  </section>
-
-  <section>
-    <p class="section-label">RULES</p>
-    <h2 class="section-title">補足ルール</h2>
-
-```
-<div class="rule-card">
-  <span class="rule-num">01</span>
-  <p class="rule-text">循・乱・絶は更新・操作・評価の対象ではない</p>
-</div>
-<div class="rule-card">
-  <span class="rule-num">02</span>
-  <p class="rule-text">継は領域の更新ではなく、実体（五式）の遷移である</p>
-</div>
-<div class="rule-card">
-  <span class="rule-num">03</span>
-  <p class="rule-text">許（構造の所有者）が役割を放棄した場合、差分は帰属せず、衡は停止する</p>
-</div>
-<div class="rule-card">
-  <span class="rule-num">04</span>
-  <p class="rule-text">解釈・比喩・感情語を用いてはならない</p>
-</div>
-
-<h3 class="relation-title">衡と継の関係</h3>
-
-<div class="relation-card">
-  <span class="relation-from">衡停止</span>
-  <span class="relation-arrow">→</span>
-  <span class="relation-to">縁が働かない</span>
-  <span class="relation-spacer"></span>
-  <span class="relation-desc">構造の揺らぎが止まると関係性も停止</span>
-</div>
-<div class="relation-card">
-  <span class="relation-from">縁不動</span>
-  <span class="relation-arrow">→</span>
-  <span class="relation-to">継が発生しない</span>
-  <span class="relation-spacer"></span>
-  <span class="relation-desc">参照関係がなければ遷移は起きない</span>
-</div>
-<div class="relation-card">
-  <span class="relation-from">継なし</span>
-  <span class="relation-arrow">→</span>
-  <span class="relation-to">五式は更新されない</span>
-  <span class="relation-spacer"></span>
-  <span class="relation-desc">遷移がなければ構造は変化しない</span>
-</div>
+<footer>
+  <p class="footer-text">十式は非人為論理 ― 構造挙動を観測し、配列を更新不能として固定した記録</p>
+</footer>
 ```
 
-  </section>
-
-  <footer>
-    <p class="footer-text">十式は非人為論理 ― 構造挙動を観測し、配列を更新不能として固定した記録</p>
-  </footer>
+  </div>
 
   <script>
-    var eggSvg = '<svg viewBox="0 0 100 130" style="width:90px;height:117px"><defs><radialGradient id="eg" cx="40%" cy="30%" r="60%"><stop offset="0%" stop-color="#fff9f0"/><stop offset="50%" stop-color="#f5e8c6"/><stop offset="100%" stop-color="#e8d4a8"/></radialGradient></defs><ellipse cx="50" cy="70" rx="40" ry="55" fill="url(#eg)" stroke="#d4c4a0" stroke-width="2"/><ellipse cx="38" cy="50" rx="12" ry="8" fill="rgba(255,255,255,0.5)"/></svg>';
+    var eggSvg = '<svg viewBox="0 0 100 130" width="70" height="91"><defs><radialGradient id="eg" cx="40%" cy="30%" r="60%"><stop offset="0%" stop-color="#fff9f0"/><stop offset="50%" stop-color="#f5e8c6"/><stop offset="100%" stop-color="#e8d4a8"/></radialGradient></defs><ellipse cx="50" cy="70" rx="40" ry="55" fill="url(#eg)" stroke="#d4c4a0" stroke-width="2"/><ellipse cx="38" cy="50" rx="12" ry="8" fill="rgba(255,255,255,0.5)"/></svg>';
     
-    var chickSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 297.8 389.4" style="width:88px;height:115px"><path d="M123.2 347.9c-3.2 7-23 4.9-21.9-1.2.5-2.3 5.7-2.6 8.6-4.6 1.7-1.2-.2-5.6 1.6-6.2 4.4-1.6 13.7 7.5 11.7 12" fill="#df953b"/><path d="M197.8 346.7c3.2 4.2-18 9.7-21.8.9-1.7-4 7-11.3 11.3-11.8 3.2 11 7.3 7 10.4 11" fill="#eda03f"/><path d="M192 70.5c37 8.3 67.7 34 81.1 69 5.3 13.9 6.4 29.5 5.3 44.5-2 30-19.4 55.8-46 68.7-14.4 7 12.6 13.5 13.6 38.4.3 5.3-1.7 11-6.8 11.6-3.9.5-10.3-1.5-10.7-6.1l-1.1-11.8c-.3-2.4-2.8-3.6-4.7-3.1-1.5.4-2.8 2.5-2.6 4.7 1 16.8-5.3 34-20.6 42.2-24.5 13-71.3 12.6-96 1.5A40 40 0 0 1 79 287.3c.4-2.2-1.6-4.7-3.2-4.7-5.2 0-4.6 7.2-5.2 12.2-.6 5.8-5.7 8.5-10.7 8-13-1.2-8.3-25.6 10-41.9 1.2-1 2.1-2.9 1.8-3.9s-.3-3.2-3-4c-7.5-2-19.4-12-25.6-16.7-27.9-32-29.7-81.7-6.7-117.8A106 106 0 0 1 96.1 74c5-1.4 10.9-4.5 15.3-4.7l4-2.2q35.6-3.7 70.8.2 3.6.2 5.8 3.2Z" fill="#fff8dc"/><path d="M235.6 219.6c-8.4 1-15.7-3.2-19.2-9.5-4-7.2-2.7-15.6 2.4-21.8 5.8-7.2 15-9.5 23.2-5.6s13 11.9 11.5 20.7c-1.5 8.5-8 15.1-17.9 16.2" fill="#eca678"/><path d="M68 217.6c-5.8.6-11 0-14.9-2.7a18 18 0 0 1-7.5-14.2c-.5-9.6 6-19 15.5-20.2 11.9-1.6 21 4.5 23.1 15.7a18.4 18.4 0 0 1-16.1 21.4" fill="#eeaa7d"/><path d="M171.9 211.8c-4 8.8-13.2 12-21.4 12.1-8.8.3-17.8-3.2-22.2-12-3.2-6.3-3.1-16-.3-22.6 3.8-8.8 13.3-12.1 21.8-12.6s18 4 22.2 13a29 29 0 0 1-.2 22Z" fill="#152526"/><path d="M164.9 190.8c9 10.6-29.5 9-30.8 4.8-.3-1.2 0-3.2 1.2-4.8 7.2-9.2 22-8.8 29.6 0" fill="#f3a43d"/><path d="M167 204c-1.5 10-10 13.5-18.9 12.6-7.5-.7-14.4-3.7-14.9-12.7 11.3 3 21.4 2.1 33.8.1" fill="#ec9f3e"/><path d="M212 134.5c-2.5 4.3-8.2-4.7-21.1-2.7-1.3.2-3.4-.7-3.5-1.7 0-.9.3-2.7 1.7-3.7 9.9-6.7 26 2.8 22.9 8" fill="#182628"/><path d="M111.2 130c.3 4.8-7.2-1.7-19 5.1-1.4.8-3.7.7-4.2-.5-2.8-6.8 12-13 21.6-8.5 1.6.7 1.6 3 1.6 3.9" fill="#1a2729"/><path d="M119.6 179.5a17 17 0 0 1-16 10.8A17 17 0 0 1 87.8 179a17 17 0 0 1 6.4-19.3c5.9-4.4 14.4-4.5 20-.1s8.5 12.3 5.3 20" fill="#14282b"/><path d="M188.7 188.4c-8.7-4.6-10.8-14.7-7-22.8s13.5-11.5 22-7.7 11.3 14 7.7 22.5-13.8 12.6-22.7 8Z" fill="#14272b"/><path d="M107.3 166.1c2.3-1 4.2.8 4.6 2.3.5 1.8-.2 3.6-1.9 4.3-1.7.8-3.7.1-4.4-1.4s-.6-4.1 1.7-5.2M199.1 166.3c2.1-1.1 4 .2 4.8 1.6.9 1.7.2 3.9-1.5 4.7s-3.5.4-4.4-.8c-1.2-1.5-1.2-4.3 1.1-5.5" fill="#fff"/></svg>';
+    var chickSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 297.8 389.4" width="70" height="91"><path d="M123.2 347.9c-3.2 7-23 4.9-21.9-1.2.5-2.3 5.7-2.6 8.6-4.6 1.7-1.2-.2-5.6 1.6-6.2 4.4-1.6 13.7 7.5 11.7 12" fill="#df953b"/><path d="M197.8 346.7c3.2 4.2-18 9.7-21.8.9-1.7-4 7-11.3 11.3-11.8 3.2 11 7.3 7 10.4 11" fill="#eda03f"/><path d="M192 70.5c37 8.3 67.7 34 81.1 69 5.3 13.9 6.4 29.5 5.3 44.5-2 30-19.4 55.8-46 68.7-14.4 7 12.6 13.5 13.6 38.4.3 5.3-1.7 11-6.8 11.6-3.9.5-10.3-1.5-10.7-6.1l-1.1-11.8c-.3-2.4-2.8-3.6-4.7-3.1-1.5.4-2.8 2.5-2.6 4.7 1 16.8-5.3 34-20.6 42.2-24.5 13-71.3 12.6-96 1.5A40 40 0 0 1 79 287.3c.4-2.2-1.6-4.7-3.2-4.7-5.2 0-4.6 7.2-5.2 12.2-.6 5.8-5.7 8.5-10.7 8-13-1.2-8.3-25.6 10-41.9 1.2-1 2.1-2.9 1.8-3.9s-.3-3.2-3-4c-7.5-2-19.4-12-25.6-16.7-27.9-32-29.7-81.7-6.7-117.8A106 106 0 0 1 96.1 74c5-1.4 10.9-4.5 15.3-4.7l4-2.2q35.6-3.7 70.8.2 3.6.2 5.8 3.2Z" fill="#fff8dc"/><path d="M235.6 219.6c-8.4 1-15.7-3.2-19.2-9.5-4-7.2-2.7-15.6 2.4-21.8 5.8-7.2 15-9.5 23.2-5.6s13 11.9 11.5 20.7c-1.5 8.5-8 15.1-17.9 16.2" fill="#eca678"/><path d="M68 217.6c-5.8.6-11 0-14.9-2.7a18 18 0 0 1-7.5-14.2c-.5-9.6 6-19 15.5-20.2 11.9-1.6 21 4.5 23.1 15.7a18.4 18.4 0 0 1-16.1 21.4" fill="#eeaa7d"/><path d="M171.9 211.8c-4 8.8-13.2 12-21.4 12.1-8.8.3-17.8-3.2-22.2-12-3.2-6.3-3.1-16-.3-22.6 3.8-8.8 13.3-12.1 21.8-12.6s18 4 22.2 13a29 29 0 0 1-.2 22Z" fill="#152526"/><path d="M164.9 190.8c9 10.6-29.5 9-30.8 4.8-.3-1.2 0-3.2 1.2-4.8 7.2-9.2 22-8.8 29.6 0" fill="#f3a43d"/><path d="M167 204c-1.5 10-10 13.5-18.9 12.6-7.5-.7-14.4-3.7-14.9-12.7 11.3 3 21.4 2.1 33.8.1" fill="#ec9f3e"/><path d="M212 134.5c-2.5 4.3-8.2-4.7-21.1-2.7-1.3.2-3.4-.7-3.5-1.7 0-.9.3-2.7 1.7-3.7 9.9-6.7 26 2.8 22.9 8" fill="#182628"/><path d="M111.2 130c.3 4.8-7.2-1.7-19 5.1-1.4.8-3.7.7-4.2-.5-2.8-6.8 12-13 21.6-8.5 1.6.7 1.6 3 1.6 3.9" fill="#1a2729"/><path d="M119.6 179.5a17 17 0 0 1-16 10.8A17 17 0 0 1 87.8 179a17 17 0 0 1 6.4-19.3c5.9-4.4 14.4-4.5 20-.1s8.5 12.3 5.3 20" fill="#14282b"/><path d="M188.7 188.4c-8.7-4.6-10.8-14.7-7-22.8s13.5-11.5 22-7.7 11.3 14 7.7 22.5-13.8 12.6-22.7 8Z" fill="#14272b"/><path d="M107.3 166.1c2.3-1 4.2.8 4.6 2.3.5 1.8-.2 3.6-1.9 4.3-1.7.8-3.7.1-4.4-1.4s-.6-4.1 1.7-5.2M199.1 166.3c2.1-1.1 4 .2 4.8 1.6.9 1.7.2 3.9-1.5 4.7s-3.5.4-4.4-.8c-1.2-1.5-1.2-4.3 1.1-5.5" fill="#fff"/></svg>';
     
-    var kokkoSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 297.8 389.4" style="width:110px;height:143px"><path d="M123.2 347.9c-3.2 7-23 4.9-21.9-1.2.5-2.3 5.7-2.6 8.6-4.6 1.7-1.2-.2-5.6 1.6-6.2 4.4-1.6 13.7 7.5 11.7 12" fill="#df953b"/><path d="M197.8 346.7c3.2 4.2-18 9.7-21.8.9-1.7-4 7-11.3 11.3-11.8 3.2 11 7.3 7 10.4 11" fill="#eda03f"/><path d="M192 70.5c37 8.3 67.7 34 81.1 69 5.3 13.9 6.4 29.5 5.3 44.5-2 30-19.4 55.8-46 68.7-14.4 7 12.6 13.5 13.6 38.4.3 5.3-1.7 11-6.8 11.6-3.9.5-10.3-1.5-10.7-6.1l-1.1-11.8c-.3-2.4-2.8-3.6-4.7-3.1-1.5.4-2.8 2.5-2.6 4.7 1 16.8-5.3 34-20.6 42.2-24.5 13-71.3 12.6-96 1.5A40 40 0 0 1 79 287.3c.4-2.2-1.6-4.7-3.2-4.7-5.2 0-4.6 7.2-5.2 12.2-.6 5.8-5.7 8.5-10.7 8-13-1.2-8.3-25.6 10-41.9 1.2-1 2.1-2.9 1.8-3.9s-.3-3.2-3-4c-7.5-2-19.4-12-25.6-16.7-27.9-32-29.7-81.7-6.7-117.8A106 106 0 0 1 96.1 74c5-1.4 10.9-4.5 15.3-4.7l4-2.2q35.6-3.7 70.8.2 3.6.2 5.8 3.2Z" fill="#f5e8c6"/><path d="m192.5 73.7-3-.6a124 124 0 0 0-81.2-.4l-.6-1.8a43 43 0 0 1 1.4-33.7c4.5-8.2 11.9-14 20.3-16 7.3-1.6 14.7 0 20.8 4.5 5.3 3.8 7 11 8.4 16.9.6 2.6 1.7 7 2.6 7.4.7 0 1.8-1.5 2.8-2.8 2.8-3.4 7-8.7 16-7.8 6.8.7 12 5.4 14.1 12.6a32 32 0 0 1-1 20.2z" fill="#e26a3a"/><path d="M235.6 219.6c-8.4 1-15.7-3.2-19.2-9.5-4-7.2-2.7-15.6 2.4-21.8 5.8-7.2 15-9.5 23.2-5.6s13 11.9 11.5 20.7c-1.5 8.5-8 15.1-17.9 16.2" fill="#eca678"/><path d="M68 217.6c-5.8.6-11 0-14.9-2.7a18 18 0 0 1-7.5-14.2c-.5-9.6 6-19 15.5-20.2 11.9-1.6 21 4.5 23.1 15.7a18.4 18.4 0 0 1-16.1 21.4" fill="#eeaa7d"/><path d="M171.9 211.8c-4 8.8-13.2 12-21.4 12.1-8.8.3-17.8-3.2-22.2-12-3.2-6.3-3.1-16-.3-22.6 3.8-8.8 13.3-12.1 21.8-12.6s18 4 22.2 13a29 29 0 0 1-.2 22Z" fill="#152526"/><path d="M164.9 190.8c9 10.6-29.5 9-30.8 4.8-.3-1.2 0-3.2 1.2-4.8 7.2-9.2 22-8.8 29.6 0" fill="#f3a43d"/><path d="M167 204c-1.5 10-10 13.5-18.9 12.6-7.5-.7-14.4-3.7-14.9-12.7 11.3 3 21.4 2.1 33.8.1" fill="#ec9f3e"/><path d="M212 134.5c-2.5 4.3-8.2-4.7-21.1-2.7-1.3.2-3.4-.7-3.5-1.7 0-.9.3-2.7 1.7-3.7 9.9-6.7 26 2.8 22.9 8" fill="#182628"/><path d="M111.2 130c.3 4.8-7.2-1.7-19 5.1-1.4.8-3.7.7-4.2-.5-2.8-6.8 12-13 21.6-8.5 1.6.7 1.6 3 1.6 3.9" fill="#1a2729"/><path d="M119.6 179.5a17 17 0 0 1-16 10.8A17 17 0 0 1 87.8 179a17 17 0 0 1 6.4-19.3c5.9-4.4 14.4-4.5 20-.1s8.5 12.3 5.3 20" fill="#14282b"/><path d="M188.7 188.4c-8.7-4.6-10.8-14.7-7-22.8s13.5-11.5 22-7.7 11.3 14 7.7 22.5-13.8 12.6-22.7 8Z" fill="#14272b"/><path d="M107.3 166.1c2.3-1 4.2.8 4.6 2.3.5 1.8-.2 3.6-1.9 4.3-1.7.8-3.7.1-4.4-1.4s-.6-4.1 1.7-5.2M199.1 166.3c2.1-1.1 4 .2 4.8 1.6.9 1.7.2 3.9-1.5 4.7s-3.5.4-4.4-.8c-1.2-1.5-1.2-4.3 1.1-5.5" fill="#fff"/></svg>';
+    var kokkoSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 297.8 389.4" width="85" height="111"><path d="M123.2 347.9c-3.2 7-23 4.9-21.9-1.2.5-2.3 5.7-2.6 8.6-4.6 1.7-1.2-.2-5.6 1.6-6.2 4.4-1.6 13.7 7.5 11.7 12" fill="#df953b"/><path d="M197.8 346.7c3.2 4.2-18 9.7-21.8.9-1.7-4 7-11.3 11.3-11.8 3.2 11 7.3 7 10.4 11" fill="#eda03f"/><path d="M192 70.5c37 8.3 67.7 34 81.1 69 5.3 13.9 6.4 29.5 5.3 44.5-2 30-19.4 55.8-46 68.7-14.4 7 12.6 13.5 13.6 38.4.3 5.3-1.7 11-6.8 11.6-3.9.5-10.3-1.5-10.7-6.1l-1.1-11.8c-.3-2.4-2.8-3.6-4.7-3.1-1.5.4-2.8 2.5-2.6 4.7 1 16.8-5.3 34-20.6 42.2-24.5 13-71.3 12.6-96 1.5A40 40 0 0 1 79 287.3c.4-2.2-1.6-4.7-3.2-4.7-5.2 0-4.6 7.2-5.2 12.2-.6 5.8-5.7 8.5-10.7 8-13-1.2-8.3-25.6 10-41.9 1.2-1 2.1-2.9 1.8-3.9s-.3-3.2-3-4c-7.5-2-19.4-12-25.6-16.7-27.9-32-29.7-81.7-6.7-117.8A106 106 0 0 1 96.1 74c5-1.4 10.9-4.5 15.3-4.7l4-2.2q35.6-3.7 70.8.2 3.6.2 5.8 3.2Z" fill="#f5e8c6"/><path d="m192.5 73.7-3-.6a124 124 0 0 0-81.2-.4l-.6-1.8a43 43 0 0 1 1.4-33.7c4.5-8.2 11.9-14 20.3-16 7.3-1.6 14.7 0 20.8 4.5 5.3 3.8 7 11 8.4 16.9.6 2.6 1.7 7 2.6 7.4.7 0 1.8-1.5 2.8-2.8 2.8-3.4 7-8.7 16-7.8 6.8.7 12 5.4 14.1 12.6a32 32 0 0 1-1 20.2z" fill="#e26a3a"/><path d="M235.6 219.6c-8.4 1-15.7-3.2-19.2-9.5-4-7.2-2.7-15.6 2.4-21.8 5.8-7.2 15-9.5 23.2-5.6s13 11.9 11.5 20.7c-1.5 8.5-8 15.1-17.9 16.2" fill="#eca678"/><path d="M68 217.6c-5.8.6-11 0-14.9-2.7a18 18 0 0 1-7.5-14.2c-.5-9.6 6-19 15.5-20.2 11.9-1.6 21 4.5 23.1 15.7a18.4 18.4 0 0 1-16.1 21.4" fill="#eeaa7d"/><path d="M171.9 211.8c-4 8.8-13.2 12-21.4 12.1-8.8.3-17.8-3.2-22.2-12-3.2-6.3-3.1-16-.3-22.6 3.8-8.8 13.3-12.1 21.8-12.6s18 4 22.2 13a29 29 0 0 1-.2 22Z" fill="#152526"/><path d="M164.9 190.8c9 10.6-29.5 9-30.8 4.8-.3-1.2 0-3.2 1.2-4.8 7.2-9.2 22-8.8 29.6 0" fill="#f3a43d"/><path d="M167 204c-1.5 10-10 13.5-18.9 12.6-7.5-.7-14.4-3.7-14.9-12.7 11.3 3 21.4 2.1 33.8.1" fill="#ec9f3e"/><path d="M212 134.5c-2.5 4.3-8.2-4.7-21.1-2.7-1.3.2-3.4-.7-3.5-1.7 0-.9.3-2.7 1.7-3.7 9.9-6.7 26 2.8 22.9 8" fill="#182628"/><path d="M111.2 130c.3 4.8-7.2-1.7-19 5.1-1.4.8-3.7.7-4.2-.5-2.8-6.8 12-13 21.6-8.5 1.6.7 1.6 3 1.6 3.9" fill="#1a2729"/><path d="M119.6 179.5a17 17 0 0 1-16 10.8A17 17 0 0 1 87.8 179a17 17 0 0 1 6.4-19.3c5.9-4.4 14.4-4.5 20-.1s8.5 12.3 5.3 20" fill="#14282b"/><path d="M188.7 188.4c-8.7-4.6-10.8-14.7-7-22.8s13.5-11.5 22-7.7 11.3 14 7.7 22.5-13.8 12.6-22.7 8Z" fill="#14272b"/><path d="M107.3 166.1c2.3-1 4.2.8 4.6 2.3.5 1.8-.2 3.6-1.9 4.3-1.7.8-3.7.1-4.4-1.4s-.6-4.1 1.7-5.2M199.1 166.3c2.1-1.1 4 .2 4.8 1.6.9 1.7.2 3.9-1.5 4.7s-3.5.4-4.4-.8c-1.2-1.5-1.2-4.3 1.1-5.5" fill="#fff"/></svg>';
     
     var jushikiData = [
       { num: '①', name: '認', category: 'entity', desc: '未確定だが存在している状態' },
@@ -668,7 +715,7 @@ footer {
       card.className = 'jushiki-card';
       card.style.background = colors.bg;
       card.style.border = '1px solid ' + colors.border + '25';
-      card.innerHTML = '<div class="jushiki-icon" style="background:' + colors.border + '20"><span class="jushiki-name" style="color:' + colors.text + '">' + item.name + '</span></div><div style="flex:1"><div class="jushiki-num">' + item.num + '</div><p class="jushiki-desc">' + item.desc + '</p>' + (item.sub ? '<p class="jushiki-sub">' + item.sub + '</p>' : '') + '</div>';
+      card.innerHTML = '<div class="jushiki-icon" style="background:' + colors.border + '20"><span class="jushiki-name" style="color:' + colors.text + '">' + item.name + '</span></div><div style="flex:1;min-width:0"><div class="jushiki-num">' + item.num + '</div><p class="jushiki-desc">' + item.desc + '</p>' + (item.sub ? '<p class="jushiki-sub">' + item.sub + '</p>' : '') + '</div>';
       jushikiList.appendChild(card);
     }
     
