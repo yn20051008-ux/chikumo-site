@@ -8,15 +8,15 @@
 
   <!-- SEO Basic -->
 
-  <meta name="description" content="十式は構造実体の成立・遷移・停止を観測する固定構造。認・理・衡・縁・幅・許・循・乱・絶・継の10要素で構成される非人為論理の観測フレームワーク。">
-  <meta name="keywords" content="十式,五式,構造観測,非人為論理,共通観測鍵,構造実体,同視座圧縮,畜物語">
+  <meta name="description" content="十式は構造実体の成立・遷移・停止を観測する共通観測鍵。建築構造物、量子力学、組織構造、データ構造など、あらゆる分野の構造観測に適用可能な非人為論理フレームワーク。">
+  <meta name="keywords" content="十式,五式,構造観測,非人為論理,共通観測鍵,構造実体,同視座圧縮,畜物語,建築構造,量子力学,組織構造,データ構造">
   <link rel="canonical" href="https://chikumo.jp/jusshiki/">
 
   <!-- OGP -->
 
   <meta property="og:type" content="article">
   <meta property="og:title" content="十式 ― 共通観測鍵">
-  <meta property="og:description" content="構造実体の成立・遷移・停止を観測する固定構造フレームワーク。非人為論理による10要素の観測体系。">
+  <meta property="og:description" content="建築・量子力学・組織・データ構造など、あらゆる分野の構造観測に適用可能な非人為論理フレームワーク。">
   <meta property="og:url" content="https://chikumo.jp/jusshiki/">
   <meta property="og:image" content="https://chikumo.jp/ogp.png">
   <meta property="og:locale" content="ja_JP">
@@ -26,7 +26,7 @@
 
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="十式 ― 共通観測鍵">
-  <meta name="twitter:description" content="構造実体の成立・遷移・停止を観測する固定構造フレームワーク">
+  <meta name="twitter:description" content="建築・量子力学・組織・データ構造など、あらゆる分野の構造観測に適用可能な非人為論理フレームワーク">
   <meta name="twitter:image" content="https://chikumo.jp/ogp.png">
 
   <!-- JSON-LD Structured Data -->
@@ -36,7 +36,7 @@
     "@context": "https://schema.org",
     "@type": "Article",
     "headline": "十式 ― 共通観測鍵",
-    "description": "十式は構造実体の成立・遷移・停止を観測する固定構造。認・理・衡・縁・幅・許・循・乱・絶・継の10要素で構成される非人為論理の観測フレームワーク。",
+    "description": "十式は構造実体の成立・遷移・停止を観測する共通観測鍵。建築構造物、量子力学、組織構造、データ構造など、あらゆる分野の構造観測に適用可能な非人為論理フレームワーク。",
     "image": "https://chikumo.jp/ogp.png",
     "author": {
       "@type": "Organization",
@@ -50,13 +50,35 @@
       "@type": "WebPage",
       "@id": "https://chikumo.jp/jusshiki/"
     },
-    "keywords": ["十式", "五式", "構造観測", "非人為論理", "共通観測鍵", "構造実体", "同視座圧縮"],
+    "keywords": ["十式", "五式", "構造観測", "非人為論理", "共通観測鍵", "建築構造物", "量子力学", "組織構造", "データ構造", "観測フレームワーク"],
     "inLanguage": "ja",
-    "about": {
-      "@type": "Thing",
-      "name": "構造観測フレームワーク",
-      "description": "構造実体の成立・遷移・停止を観測するための固定構造体系"
-    }
+    "about": [
+      {
+        "@type": "Thing",
+        "name": "構造観測",
+        "description": "構造実体の成立・遷移・停止を観測する方法論"
+      },
+      {
+        "@type": "Thing",
+        "name": "建築構造物の観測",
+        "description": "建築基準法に基づく構造安全性の観測"
+      },
+      {
+        "@type": "Thing",
+        "name": "量子力学の観測問題",
+        "description": "量子状態の重ね合わせと観測による状態遷移"
+      },
+      {
+        "@type": "Thing",
+        "name": "組織構造の分析",
+        "description": "組織における意思決定構造と権限配分の観測"
+      },
+      {
+        "@type": "Thing",
+        "name": "データ構造の可視化",
+        "description": "データベーススキーマとエンティティ関係の観測"
+      }
+    ]
   }
   </script>
 
@@ -562,6 +584,117 @@
     }
     
     /* ========================================
+       Application Section
+       ======================================== */
+    .application-intro {
+      font-size: var(--text-sm);
+      color: var(--gray-200);
+      line-height: 1.8;
+      margin-bottom: var(--space-lg);
+    }
+    .application-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      margin-bottom: var(--space-md);
+    }
+    .application-card {
+      background: var(--gray-700);
+      border-radius: 12px;
+      border: 1px solid var(--gray-600);
+      overflow: hidden;
+    }
+    .application-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-md);
+      cursor: pointer;
+      list-style: none;
+      transition: background 0.2s ease;
+    }
+    .application-header::-webkit-details-marker {
+      display: none;
+    }
+    .application-header:hover {
+      background: var(--gray-600);
+    }
+    .application-title {
+      font-size: var(--text-base);
+      font-weight: 600;
+      color: var(--gray-100);
+      margin: 0;
+    }
+    .application-toggle {
+      width: 20px;
+      height: 20px;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .application-toggle::before,
+    .application-toggle::after {
+      content: '';
+      position: absolute;
+      background: var(--gray-400);
+      transition: transform 0.3s ease;
+    }
+    .application-toggle::before {
+      width: 12px;
+      height: 2px;
+      top: 9px;
+      left: 4px;
+    }
+    .application-toggle::after {
+      width: 2px;
+      height: 12px;
+      top: 4px;
+      left: 9px;
+    }
+    details[open] .application-toggle::after {
+      transform: rotate(90deg);
+    }
+    .application-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1px;
+      background: var(--gray-600);
+      margin: 0;
+      border-top: 1px solid var(--gray-600);
+    }
+    .app-item {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-sm);
+      padding: var(--space-sm) var(--space-md);
+      background: var(--gray-700);
+    }
+    .app-item dt {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--purple-light);
+      min-width: 20px;
+    }
+    .app-item dd {
+      font-size: var(--text-sm);
+      color: var(--gray-300);
+      margin: 0;
+      line-height: 1.5;
+    }
+    .application-note {
+      font-size: var(--text-sm);
+      color: var(--gray-400);
+      margin-top: var(--space-md);
+      padding-top: var(--space-md);
+      border-top: 1px solid var(--gray-600);
+    }
+    
+    @media (max-width: 560px) {
+      .application-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    /* ========================================
        Footer
        ======================================== */
     footer {
@@ -782,6 +915,94 @@
       <span class="relation-desc">遷移がなければ構造は変化しない</span>
     </div>
   </div>
+</section>
+
+<!-- Application -->
+<section class="section">
+  <p class="section-label">Application</p>
+  <h2 class="section-title">構造観測の適用</h2>
+  
+  <p class="application-intro">十式は共通観測鍵である。特定分野に依存しない。構造実体が存在するすべての領域で、同一の観測構造が適用される。</p>
+  
+  <div class="application-list">
+    <details class="application-card" open>
+      <summary class="application-header">
+        <h3 class="application-title">建築構造物の観測</h3>
+        <span class="application-toggle"></span>
+      </summary>
+      <dl class="application-grid">
+        <div class="app-item"><dt>認</dt><dd>設計図上の構造</dd></div>
+        <div class="app-item"><dt>理</dt><dd>力学的筋道（支持力と荷重）</dd></div>
+        <div class="app-item"><dt>衡</dt><dd>応力の揺らぎ</dd></div>
+        <div class="app-item"><dt>縁</dt><dd>部材間の相互参照</dd></div>
+        <div class="app-item"><dt>幅</dt><dd>許容応力度</dd></div>
+        <div class="app-item"><dt>許</dt><dd>建築基準法が定める正常幅</dd></div>
+        <div class="app-item"><dt>循</dt><dd>安全領域</dd></div>
+        <div class="app-item"><dt>乱</dt><dd>想定外挙動</dd></div>
+        <div class="app-item"><dt>絶</dt><dd>崩壊</dd></div>
+        <div class="app-item"><dt>継</dt><dd>補修による次の認への遷移</dd></div>
+      </dl>
+    </details>
+    
+    <details class="application-card">
+      <summary class="application-header">
+        <h3 class="application-title">量子力学の観測問題</h3>
+        <span class="application-toggle"></span>
+      </summary>
+      <dl class="application-grid">
+        <div class="app-item"><dt>認</dt><dd>重ね合わせ状態</dd></div>
+        <div class="app-item"><dt>理</dt><dd>波動関数の構造</dd></div>
+        <div class="app-item"><dt>衡</dt><dd>確率振幅の揺らぎ</dd></div>
+        <div class="app-item"><dt>縁</dt><dd>量子もつれ（エンタングルメント）</dd></div>
+        <div class="app-item"><dt>幅</dt><dd>コヒーレンス維持範囲</dd></div>
+        <div class="app-item"><dt>許</dt><dd>測定系が許容する正常幅</dd></div>
+        <div class="app-item"><dt>循</dt><dd>量子状態維持領域</dd></div>
+        <div class="app-item"><dt>乱</dt><dd>デコヒーレンス</dd></div>
+        <div class="app-item"><dt>絶</dt><dd>状態崩壊</dd></div>
+        <div class="app-item"><dt>継</dt><dd>観測による次の認への遷移</dd></div>
+      </dl>
+    </details>
+    
+    <details class="application-card">
+      <summary class="application-header">
+        <h3 class="application-title">組織構造の分析</h3>
+        <span class="application-toggle"></span>
+      </summary>
+      <dl class="application-grid">
+        <div class="app-item"><dt>認</dt><dd>組織図上の構造</dd></div>
+        <div class="app-item"><dt>理</dt><dd>意思決定の筋道</dd></div>
+        <div class="app-item"><dt>衡</dt><dd>権限配分の揺らぎ</dd></div>
+        <div class="app-item"><dt>縁</dt><dd>部門間の相互参照関係</dd></div>
+        <div class="app-item"><dt>幅</dt><dd>組織が機能する範囲</dd></div>
+        <div class="app-item"><dt>許</dt><dd>規程が定める正常幅</dd></div>
+        <div class="app-item"><dt>循</dt><dd>健全運営領域</dd></div>
+        <div class="app-item"><dt>乱</dt><dd>機能不全</dd></div>
+        <div class="app-item"><dt>絶</dt><dd>組織崩壊</dd></div>
+        <div class="app-item"><dt>継</dt><dd>改編による次の認への遷移</dd></div>
+      </dl>
+    </details>
+    
+    <details class="application-card">
+      <summary class="application-header">
+        <h3 class="application-title">データ構造の可視化</h3>
+        <span class="application-toggle"></span>
+      </summary>
+      <dl class="application-grid">
+        <div class="app-item"><dt>認</dt><dd>スキーマ定義</dd></div>
+        <div class="app-item"><dt>理</dt><dd>エンティティ間の関係性</dd></div>
+        <div class="app-item"><dt>衡</dt><dd>状態遷移の揺らぎ</dd></div>
+        <div class="app-item"><dt>縁</dt><dd>テーブル間リレーション</dd></div>
+        <div class="app-item"><dt>幅</dt><dd>整合性制約の範囲</dd></div>
+        <div class="app-item"><dt>許</dt><dd>正規化規則が定める正常幅</dd></div>
+        <div class="app-item"><dt>循</dt><dd>正常動作領域</dd></div>
+        <div class="app-item"><dt>乱</dt><dd>異常データ</dd></div>
+        <div class="app-item"><dt>絶</dt><dd>データ破損</dd></div>
+        <div class="app-item"><dt>継</dt><dd>マイグレーションによる次の認への遷移</dd></div>
+      </dl>
+    </details>
+  </div>
+  
+  <p class="application-note">観測対象が異なっても、十式の配列は変わらない。これが同視座圧縮である。</p>
 </section>
 
 </article>
