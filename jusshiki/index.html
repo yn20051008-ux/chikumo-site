@@ -551,6 +551,11 @@ footer {
 }
 
 @media (max-width: 480px) {
+  :root {
+    --text-xs: 0.6875rem;  /* 11px */
+    --text-sm: 0.75rem;    /* 12px */
+    --text-base: 0.875rem; /* 14px */
+  }
   .relation-desc {
     width: 100%;
     margin-left: 0;
@@ -562,6 +567,9 @@ footer {
   .region-card {
     min-width: 80px;
     padding: var(--space-xs);
+  }
+  .footer-text {
+    font-size: 0.625rem; /* 10px */
   }
 }
 ```
@@ -730,8 +738,7 @@ footer {
 
 <!-- Footer -->
 <footer>
-  <p class="footer-text">十式は非人為論理 ― 構造挙動を観測し、配列を更新不能として固定した記録</p>
-  <p class="footer-copy">Jushiki Framework</p>
+  <p class="footer-text">十式＝共通観測鍵。同視座圧縮。十式は非人為論理。構造挙動を観測し、配列を更新不能として固定した記録である。</p>
 </footer>
 ```
 
