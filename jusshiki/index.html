@@ -1017,6 +1017,8 @@
   </div>
 
   <script>
+    var ninSvg = '<svg viewBox="0 0 100 100" width="40" height="40"><defs><radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ff4444" stop-opacity="1"/><stop offset="40%" stop-color="#ef4444" stop-opacity="0.8"/><stop offset="70%" stop-color="#ef4444" stop-opacity="0.3"/><stop offset="100%" stop-color="#ef4444" stop-opacity="0"/></radialGradient></defs><circle cx="50" cy="50" r="45" fill="url(#glow)"/><circle cx="50" cy="50" r="8" fill="#fff" opacity="0.9"/></svg>';
+    
     var eggSvg = '<svg viewBox="0 0 100 130" width="70" height="91"><defs><radialGradient id="eg" cx="40%" cy="30%" r="60%"><stop offset="0%" stop-color="#fff9f0"/><stop offset="50%" stop-color="#f5e8c6"/><stop offset="100%" stop-color="#e8d4a8"/></radialGradient></defs><ellipse cx="50" cy="70" rx="40" ry="55" fill="url(#eg)" stroke="#d4c4a0" stroke-width="2"/><ellipse cx="38" cy="50" rx="12" ry="8" fill="rgba(255,255,255,0.5)"/></svg>';
     
     var chickSvg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 297.8 389.4" width="70" height="91"><path d="M123.2 347.9c-3.2 7-23 4.9-21.9-1.2.5-2.3 5.7-2.6 8.6-4.6 1.7-1.2-.2-5.6 1.6-6.2 4.4-1.6 13.7 7.5 11.7 12" fill="#df953b"/><path d="M197.8 346.7c3.2 4.2-18 9.7-21.8.9-1.7-4 7-11.3 11.3-11.8 3.2 11 7.3 7 10.4 11" fill="#eda03f"/><path d="M192 70.5c37 8.3 67.7 34 81.1 69 5.3 13.9 6.4 29.5 5.3 44.5-2 30-19.4 55.8-46 68.7-14.4 7 12.6 13.5 13.6 38.4.3 5.3-1.7 11-6.8 11.6-3.9.5-10.3-1.5-10.7-6.1l-1.1-11.8c-.3-2.4-2.8-3.6-4.7-3.1-1.5.4-2.8 2.5-2.6 4.7 1 16.8-5.3 34-20.6 42.2-24.5 13-71.3 12.6-96 1.5A40 40 0 0 1 79 287.3c.4-2.2-1.6-4.7-3.2-4.7-5.2 0-4.6 7.2-5.2 12.2-.6 5.8-5.7 8.5-10.7 8-13-1.2-8.3-25.6 10-41.9 1.2-1 2.1-2.9 1.8-3.9s-.3-3.2-3-4c-7.5-2-19.4-12-25.6-16.7-27.9-32-29.7-81.7-6.7-117.8A106 106 0 0 1 96.1 74c5-1.4 10.9-4.5 15.3-4.7l4-2.2q35.6-3.7 70.8.2 3.6.2 5.8 3.2Z" fill="#fff8dc"/><path d="M235.6 219.6c-8.4 1-15.7-3.2-19.2-9.5-4-7.2-2.7-15.6 2.4-21.8 5.8-7.2 15-9.5 23.2-5.6s13 11.9 11.5 20.7c-1.5 8.5-8 15.1-17.9 16.2" fill="#eca678"/><path d="M68 217.6c-5.8.6-11 0-14.9-2.7a18 18 0 0 1-7.5-14.2c-.5-9.6 6-19 15.5-20.2 11.9-1.6 21 4.5 23.1 15.7a18.4 18.4 0 0 1-16.1 21.4" fill="#eeaa7d"/><path d="M171.9 211.8c-4 8.8-13.2 12-21.4 12.1-8.8.3-17.8-3.2-22.2-12-3.2-6.3-3.1-16-.3-22.6 3.8-8.8 13.3-12.1 21.8-12.6s18 4 22.2 13a29 29 0 0 1-.2 22Z" fill="#152526"/><path d="M164.9 190.8c9 10.6-29.5 9-30.8 4.8-.3-1.2 0-3.2 1.2-4.8 7.2-9.2 22-8.8 29.6 0" fill="#f3a43d"/><path d="M167 204c-1.5 10-10 13.5-18.9 12.6-7.5-.7-14.4-3.7-14.9-12.7 11.3 3 21.4 2.1 33.8.1" fill="#ec9f3e"/><path d="M212 134.5c-2.5 4.3-8.2-4.7-21.1-2.7-1.3.2-3.4-.7-3.5-1.7 0-.9.3-2.7 1.7-3.7 9.9-6.7 26 2.8 22.9 8" fill="#182628"/><path d="M111.2 130c.3 4.8-7.2-1.7-19 5.1-1.4.8-3.7.7-4.2-.5-2.8-6.8 12-13 21.6-8.5 1.6.7 1.6 3 1.6 3.9" fill="#1a2729"/><path d="M119.6 179.5a17 17 0 0 1-16 10.8A17 17 0 0 1 87.8 179a17 17 0 0 1 6.4-19.3c5.9-4.4 14.4-4.5 20-.1s8.5 12.3 5.3 20" fill="#14282b"/><path d="M188.7 188.4c-8.7-4.6-10.8-14.7-7-22.8s13.5-11.5 22-7.7 11.3 14 7.7 22.5-13.8 12.6-22.7 8Z" fill="#14272b"/><path d="M107.3 166.1c2.3-1 4.2.8 4.6 2.3.5 1.8-.2 3.6-1.9 4.3-1.7.8-3.7.1-4.4-1.4s-.6-4.1 1.7-5.2M199.1 166.3c2.1-1.1 4 .2 4.8 1.6.9 1.7.2 3.9-1.5 4.7s-3.5.4-4.4-.8c-1.2-1.5-1.2-4.3 1.1-5.5" fill="#fff"/></svg>';
@@ -1053,9 +1055,9 @@
     }
     
     var goshikiElements = ['認', '理', '衡', '縁', '継'];
-    var stepToCharacter = { 0: 'egg', 1: 'egg', 2: 'chick', 3: 'kokko', 4: 'kokko' };
-    var characterLabels = { egg: '卵', chick: 'ひよこ', kokko: 'こっこちゃん' };
-    var characterSvgs = { egg: eggSvg, chick: chickSvg, kokko: kokkoSvg };
+    var stepToCharacter = { 0: 'nin', 1: 'egg', 2: 'chick', 3: 'kokko', 4: 'kokko' };
+    var characterLabels = { nin: '？', egg: '卵', chick: 'ひよこ', kokko: 'こっこちゃん' };
+    var characterSvgs = { nin: ninSvg, egg: eggSvg, chick: chickSvg, kokko: kokkoSvg };
     
     var step = 0;
     var cycleCount = 1;
@@ -1104,7 +1106,7 @@
     }
     
     updateDisplay();
-    setInterval(animate, 2000);
+    setInterval(animate, 250);
   </script>
 
 </body>
