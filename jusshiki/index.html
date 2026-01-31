@@ -1017,7 +1017,9 @@
   </div>
 
   <script>
-    var ninSvg = '<svg viewBox="0 0 100 100" width="40" height="40"><defs><radialGradient id="glow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ff4444" stop-opacity="1"/><stop offset="40%" stop-color="#ef4444" stop-opacity="0.8"/><stop offset="70%" stop-color="#ef4444" stop-opacity="0.3"/><stop offset="100%" stop-color="#ef4444" stop-opacity="0"/></radialGradient></defs><circle cx="50" cy="50" r="45" fill="url(#glow)"/><circle cx="50" cy="50" r="8" fill="#fff" opacity="0.9"/></svg>';
+    var ninSvg = '<svg viewBox="0 0 100 100" width="40" height="40"><defs><radialGradient id="glowRed" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ff4444" stop-opacity="1"/><stop offset="40%" stop-color="#ef4444" stop-opacity="0.8"/><stop offset="70%" stop-color="#ef4444" stop-opacity="0.3"/><stop offset="100%" stop-color="#ef4444" stop-opacity="0"/></radialGradient></defs><circle cx="50" cy="50" r="45" fill="url(#glowRed)"/><circle cx="50" cy="50" r="8" fill="#fff" opacity="0.9"/></svg>';
+    
+    var keiSvg = '<svg viewBox="0 0 100 100" width="40" height="40"><defs><radialGradient id="glowPurple" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#a78bfa" stop-opacity="1"/><stop offset="40%" stop-color="#8b5cf6" stop-opacity="0.8"/><stop offset="70%" stop-color="#8b5cf6" stop-opacity="0.3"/><stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/></radialGradient></defs><circle cx="50" cy="50" r="45" fill="url(#glowPurple)"/><circle cx="50" cy="50" r="8" fill="#fff" opacity="0.9"/></svg>';
     
     var eggSvg = '<svg viewBox="0 0 100 130" width="70" height="91"><defs><radialGradient id="eg" cx="40%" cy="30%" r="60%"><stop offset="0%" stop-color="#fff9f0"/><stop offset="50%" stop-color="#f5e8c6"/><stop offset="100%" stop-color="#e8d4a8"/></radialGradient></defs><ellipse cx="50" cy="70" rx="40" ry="55" fill="url(#eg)" stroke="#d4c4a0" stroke-width="2"/><ellipse cx="38" cy="50" rx="12" ry="8" fill="rgba(255,255,255,0.5)"/></svg>';
     
@@ -1055,9 +1057,9 @@
     }
     
     var goshikiElements = ['認', '理', '衡', '縁', '継'];
-    var stepToCharacter = { 0: 'nin', 1: 'egg', 2: 'chick', 3: 'kokko', 4: 'kokko' };
-    var characterLabels = { nin: '？', egg: '卵', chick: 'ひよこ', kokko: 'こっこちゃん' };
-    var characterSvgs = { nin: ninSvg, egg: eggSvg, chick: chickSvg, kokko: kokkoSvg };
+    var stepToCharacter = { 0: 'nin', 1: 'egg', 2: 'chick', 3: 'kokko', 4: 'kei' };
+    var characterLabels = { nin: '0<1', egg: '卵', chick: 'ひよこ', kokko: 'こっこちゃん', kei: '1>0' };
+    var characterSvgs = { nin: ninSvg, egg: eggSvg, chick: chickSvg, kokko: kokkoSvg, kei: keiSvg };
     
     var step = 0;
     var cycleCount = 1;
@@ -1071,21 +1073,47 @@
       stepIndicators.appendChild(box);
     }
     
+    function createGlowSvg(color, size) {
+      var baseSize = 40 + (size * 4);
+      var innerSize = 8; // 構造自体は不変
+      var colorMap = {
+        red: { main: '#ff4444', sub: '#ef4444' },
+        purple: { main: '#a78bfa', sub: '#8b5cf6' }
+      };
+      var c = colorMap[color];
+      return '<svg viewBox="0 0 100 100" width="' + baseSize + '" height="' + baseSize + '"><defs><radialGradient id="glow' + color + size + '" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="' + c.main + '" stop-opacity="1"/><stop offset="40%" stop-color="' + c.sub + '" stop-opacity="0.8"/><stop offset="70%" stop-color="' + c.sub + '" stop-opacity="0.3"/><stop offset="100%" stop-color="' + c.sub + '" stop-opacity="0"/></radialGradient></defs><circle cx="50" cy="50" r="45" fill="url(#glow' + color + size + ')"/><circle cx="50" cy="50" r="' + innerSize + '" fill="#fff" opacity="0.9"/></svg>';
+    }
+    
     function updateDisplay() {
-      var currentCharacter = stepToCharacter[step];
-      var isTransitioning = step === 4;
-      
-      var container = document.getElementById('character-container');
       var display = document.getElementById('character-display');
-      display.innerHTML = characterSvgs[currentCharacter];
+      var container = document.getElementById('character-container');
+      var label;
+      var svg;
       
-      if (isTransitioning) {
+      if (step === 0) {
+        // 認：1周目は赤（絶域）、2周目以降は紫（循域）で前周の継と同じサイズ
+        if (cycleCount === 1) {
+          svg = createGlowSvg('red', 0);
+        } else {
+          svg = createGlowSvg('purple', cycleCount - 1);
+        }
+        label = '0<1';
+        container.classList.remove('transitioning');
+      } else if (step === 4) {
+        // 継：周回ごとに差分が大きくなる
+        svg = createGlowSvg('purple', cycleCount);
+        label = '1>0';
         container.classList.add('transitioning');
       } else {
+        // 理・衡・縁：構造は変わらない
+        var currentCharacter = stepToCharacter[step];
+        svg = characterSvgs[currentCharacter];
+        label = characterLabels[currentCharacter];
         container.classList.remove('transitioning');
       }
       
-      document.getElementById('current-character').textContent = characterLabels[currentCharacter];
+      display.innerHTML = svg;
+      document.getElementById('current-character').textContent = label;
       document.getElementById('current-element').textContent = goshikiElements[step];
       document.getElementById('cycle-count').textContent = cycleCount;
       
@@ -1101,7 +1129,10 @@
     
     function animate() {
       step = (step + 1) % 5;
-      if (step === 0) cycleCount++;
+      if (step === 0) {
+        cycleCount++;
+        if (cycleCount > 10) cycleCount = 1;
+      }
       updateDisplay();
     }
     
