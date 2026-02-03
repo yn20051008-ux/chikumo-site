@@ -583,7 +583,7 @@
             gameState = 'over';
             stopGame();
 
-            $finalScore.textContent = Math.floor(score / 60);
+            $finalScore.textContent = score;
             $gameOverScreen.classList.add('visible');
         }
 
@@ -925,6 +925,9 @@
                         m.element.remove();
                         meteors.splice(j, 1);
 
+                        // スコア加算
+                        score++;
+
                         // レーザーも消える
                         laser.element.remove();
                         lasers.splice(i, 1);
@@ -938,18 +941,16 @@
                 }
             }
 
-            // --- スコア更新 ---
-            score++;
-            const displayScore = Math.floor(score / 60);
-            $score.textContent = displayScore;
+            // --- スコア表示更新 ---
+            $score.textContent = score;
 
             // スコアが閾値を超えたら金色に
-            if (displayScore >= CONFIG.GOLD_SCORE_THRESHOLD) {
+            if (score >= CONFIG.GOLD_SCORE_THRESHOLD) {
                 $score.classList.add('gold');
             }
 
             // --- クリア判定 ---
-            if (displayScore >= CONFIG.VICTORY_SCORE) {
+            if (score >= CONFIG.VICTORY_SCORE) {
                 victory();
             }
         }
