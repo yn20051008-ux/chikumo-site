@@ -64,8 +64,7 @@
            ---------------------------- */
         #rocket {
             position: absolute;
-            bottom: 15%;
-            transform: translateX(-50%);
+            transform: translate(-50%, -50%);
             width: 50px;
             height: 150px;
             z-index: 10;
@@ -217,6 +216,91 @@
         .btn-retry {
             background: linear-gradient(135deg, #f093fb, #f5576c);
         }
+
+        /* ----------------------------
+           レーザーボタン
+           ---------------------------- */
+        #laserBtn {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #00d4ff, #0066ff);
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.1s, box-shadow 0.1s;
+            box-shadow: 0 0 20px rgba(0, 200, 255, 0.5);
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        #laserBtn.visible {
+            display: flex;
+        }
+
+        #laserBtn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px rgba(0, 200, 255, 0.8);
+        }
+
+        #laserBtn:active {
+            transform: scale(0.95);
+            background: linear-gradient(135deg, #00ffff, #0088ff);
+        }
+
+        #laserBtn.cooldown {
+            background: linear-gradient(135deg, #666, #444);
+            box-shadow: 0 0 10px rgba(100, 100, 100, 0.3);
+            cursor: not-allowed;
+        }
+
+        /* ----------------------------
+           レーザービーム
+           ---------------------------- */
+        .laser {
+            position: absolute;
+            width: 6px;
+            background: linear-gradient(to top, #00ffff, #ffffff);
+            box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #0088ff;
+            z-index: 8;
+            border-radius: 3px;
+        }
+
+        /* ----------------------------
+           爆発エフェクト
+           ---------------------------- */
+        .explosion {
+            position: absolute;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        .explosion-particle {
+            position: absolute;
+            border-radius: 50%;
+            animation: explode 0.4s ease-out forwards;
+        }
+
+        @keyframes explode {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(0);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -291,13 +375,17 @@
         <!-- ===== スコア表示 ===== -->
         <div id="score">0</div>
 
+        <!-- ===== レーザーボタン ===== -->
+        <button id="laserBtn">LASER</button>
+
         <!-- ===== スタート画面 ===== -->
         <div id="startScreen" class="overlay visible">
             <div class="emoji">🚀</div>
             <div class="title">SPACE DODGE</div>
             <div class="subtitle">
                 隕石を避けて小惑星帯を突破しよう！<br>
-                マウスまたはタッチで操作
+                PC: WASD/矢印キーで移動、Enter/Spaceでレーザー<br>
+                スマホ: タッチで移動、右下ボタンでレーザー
             </div>
             <button class="game-btn btn-start" onclick="startGame()">START GAME</button>
         </div>
@@ -346,11 +434,8 @@
             // ロケットの移動可能範囲（%）
             ROCKET_MIN_X: 5,
             ROCKET_MAX_X: 95,
-
-            // 当たり判定の範囲（%）
-            ROCKET_TOP: 70,
-            ROCKET_BOTTOM: 85,
-            ROCKET_WIDTH: 2.5,
+            ROCKET_MIN_Y: 30,   // 上限（画面上部30%まで）
+            ROCKET_MAX_Y: 85,   // 下限（画面下部85%まで）
 
             // クリア条件（スコア）
             VICTORY_SCORE: 25,
@@ -364,7 +449,13 @@
 
             // 隕石の速度一覧（1フレームあたりの移動量）
             // 遅い(2s), 普通(1s), 早い(0.5s), とても早い(0.2s), 最速(0.1s)
-            METEOR_SPEEDS: [0.8, 1.6, 3.2, 8, 16]
+            METEOR_SPEEDS: [0.8, 1.6, 3.2, 8, 16],
+
+            // レーザー設定
+            LASER_SPEED: 5,           // レーザーの速度（%/フレーム）
+            LASER_COOLDOWN: 500,      // クールダウン時間（ミリ秒）
+            LASER_WIDTH: 6,           // レーザーの幅（px）
+            LASER_HEIGHT: 40          // レーザーの高さ（px）
         };
 
 
@@ -378,6 +469,7 @@
         const $gameOverScreen = document.getElementById('gameOverScreen');
         const $victoryScreen = document.getElementById('victoryScreen');
         const $finalScore = document.getElementById('finalScore');
+        const $laserBtn = document.getElementById('laserBtn');
 
 
         /* ====================================
@@ -386,13 +478,18 @@
         let gameState = 'start';  // 'start' | 'playing' | 'over' | 'victory'
         let score = 0;
         let rocketX = 50;         // ロケットのX座標（%）
+        let rocketY = 77;         // ロケットのY座標（%）
         let meteors = [];         // 隕石の配列
         let stars = [];           // 星の配列
+        let lasers = [];          // レーザーの配列
+        let canFireLaser = true;  // レーザー発射可能フラグ
 
         // キー入力状態
         const keys = {
             left: false,
-            right: false
+            right: false,
+            up: false,
+            down: false
         };
 
         // タイマーID
@@ -449,15 +546,23 @@
             gameState = 'playing';
             score = 0;
             rocketX = 50;
+            rocketY = 77;
 
             // 既存の隕石を削除
             meteors.forEach(m => m.element.remove());
             meteors = [];
 
+            // 既存のレーザーを削除
+            lasers.forEach(l => l.element.remove());
+            lasers = [];
+            canFireLaser = true;
+            $laserBtn.classList.remove('cooldown');
+
             // UI更新
             hideAllOverlays();
             $rocket.classList.add('visible');
             $score.classList.add('visible');
+            $laserBtn.classList.add('visible');
             $score.classList.remove('gold');
             $score.textContent = '0';
             $game.classList.add('playing');
@@ -504,7 +609,12 @@
 
             $rocket.classList.remove('visible');
             $score.classList.remove('visible');
+            $laserBtn.classList.remove('visible');
             $game.classList.remove('playing');
+
+            // レーザーを削除
+            lasers.forEach(l => l.element.remove());
+            lasers = [];
         }
 
 
@@ -523,6 +633,91 @@
            ==================================== */
         function updateRocketPosition() {
             $rocket.style.left = rocketX + '%';
+            $rocket.style.top = rocketY + '%';
+        }
+
+
+        /* ====================================
+           レーザー発射
+           ==================================== */
+        function fireLaser() {
+            if (gameState !== 'playing' || !canFireLaser) return;
+
+            // クールダウン開始
+            canFireLaser = false;
+            $laserBtn.classList.add('cooldown');
+
+            // レーザー作成
+            const laser = {
+                x: rocketX,
+                y: rocketY - 8,  // ロケットの先端から発射
+                element: null
+            };
+
+            const el = document.createElement('div');
+            el.className = 'laser';
+            el.style.height = CONFIG.LASER_HEIGHT + 'px';
+            $game.appendChild(el);
+            laser.element = el;
+            lasers.push(laser);
+
+            updateLaserPosition(laser);
+
+            // クールダウン解除
+            setTimeout(() => {
+                canFireLaser = true;
+                $laserBtn.classList.remove('cooldown');
+            }, CONFIG.LASER_COOLDOWN);
+        }
+
+
+        /* ====================================
+           レーザー位置の更新
+           ==================================== */
+        function updateLaserPosition(laser) {
+            laser.element.style.left = laser.x + '%';
+            laser.element.style.top = laser.y + '%';
+            laser.element.style.transform = 'translateX(-50%)';
+        }
+
+
+        /* ====================================
+           爆発エフェクト
+           ==================================== */
+        function createExplosion(x, y, size) {
+            const explosion = document.createElement('div');
+            explosion.className = 'explosion';
+            explosion.style.left = x + '%';
+            explosion.style.top = y + '%';
+
+            // パーティクル数はサイズに応じて調整
+            const particleCount = Math.min(12, Math.max(6, Math.floor(size / 30)));
+            const colors = ['#ff6600', '#ffcc00', '#ff3300', '#ffffff', '#00ffff'];
+
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'explosion-particle';
+                
+                const angle = (Math.PI * 2 / particleCount) * i;
+                const distance = size * 0.3 + Math.random() * size * 0.3;
+                const pSize = 4 + Math.random() * 8;
+                
+                particle.style.width = pSize + 'px';
+                particle.style.height = pSize + 'px';
+                particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.left = Math.cos(angle) * distance + 'px';
+                particle.style.top = Math.sin(angle) * distance + 'px';
+                particle.style.boxShadow = `0 0 ${pSize}px ${particle.style.background}`;
+                
+                explosion.appendChild(particle);
+            }
+
+            $game.appendChild(explosion);
+
+            // エフェクト終了後に削除
+            setTimeout(() => {
+                explosion.remove();
+            }, 400);
         }
 
 
@@ -630,6 +825,12 @@
             if (keys.right) {
                 rocketX = Math.min(CONFIG.ROCKET_MAX_X, rocketX + CONFIG.ROCKET_SPEED);
             }
+            if (keys.up) {
+                rocketY = Math.max(CONFIG.ROCKET_MIN_Y, rocketY - CONFIG.ROCKET_SPEED);
+            }
+            if (keys.down) {
+                rocketY = Math.min(CONFIG.ROCKET_MAX_Y, rocketY + CONFIG.ROCKET_SPEED);
+            }
             updateRocketPosition();
 
             // --- 隕石の更新 ---
@@ -651,7 +852,7 @@
 
                 // ロケットの当たり判定（中心と半径）
                 // ロケットは細長いので、見た目より小さめの円で判定（プレイヤー有利）
-                const rocketCenterY = CONFIG.ROCKET_TOP + (CONFIG.ROCKET_BOTTOM - CONFIG.ROCKET_TOP) / 2;
+                const rocketCenterY = rocketY;
                 const rocketRadiusPercent = 2;  // ロケットの当たり判定半径（%）
 
                 // 前フレームから現在までの経路上で判定（トンネリング対策）
@@ -691,6 +892,52 @@
                 }
             }
 
+            // --- レーザーの更新 ---
+            for (let i = lasers.length - 1; i >= 0; i--) {
+                const laser = lasers[i];
+                laser.y -= CONFIG.LASER_SPEED;
+
+                // 画面外に出たレーザーを削除
+                if (laser.y < -5) {
+                    laser.element.remove();
+                    lasers.splice(i, 1);
+                    continue;
+                }
+
+                // レーザーと隕石の当たり判定
+                const gameWidth = $game.offsetWidth;
+                const gameHeight = $game.offsetHeight;
+                const laserX = laser.x;
+                const laserY = laser.y;
+
+                for (let j = meteors.length - 1; j >= 0; j--) {
+                    const m = meteors[j];
+                    const meteorRadiusPercent = (m.size / 2) / gameWidth * 100;
+
+                    // レーザーの先端と隕石の中心の距離
+                    const dx = laserX - m.x;
+                    const dy = (laserY - m.y) * (gameWidth / gameHeight);
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < meteorRadiusPercent + 1) {
+                        // 隕石を破壊
+                        createExplosion(m.x, m.y, m.size);
+                        m.element.remove();
+                        meteors.splice(j, 1);
+
+                        // レーザーも消える
+                        laser.element.remove();
+                        lasers.splice(i, 1);
+                        break;
+                    }
+                }
+
+                // レーザーがまだ存在する場合のみ位置更新
+                if (lasers[i] === laser) {
+                    updateLaserPosition(laser);
+                }
+            }
+
             // --- スコア更新 ---
             score++;
             const displayScore = Math.floor(score / 60);
@@ -712,18 +959,35 @@
            キーボード操作
            ==================================== */
         document.addEventListener('keydown', (e) => {
+            // 上移動
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+                keys.up = true;
+            }
+            // 下移動
+            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+                keys.down = true;
+            }
             // 左移動
-            if (e.key === 'ArrowLeft' || e.key === 'a') {
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
                 keys.left = true;
             }
             // 右移動
-            if (e.key === 'ArrowRight' || e.key === 'd') {
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
                 keys.right = true;
             }
-            // スペースキーでゲーム開始
-            if (e.key === ' ' && gameState === 'start') {
+            // スペースキーでゲーム開始またはレーザー発射
+            if (e.key === ' ') {
                 e.preventDefault();
-                startGame();
+                if (gameState === 'start') {
+                    startGame();
+                } else if (gameState === 'playing') {
+                    fireLaser();
+                }
+            }
+            // エンターキーでレーザー発射
+            if (e.key === 'Enter' && gameState === 'playing') {
+                e.preventDefault();
+                fireLaser();
             }
             // Rキーでリトライ
             if (e.key === 'r' && gameState === 'over') {
@@ -732,10 +996,16 @@
         });
 
         document.addEventListener('keyup', (e) => {
-            if (e.key === 'ArrowLeft' || e.key === 'a') {
+            if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+                keys.up = false;
+            }
+            if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+                keys.down = false;
+            }
+            if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
                 keys.left = false;
             }
-            if (e.key === 'ArrowRight' || e.key === 'd') {
+            if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
                 keys.right = false;
             }
         });
@@ -749,9 +1019,12 @@
 
             const rect = $game.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
             const x = ((clientX - rect.left) / rect.width) * 100;
+            const y = ((clientY - rect.top) / rect.height) * 100;
 
             rocketX = Math.max(CONFIG.ROCKET_MIN_X, Math.min(CONFIG.ROCKET_MAX_X, x));
+            rocketY = Math.max(CONFIG.ROCKET_MIN_Y, Math.min(CONFIG.ROCKET_MAX_Y, y));
             updateRocketPosition();
         }
 
@@ -772,6 +1045,21 @@
                 handleClick(e);
             }
         }, { passive: true });
+
+
+        /* ====================================
+           レーザーボタン操作
+           ==================================== */
+        $laserBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fireLaser();
+        });
+
+        $laserBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            fireLaser();
+        }, { passive: false });
 
 
         /* ====================================
