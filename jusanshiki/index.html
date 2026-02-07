@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
 <title>十三式 — 構造観測の固定構造</title>
 <meta name="description" content="十三式は構造実体の成立・遷移・停止を観測する固定構造である。五式（認・思・鳴・示・応）の循環と十三の観測点により、あらゆる構造の波動を記述する。">
 <meta name="keywords" content="十三式, 五式, 構造観測, 認, 思, 鳴, 示, 応, 衡, 縁, 幅, 許, 循, 乱, 絶, 継">
@@ -157,6 +157,7 @@ html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
 body {
@@ -165,6 +166,9 @@ body {
   color: var(--text-primary);
   line-height: 1.9;
   overflow-x: hidden;
+  width: 100%;
+  min-width: 0;
+  -webkit-text-size-adjust: 100%;
 }
 
 ::selection {
@@ -239,10 +243,6 @@ nav {
 }
 
 .nav-links a:hover { color: var(--gold); }
-
-@media (max-width: 768px) {
-  .nav-links { display: none; }
-}
 
 /* ========================================
    HERO SECTION
@@ -461,8 +461,8 @@ section {
   border: 1px solid var(--line);
 }
 
-.forms-grid--five { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
-.forms-grid--eight { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.forms-grid--five { grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); }
+.forms-grid--eight { grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); }
 
 .form-card {
   background: var(--bg-surface);
@@ -535,6 +535,7 @@ section {
   width: 100%;
   border-collapse: collapse;
   margin-top: 2.5rem;
+  table-layout: auto;
 }
 
 .axis-table th,
@@ -687,10 +688,6 @@ section {
   background: var(--line);
   border: 1px solid var(--line);
   margin-top: 2.5rem;
-}
-
-@media (max-width: 600px) {
-  .compare-wrap { grid-template-columns: 1fr; }
 }
 
 .compare-card {
@@ -908,7 +905,7 @@ section {
 
 .field-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
   gap: 1px;
   background: var(--line);
   border: 1px solid var(--line);
@@ -1104,11 +1101,184 @@ footer {
 /* ========================================
    RESPONSIVE
    ======================================== */
+/* ========================================
+   THREE FORMS ROW
+   ======================================== */
+.three-forms-row {
+  display: flex;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+
+.three-forms-cell {
+  flex: 1;
+  background: var(--bg-surface);
+  padding: 2rem;
+  text-align: center;
+  min-width: 0;
+}
+
+.three-forms-kanji {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.three-forms-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.15em;
+}
+
+/* ========================================
+   GLOBAL CONTAINMENT
+   ======================================== */
+section, .wave-section, .fields-section, .faq-section {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.section-inner, .wave-visual {
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* ========================================
+   RESPONSIVE — TABLET
+   ======================================== */
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  section { padding: clamp(3rem, 8vw, 5rem) 1.25rem; }
+  .section-inner { max-width: 100%; }
+  .section-title { font-size: clamp(1.5rem, 5vw, 2rem); }
+
+  .forms-grid--five,
+  .forms-grid--eight { grid-template-columns: 1fr 1fr; }
+
+  .axis-table th { width: 80px; }
+
+  .wave-canvas-wrap { aspect-ratio: 2 / 1; }
+
+  .compare-wrap { grid-template-columns: 1fr; }
+
+  .field-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ========================================
+   RESPONSIVE — MOBILE
+   ======================================== */
 @media (max-width: 600px) {
+  /* Base containment */
+  section { padding: 2.5rem 1rem; }
+  .section-inner { max-width: 100%; min-width: 0; }
+  .section-title { font-size: 1.375rem; letter-spacing: 0.04em; }
+  .section-desc { font-size: 0.875rem; }
+
+  /* Navigation */
+  nav { padding: 0 1rem; height: 56px; }
+  .nav-logo { font-size: 1rem; }
+
+  /* Hero */
+  .hero { min-height: 80vh; padding: 5rem 1rem 3rem; }
+  .hero h1 { font-size: clamp(2.5rem, 12vw, 4rem); letter-spacing: 0.08em; }
+  .hero-sub { font-size: 0.8125rem; letter-spacing: 0.12em; }
+  .hero-line { height: 50px; }
+
+  /* Three forms row */
+  .three-forms-row { flex-direction: row; gap: 1px; }
+  .three-forms-cell { padding: 1.25rem 0.5rem; }
+  .three-forms-kanji { font-size: 1.75rem; }
+  .three-forms-label { font-size: 0.5rem; letter-spacing: 0.08em; }
+
+  /* Cards grid */
+  .forms-grid--five,
+  .forms-grid--eight { grid-template-columns: 1fr; }
   .form-card { padding: 1.5rem 1.25rem; }
-  .formula-block { padding: 1.5rem; }
-  .axis-table th, .axis-table td { padding: 1rem; font-size: 0.875rem; }
-  .domain-row { grid-template-columns: 72px 1fr; }
+  .form-card-kanji { font-size: 1.75rem; }
+
+  /* Axis table */
+  .axis-table { display: block; }
+  .axis-table tbody { display: block; }
+  .axis-table tr {
+    display: flex;
+    flex-direction: column;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .axis-table th,
+  .axis-table td {
+    display: block;
+    width: 100%;
+    padding: 0.25rem 0;
+    border-bottom: none;
+    font-size: 0.875rem;
+  }
+  .axis-table th { margin-bottom: 0.25rem; }
+
+  /* Formula */
+  .formula-block {
+    padding: 1.25rem 1rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .formula-item { font-size: 0.8125rem; white-space: nowrap; }
+
+  /* Domain map */
+  .domain-row { grid-template-columns: 56px 1fr; }
+  .domain-label { font-size: 0.6875rem; padding: 0.5rem; }
+  .domain-bar { padding: 0.5rem 0.75rem; font-size: 0.75rem; }
+
+  /* Compare section */
+  .compare-wrap { grid-template-columns: 1fr; }
+  .compare-card { padding: 1.5rem 1.25rem; }
+  .compare-card-kanji { font-size: 1.5rem; }
+  .compare-point { font-size: 0.8125rem; }
+
+  /* Field accordion */
+  .field-trigger { grid-template-columns: 28px 1fr 20px; gap: 0.5rem; padding: 1rem 0; }
+  .field-name { font-size: 0.875rem; }
+  .field-name small { font-size: 0.6875rem; }
+  .field-grid { grid-template-columns: 1fr; }
+  .field-cell { padding: 0.875rem 1rem; }
+  .field-cell-kanji { font-size: 1.125rem; }
+  .field-cell-text { font-size: 0.75rem; }
+
+  /* Rules */
+  .rule-item { grid-template-columns: 28px 1fr; gap: 0.5rem; }
+  .rule-text { font-size: 0.8125rem; }
+
+  /* Hen blocks */
+  .hen-block { padding: 1.25rem; }
+  .hen-title { font-size: 1rem; }
+  .hen-desc { font-size: 0.8125rem; }
+
+  /* Definition block */
+  .definition-text { padding-left: 1.25rem; font-size: 0.9375rem; }
+
+  /* FAQ */
+  .faq-question { font-size: 0.875rem; padding: 1.25rem 0; }
+  .faq-answer-inner { font-size: 0.8125rem; }
+
+  /* Wave visualization */
+  .wave-section { padding: 2.5rem 0.5rem; }
+  .wave-canvas-wrap { aspect-ratio: 1.6 / 1; }
+  .wave-visual { margin-top: 2rem; }
+  .wave-legend { gap: 0.75rem; }
+  .wave-legend-item { font-size: 0.5625rem; }
+
+  /* Footer */
+  .footer-cycle { font-size: 0.625rem; letter-spacing: 0.15em; word-break: break-all; }
+  .footer-note { font-size: 0.6875rem; }
+
+  /* Compare divider label */
+  .compare-divider-label { font-size: 0.5625rem; letter-spacing: 0.1em; }
+
+  /* Divider */
+  .divider { margin: 0 1rem; }
 }
 </style>
 </head>
@@ -1174,18 +1344,18 @@ footer {
     <p class="section-label">Minimum Observation</p>
     <h2 class="section-title">三式 — 波の観測最低条件</h2>
     <p class="section-desc" style="margin-bottom: 2rem;">構造の生存を確認するための最低条件は三つの観測点である。</p>
-    <div style="display: flex; gap: 1px; background: var(--line); border: 1px solid var(--line);">
-      <div style="flex: 1; background: var(--bg-surface); padding: 2rem; text-align: center;">
-        <div style="font-size: 2.5rem; font-weight: 700; color: var(--wave-nin); margin-bottom: 0.5rem;">認</div>
-        <div style="font-family: var(--font-mono); font-size: 0.6875rem; color: var(--text-tertiary); letter-spacing: 0.15em;">① RECOGNITION</div>
+    <div class="three-forms-row">
+      <div class="three-forms-cell">
+        <div class="three-forms-kanji" style="color: var(--wave-nin);">認</div>
+        <div class="three-forms-label">① RECOGNITION</div>
       </div>
-      <div style="flex: 1; background: var(--bg-surface); padding: 2rem; text-align: center;">
-        <div style="font-size: 2.5rem; font-weight: 700; color: var(--wave-kou); margin-bottom: 0.5rem;">衡</div>
-        <div style="font-family: var(--font-mono); font-size: 0.6875rem; color: var(--text-tertiary); letter-spacing: 0.15em;">⑥ EQUILIBRIUM</div>
+      <div class="three-forms-cell">
+        <div class="three-forms-kanji" style="color: var(--wave-kou);">衡</div>
+        <div class="three-forms-label">⑥ EQUILIBRIUM</div>
       </div>
-      <div style="flex: 1; background: var(--bg-surface); padding: 2rem; text-align: center;">
-        <div style="font-size: 2.5rem; font-weight: 700; color: var(--wave-kei); margin-bottom: 0.5rem;">継</div>
-        <div style="font-family: var(--font-mono); font-size: 0.6875rem; color: var(--text-tertiary); letter-spacing: 0.15em;">⑬ SUCCESSION</div>
+      <div class="three-forms-cell">
+        <div class="three-forms-kanji" style="color: var(--wave-kei);">継</div>
+        <div class="three-forms-label">⑬ SUCCESSION</div>
       </div>
     </div>
   </div>
@@ -1337,7 +1507,7 @@ footer {
       <tbody>
         <tr>
           <th>前後</th>
-          <td>前＝①認の側、後＝⑬継の側。時間軸そのもの。</td>
+          <td>前＝①認の側、後＝⑬継の側。番号順そのもの。</td>
         </tr>
         <tr>
           <th>上下</th>
