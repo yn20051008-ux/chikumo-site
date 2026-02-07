@@ -817,6 +817,162 @@ section {
 /* ========================================
    FAQ SECTION (GEO optimized)
    ======================================== */
+/* ========================================
+   APPLIED FIELDS SECTION
+   ======================================== */
+.fields-section {
+  background: var(--bg-deep);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.field-accordion {
+  margin-top: 2.5rem;
+}
+
+.field-item {
+  border-bottom: 1px solid var(--line);
+}
+
+.field-trigger {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 1.25rem 0;
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.3s;
+}
+
+.field-trigger:hover { background: rgba(196, 168, 130, 0.03); }
+
+.field-num {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--gold-dim);
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+
+.field-name {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  line-height: 1.5;
+}
+
+.field-name small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  font-weight: 300;
+  margin-top: 0.15rem;
+  letter-spacing: 0.04em;
+}
+
+.field-toggle {
+  width: 20px;
+  height: 20px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.field-toggle::before,
+.field-toggle::after {
+  content: '';
+  position: absolute;
+  background: var(--text-tertiary);
+  transition: transform 0.3s var(--ease-out);
+}
+
+.field-toggle::before { width: 12px; height: 1px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+.field-toggle::after { width: 1px; height: 12px; top: 50%; left: 50%; transform: translate(-50%, -50%); }
+
+.field-item.open .field-toggle::after { transform: translate(-50%, -50%) rotate(90deg); }
+
+.field-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.6s var(--ease-out);
+}
+
+.field-item.open .field-body {
+  max-height: 2000px;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  margin-bottom: 1.5rem;
+}
+
+.field-cell {
+  background: var(--bg-surface);
+  padding: 1rem 1.25rem;
+}
+
+.field-cell-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.field-cell-kanji {
+  font-family: var(--font-serif);
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.field-cell-label {
+  font-family: var(--font-mono);
+  font-size: 0.5625rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.15em;
+}
+
+.field-cell-text {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  font-weight: 300;
+  line-height: 1.8;
+  letter-spacing: 0.03em;
+}
+
+/* Five forms color coding in field cells */
+.field-cell--nin .field-cell-kanji { color: var(--wave-nin); }
+.field-cell--shi .field-cell-kanji { color: var(--wave-shi); }
+.field-cell--mei .field-cell-kanji { color: var(--wave-mei); }
+.field-cell--ji .field-cell-kanji { color: var(--wave-ji); }
+.field-cell--ou .field-cell-kanji { color: var(--wave-ou); }
+.field-cell--kou .field-cell-kanji { color: var(--wave-kou); }
+.field-cell--en .field-cell-kanji { color: var(--wave-en); }
+.field-cell--haba .field-cell-kanji { color: var(--wave-haba); }
+.field-cell--kyo .field-cell-kanji { color: var(--wave-kyo); }
+.field-cell--jun .field-cell-kanji { color: var(--wave-jun); }
+.field-cell--ran .field-cell-kanji { color: var(--wave-ran); }
+.field-cell--zetsu .field-cell-kanji { color: var(--wave-zetsu); }
+.field-cell--kei .field-cell-kanji { color: var(--wave-kei); }
+
+.field-cycle {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--text-tertiary);
+  letter-spacing: 0.15em;
+  text-align: center;
+  padding: 0.75rem 0 1.5rem;
+}
+
 .faq-section {
   background: var(--bg-deep);
   border-top: 1px solid var(--line);
@@ -972,6 +1128,7 @@ footer {
     <li><a href="#axis">三軸</a></li>
     <li><a href="#domain">領域</a></li>
     <li><a href="#compare">衡停止・絶</a></li>
+    <li><a href="#fields">適用</a></li>
     <li><a href="#faq">FAQ</a></li>
   </ul>
 </nav>
@@ -1367,6 +1524,361 @@ footer {
 <div class="divider"></div>
 
 <!-- ========================================
+     APPLIED FIELDS (十三式の適用分野)
+     ======================================== -->
+<section class="fields-section" id="fields" aria-label="適用分野">
+  <div class="section-inner reveal">
+    <p class="section-label">Applied Fields</p>
+    <h2 class="section-title">十三式の適用 — 13の専門分野</h2>
+    <p class="section-desc">構造実体の成立・遷移・停止は分野を問わない。以下に十三式が各専門分野でどのように観測されるかを示す。</p>
+
+    <div class="field-accordion">
+
+      <!-- ===== 1. 量子デコヒーレンス ===== -->
+      <div class="field-item">
+        <button class="field-trigger" aria-expanded="false">
+          <span class="field-num">01</span>
+          <span class="field-name">量子デコヒーレンス<small>量子→古典の遷移過程</small></span>
+          <span class="field-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="field-body">
+          <div class="field-grid">
+            <div class="field-cell field-cell--nin"><div class="field-cell-head"><span class="field-cell-kanji">認</span><span class="field-cell-label">①</span></div><p class="field-cell-text">量子重ね合わせ状態の存在検知</p></div>
+            <div class="field-cell field-cell--shi"><div class="field-cell-head"><span class="field-cell-kanji">思</span><span class="field-cell-label">②</span></div><p class="field-cell-text">環境結合モデルの未成形検討</p></div>
+            <div class="field-cell field-cell--mei"><div class="field-cell-head"><span class="field-cell-kanji">鳴</span><span class="field-cell-label">③</span></div><p class="field-cell-text">デコヒーレンス経路の理論確定</p></div>
+            <div class="field-cell field-cell--ji"><div class="field-cell-head"><span class="field-cell-kanji">示</span><span class="field-cell-label">④</span></div><p class="field-cell-text">密度行列の非対角要素減衰の実験着手</p></div>
+            <div class="field-cell field-cell--ou"><div class="field-cell-head"><span class="field-cell-kanji">応</span><span class="field-cell-label">⑤</span></div><p class="field-cell-text">古典的確定状態の観測実現</p></div>
+            <div class="field-cell field-cell--kou"><div class="field-cell-head"><span class="field-cell-kanji">衡</span><span class="field-cell-label">⑥</span></div><p class="field-cell-text">量子-古典境界の安定点</p></div>
+            <div class="field-cell field-cell--en"><div class="field-cell-head"><span class="field-cell-kanji">縁</span><span class="field-cell-label">⑦</span></div><p class="field-cell-text">複数自由度のデコヒーレンス率の相互参照</p></div>
+            <div class="field-cell field-cell--haba"><div class="field-cell-head"><span class="field-cell-kanji">幅</span><span class="field-cell-label">⑧</span></div><p class="field-cell-text">コヒーレンス時間の維持可能範囲</p></div>
+            <div class="field-cell field-cell--kyo"><div class="field-cell-head"><span class="field-cell-kanji">許</span><span class="field-cell-label">⑨</span></div><p class="field-cell-text">再現可能な実験条件・測定精度基準</p></div>
+            <div class="field-cell field-cell--jun"><div class="field-cell-head"><span class="field-cell-kanji">循</span><span class="field-cell-label">⑩</span></div><p class="field-cell-text">制御された量子実験の再現系</p></div>
+            <div class="field-cell field-cell--ran"><div class="field-cell-head"><span class="field-cell-kanji">乱</span><span class="field-cell-label">⑪</span></div><p class="field-cell-text">環境ノイズによる非再現的崩壊</p></div>
+            <div class="field-cell field-cell--zetsu"><div class="field-cell-head"><span class="field-cell-kanji">絶</span><span class="field-cell-label">⑫</span></div><p class="field-cell-text">コヒーレンス完全消失・観測不能</p></div>
+            <div class="field-cell field-cell--kei"><div class="field-cell-head"><span class="field-cell-kanji">継</span><span class="field-cell-label">⑬</span></div><p class="field-cell-text">測定結果から次の量子状態準備への遷移</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 2. 宇宙背景放射 ===== -->
+      <div class="field-item">
+        <button class="field-trigger" aria-expanded="false">
+          <span class="field-num">02</span>
+          <span class="field-name">宇宙背景放射の構造形成<small>Cosmic Microwave Background</small></span>
+          <span class="field-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="field-body">
+          <div class="field-grid">
+            <div class="field-cell field-cell--nin"><div class="field-cell-head"><span class="field-cell-kanji">認</span><span class="field-cell-label">①</span></div><p class="field-cell-text">初期密度揺らぎの存在検知</p></div>
+            <div class="field-cell field-cell--shi"><div class="field-cell-head"><span class="field-cell-kanji">思</span><span class="field-cell-label">②</span></div><p class="field-cell-text">バリオン音響振動モデルの未成形段階</p></div>
+            <div class="field-cell field-cell--mei"><div class="field-cell-head"><span class="field-cell-kanji">鳴</span><span class="field-cell-label">③</span></div><p class="field-cell-text">CMBパワースペクトルの理論構造確定</p></div>
+            <div class="field-cell field-cell--ji"><div class="field-cell-head"><span class="field-cell-kanji">示</span><span class="field-cell-label">④</span></div><p class="field-cell-text">観測衛星データの解析着手</p></div>
+            <div class="field-cell field-cell--ou"><div class="field-cell-head"><span class="field-cell-kanji">応</span><span class="field-cell-label">⑤</span></div><p class="field-cell-text">温度異方性パターンの実測確認</p></div>
+            <div class="field-cell field-cell--kou"><div class="field-cell-head"><span class="field-cell-kanji">衡</span><span class="field-cell-label">⑥</span></div><p class="field-cell-text">物質-放射平衡（脱結合時点）</p></div>
+            <div class="field-cell field-cell--en"><div class="field-cell-head"><span class="field-cell-kanji">縁</span><span class="field-cell-label">⑦</span></div><p class="field-cell-text">温度揺らぎと偏光パターンの相互参照</p></div>
+            <div class="field-cell field-cell--haba"><div class="field-cell-head"><span class="field-cell-kanji">幅</span><span class="field-cell-label">⑧</span></div><p class="field-cell-text">宇宙論パラメータの許容範囲</p></div>
+            <div class="field-cell field-cell--kyo"><div class="field-cell-head"><span class="field-cell-kanji">許</span><span class="field-cell-label">⑨</span></div><p class="field-cell-text">ΛCDM標準モデルの適合基準</p></div>
+            <div class="field-cell field-cell--jun"><div class="field-cell-head"><span class="field-cell-kanji">循</span><span class="field-cell-label">⑩</span></div><p class="field-cell-text">再現的な宇宙論シミュレーション</p></div>
+            <div class="field-cell field-cell--ran"><div class="field-cell-head"><span class="field-cell-kanji">乱</span><span class="field-cell-label">⑪</span></div><p class="field-cell-text">前景放射ノイズ・系統誤差</p></div>
+            <div class="field-cell field-cell--zetsu"><div class="field-cell-head"><span class="field-cell-kanji">絶</span><span class="field-cell-label">⑫</span></div><p class="field-cell-text">観測限界を超えた初期宇宙領域</p></div>
+            <div class="field-cell field-cell--kei"><div class="field-cell-head"><span class="field-cell-kanji">継</span><span class="field-cell-label">⑬</span></div><p class="field-cell-text">観測精度向上から次世代モデル構築への遷移</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 3. 散逸構造論 ===== -->
+      <div class="field-item">
+        <button class="field-trigger" aria-expanded="false">
+          <span class="field-num">03</span>
+          <span class="field-name">散逸構造論<small>非平衡熱力学</small></span>
+          <span class="field-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="field-body">
+          <div class="field-grid">
+            <div class="field-cell field-cell--nin"><div class="field-cell-head"><span class="field-cell-kanji">認</span><span class="field-cell-label">①</span></div><p class="field-cell-text">平衡からの逸脱の検知</p></div>
+            <div class="field-cell field-cell--shi"><div class="field-cell-head"><span class="field-cell-kanji">思</span><span class="field-cell-label">②</span></div><p class="field-cell-text">エントロピー生成モデルの未成形段階</p></div>
+            <div class="field-cell field-cell--mei"><div class="field-cell-head"><span class="field-cell-kanji">鳴</span><span class="field-cell-label">③</span></div><p class="field-cell-text">散逸構造の分岐条件の確定</p></div>
+            <div class="field-cell field-cell--ji"><div class="field-cell-head"><span class="field-cell-kanji">示</span><span class="field-cell-label">④</span></div><p class="field-cell-text">非平衡定常状態への実験系構築</p></div>
+            <div class="field-cell field-cell--ou"><div class="field-cell-head"><span class="field-cell-kanji">応</span><span class="field-cell-label">⑤</span></div><p class="field-cell-text">ベナールセル等の自己組織化実現</p></div>
+            <div class="field-cell field-cell--kou"><div class="field-cell-head"><span class="field-cell-kanji">衡</span><span class="field-cell-label">⑥</span></div><p class="field-cell-text">エントロピー生成率の定常均衡</p></div>
+            <div class="field-cell field-cell--en"><div class="field-cell-head"><span class="field-cell-kanji">縁</span><span class="field-cell-label">⑦</span></div><p class="field-cell-text">複数の散逸モードの相互参照</p></div>
+            <div class="field-cell field-cell--haba"><div class="field-cell-head"><span class="field-cell-kanji">幅</span><span class="field-cell-label">⑧</span></div><p class="field-cell-text">構造維持可能なエネルギー流の範囲</p></div>
+            <div class="field-cell field-cell--kyo"><div class="field-cell-head"><span class="field-cell-kanji">許</span><span class="field-cell-label">⑨</span></div><p class="field-cell-text">定常状態の再現可能条件</p></div>
+            <div class="field-cell field-cell--jun"><div class="field-cell-head"><span class="field-cell-kanji">循</span><span class="field-cell-label">⑩</span></div><p class="field-cell-text">安定した自己組織化パターン</p></div>
+            <div class="field-cell field-cell--ran"><div class="field-cell-head"><span class="field-cell-kanji">乱</span><span class="field-cell-label">⑪</span></div><p class="field-cell-text">カオス的遷移・予測不能な分岐</p></div>
+            <div class="field-cell field-cell--zetsu"><div class="field-cell-head"><span class="field-cell-kanji">絶</span><span class="field-cell-label">⑫</span></div><p class="field-cell-text">熱力学的死（完全平衡への回帰）</p></div>
+            <div class="field-cell field-cell--kei"><div class="field-cell-head"><span class="field-cell-kanji">継</span><span class="field-cell-label">⑬</span></div><p class="field-cell-text">新たな分岐点への遷移</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 4. 発生生物学 ===== -->
+      <div class="field-item">
+        <button class="field-trigger" aria-expanded="false">
+          <span class="field-num">04</span>
+          <span class="field-name">発生生物学<small>形態形成プロセス</small></span>
+          <span class="field-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="field-body">
+          <div class="field-grid">
+            <div class="field-cell field-cell--nin"><div class="field-cell-head"><span class="field-cell-kanji">認</span><span class="field-cell-label">①</span></div><p class="field-cell-text">形態形成シグナルの存在検知</p></div>
+            <div class="field-cell field-cell--shi"><div class="field-cell-head"><span class="field-cell-kanji">思</span><span class="field-cell-label">②</span></div><p class="field-cell-text">モルフォゲン濃度勾配の未成形段階</p></div>
+            <div class="field-cell field-cell--mei"><div class="field-cell-head"><span class="field-cell-kanji">鳴</span><span class="field-cell-label">③</span></div><p class="field-cell-text">細胞運命決定パターンの確定</p></div>
+            <div class="field-cell field-cell--ji"><div class="field-cell-head"><span class="field-cell-kanji">示</span><span class="field-cell-label">④</span></div><p class="field-cell-text">遺伝子発現カスケードの開始</p></div>
+            <div class="field-cell field-cell--ou"><div class="field-cell-head"><span class="field-cell-kanji">応</span><span class="field-cell-label">⑤</span></div><p class="field-cell-text">器官・組織の形態実体化</p></div>
+            <div class="field-cell field-cell--kou"><div class="field-cell-head"><span class="field-cell-kanji">衡</span><span class="field-cell-label">⑥</span></div><p class="field-cell-text">形態形成場の動的均衡</p></div>
+            <div class="field-cell field-cell--en"><div class="field-cell-head"><span class="field-cell-kanji">縁</span><span class="field-cell-label">⑦</span></div><p class="field-cell-text">複数シグナル経路の相互参照</p></div>
+            <div class="field-cell field-cell--haba"><div class="field-cell-head"><span class="field-cell-kanji">幅</span><span class="field-cell-label">⑧</span></div><p class="field-cell-text">正常発生の許容変異範囲</p></div>
+            <div class="field-cell field-cell--kyo"><div class="field-cell-head"><span class="field-cell-kanji">許</span><span class="field-cell-label">⑨</span></div><p class="field-cell-text">種固有の発生プログラム基準</p></div>
+            <div class="field-cell field-cell--jun"><div class="field-cell-head"><span class="field-cell-kanji">循</span><span class="field-cell-label">⑩</span></div><p class="field-cell-text">再現的な発生パターン</p></div>
+            <div class="field-cell field-cell--ran"><div class="field-cell-head"><span class="field-cell-kanji">乱</span><span class="field-cell-label">⑪</span></div><p class="field-cell-text">奇形・異常発生</p></div>
+            <div class="field-cell field-cell--zetsu"><div class="field-cell-head"><span class="field-cell-kanji">絶</span><span class="field-cell-label">⑫</span></div><p class="field-cell-text">発生停止・致死</p></div>
+            <div class="field-cell field-cell--kei"><div class="field-cell-head"><span class="field-cell-kanji">継</span><span class="field-cell-label">⑬</span></div><p class="field-cell-text">世代間への発生情報の継承</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 5. 地震波動伝播 ===== -->
+      <div class="field-item">
+        <button class="field-trigger" aria-expanded="false">
+          <span class="field-num">05</span>
+          <span class="field-name">地震波動伝播モデリング<small>Seismic Wave Propagation</small></span>
+          <span class="field-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="field-body">
+          <div class="field-grid">
+            <div class="field-cell field-cell--nin"><div class="field-cell-head"><span class="field-cell-kanji">認</span><span class="field-cell-label">①</span></div><p class="field-cell-text">断層面の応力蓄積の検知</p></div>
+            <div class="field-cell field-cell--shi"><div class="field-cell-head"><span class="field-cell-kanji">思</span><span class="field-cell-label">②</span></div><p class="field-cell-text">破壊伝播モデルの未成形段階</p></div>
+            <div class="field-cell field-cell--mei"><div class="field-cell-head"><span class="field-cell-kanji">鳴</span><span class="field-cell-label">③</span></div><p class="field-cell-text">震源メカニズム解の確定</p></div>
+            <div class="field-cell field-cell--ji"><div class="field-cell-head"><span class="field-cell-kanji">示</span><span class="field-cell-label">④</span></div><p class="field-cell-text">波動伝播シミュレーションの実行</p></div>
+            <div class="field-cell field-cell--ou"><div class="field-cell-head"><span class="field-cell-kanji">応</span><span class="field-cell-label">⑤</span></div><p class="field-cell-text">地表での地震動の観測実現</p></div>
+            <div class="field-cell field-cell--kou"><div class="field-cell-head"><span class="field-cell-kanji">衡</span><span class="field-cell-label">⑥</span></div><p class="field-cell-text">P波・S波・表面波の伝播均衡</p></div>
+            <div class="field-cell field-cell--en"><div class="field-cell-head"><span class="field-cell-kanji">縁</span><span class="field-cell-label">⑦</span></div><p class="field-cell-text">異なる波動モードの相互参照</p></div>
+            <div class="field-cell field-cell--haba"><div class="field-cell-head"><span class="field-cell-kanji">幅</span><span class="field-cell-label">⑧</span></div><p class="field-cell-text">地盤構造の不均質性の許容範囲</p></div>
+            <div class="field-cell field-cell--kyo"><div class="field-cell-head"><span class="field-cell-kanji">許</span><span class="field-cell-label">⑨</span></div><p class="field-cell-text">速度構造モデルの適合基準</p></div>
+            <div class="field-cell field-cell--jun"><div class="field-cell-head"><span class="field-cell-kanji">循</span><span class="field-cell-label">⑩</span></div><p class="field-cell-text">再現的な地震動予測</p></div>
+            <div class="field-cell field-cell--ran"><div class="field-cell-head"><span class="field-cell-kanji">乱</span><span class="field-cell-label">⑪</span></div><p class="field-cell-text">不均質媒質による散乱・非再現的波形</p></div>
+            <div class="field-cell field-cell--zetsu"><div class="field-cell-head"><span class="field-cell-kanji">絶</span><span class="field-cell-label">⑫</span></div><p class="field-cell-text">観測網の空白域・検知不能領域</p></div>
+            <div class="field-cell field-cell--kei"><div class="field-cell-head"><span class="field-cell-kanji">継</span><span class="field-cell-label">⑬</span></div><p class="field-cell-text">観測データから次の地殻構造モデル更新への遷移</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 6. ニューラルネットワーク ===== -->
+      <div class="field-item">
+        <button class="field-trigger" aria-expanded="false">
+          <span class="field-num">06</span>
+          <span class="field-name">ニューラルネットワークの学習収束過程<small>Neural Network Convergence</small></span>
+          <span class="field-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="field-body">
+          <div class="field-grid">
+            <div class="field-cell field-cell--nin"><div class="field-cell-head"><span class="field-cell-kanji">認</span><span class="field-cell-label">①</span></div><p class="field-cell-text">損失関数の勾配の存在検知</p></div>
+            <div class="field-cell field-cell--shi"><div class="field-cell-head"><span class="field-cell-kanji">思</span><span class="field-cell-label">②</span></div><p class="field-cell-text">重みパラメータ更新方向の未成形段階</p></div>
+            <div class="field-cell field-cell--mei"><div class="field-cell-head"><span class="field-cell-kanji">鳴</span><span class="field-cell-label">③</span></div><p class="field-cell-text">最適化アルゴリズムの更新ステップ確定</p></div>
+            <div class="field-cell field-cell--ji"><div class="field-cell-head"><span class="field-cell-kanji">示</span><span class="field-cell-label">④</span></div><p class="field-cell-text">バックプロパゲーションの計算実行</p></div>
+            <div class="field-cell field-cell--ou"><div class="field-cell-head"><span class="field-cell-kanji">応</span><span class="field-cell-label">⑤</span></div><p class="field-cell-text">パラメータ更新の適用・推論精度の実現</p></div>
+            <div class="field-cell field-cell--kou"><div class="field-cell-head"><span class="field-cell-kanji">衡</span><span class="field-cell-label">⑥</span></div><p class="field-cell-text">学習率と勾配の均衡（収束点）</p></div>
+            <div class="field-cell field-cell--en"><div class="field-cell-head"><span class="field-cell-kanji">縁</span><span class="field-cell-label">⑦</span></div><p class="field-cell-text">訓練精度と汎化精度の相互参照</p></div>
+            <div class="field-cell field-cell--haba"><div class="field-cell-head"><span class="field-cell-kanji">幅</span><span class="field-cell-label">⑧</span></div><p class="field-cell-text">過学習に至らない学習パラメータ範囲</p></div>
+            <div class="field-cell field-cell--kyo"><div class="field-cell-head"><span class="field-cell-kanji">許</span><span class="field-cell-label">⑨</span></div><p class="field-cell-text">ハイパーパラメータの最適化基準</p></div>
+            <div class="field-cell field-cell--jun"><div class="field-cell-head"><span class="field-cell-kanji">循</span><span class="field-cell-label">⑩</span></div><p class="field-cell-text">再現的な学習結果</p></div>
+            <div class="field-cell field-cell--ran"><div class="field-cell-head"><span class="field-cell-kanji">乱</span><span class="field-cell-label">⑪</span></div><p class="field-cell-text">局所最適解への陥落・学習不安定</p></div>
+            <div class="field-cell field-cell--zetsu"><div class="field-cell-head"><span class="field-cell-kanji">絶</span><span class="field-cell-label">⑫</span></div><p class="field-cell-text">勾配消失・発散（学習不成立）</p></div>
+            <div class="field-cell field-cell--kei"><div class="field-cell-head"><span class="field-cell-kanji">継</span><span class="field-cell-label">⑬</span></div><p class="field-cell-text">学習済みモデルから次タスクへの転移学習</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 7. 言語の通時的音韻変化 ===== -->
+      <div class="field-item">
+        <button class="field-trigger" aria-expanded="false">
+          <span class="field-num">07</span>
+          <span class="field-name">言語の通時的音韻変化<small>Diachronic Phonological Change</small></span>
+          <span class="field-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="field-body">
+          <div class="field-grid">
+            <div class="field-cell field-cell--nin"><div class="field-cell-head"><span class="field-cell-kanji">認</span><span class="field-cell-label">①</span></div><p class="field-cell-text">音韻変異の出現検知</p></div>
+            <div class="field-cell field-cell--shi"><div class="field-cell-head"><span class="field-cell-kanji">思</span><span class="field-cell-label">②</span></div><p class="field-cell-text">変化パターンの未成形段階</p></div>
+            <div class="field-cell field-cell--mei"><div class="field-cell-head"><span class="field-cell-kanji">鳴</span><span class="field-cell-label">③</span></div><p class="field-cell-text">音韻法則の確定（例：グリムの法則）</p></div>
+            <div class="field-cell field-cell--ji"><div class="field-cell-head"><span class="field-cell-kanji">示</span><span class="field-cell-label">④</span></div><p class="field-cell-text">話者集団への伝播開始</p></div>
+            <div class="field-cell field-cell--ou"><div class="field-cell-head"><span class="field-cell-kanji">応</span><span class="field-cell-label">⑤</span></div><p class="field-cell-text">新音韻体系の定着・実体化</p></div>
+            <div class="field-cell field-cell--kou"><div class="field-cell-head"><span class="field-cell-kanji">衡</span><span class="field-cell-label">⑥</span></div><p class="field-cell-text">音韻体系内の弁別的均衡</p></div>
+            <div class="field-cell field-cell--en"><div class="field-cell-head"><span class="field-cell-kanji">縁</span><span class="field-cell-label">⑦</span></div><p class="field-cell-text">音韻変化と形態変化の相互参照</p></div>
+            <div class="field-cell field-cell--haba"><div class="field-cell-head"><span class="field-cell-kanji">幅</span><span class="field-cell-label">⑧</span></div><p class="field-cell-text">通じ合える音韻変異の許容範囲</p></div>
+            <div class="field-cell field-cell--kyo"><div class="field-cell-head"><span class="field-cell-kanji">許</span><span class="field-cell-label">⑨</span></div><p class="field-cell-text">共同体の規範的発音基準</p></div>
+            <div class="field-cell field-cell--jun"><div class="field-cell-head"><span class="field-cell-kanji">循</span><span class="field-cell-label">⑩</span></div><p class="field-cell-text">規則的音韻対応（再現領域）</p></div>
+            <div class="field-cell field-cell--ran"><div class="field-cell-head"><span class="field-cell-kanji">乱</span><span class="field-cell-label">⑪</span></div><p class="field-cell-text">不規則変化・借用語の例外</p></div>
+            <div class="field-cell field-cell--zetsu"><div class="field-cell-head"><span class="field-cell-kanji">絶</span><span class="field-cell-label">⑫</span></div><p class="field-cell-text">言語消滅・音韻体系の崩壊</p></div>
+            <div class="field-cell field-cell--kei"><div class="field-cell-head"><span class="field-cell-kanji">継</span><span class="field-cell-label">⑬</span></div><p class="field-cell-text">音韻変化から次の形態・統語変化への連鎖</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 8. 楽曲の和声進行 ===== -->
+      <div class="field-item">
+        <button class="field-trigger" aria-expanded="false">
+          <span class="field-num">08</span>
+          <span class="field-name">楽曲の和声進行と解決構造<small>Harmonic Progression &amp; Resolution</small></span>
+          <span class="field-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="field-body">
+          <div class="field-grid">
+            <div class="field-cell field-cell--nin"><div class="field-cell-head"><span class="field-cell-kanji">認</span><span class="field-cell-label">①</span></div><p class="field-cell-text">和声的緊張の発生検知</p></div>
+            <div class="field-cell field-cell--shi"><div class="field-cell-head"><span class="field-cell-kanji">思</span><span class="field-cell-label">②</span></div><p class="field-cell-text">和声進行の可能性の未成形段階</p></div>
+            <div class="field-cell field-cell--mei"><div class="field-cell-head"><span class="field-cell-kanji">鳴</span><span class="field-cell-label">③</span></div><p class="field-cell-text">和声進行パターンの確定</p></div>
+            <div class="field-cell field-cell--ji"><div class="field-cell-head"><span class="field-cell-kanji">示</span><span class="field-cell-label">④</span></div><p class="field-cell-text">演奏・音響実現への着手</p></div>
+            <div class="field-cell field-cell--ou"><div class="field-cell-head"><span class="field-cell-kanji">応</span><span class="field-cell-label">⑤</span></div><p class="field-cell-text">和声解決の聴覚的実体化</p></div>
+            <div class="field-cell field-cell--kou"><div class="field-cell-head"><span class="field-cell-kanji">衡</span><span class="field-cell-label">⑥</span></div><p class="field-cell-text">T-D-S機能の均衡</p></div>
+            <div class="field-cell field-cell--en"><div class="field-cell-head"><span class="field-cell-kanji">縁</span><span class="field-cell-label">⑦</span></div><p class="field-cell-text">和声進行と旋律線の相互参照</p></div>
+            <div class="field-cell field-cell--haba"><div class="field-cell-head"><span class="field-cell-kanji">幅</span><span class="field-cell-label">⑧</span></div><p class="field-cell-text">調性内で許容される和声の範囲</p></div>
+            <div class="field-cell field-cell--kyo"><div class="field-cell-head"><span class="field-cell-kanji">許</span><span class="field-cell-label">⑨</span></div><p class="field-cell-text">和声法・対位法の規則体系</p></div>
+            <div class="field-cell field-cell--jun"><div class="field-cell-head"><span class="field-cell-kanji">循</span><span class="field-cell-label">⑩</span></div><p class="field-cell-text">定型的なカデンツ（終止形）</p></div>
+            <div class="field-cell field-cell--ran"><div class="field-cell-head"><span class="field-cell-kanji">乱</span><span class="field-cell-label">⑪</span></div><p class="field-cell-text">偶成和音・例外的進行</p></div>
+            <div class="field-cell field-cell--zetsu"><div class="field-cell-head"><span class="field-cell-kanji">絶</span><span class="field-cell-label">⑫</span></div><p class="field-cell-text">調性の崩壊（無調）</p></div>
+            <div class="field-cell field-cell--kei"><div class="field-cell-head"><span class="field-cell-kanji">継</span><span class="field-cell-label">⑬</span></div><p class="field-cell-text">終止から次の楽節・楽章への遷移</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 9. 生態系レジームシフト ===== -->
+      <div class="field-item">
+        <button class="field-trigger" aria-expanded="false">
+          <span class="field-num">09</span>
+          <span class="field-name">生態系レジームシフト<small>Ecosystem Regime Shift</small></span>
+          <span class="field-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="field-body">
+          <div class="field-grid">
+            <div class="field-cell field-cell--nin"><div class="field-cell-head"><span class="field-cell-kanji">認</span><span class="field-cell-label">①</span></div><p class="field-cell-text">生態系の状態変化の前兆検知</p></div>
+            <div class="field-cell field-cell--shi"><div class="field-cell-head"><span class="field-cell-kanji">思</span><span class="field-cell-label">②</span></div><p class="field-cell-text">閾値モデルの未成形段階</p></div>
+            <div class="field-cell field-cell--mei"><div class="field-cell-head"><span class="field-cell-kanji">鳴</span><span class="field-cell-label">③</span></div><p class="field-cell-text">レジームシフトの臨界条件確定</p></div>
+            <div class="field-cell field-cell--ji"><div class="field-cell-head"><span class="field-cell-kanji">示</span><span class="field-cell-label">④</span></div><p class="field-cell-text">生態系操作実験・観測系の構築</p></div>
+            <div class="field-cell field-cell--ou"><div class="field-cell-head"><span class="field-cell-kanji">応</span><span class="field-cell-label">⑤</span></div><p class="field-cell-text">新レジームへの不可逆的遷移の実現</p></div>
+            <div class="field-cell field-cell--kou"><div class="field-cell-head"><span class="field-cell-kanji">衡</span><span class="field-cell-label">⑥</span></div><p class="field-cell-text">生態系の安定状態（アトラクター）</p></div>
+            <div class="field-cell field-cell--en"><div class="field-cell-head"><span class="field-cell-kanji">縁</span><span class="field-cell-label">⑦</span></div><p class="field-cell-text">栄養段階間の均衡の相互参照</p></div>
+            <div class="field-cell field-cell--haba"><div class="field-cell-head"><span class="field-cell-kanji">幅</span><span class="field-cell-label">⑧</span></div><p class="field-cell-text">レジリエンスの許容範囲</p></div>
+            <div class="field-cell field-cell--kyo"><div class="field-cell-head"><span class="field-cell-kanji">許</span><span class="field-cell-label">⑨</span></div><p class="field-cell-text">生態系サービスの持続可能基準</p></div>
+            <div class="field-cell field-cell--jun"><div class="field-cell-head"><span class="field-cell-kanji">循</span><span class="field-cell-label">⑩</span></div><p class="field-cell-text">安定した生態系の再現的循環</p></div>
+            <div class="field-cell field-cell--ran"><div class="field-cell-head"><span class="field-cell-kanji">乱</span><span class="field-cell-label">⑪</span></div><p class="field-cell-text">外来種侵入・異常気象による非再現的撹乱</p></div>
+            <div class="field-cell field-cell--zetsu"><div class="field-cell-head"><span class="field-cell-kanji">絶</span><span class="field-cell-label">⑫</span></div><p class="field-cell-text">生態系崩壊・種の絶滅</p></div>
+            <div class="field-cell field-cell--kei"><div class="field-cell-head"><span class="field-cell-kanji">継</span><span class="field-cell-label">⑬</span></div><p class="field-cell-text">新レジーム下での次の安定化過程への遷移</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 10. 意識のハードプロブレム ===== -->
+      <div class="field-item">
+        <button class="field-trigger" aria-expanded="false">
+          <span class="field-num">10</span>
+          <span class="field-name">意識のハードプロブレム<small>神経相関構造</small></span>
+          <span class="field-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="field-body">
+          <div class="field-grid">
+            <div class="field-cell field-cell--nin"><div class="field-cell-head"><span class="field-cell-kanji">認</span><span class="field-cell-label">①</span></div><p class="field-cell-text">主観的経験（クオリア）の存在検知</p></div>
+            <div class="field-cell field-cell--shi"><div class="field-cell-head"><span class="field-cell-kanji">思</span><span class="field-cell-label">②</span></div><p class="field-cell-text">意識の神経相関仮説の未成形段階</p></div>
+            <div class="field-cell field-cell--mei"><div class="field-cell-head"><span class="field-cell-kanji">鳴</span><span class="field-cell-label">③</span></div><p class="field-cell-text">NCC（神経相関）候補の同定確定</p></div>
+            <div class="field-cell field-cell--ji"><div class="field-cell-head"><span class="field-cell-kanji">示</span><span class="field-cell-label">④</span></div><p class="field-cell-text">脳イメージング・電気生理実験の実行</p></div>
+            <div class="field-cell field-cell--ou"><div class="field-cell-head"><span class="field-cell-kanji">応</span><span class="field-cell-label">⑤</span></div><p class="field-cell-text">意識状態と神経活動の対応の観測実現</p></div>
+            <div class="field-cell field-cell--kou"><div class="field-cell-head"><span class="field-cell-kanji">衡</span><span class="field-cell-label">⑥</span></div><p class="field-cell-text">覚醒-意識レベルの神経活動均衡</p></div>
+            <div class="field-cell field-cell--en"><div class="field-cell-head"><span class="field-cell-kanji">縁</span><span class="field-cell-label">⑦</span></div><p class="field-cell-text">異なる脳領域の意識関連活動の相互参照</p></div>
+            <div class="field-cell field-cell--haba"><div class="field-cell-head"><span class="field-cell-kanji">幅</span><span class="field-cell-label">⑧</span></div><p class="field-cell-text">意識が維持される神経活動の範囲</p></div>
+            <div class="field-cell field-cell--kyo"><div class="field-cell-head"><span class="field-cell-kanji">許</span><span class="field-cell-label">⑨</span></div><p class="field-cell-text">意識判定の操作的基準（例：GNW理論）</p></div>
+            <div class="field-cell field-cell--jun"><div class="field-cell-head"><span class="field-cell-kanji">循</span><span class="field-cell-label">⑩</span></div><p class="field-cell-text">再現的な意識の神経相関パターン</p></div>
+            <div class="field-cell field-cell--ran"><div class="field-cell-head"><span class="field-cell-kanji">乱</span><span class="field-cell-label">⑪</span></div><p class="field-cell-text">個体差・病態による非再現的意識状態</p></div>
+            <div class="field-cell field-cell--zetsu"><div class="field-cell-head"><span class="field-cell-kanji">絶</span><span class="field-cell-label">⑫</span></div><p class="field-cell-text">脳死・意識の不可逆的消失</p></div>
+            <div class="field-cell field-cell--kei"><div class="field-cell-head"><span class="field-cell-kanji">継</span><span class="field-cell-label">⑬</span></div><p class="field-cell-text">観測知見から次の意識理論構築への遷移</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 11. 暗号プロトコル ===== -->
+      <div class="field-item">
+        <button class="field-trigger" aria-expanded="false">
+          <span class="field-num">11</span>
+          <span class="field-name">暗号プロトコルの状態遷移検証<small>Cryptographic Protocol Verification</small></span>
+          <span class="field-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="field-body">
+          <div class="field-grid">
+            <div class="field-cell field-cell--nin"><div class="field-cell-head"><span class="field-cell-kanji">認</span><span class="field-cell-label">①</span></div><p class="field-cell-text">セキュア通信要求の発生検知</p></div>
+            <div class="field-cell field-cell--shi"><div class="field-cell-head"><span class="field-cell-kanji">思</span><span class="field-cell-label">②</span></div><p class="field-cell-text">プロトコル設計の未成形段階</p></div>
+            <div class="field-cell field-cell--mei"><div class="field-cell-head"><span class="field-cell-kanji">鳴</span><span class="field-cell-label">③</span></div><p class="field-cell-text">状態遷移仕様・形式検証の確定</p></div>
+            <div class="field-cell field-cell--ji"><div class="field-cell-head"><span class="field-cell-kanji">示</span><span class="field-cell-label">④</span></div><p class="field-cell-text">プロトコル実装・テスト実行</p></div>
+            <div class="field-cell field-cell--ou"><div class="field-cell-head"><span class="field-cell-kanji">応</span><span class="field-cell-label">⑤</span></div><p class="field-cell-text">セキュア通信の実現・検証完了</p></div>
+            <div class="field-cell field-cell--kou"><div class="field-cell-head"><span class="field-cell-kanji">衡</span><span class="field-cell-label">⑥</span></div><p class="field-cell-text">機密性-完全性-可用性の均衡</p></div>
+            <div class="field-cell field-cell--en"><div class="field-cell-head"><span class="field-cell-kanji">縁</span><span class="field-cell-label">⑦</span></div><p class="field-cell-text">認証プロトコルと暗号化プロトコルの相互参照</p></div>
+            <div class="field-cell field-cell--haba"><div class="field-cell-head"><span class="field-cell-kanji">幅</span><span class="field-cell-label">⑧</span></div><p class="field-cell-text">計算量的安全性の許容範囲</p></div>
+            <div class="field-cell field-cell--kyo"><div class="field-cell-head"><span class="field-cell-kanji">許</span><span class="field-cell-label">⑨</span></div><p class="field-cell-text">暗号強度基準・鍵長要件</p></div>
+            <div class="field-cell field-cell--jun"><div class="field-cell-head"><span class="field-cell-kanji">循</span><span class="field-cell-label">⑩</span></div><p class="field-cell-text">標準化された暗号スイート</p></div>
+            <div class="field-cell field-cell--ran"><div class="field-cell-head"><span class="field-cell-kanji">乱</span><span class="field-cell-label">⑪</span></div><p class="field-cell-text">未知の攻撃ベクトル・実装脆弱性</p></div>
+            <div class="field-cell field-cell--zetsu"><div class="field-cell-head"><span class="field-cell-kanji">絶</span><span class="field-cell-label">⑫</span></div><p class="field-cell-text">暗号の完全破綻（鍵漏洩・アルゴリズム崩壊）</p></div>
+            <div class="field-cell field-cell--kei"><div class="field-cell-head"><span class="field-cell-kanji">継</span><span class="field-cell-label">⑬</span></div><p class="field-cell-text">脆弱性発見から次世代プロトコル策定への遷移</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 12. 核融合プラズマ ===== -->
+      <div class="field-item">
+        <button class="field-trigger" aria-expanded="false">
+          <span class="field-num">12</span>
+          <span class="field-name">核融合プラズマの閉じ込め安定性<small>Fusion Plasma Confinement</small></span>
+          <span class="field-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="field-body">
+          <div class="field-grid">
+            <div class="field-cell field-cell--nin"><div class="field-cell-head"><span class="field-cell-kanji">認</span><span class="field-cell-label">①</span></div><p class="field-cell-text">プラズマ不安定性の兆候検知</p></div>
+            <div class="field-cell field-cell--shi"><div class="field-cell-head"><span class="field-cell-kanji">思</span><span class="field-cell-label">②</span></div><p class="field-cell-text">MHD平衡モデルの未成形段階</p></div>
+            <div class="field-cell field-cell--mei"><div class="field-cell-head"><span class="field-cell-kanji">鳴</span><span class="field-cell-label">③</span></div><p class="field-cell-text">閉じ込め磁場配位の設計確定</p></div>
+            <div class="field-cell field-cell--ji"><div class="field-cell-head"><span class="field-cell-kanji">示</span><span class="field-cell-label">④</span></div><p class="field-cell-text">プラズマ加熱・閉じ込め実験の実行</p></div>
+            <div class="field-cell field-cell--ou"><div class="field-cell-head"><span class="field-cell-kanji">応</span><span class="field-cell-label">⑤</span></div><p class="field-cell-text">自己持続的燃焼プラズマの実現</p></div>
+            <div class="field-cell field-cell--kou"><div class="field-cell-head"><span class="field-cell-kanji">衡</span><span class="field-cell-label">⑥</span></div><p class="field-cell-text">プラズマ圧力と磁場圧力の均衡（β値）</p></div>
+            <div class="field-cell field-cell--en"><div class="field-cell-head"><span class="field-cell-kanji">縁</span><span class="field-cell-label">⑦</span></div><p class="field-cell-text">エネルギー閉じ込めと粒子閉じ込めの相互参照</p></div>
+            <div class="field-cell field-cell--haba"><div class="field-cell-head"><span class="field-cell-kanji">幅</span><span class="field-cell-label">⑧</span></div><p class="field-cell-text">ディスラプションに至らない運転パラメータ範囲</p></div>
+            <div class="field-cell field-cell--kyo"><div class="field-cell-head"><span class="field-cell-kanji">許</span><span class="field-cell-label">⑨</span></div><p class="field-cell-text">閉じ込め時間・温度・密度の点火基準</p></div>
+            <div class="field-cell field-cell--jun"><div class="field-cell-head"><span class="field-cell-kanji">循</span><span class="field-cell-label">⑩</span></div><p class="field-cell-text">再現的な定常プラズマ運転</p></div>
+            <div class="field-cell field-cell--ran"><div class="field-cell-head"><span class="field-cell-kanji">乱</span><span class="field-cell-label">⑪</span></div><p class="field-cell-text">ELM・新古典ティアリングモード等の非再現的不安定性</p></div>
+            <div class="field-cell field-cell--zetsu"><div class="field-cell-head"><span class="field-cell-kanji">絶</span><span class="field-cell-label">⑫</span></div><p class="field-cell-text">ディスラプション（プラズマ崩壊）</p></div>
+            <div class="field-cell field-cell--kei"><div class="field-cell-head"><span class="field-cell-kanji">継</span><span class="field-cell-label">⑬</span></div><p class="field-cell-text">実験データから次の閉じ込め設計への遷移</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== 13. 宇宙論的相転移 ===== -->
+      <div class="field-item">
+        <button class="field-trigger" aria-expanded="false">
+          <span class="field-num">13</span>
+          <span class="field-name">宇宙論的相転移<small>対称性の破れ — Cosmological Phase Transition</small></span>
+          <span class="field-toggle" aria-hidden="true"></span>
+        </button>
+        <div class="field-body">
+          <div class="field-grid">
+            <div class="field-cell field-cell--nin"><div class="field-cell-head"><span class="field-cell-kanji">認</span><span class="field-cell-label">①</span></div><p class="field-cell-text">対称性の不安定化の検知</p></div>
+            <div class="field-cell field-cell--shi"><div class="field-cell-head"><span class="field-cell-kanji">思</span><span class="field-cell-label">②</span></div><p class="field-cell-text">有効ポテンシャルの温度依存モデルの未成形段階</p></div>
+            <div class="field-cell field-cell--mei"><div class="field-cell-head"><span class="field-cell-kanji">鳴</span><span class="field-cell-label">③</span></div><p class="field-cell-text">相転移の臨界温度・秩序パラメータの確定</p></div>
+            <div class="field-cell field-cell--ji"><div class="field-cell-head"><span class="field-cell-kanji">示</span><span class="field-cell-label">④</span></div><p class="field-cell-text">格子ゲージ計算・宇宙論シミュレーションの実行</p></div>
+            <div class="field-cell field-cell--ou"><div class="field-cell-head"><span class="field-cell-kanji">応</span><span class="field-cell-label">⑤</span></div><p class="field-cell-text">対称性の破れた新真空状態の実現</p></div>
+            <div class="field-cell field-cell--kou"><div class="field-cell-head"><span class="field-cell-kanji">衡</span><span class="field-cell-label">⑥</span></div><p class="field-cell-text">新旧真空の自由エネルギー均衡</p></div>
+            <div class="field-cell field-cell--en"><div class="field-cell-head"><span class="field-cell-kanji">縁</span><span class="field-cell-label">⑦</span></div><p class="field-cell-text">電弱相転移とQCD相転移の相互参照</p></div>
+            <div class="field-cell field-cell--haba"><div class="field-cell-head"><span class="field-cell-kanji">幅</span><span class="field-cell-label">⑧</span></div><p class="field-cell-text">相転移が進行する温度・エネルギー範囲</p></div>
+            <div class="field-cell field-cell--kyo"><div class="field-cell-head"><span class="field-cell-kanji">許</span><span class="field-cell-label">⑨</span></div><p class="field-cell-text">標準模型パラメータの適合基準</p></div>
+            <div class="field-cell field-cell--jun"><div class="field-cell-head"><span class="field-cell-kanji">循</span><span class="field-cell-label">⑩</span></div><p class="field-cell-text">再現的なシミュレーション結果</p></div>
+            <div class="field-cell field-cell--ran"><div class="field-cell-head"><span class="field-cell-kanji">乱</span><span class="field-cell-label">⑪</span></div><p class="field-cell-text">非摂動的効果による非再現的振る舞い</p></div>
+            <div class="field-cell field-cell--zetsu"><div class="field-cell-head"><span class="field-cell-kanji">絶</span><span class="field-cell-label">⑫</span></div><p class="field-cell-text">偽の真空崩壊（宇宙構造の不成立）</p></div>
+            <div class="field-cell field-cell--kei"><div class="field-cell-head"><span class="field-cell-kanji">継</span><span class="field-cell-label">⑬</span></div><p class="field-cell-text">相転移の痕跡（重力波等）から次の宇宙論モデル構築への遷移</p></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ========================================
      FAQ (GEO optimized)
      ======================================== -->
 <section class="faq-section" id="faq" aria-label="よくある質問">
@@ -1740,6 +2252,21 @@ footer {
       const item = btn.parentElement;
       const wasOpen = item.classList.contains('open');
       document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+      if (!wasOpen) item.classList.add('open');
+      btn.setAttribute('aria-expanded', !wasOpen);
+    });
+  });
+})();
+
+// ----------------------------------------
+// Field Accordion
+// ----------------------------------------
+(function() {
+  document.querySelectorAll('.field-trigger').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const item = btn.parentElement;
+      const wasOpen = item.classList.contains('open');
+      document.querySelectorAll('.field-item.open').forEach(i => i.classList.remove('open'));
       if (!wasOpen) item.classList.add('open');
       btn.setAttribute('aria-expanded', !wasOpen);
     });
