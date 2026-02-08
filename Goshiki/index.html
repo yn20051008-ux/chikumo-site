@@ -1,2266 +1,658 @@
 <!DOCTYPE html>
-<html lang="ja" data-theme="dark">
+
+<html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="五式｜構造実体の定義。認・理・衡・縁・継の5要素で構成される更新対象。">
-  <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
-  <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)">
-  <title>五式｜構造実体</title>
-  <style>
-    /*
-    ============================================================================
-    五式 UI システム v2.0
-    ============================================================================
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>五式（ごしき）— 構造実体の成立過程｜認・思・鳴・示・応</title>
+<meta name="description" content="五式とは、差分を出す最低条件である。各層で未確定→確定が起きる。中央では思（未成形）→鳴（成形）、現場では示（指向）→応（実体）。十三式の①〜⑤を構成する構造実体の成立過程。">
+<meta name="keywords" content="五式, 十三式, 構造実体, 認思鳴示応, 中央, 現場, 衡, 継">
+<meta property="og:title" content="五式 — 構造実体の成立過程">
+<meta property="og:description" content="差分を出す最低条件。各層で未確定→確定が起きる。認→思→鳴→示→応。">
+<meta property="og:type" content="article">
+<link rel="canonical" href="">
 
-    【設計方針】
-    - AIエージェント保守前提の単一HTMLファイル
-    - 内容変更禁止、UI/UX改善のみ
-    - デザイントークンによる一貫性確保
-    - レスポンシブ5段階対応（320px～1920px）
-    - アクセシビリティ最優先
-    - パフォーマンス最適化（will-change, contain）
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "五式（ごしき）— 構造実体の成立過程",
+  "description": "差分を出す最低条件。各層で未確定→確定が起きる。認→思→鳴→示→応。十三式の①〜⑤を構成する。",
+  "articleSection": "十三式",
+  "inLanguage": "ja"
+}
+</script>
 
-    【参照】
-    - goshiki.md: 五式定義
-    - jusshiki.md: 十式定義
-
-    【更新履歴】
-    - 2026-01-27: AIエージェント保守性向上、UI大幅改善
-    - 2026-01-27 v2.1: オフライン対応、ダークモード手動切替、エフェクト強化
-
-    ============================================================================
-    */
-
-    /* ========================================================================
-       デザイントークン（Design Tokens）
-       ======================================================================== */
-
-    :root {
-      /* カラーパレット（Color Palette）- ダークモード */
-      --color-bg-primary: #0a0a0a;           /* メイン背景 */
-      --color-bg-secondary: #141414;         /* セカンダリ背景 */
-      --color-bg-tertiary: #1f1f1f;          /* 第3背景 */
-      --color-fg-primary: #f0f0f0;           /* メインテキスト */
-      --color-fg-secondary: rgba(240,240,240,0.7);  /* セカンダリテキスト */
-      --color-fg-tertiary: rgba(240,240,240,0.5);   /* 第3テキスト */
-      --color-fg-quaternary: rgba(240,240,240,0.3); /* 第4テキスト */
-      --color-border-primary: rgba(240,240,240,0.12);
-      --color-border-secondary: rgba(240,240,240,0.08);
-      --color-accent: #7dd3fc;               /* アクセントカラー */
-      --color-accent-hover: #38bdf8;         /* アクセントホバー */
-      --color-danger: #f87171;               /* 危険色（絶、衡停止） */
-      --color-danger-hover: #f87171;
-      --color-success: #4ade80;              /* 成功色（継成立） */
-      --color-success-hover: #22c55e;
-      --color-surface: rgba(255,255,255,0.03);  /* 表面色 */
-      --color-surface-hover: rgba(255,255,255,0.05);
-
-      /* タイポグラフィスケール（Typography Scale）*/
-      --font-size-xs: 0.7rem;      /* 10.5px - ラベル、注釈 */
-      --font-size-sm: 0.75rem;     /* 12px - 小テキスト */
-      --font-size-base: 0.875rem;  /* 14px - 本文 */
-      --font-size-md: 1rem;        /* 16px - 本文大 */
-      --font-size-lg: 1.125rem;    /* 18px - 見出し小 */
-      --font-size-xl: 1.5rem;      /* 24px - 見出し中 */
-      --font-size-2xl: 2rem;       /* 32px - 見出し大 */
-      --font-size-3xl: 3rem;       /* 48px - ヒーロー小 */
-      --font-size-hero: clamp(4rem, 15vw, 10rem);  /* ヒーロータイトル */
-
-      /* フォントウェイト（Font Weights）*/
-      --font-weight-light: 200;
-      --font-weight-normal: 400;
-      --font-weight-medium: 500;
-      --font-weight-semibold: 600;
-
-      /* 行高（Line Heights）*/
-      --line-height-tight: 1.2;
-      --line-height-snug: 1.4;
-      --line-height-normal: 1.6;
-      --line-height-relaxed: 1.8;
-
-      /* スペーシングシステム（Spacing System）- 8px基準 */
-      --space-0: 0;
-      --space-1: 0.25rem;   /* 4px */
-      --space-2: 0.5rem;    /* 8px */
-      --space-3: 0.75rem;   /* 12px */
-      --space-4: 1rem;      /* 16px */
-      --space-5: 1.25rem;   /* 20px */
-      --space-6: 1.5rem;    /* 24px */
-      --space-8: 2rem;      /* 32px */
-      --space-10: 2.5rem;   /* 40px */
-      --space-12: 3rem;     /* 48px */
-      --space-16: 4rem;     /* 64px */
-      --space-20: 5rem;     /* 80px */
-      --space-24: 6rem;     /* 96px */
-
-      /* ボーダーラディウス（Border Radius）*/
-      --radius-sm: 4px;
-      --radius-md: 8px;
-      --radius-lg: 12px;
-      --radius-xl: 16px;
-      --radius-full: 9999px;
-
-      /* トランジション（Transitions）*/
-      --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-      --transition-base: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      --transition-slow: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-
-      /* z-index階層（Z-Index Layers）*/
-      --z-base: 1;
-      --z-header: 100;
-      --z-modal-overlay: 200;
-      --z-modal: 201;
-      --z-progress: 1000;
-
-      /* ブレークポイント（Breakpoints）- JSでも使用 */
-      --breakpoint-sm: 480px;    /* Small mobile */
-      --breakpoint-md: 768px;    /* Tablet */
-      --breakpoint-lg: 1024px;   /* Laptop */
-      --breakpoint-xl: 1280px;   /* Desktop */
-      --breakpoint-2xl: 1920px;  /* Wide */
-    }
-
-    /* ライトモード（Light Mode）*/
-    /* OS設定またはdata-theme属性でライトモードを適用 */
-    @media (prefers-color-scheme: light) {
-      :root:not([data-theme="dark"]) {
-        --color-bg-primary: #fafafa;
-        --color-bg-secondary: #f5f5f5;
-        --color-bg-tertiary: #e5e5e5;
-        --color-fg-primary: #1a1a1a;
-        --color-fg-secondary: rgba(26,26,26,0.75);
-        --color-fg-tertiary: rgba(26,26,26,0.55);
-        --color-fg-quaternary: rgba(26,26,26,0.25);
-        --color-border-primary: rgba(26,26,26,0.1);
-        --color-border-secondary: rgba(26,26,26,0.06);
-        --color-accent: #0284c7;
-        --color-accent-hover: #0369a1;
-        --color-danger: #dc2626;
-        --color-danger-hover: #b91c1c;
-        --color-success: #16a34a;
-        --color-success-hover: #15803d;
-        --color-surface: rgba(0,0,0,0.03);
-        --color-surface-hover: rgba(0,0,0,0.05);
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "五式とは何ですか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "五式とは、差分を出す最低条件である。各層で未確定→確定が起きる。中央では思（未成形）→鳴（成形）、現場では示（指向）→応（実体）。十三式の①〜⑤を構成し、構造実体の成立過程そのものである。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "中央と現場の違いは何ですか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "上＝中央（思鳴）、下＝現場（示応）。認の進入層が中央であり、番号順が中央→現場であることによる。中央で未成形→成形が起き、現場で指向→実体が起きる。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "五式と衡の関係は？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "衡とは、五式（認・思・鳴・示・応）が循域で均衡した状態であり、評価を含まない。衡＝0のとき縁は発生せず、継も発生しないため、五式は更新されない。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "差分とは何ですか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "差分は情報である。差分は周回ごとに蓄積される。差分は五式に帰属する。許はその帰属のルールを定める役割であり、帰属先ではない。"
       }
     }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "DefinedTermSet",
+  "name": "五式の構成要素",
+  "hasDefinedTerm": [
+    {
+      "@type": "DefinedTerm",
+      "name": "認",
+      "description": "未確定だが存在している状態（0 < 1：まだ1ではないが0より大きい位相）"
+    },
+    {
+      "@type": "DefinedTerm",
+      "name": "思",
+      "description": "構造内部の未成形状態（中央）"
+    },
+    {
+      "@type": "DefinedTerm",
+      "name": "鳴",
+      "description": "構造内部で成形された状態（中央）"
+    },
+    {
+      "@type": "DefinedTerm",
+      "name": "示",
+      "description": "構造から外部への指向（現場）"
+    },
+    {
+      "@type": "DefinedTerm",
+      "name": "応",
+      "description": "外部で実体化した状態（現場）"
+    }
+  ]
+}
+</script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200;300;400;500;600;700;900&family=Shippori+Mincho:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
+
+  :root {
+    --bg-primary: #0a0a0b;
+    --bg-secondary: #111113;
+    --bg-card: #1c1c1f;
+    --bg-elevated: #222225;
+    --text-primary: #f0ece4;
+    --text-secondary: #9e9a92;
+    --text-tertiary: #6b6760;
+    --accent-gold: #c8a96e;
+    --accent-gold-dim: #8a7548;
+    --accent-gold-glow: rgba(200, 169, 110, 0.12);
+    --accent-nin: #d4a574;
+    --accent-shi: #7b9eb8;
+    --accent-mei: #b8a0d4;
+    --accent-ji: #7bb89e;
+    --accent-ou: #d4b87b;
+    --border-subtle: rgba(240, 236, 228, 0.06);
+    --border-accent: rgba(200, 169, 110, 0.2);
+    --serif: 'Shippori Mincho', 'Noto Serif JP', serif;
+    --mono: 'DM Mono', monospace;
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; font-size: 16px; -webkit-text-size-adjust: 100%; }
+
+  body {
+    font-family: var(--serif);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.9;
+    letter-spacing: 0.04em;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    opacity: 0.025;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-size: 256px;
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  .reveal {
+    opacity: 0; transform: translateY(40px);
+    transition: opacity 0.9s cubic-bezier(0.23,1,0.32,1), transform 0.9s cubic-bezier(0.23,1,0.32,1);
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-d1 { transition-delay: 0.1s; }
+  .reveal-d2 { transition-delay: 0.2s; }
+  .reveal-d3 { transition-delay: 0.3s; }
+  .reveal-d4 { transition-delay: 0.4s; }
+
+  header {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    padding: 1.2rem 2rem;
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(10,10,11,0.85);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  .header-logo { font-size: 0.95rem; font-weight: 600; color: var(--accent-gold); letter-spacing: 0.15em; }
+
+  nav { display: flex; gap: 2rem; }
+  nav a {
+    font-family: var(--mono); font-size: 0.7rem; color: var(--text-tertiary);
+    text-decoration: none; letter-spacing: 0.12em; text-transform: uppercase; transition: color 0.3s;
+  }
+  nav a:hover { color: var(--text-primary); }
+
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center; padding: 6rem 2rem 4rem; position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: ''; position: absolute; top: 20%; left: 50%; transform: translateX(-50%);
+    width: 600px; height: 600px;
+    background: radial-gradient(ellipse, var(--accent-gold-glow) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-label { font-family: var(--mono); font-size: 0.7rem; color: var(--accent-gold-dim); letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 2.5rem; }
+
+  .hero-title { font-size: clamp(4rem,12vw,9rem); font-weight: 200; letter-spacing: 0.3em; line-height: 1.15; margin-bottom: 1rem; }
+  .hero-title span { display: inline-block; opacity: 0; transform: translateY(30px); animation: titleReveal 1s cubic-bezier(0.23,1,0.32,1) forwards; }
+  .hero-title span:nth-child(1) { animation-delay: 0.3s; }
+  .hero-title span:nth-child(2) { animation-delay: 0.5s; }
+  @keyframes titleReveal { to { opacity: 1; transform: translateY(0); } }
+
+  .hero-sub { font-size: clamp(0.85rem,1.5vw,1.05rem); font-weight: 300; color: var(--text-secondary); letter-spacing: 0.15em; margin-bottom: 1.5rem; opacity: 0; animation: fadeIn 1.2s 0.8s cubic-bezier(0.23,1,0.32,1) forwards; }
+  .hero-desc { font-size: 0.88rem; color: var(--text-tertiary); letter-spacing: 0.06em; margin-bottom: 4rem; opacity: 0; animation: fadeIn 1.2s 1s cubic-bezier(0.23,1,0.32,1) forwards; }
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  .flow-container { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; opacity: 0; animation: fadeIn 1.2s 1.2s cubic-bezier(0.23,1,0.32,1) forwards; margin-bottom: 3rem; }
+  .flow-node { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; padding: 1.2rem 1.6rem; }
+  .flow-kanji { font-size: 2.2rem; font-weight: 700; line-height: 1; }
+  .flow-node:nth-child(1) .flow-kanji { color: var(--accent-nin); }
+  .flow-node:nth-child(3) .flow-kanji { color: var(--accent-shi); }
+  .flow-node:nth-child(5) .flow-kanji { color: var(--accent-mei); }
+  .flow-node:nth-child(7) .flow-kanji { color: var(--accent-ji); }
+  .flow-node:nth-child(9) .flow-kanji { color: var(--accent-ou); }
+  .flow-label { font-family: var(--mono); font-size: 0.6rem; color: var(--text-tertiary); letter-spacing: 0.08em; }
+  .flow-arrow { font-size: 1.2rem; color: var(--text-tertiary); opacity: 0.4; padding: 0 0.2rem; user-select: none; }
+
+  .hero-scroll { position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; gap: 0.5rem; opacity: 0; animation: fadeIn 1s 2s forwards; }
+  .hero-scroll span { font-family: var(--mono); font-size: 0.6rem; color: var(--text-tertiary); letter-spacing: 0.2em; }
+  .scroll-line { width: 1px; height: 40px; background: linear-gradient(to bottom, var(--accent-gold-dim), transparent); animation: scrollPulse 2s ease-in-out infinite; }
+  @keyframes scrollPulse { 0%,100% { opacity: 0.3; transform: scaleY(0.6); } 50% { opacity: 1; transform: scaleY(1); } }
+
+  section { padding: 6rem 2rem; max-width: 900px; margin: 0 auto; }
+  .section-wide { max-width: 1100px; }
+  .section-label { font-family: var(--mono); font-size: 0.65rem; color: var(--accent-gold-dim); letter-spacing: 0.3em; text-transform: uppercase; margin-bottom: 1.5rem; }
+  .section-title { font-size: clamp(1.8rem,4vw,2.8rem); font-weight: 300; letter-spacing: 0.12em; line-height: 1.4; margin-bottom: 2rem; }
+  .section-body { font-size: 0.95rem; color: var(--text-secondary); line-height: 2.1; max-width: 680px; }
+  .section-body p + p { margin-top: 1.5rem; }
+
+  .divider { max-width: 900px; margin: 0 auto; padding: 0 2rem; }
+  .divider-line { height: 1px; background: linear-gradient(to right, transparent, var(--border-accent), transparent); }
+
+  .layer-diagram { display: grid; max-width: 600px; margin: 3rem auto; }
+  .layer-entry { text-align: center; padding: 1.5rem 2rem; position: relative; }
+  .layer-entry::after { content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 1px; height: 24px; background: var(--border-accent); }
+  .layer-entry:last-child::after { display: none; }
+  .layer-badge { display: inline-block; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.15em; color: var(--text-tertiary); border: 1px solid var(--border-subtle); border-radius: 100px; padding: 0.25rem 0.9rem; margin-bottom: 0.8rem; text-transform: uppercase; }
+  .layer-title { font-size: 1.6rem; font-weight: 500; letter-spacing: 0.2em; margin-bottom: 0.3rem; }
+  .layer-desc { font-size: 0.8rem; color: var(--text-tertiary); letter-spacing: 0.05em; }
+  .layer-nin .layer-title { color: var(--accent-nin); }
+  .layer-center .layer-title { color: var(--accent-shi); }
+  .layer-field .layer-title { color: var(--accent-ji); }
+
+  .axis-table { width: 100%; border-collapse: collapse; margin: 2.5rem 0; font-size: 0.88rem; }
+  .axis-table th { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-tertiary); text-align: left; padding: 0.8rem 1rem; border-bottom: 1px solid var(--border-accent); font-weight: 400; }
+  .axis-table td { color: var(--text-secondary); padding: 1rem; border-bottom: 1px solid var(--border-subtle); line-height: 1.8; }
+  .axis-table td:first-child { color: var(--accent-gold); font-weight: 500; white-space: nowrap; width: 60px; }
+
+  .formula-block { background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 2.5rem; margin: 2.5rem 0; font-family: var(--mono); font-size: 0.85rem; line-height: 2.4; color: var(--text-secondary); }
+  .formula-block .hl { color: var(--accent-gold); }
+
+  .five-cards { display: grid; gap: 1.5rem; margin: 3rem 0; }
+  .shiki-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 2.5rem 2.8rem; position: relative; overflow: hidden; transition: border-color 0.5s, background 0.5s; }
+  .shiki-card:hover { border-color: var(--border-accent); background: var(--bg-elevated); }
+  .shiki-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; opacity: 0.7; }
+  .shiki-card:nth-child(1)::before { background: var(--accent-nin); }
+  .shiki-card:nth-child(2)::before { background: var(--accent-shi); }
+  .shiki-card:nth-child(3)::before { background: var(--accent-mei); }
+  .shiki-card:nth-child(4)::before { background: var(--accent-ji); }
+  .shiki-card:nth-child(5)::before { background: var(--accent-ou); }
+
+  .card-header { display: flex; align-items: baseline; gap: 1.2rem; margin-bottom: 1rem; }
+  .card-number { font-family: var(--mono); font-size: 0.65rem; color: var(--text-tertiary); letter-spacing: 0.1em; }
+  .card-kanji { font-size: 2rem; font-weight: 700; line-height: 1; }
+  .shiki-card:nth-child(1) .card-kanji { color: var(--accent-nin); }
+  .shiki-card:nth-child(2) .card-kanji { color: var(--accent-shi); }
+  .shiki-card:nth-child(3) .card-kanji { color: var(--accent-mei); }
+  .shiki-card:nth-child(4) .card-kanji { color: var(--accent-ji); }
+  .shiki-card:nth-child(5) .card-kanji { color: var(--accent-ou); }
+  .card-layer-tag { font-family: var(--mono); font-size: 0.55rem; color: var(--text-tertiary); letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--border-subtle); border-radius: 100px; padding: 0.15rem 0.6rem; }
+  .card-definition { font-size: 0.95rem; color: var(--text-secondary); line-height: 2; }
+
+  .relation-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 2.5rem 0; }
+  .relation-box { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 2.2rem; transition: border-color 0.4s; }
+  .relation-box:hover { border-color: var(--border-accent); }
+  .relation-box h3 { font-size: 1.2rem; font-weight: 500; color: var(--accent-gold); letter-spacing: 0.1em; margin-bottom: 1rem; }
+  .relation-box p { font-size: 0.88rem; color: var(--text-secondary); line-height: 2; }
+  .relation-box .formula { font-family: var(--mono); font-size: 0.8rem; color: var(--accent-gold-dim); margin-top: 1rem; padding: 0.8rem 1rem; background: var(--bg-secondary); border-radius: 8px; display: inline-block; }
+
+  .cycle-visual { display: flex; align-items: center; justify-content: center; padding: 3rem 0; overflow-x: auto; }
+  .cycle-step { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; padding: 0.8rem 0.5rem; flex-shrink: 0; }
+  .cycle-kanji { font-size: 1.1rem; font-weight: 600; }
+  .cycle-num { font-family: var(--mono); font-size: 0.55rem; color: var(--text-tertiary); }
+  .cycle-arrow { font-size: 0.8rem; color: var(--text-tertiary); opacity: 0.35; flex-shrink: 0; padding: 0 0.15rem; }
+  .cycle-five .cycle-kanji { color: var(--accent-gold); }
+  .cycle-obs .cycle-kanji { color: var(--text-tertiary); }
+
+  .faq-list { margin: 2.5rem 0; }
+  .faq-item { border-bottom: 1px solid var(--border-subtle); padding: 1.8rem 0; }
+  .faq-item:first-child { border-top: 1px solid var(--border-subtle); }
+  .faq-q { font-size: 1.05rem; font-weight: 500; color: var(--text-primary); letter-spacing: 0.04em; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+  .faq-q::after { content: '+'; font-family: var(--mono); font-size: 1.2rem; color: var(--text-tertiary); flex-shrink: 0; transition: transform 0.3s; }
+  .faq-item.open .faq-q::after { transform: rotate(45deg); }
+  .faq-a { font-size: 0.9rem; color: var(--text-secondary); line-height: 2; max-height: 0; overflow: hidden; transition: max-height 0.5s cubic-bezier(0.23,1,0.32,1), padding 0.5s cubic-bezier(0.23,1,0.32,1); padding-top: 0; }
+  .faq-item.open .faq-a { max-height: 400px; padding-top: 1.2rem; }
+
+  footer { padding: 4rem 2rem; text-align: center; border-top: 1px solid var(--border-subtle); }
+  .footer-text { font-family: var(--mono); font-size: 0.65rem; color: var(--text-tertiary); letter-spacing: 0.15em; }
+
+  @media (max-width: 768px) {
+    header { padding: 1rem 1.2rem; }
+    nav { gap: 1rem; }
+    nav a { font-size: 0.6rem; }
+    section { padding: 4rem 1.5rem; }
+    .flow-node { padding: 0.8rem; }
+    .flow-kanji { font-size: 1.6rem; }
+    .flow-arrow { font-size: 0.9rem; padding: 0; }
+    .shiki-card { padding: 1.8rem 1.5rem; }
+    .relation-grid { grid-template-columns: 1fr; }
+    .cycle-visual { justify-content: flex-start; }
+  }
+
+  @media (max-width: 480px) {
+    .hero-title { letter-spacing: 0.15em; }
+    nav { display: none; }
+    .flow-node { padding: 0.5rem 0.4rem; }
+    .flow-kanji { font-size: 1.3rem; }
+    .flow-label { font-size: 0.5rem; }
+  }
+</style>
 
-    /* 手動ライトモード（Manual Light Mode）*/
-    :root[data-theme="light"] {
-      --color-bg-primary: #fafafa;
-      --color-bg-secondary: #f5f5f5;
-      --color-bg-tertiary: #e5e5e5;
-      --color-fg-primary: #1a1a1a;
-      --color-fg-secondary: rgba(26,26,26,0.75);
-      --color-fg-tertiary: rgba(26,26,26,0.55);
-      --color-fg-quaternary: rgba(26,26,26,0.25);
-      --color-border-primary: rgba(26,26,26,0.1);
-      --color-border-secondary: rgba(26,26,26,0.06);
-      --color-accent: #0284c7;
-      --color-accent-hover: #0369a1;
-      --color-danger: #dc2626;
-      --color-danger-hover: #b91c1c;
-      --color-success: #16a34a;
-      --color-success-hover: #15803d;
-      --color-surface: rgba(0,0,0,0.03);
-      --color-surface-hover: rgba(0,0,0,0.05);
-    }
-
-    /* ========================================================================
-       リセット&ベーススタイル（Reset & Base Styles）
-       ======================================================================== */
-
-    *, *::before, *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html {
-      scroll-behavior: smooth;
-      font-size: 16px; /* 基準フォントサイズ */
-    }
-
-    body {
-      font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Helvetica Neue", Arial, sans-serif;
-      background: var(--color-bg-primary);
-      color: var(--color-fg-primary);
-      line-height: var(--line-height-relaxed);
-      min-height: 100vh;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    ::selection {
-      background: var(--color-accent);
-      color: var(--color-bg-primary);
-    }
-
-    a {
-      color: inherit;
-      text-decoration: none;
-    }
-
-    button {
-      font: inherit;
-      cursor: pointer;
-      border: none;
-      background: none;
-      color: inherit;
-    }
-
-    /* ========================================================================
-       プログレスバー（Progress Bar）
-       スクロール進捗を視覚的に表示
-       ======================================================================== */
-
-    .progress-bar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      height: 2px;
-      background: var(--color-accent);
-      width: 0%;
-      z-index: var(--z-progress);
-      transition: width 0.1s linear;
-      will-change: width; /* パフォーマンス最適化 */
-    }
-
-    /* ========================================================================
-       ヘッダー（Header）
-       固定ヘッダー、スクロール時に背景をぼかし表示
-       ======================================================================== */
-
-    header {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: var(--z-header);
-      padding: var(--space-4) var(--space-6);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: transparent;
-      transition: background var(--transition-base), backdrop-filter var(--transition-base);
-      contain: layout style; /* パフォーマンス最適化 */
-    }
-
-    /* スクロール時のヘッダー背景 */
-    header.scrolled {
-      background: color-mix(in srgb, var(--color-bg-primary) 85%, transparent);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-    }
-
-    .logo {
-      font-size: var(--font-size-sm);
-      letter-spacing: 0.15em;
-      font-weight: var(--font-weight-medium);
-    }
-
-    /* ========================================================================
-       ステップインジケーター（Step Indicator）
-       現在のセクションを視覚的に表示
-       ======================================================================== */
-
-    .step-indicator {
-      display: flex;
-      gap: var(--space-2);
-      align-items: center;
-    }
-
-    .step-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: var(--radius-full);
-      background: var(--color-fg-quaternary);
-      transition: background var(--transition-base), transform var(--transition-base);
-      will-change: transform, background; /* アニメーション最適化 */
-    }
-
-    .step-dot.active {
-      background: var(--color-accent);
-      transform: scale(1.3);
-    }
-
-    .step-label {
-      font-size: var(--font-size-xs);
-      letter-spacing: 0.1em;
-      margin-left: var(--space-2);
-      opacity: 0.5;
-    }
-
-    /* ========================================================================
-       ヒーローセクション（Hero Section）
-       ファーストビュー、五式の概要提示
-       ======================================================================== */
-
-    .hero {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      padding: var(--space-24) var(--space-6) var(--space-16);
-      position: relative;
-    }
-
-    .hero-sub {
-      font-size: var(--font-size-sm);
-      letter-spacing: 0.4em;
-      color: var(--color-fg-tertiary);
-      margin-bottom: var(--space-6);
-      text-transform: uppercase;
-      animation: fadeInUp 0.8s var(--transition-base) backwards;
-    }
-
-    .hero-title {
-      font-size: var(--font-size-hero);
-      font-weight: var(--font-weight-light);
-      letter-spacing: 0.3em;
-      margin-left: 0.3em;
-      line-height: var(--line-height-tight);
-      margin-bottom: var(--space-6);
-      animation: fadeInUp 1s var(--transition-base) 0.2s backwards;
-    }
-
-    .hero-desc {
-      font-size: var(--font-size-md);
-      color: var(--color-fg-tertiary);
-      max-width: 400px;
-      margin-bottom: var(--space-12);
-      animation: fadeInUp 1s var(--transition-base) 0.4s backwards;
-    }
-
-    .hero-desc strong {
-      color: var(--color-fg-primary);
-      font-weight: var(--font-weight-medium);
-    }
-
-    /* フローの可視化（五式の5要素）*/
-    .flow-mini {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-      flex-wrap: wrap;
-      justify-content: center;
-      animation: fadeInUp 1s var(--transition-base) 0.6s backwards;
-    }
-
-    .flow-mini-item {
-      display: flex;
-      align-items: center;
-      gap: var(--space-2);
-    }
-
-    .flow-char {
-      width: 2.5rem;
-      height: 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid var(--color-border-primary);
-      border-radius: var(--radius-md);
-      font-size: var(--font-size-md);
-      transition: all var(--transition-base);
-      cursor: default;
-    }
-
-    .flow-char:hover {
-      border-color: var(--color-accent);
-      color: var(--color-accent);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    .flow-arrow {
-      color: var(--color-fg-quaternary);
-      font-size: var(--font-size-base);
-    }
-
-    /* スクロールヒント */
-    .scroll-hint {
-      position: absolute;
-      bottom: var(--space-8);
-      font-size: var(--font-size-xs);
-      letter-spacing: 0.3em;
-      color: var(--color-fg-quaternary);
-      animation: pulse 2s infinite;
-    }
-
-    /* ========================================================================
-       アニメーション定義（Animations）
-       ======================================================================== */
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(30px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 0.7; }
-    }
-
-    /* ========================================================================
-       メインコンテンツ（Main Content）
-       ======================================================================== */
-
-    main {
-      padding-bottom: var(--space-16);
-    }
-
-    section {
-      padding: var(--space-20) var(--space-6);
-      max-width: 900px;
-      margin: 0 auto;
-    }
-
-    .section-label {
-      font-size: var(--font-size-xs);
-      letter-spacing: 0.3em;
-      color: var(--color-fg-quaternary);
-      margin-bottom: var(--space-3);
-      text-transform: uppercase;
-    }
-
-    .section-title {
-      font-size: var(--font-size-2xl);
-      font-weight: var(--font-weight-light);
-      margin-bottom: var(--space-6);
-      letter-spacing: 0.05em;
-    }
-
-    .section-intro {
-      color: var(--color-fg-tertiary);
-      max-width: 600px;
-      margin-bottom: var(--space-12);
-      line-height: var(--line-height-relaxed);
-    }
-
-    /* ========================================================================
-       カードシステム（Card System）
-       五式の各要素を展開可能なカードで表示
-       ======================================================================== */
-
-    .cards {
-      display: grid;
-      gap: var(--space-4);
-    }
-
-    .card {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border-primary);
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      transition: border-color var(--transition-base), box-shadow var(--transition-base);
-      contain: layout style; /* パフォーマンス最適化 */
-    }
-
-    .card:hover {
-      border-color: var(--color-border-primary);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-
-    .card:focus-within {
-      border-color: var(--color-accent);
-    }
-
-    .card-header {
-      width: 100%;
-      padding: var(--space-5) var(--space-6);
-      display: flex;
-      align-items: center;
-      gap: var(--space-4);
-      text-align: left;
-      transition: background var(--transition-base);
-    }
-
-    .card-header:hover {
-      background: var(--color-surface-hover);
-    }
-
-    .card-header:focus {
-      outline: 2px solid var(--color-accent);
-      outline-offset: -2px;
-    }
-
-    .card-num {
-      font-size: var(--font-size-2xl);
-      font-weight: var(--font-weight-light);
-      min-width: 3rem;
-      color: var(--color-fg-tertiary);
-    }
-
-    .card-info {
-      flex: 1;
-    }
-
-    .card-char {
-      font-size: var(--font-size-lg);
-      font-weight: var(--font-weight-medium);
-      margin-bottom: var(--space-1);
-    }
-
-    .card-reading {
-      font-size: var(--font-size-sm);
-      color: var(--color-fg-quaternary);
-      letter-spacing: 0.1em;
-    }
-
-    .card-toggle {
-      width: var(--space-6);
-      height: var(--space-6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--color-fg-quaternary);
-      transition: transform var(--transition-base);
-    }
-
-    .card[data-open="true"] .card-toggle {
-      transform: rotate(180deg);
-    }
-
-    /* カードコンテンツのアニメーション */
-    .card-content {
-      display: grid;
-      grid-template-rows: 0fr;
-      transition: grid-template-rows var(--transition-base);
-    }
-
-    .card[data-open="true"] .card-content {
-      grid-template-rows: 1fr;
-    }
-
-    .card-content-inner {
-      overflow: hidden;
-      padding: 0 var(--space-6);
-    }
-
-    .card[data-open="true"] .card-content-inner {
-      padding: 0 var(--space-6) var(--space-6);
-    }
-
-    .card-text {
-      color: var(--color-fg-tertiary);
-      padding-top: var(--space-2);
-      border-top: 1px solid var(--color-border-secondary);
-      line-height: var(--line-height-relaxed);
-    }
-
-    .card-note {
-      font-size: var(--font-size-base);
-      color: var(--color-fg-quaternary);
-      margin-top: var(--space-3);
-      font-style: italic;
-    }
-
-    /* ========================================================================
-       差分体験（Delta Experience）
-       継の成立条件をインタラクティブに体験
-       ======================================================================== */
-
-    .delta-box {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border-primary);
-      border-radius: var(--radius-md);
-      padding: var(--space-8);
-    }
-
-    .delta-label {
-      font-size: var(--font-size-sm);
-      letter-spacing: 0.2em;
-      color: var(--color-fg-quaternary);
-      margin-bottom: var(--space-4);
-      text-transform: uppercase;
-    }
-
-    .delta-slider-wrap {
-      margin-bottom: var(--space-8);
-    }
-
-    .delta-slider {
-      width: 100%;
-      height: 4px;
-      -webkit-appearance: none;
-      appearance: none;
-      background: var(--color-border-primary);
-      border-radius: var(--radius-sm);
-      outline: none;
-      cursor: pointer;
-    }
-
-    /* WebKitブラウザ（Chrome, Safari, Edge）のスライダーつまみ */
-    .delta-slider::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 20px;
-      height: 20px;
-      border-radius: var(--radius-full);
-      background: var(--color-fg-primary);
-      cursor: pointer;
-      transition: transform var(--transition-base), box-shadow var(--transition-base);
-    }
-
-    .delta-slider::-webkit-slider-thumb:hover {
-      transform: scale(1.2);
-      box-shadow: 0 0 0 8px rgba(255,255,255,0.1);
-    }
-
-    /* Firefoxのスライダーつまみ */
-    .delta-slider::-moz-range-thumb {
-      width: 20px;
-      height: 20px;
-      border-radius: var(--radius-full);
-      background: var(--color-fg-primary);
-      cursor: pointer;
-      border: none;
-      transition: transform var(--transition-base);
-    }
-
-    .delta-slider::-moz-range-thumb:hover {
-      transform: scale(1.2);
-    }
-
-    .delta-value {
-      text-align: center;
-      margin-top: var(--space-4);
-    }
-
-    .delta-num {
-      font-size: var(--font-size-3xl);
-      font-weight: var(--font-weight-light);
-      letter-spacing: 0.1em;
-    }
-
-    .delta-unit {
-      font-size: var(--font-size-base);
-      color: var(--color-fg-quaternary);
-      margin-left: var(--space-1);
-    }
-
-    .delta-result {
-      text-align: center;
-      padding: var(--space-6);
-      border-radius: var(--radius-md);
-      transition: all var(--transition-base);
-    }
-
-    .delta-result.inactive {
-      background: color-mix(in srgb, var(--color-danger) 10%, transparent);
-      border: 1px solid color-mix(in srgb, var(--color-danger) 30%, transparent);
-    }
-
-    .delta-result.active {
-      background: color-mix(in srgb, var(--color-success) 10%, transparent);
-      border: 1px solid color-mix(in srgb, var(--color-success) 30%, transparent);
-    }
-
-    .delta-state {
-      font-size: var(--font-size-base);
-      font-weight: var(--font-weight-medium);
-      margin-bottom: var(--space-2);
-    }
-
-    .delta-result.inactive .delta-state {
-      color: var(--color-danger);
-    }
-
-    .delta-result.active .delta-state {
-      color: var(--color-success);
-    }
-
-    .delta-desc {
-      font-size: var(--font-size-base);
-      color: var(--color-fg-tertiary);
-    }
-
-    .delta-flow {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--space-3);
-      margin-top: var(--space-6);
-      flex-wrap: wrap;
-    }
-
-    .delta-flow-item {
-      padding: var(--space-2) var(--space-4);
-      border: 1px solid var(--color-border-primary);
-      border-radius: var(--radius-md);
-      font-size: var(--font-size-base);
-      transition: all var(--transition-base);
-    }
-
-    .delta-flow-item.highlight {
-      border-color: var(--color-accent);
-      color: var(--color-accent);
-      background: color-mix(in srgb, var(--color-accent) 10%, transparent);
-    }
-
-    .delta-flow-item.dim {
-      opacity: 0.3;
-    }
-
-    .delta-flow-arrow {
-      color: var(--color-fg-quaternary);
-    }
-
-    /* ========================================================================
-       比較セクション（Comparison Section）
-       衡停止と絶の違いを視覚的に比較
-       ======================================================================== */
-
-    .compare {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: var(--space-4);
-    }
-
-    .compare-item {
-      padding: var(--space-6);
-      border-radius: var(--radius-md);
-      border: 1px solid var(--color-border-primary);
-      transition: transform var(--transition-base), box-shadow var(--transition-base);
-    }
-
-    .compare-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-    }
-
-    .compare-item.stop {
-      background: color-mix(in srgb, var(--color-accent) 5%, transparent);
-      border-color: color-mix(in srgb, var(--color-accent) 30%, transparent);
-    }
-
-    .compare-item.end {
-      background: color-mix(in srgb, var(--color-danger) 5%, transparent);
-      border-color: color-mix(in srgb, var(--color-danger) 30%, transparent);
-    }
-
-    .compare-title {
-      font-size: var(--font-size-lg);
-      font-weight: var(--font-weight-medium);
-      margin-bottom: var(--space-1);
-    }
-
-    .compare-item.stop .compare-title {
-      color: var(--color-accent);
-    }
-
-    .compare-item.end .compare-title {
-      color: var(--color-danger);
-    }
-
-    .compare-sub {
-      font-size: var(--font-size-sm);
-      color: var(--color-fg-quaternary);
-      letter-spacing: 0.1em;
-      margin-bottom: var(--space-4);
-    }
-
-    .compare-desc {
-      font-size: var(--font-size-base);
-      color: var(--color-fg-tertiary);
-      line-height: var(--line-height-relaxed);
-    }
-
-    .compare-list {
-      margin-top: var(--space-4);
-      padding-left: var(--space-4);
-      list-style: none;
-    }
-
-    .compare-list li {
-      font-size: var(--font-size-base);
-      color: var(--color-fg-tertiary);
-      margin-bottom: var(--space-2);
-      position: relative;
-      line-height: var(--line-height-normal);
-    }
-
-    .compare-list li::before {
-      content: "";
-      position: absolute;
-      left: calc(-1 * var(--space-4));
-      top: 0.6rem;
-      width: 4px;
-      height: 4px;
-      border-radius: var(--radius-full);
-      background: var(--color-fg-quaternary);
-    }
-
-    /* ========================================================================
-       トグルデモ（Toggle Demo）
-       衡停止のシミュレーション
-       ======================================================================== */
-
-    .toggle-demo {
-      background: var(--color-surface);
-      border: 1px solid var(--color-border-primary);
-      border-radius: var(--radius-md);
-      padding: var(--space-8);
-      margin-top: var(--space-8);
-    }
-
-    .toggle-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: var(--space-6);
-    }
-
-    .toggle-title {
-      font-size: var(--font-size-base);
-    }
-
-    .toggle-switch {
-      position: relative;
-      width: 48px;
-      height: 26px;
-      background: var(--color-border-primary);
-      border-radius: calc(26px / 2);
-      cursor: pointer;
-      transition: background var(--transition-base);
-    }
-
-    .toggle-switch:focus {
-      outline: 2px solid var(--color-accent);
-      outline-offset: 2px;
-    }
-
-    .toggle-switch[aria-checked="true"] {
-      background: var(--color-danger);
-    }
-
-    .toggle-knob {
-      position: absolute;
-      top: 3px;
-      left: 3px;
-      width: 20px;
-      height: 20px;
-      border-radius: var(--radius-full);
-      background: var(--color-fg-primary);
-      transition: transform var(--transition-base);
-      will-change: transform; /* アニメーション最適化 */
-    }
-
-    .toggle-switch[aria-checked="true"] .toggle-knob {
-      transform: translateX(22px);
-    }
-
-    .toggle-status {
-      text-align: center;
-      padding: var(--space-4);
-      border-radius: var(--radius-md);
-      background: var(--color-surface);
-      transition: all var(--transition-base);
-    }
-
-    .toggle-status.stopped {
-      background: color-mix(in srgb, var(--color-danger) 10%, transparent);
-    }
-
-    .toggle-flow {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: var(--space-2);
-      flex-wrap: wrap;
-    }
-
-    .toggle-flow-item {
-      padding: var(--space-2) var(--space-3);
-      border: 1px solid var(--color-border-primary);
-      border-radius: var(--radius-md);
-      font-size: var(--font-size-sm);
-      transition: all var(--transition-base);
-    }
-
-    .toggle-flow-item.disabled {
-      opacity: 0.25;
-      text-decoration: line-through;
-    }
-
-    /* ========================================================================
-       関係性セクション（Relation Section）
-       十式と五式の関係性説明
-       ======================================================================== */
-
-    .relation-grid {
-      display: grid;
-      gap: var(--space-4);
-    }
-
-    .relation-item {
-      padding: var(--space-5);
-      border-left: 2px solid var(--color-border-primary);
-      transition: border-color var(--transition-base);
-    }
-
-    .relation-item:hover {
-      border-color: var(--color-accent);
-    }
-
-    .relation-head {
-      font-weight: var(--font-weight-medium);
-      margin-bottom: var(--space-2);
-    }
-
-    .relation-text {
-      font-size: var(--font-size-base);
-      color: var(--color-fg-tertiary);
-      line-height: var(--line-height-relaxed);
-    }
-
-    /* ========================================================================
-       用語索引ボタン（Glossary Button）
-       固定位置、モーダル開閉トリガー
-       ======================================================================== */
-
-    .glossary-btn {
-      position: fixed;
-      bottom: var(--space-6);
-      right: var(--space-6);
-      width: 48px;
-      height: 48px;
-      border-radius: var(--radius-full);
-      background: var(--color-fg-primary);
-      color: var(--color-bg-primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: var(--font-size-lg);
-      font-weight: var(--font-weight-medium);
-      z-index: calc(var(--z-header) - 10);
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-      transition: transform var(--transition-base), box-shadow var(--transition-base);
-    }
-
-    .glossary-btn:hover {
-      transform: scale(1.1);
-      box-shadow: 0 6px 24px rgba(0,0,0,0.4);
-    }
-
-    .glossary-btn:focus {
-      outline: 2px solid var(--color-accent);
-      outline-offset: 2px;
-    }
-
-    /* ========================================================================
-       モーダル（Modal）
-       用語索引を表示するオーバーレイダイアログ
-       ======================================================================== */
-
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      backdrop-filter: blur(4px);
-      -webkit-backdrop-filter: blur(4px);
-      z-index: var(--z-modal-overlay);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: var(--space-4);
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity var(--transition-base), visibility var(--transition-base);
-    }
-
-    .modal-overlay.is-open {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .modal {
-      background: var(--color-bg-primary);
-      border: 1px solid var(--color-border-primary);
-      border-radius: var(--radius-md);
-      max-width: 500px;
-      width: 100%;
-      max-height: 80vh;
-      overflow-y: auto;
-      transform: translateY(20px);
-      transition: transform var(--transition-base);
-      contain: layout style paint; /* パフォーマンス最適化 */
-    }
-
-    .modal-overlay.is-open .modal {
-      transform: translateY(0);
-    }
-
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: var(--space-5) var(--space-6);
-      border-bottom: 1px solid var(--color-border-primary);
-      position: sticky;
-      top: 0;
-      background: var(--color-bg-primary);
-      z-index: var(--z-base);
-    }
-
-    .modal-title {
-      font-size: var(--font-size-md);
-      font-weight: var(--font-weight-medium);
-    }
-
-    .modal-close {
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: var(--radius-md);
-      transition: background var(--transition-base);
-    }
-
-    .modal-close:hover {
-      background: var(--color-surface);
-    }
-
-    .modal-close:focus {
-      outline: 2px solid var(--color-accent);
-    }
-
-    .modal-body {
-      padding: var(--space-6);
-    }
-
-    .glossary-item {
-      padding: var(--space-4) 0;
-      border-bottom: 1px solid var(--color-border-secondary);
-    }
-
-    .glossary-item:last-child {
-      border-bottom: none;
-    }
-
-    .glossary-term {
-      display: flex;
-      align-items: baseline;
-      gap: var(--space-2);
-      margin-bottom: var(--space-1);
-    }
-
-    .glossary-char {
-      font-size: var(--font-size-lg);
-      font-weight: var(--font-weight-medium);
-    }
-
-    .glossary-reading {
-      font-size: var(--font-size-sm);
-      color: var(--color-fg-quaternary);
-    }
-
-    .glossary-def {
-      font-size: var(--font-size-base);
-      color: var(--color-fg-tertiary);
-      line-height: var(--line-height-normal);
-    }
-
-    /* ========================================================================
-       フッター（Footer）
-       ======================================================================== */
-
-    footer {
-      text-align: center;
-      padding: var(--space-16) var(--space-6);
-      border-top: 1px solid var(--color-border-primary);
-    }
-
-    .footer-text {
-      font-size: var(--font-size-sm);
-      color: var(--color-fg-quaternary);
-      max-width: 500px;
-      margin: 0 auto;
-      line-height: var(--line-height-relaxed);
-    }
-
-    /* ========================================================================
-       レスポンシブデザイン（Responsive Design）
-       5段階ブレークポイント: 320px / 480px / 768px / 1024px / 1280px / 1920px
-       ======================================================================== */
-
-    /* Small Mobile: 480px+ */
-    @media (min-width: 480px) {
-      .hero {
-        padding: var(--space-24) var(--space-8) var(--space-16);
-      }
-
-      section {
-        padding: var(--space-20) var(--space-8);
-      }
-    }
-
-    /* Tablet: 768px+ */
-    @media (min-width: 768px) {
-      section {
-        padding: var(--space-24) var(--space-8);
-      }
-
-      .cards {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .card:nth-child(5) {
-        grid-column: 1 / -1;
-      }
-
-      .compare {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .section-title {
-        font-size: var(--font-size-3xl);
-      }
-    }
-
-    /* Laptop: 1024px+ */
-    @media (min-width: 1024px) {
-      header {
-        padding: var(--space-5) var(--space-8);
-      }
-
-      section {
-        padding: var(--space-24) var(--space-10);
-      }
-
-      .delta-box, .toggle-demo {
-        padding: var(--space-10);
-      }
-    }
-
-    /* Desktop: 1280px+ */
-    @media (min-width: 1280px) {
-      section {
-        max-width: 1000px;
-      }
-    }
-
-    /* Wide: 1920px+ */
-    @media (min-width: 1920px) {
-      section {
-        max-width: 1200px;
-      }
-    }
-
-    /* ========================================================================
-       視覚エフェクト強化（Visual Effects Enhancement）
-       ======================================================================== */
-
-    /* グロー効果（Glow Effects）*/
-    .hero-title {
-      text-shadow: 0 0 40px rgba(125, 211, 252, 0.3),
-                   0 0 80px rgba(125, 211, 252, 0.15);
-      animation: fadeInUp 1s var(--transition-base) 0.2s backwards,
-                 titleGlow 3s ease-in-out infinite alternate;
-    }
-
-    @keyframes titleGlow {
-      from { text-shadow: 0 0 40px rgba(125, 211, 252, 0.3), 0 0 80px rgba(125, 211, 252, 0.15); }
-      to { text-shadow: 0 0 60px rgba(125, 211, 252, 0.5), 0 0 120px rgba(125, 211, 252, 0.25); }
-    }
-
-    /* アクセントカラーのグロー */
-    .flow-char:hover,
-    .delta-flow-item.highlight {
-      box-shadow: 0 0 20px rgba(125, 211, 252, 0.4),
-                  0 4px 12px rgba(0,0,0,0.2);
-    }
-
-    /* スクロール連動フェードイン（Scroll-triggered Fade In）*/
-    .scroll-reveal {
-      opacity: 0;
-      transform: translateY(30px);
-      transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1),
-                  transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .scroll-reveal.revealed {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    /* カードのスプリングアニメーション */
-    @keyframes cardSpring {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.02); }
-      100% { transform: scale(1); }
-    }
-
-    .card:hover {
-      animation: cardSpring 0.3s ease-out;
-    }
-
-    /* プログレスバーのグロー */
-    .progress-bar {
-      box-shadow: 0 0 10px var(--color-accent),
-                  0 0 20px rgba(125, 211, 252, 0.5);
-    }
-
-    /* モーダルのエントランスアニメーション強化 */
-    .modal-overlay.is-open .modal {
-      animation: modalBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-
-    @keyframes modalBounce {
-      0% { transform: translateY(20px) scale(0.95); opacity: 0; }
-      50% { transform: translateY(-10px) scale(1.02); }
-      100% { transform: translateY(0) scale(1); opacity: 1; }
-    }
-
-    /* グラデーション背景アニメーション */
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 100%;
-      background: radial-gradient(
-        ellipse at 50% 0%,
-        rgba(125, 211, 252, 0.1) 0%,
-        transparent 50%
-      );
-      pointer-events: none;
-      animation: gradientShift 10s ease-in-out infinite alternate;
-    }
-
-    @keyframes gradientShift {
-      from { opacity: 0.3; transform: scale(1); }
-      to { opacity: 0.6; transform: scale(1.1); }
-    }
-
-    /* セクション区切りのグラデーション */
-    section::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 100px;
-      height: 1px;
-      background: linear-gradient(
-        90deg,
-        transparent 0%,
-        var(--color-accent) 50%,
-        transparent 100%
-      );
-      opacity: 0.3;
-    }
-
-    section {
-      position: relative;
-    }
-
-    /* ホバー時の立体効果強化 */
-    .compare-item {
-      position: relative;
-      transition: transform var(--transition-base),
-                  box-shadow var(--transition-base);
-    }
-
-    .compare-item::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: var(--radius-md);
-      opacity: 0;
-      transition: opacity var(--transition-base);
-      pointer-events: none;
-    }
-
-    .compare-item.stop::after {
-      background: radial-gradient(
-        circle at center,
-        rgba(125, 211, 252, 0.2) 0%,
-        transparent 70%
-      );
-    }
-
-    .compare-item.end::after {
-      background: radial-gradient(
-        circle at center,
-        rgba(248, 113, 113, 0.2) 0%,
-        transparent 70%
-      );
-    }
-
-    .compare-item:hover::after {
-      opacity: 1;
-    }
-
-    /* 用語索引ボタンのパルスアニメーション */
-    @keyframes glossaryPulse {
-      0%, 100% { transform: scale(1); box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-      50% { transform: scale(1.05); box-shadow: 0 6px 30px rgba(125, 211, 252, 0.4); }
-    }
-
-    .glossary-btn {
-      animation: glossaryPulse 3s ease-in-out infinite;
-    }
-
-    .glossary-btn:hover {
-      animation: none;
-    }
-
-    /* ダークモードトグルのスタイル */
-    .theme-toggle {
-      width: 40px;
-      height: 40px;
-      border-radius: var(--radius-full);
-      background: var(--color-surface);
-      border: 1px solid var(--color-border-primary);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      transition: all var(--transition-base);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .theme-toggle:hover {
-      background: var(--color-surface-hover);
-      border-color: var(--color-accent);
-      transform: rotate(20deg);
-    }
-
-    .theme-toggle:focus {
-      outline: 2px solid var(--color-accent);
-      outline-offset: 2px;
-    }
-
-    .theme-toggle-icon {
-      font-size: var(--font-size-lg);
-      transition: transform var(--transition-base);
-    }
-
-    /* テーマ切替時のページ全体のトランジション */
-    html.theme-transitioning,
-    html.theme-transitioning *,
-    html.theme-transitioning *::before,
-    html.theme-transitioning *::after {
-      transition: background-color 0.3s ease,
-                  color 0.3s ease,
-                  border-color 0.3s ease !important;
-    }
-
-    /* ========================================================================
-       アクセシビリティ（Accessibility）
-       ======================================================================== */
-
-    /* キーボードフォーカス表示 */
-    *:focus-visible {
-      outline: 2px solid var(--color-accent);
-      outline-offset: 2px;
-    }
-
-    /* アニメーション削減設定を尊重 */
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-      }
-
-      html {
-        scroll-behavior: auto;
-      }
-    }
-
-    /* ハイコントラストモード対応 */
-    @media (prefers-contrast: high) {
-      :root {
-        --color-border-primary: rgba(240,240,240,0.3);
-        --color-fg-tertiary: rgba(240,240,240,0.8);
-      }
-    }
-  </style>
 </head>
 <body>
-  <!-- ========================================================================
-       プログレスバー（Progress Bar）
-       ======================================================================== -->
-  <div class="progress-bar" aria-hidden="true"></div>
 
-  <!-- ========================================================================
-       ヘッダー（Header）
-       ======================================================================== -->
-  <header>
-    <div class="logo">五式</div>
-    <div style="display: flex; align-items: center; gap: 1rem;">
-      <div class="step-indicator" aria-label="現在の位置">
-        <div class="step-dot" data-section="hero"></div>
-        <div class="step-dot" data-section="overview"></div>
-        <div class="step-dot" data-section="delta"></div>
-        <div class="step-dot" data-section="compare"></div>
-        <div class="step-dot" data-section="relation"></div>
-        <span class="step-label">認</span>
-      </div>
-      <button class="theme-toggle" id="theme-toggle" aria-label="テーマ切替">
-        <span class="theme-toggle-icon" id="theme-icon">🌙</span>
-      </button>
+<header>
+  <div class="header-logo">十三式</div>
+  <nav>
+    <a href="#definition">定義</a>
+    <a href="#structure">層構造</a>
+    <a href="#details">各式</a>
+    <a href="#relations">関係</a>
+    <a href="#faq">FAQ</a>
+  </nav>
+</header>
+
+<!-- ===== Hero ===== -->
+
+<section class="hero" role="banner">
+  <p class="hero-label">十三式｜構造実体</p>
+  <h1 class="hero-title"><span>五</span><span>式</span></h1>
+  <p class="hero-sub">差分を出す最低条件</p>
+  <p class="hero-desc">各層で未確定→確定が起きる</p>
+
+  <div class="flow-container" aria-label="五式の循環">
+    <div class="flow-node">
+      <span class="flow-kanji">認</span>
+      <span class="flow-label">未確定だが存在</span>
     </div>
-  </header>
-
-  <main>
-    <!-- ====================================================================
-         ヒーローセクション（Hero Section）
-         五式の概要を提示
-         ==================================================================== -->
-    <section class="hero" id="hero" data-section-name="認">
-      <p class="hero-sub">構造実体</p>
-      <h1 class="hero-title">五式</h1>
-      <p class="hero-desc"><strong>五式は構造実体</strong>であり、<strong>更新対象</strong>である。認・理・衡・縁・継の5要素で構成される。</p>
-      <div class="flow-mini" aria-label="五式の構成要素">
-        <div class="flow-mini-item">
-          <div class="flow-char">認</div>
-          <span class="flow-arrow">→</span>
-        </div>
-        <div class="flow-mini-item">
-          <div class="flow-char">理</div>
-          <span class="flow-arrow">→</span>
-        </div>
-        <div class="flow-mini-item">
-          <div class="flow-char">衡</div>
-          <span class="flow-arrow">→</span>
-        </div>
-        <div class="flow-mini-item">
-          <div class="flow-char">縁</div>
-          <span class="flow-arrow">→</span>
-        </div>
-        <div class="flow-mini-item">
-          <div class="flow-char">継</div>
-        </div>
-      </div>
-      <p class="scroll-hint">SCROLL</p>
-    </section>
-
-    <!-- ====================================================================
-         構成要素セクション（Overview Section）
-         五式の5要素を詳細に説明
-         ==================================================================== -->
-    <section id="overview" data-section-name="理">
-      <p class="section-label">01 — Overview</p>
-      <h2 class="section-title">構成要素</h2>
-      <p class="section-intro">五式は順序固定の5要素で構成される。三式(認・理・衡)は1以上で成立し、五式は3以上（面以上の構造）で成立する。</p>
-      <div class="cards" role="list">
-        <!-- 認（1番目）-->
-        <article class="card" data-open="false" role="listitem">
-          <button class="card-header" aria-expanded="false" aria-controls="card-1-content">
-            <span class="card-num">1</span>
-            <div class="card-info">
-              <div class="card-char">認</div>
-              <div class="card-reading">にん / NIN</div>
-            </div>
-            <div class="card-toggle" aria-hidden="true">▼</div>
-          </button>
-          <div class="card-content" id="card-1-content">
-            <div class="card-content-inner">
-              <p class="card-text">未確定だが存在している状態。一式は0より大きく1未満である。</p>
-            </div>
-          </div>
-        </article>
-
-        <!-- 理（2番目）-->
-        <article class="card" data-open="false" role="listitem">
-          <button class="card-header" aria-expanded="false" aria-controls="card-2-content">
-            <span class="card-num">2</span>
-            <div class="card-info">
-              <div class="card-char">理</div>
-              <div class="card-reading">ことわり / KOTOWARI</div>
-            </div>
-            <div class="card-toggle" aria-hidden="true">▼</div>
-          </button>
-          <div class="card-content" id="card-2-content">
-            <div class="card-content-inner">
-              <p class="card-text">構造・筋道。理＋と理−の2種で構成される。2以上は確定している。</p>
-            </div>
-          </div>
-        </article>
-
-        <!-- 衡（3番目）-->
-        <article class="card" data-open="false" role="listitem">
-          <button class="card-header" aria-expanded="false" aria-controls="card-3-content">
-            <span class="card-num">3</span>
-            <div class="card-info">
-              <div class="card-char">衡</div>
-              <div class="card-reading">こう / KOU</div>
-            </div>
-            <div class="card-toggle" aria-hidden="true">▼</div>
-          </button>
-          <div class="card-content" id="card-3-content">
-            <div class="card-content-inner">
-              <p class="card-text">揺れて存在している状態。状態が固定されていないこと。評価を含まない。</p>
-              <p class="card-note">※ 衡が成立しなければ構造は観測されない</p>
-            </div>
-          </div>
-        </article>
-
-        <!-- 縁（4番目）-->
-        <article class="card" data-open="false" role="listitem">
-          <button class="card-header" aria-expanded="false" aria-controls="card-4-content">
-            <span class="card-num">4</span>
-            <div class="card-info">
-              <div class="card-char">縁</div>
-              <div class="card-reading">えん / EN</div>
-            </div>
-            <div class="card-toggle" aria-hidden="true">▼</div>
-          </button>
-          <div class="card-content" id="card-4-content">
-            <div class="card-content-inner">
-              <p class="card-text">複数の理が相互参照関係へ遷移したことが観測される状態。</p>
-              <p class="card-note">※ 縁は衡の成立を前提として観測される</p>
-            </div>
-          </div>
-        </article>
-
-        <!-- 継（5番目）-->
-        <article class="card" data-open="false" role="listitem">
-          <button class="card-header" aria-expanded="false" aria-controls="card-5-content">
-            <span class="card-num">5</span>
-            <div class="card-info">
-              <div class="card-char">継</div>
-              <div class="card-reading">けい / KEI</div>
-            </div>
-            <div class="card-toggle" aria-hidden="true">▼</div>
-          </button>
-          <div class="card-content" id="card-5-content">
-            <div class="card-content-inner">
-              <p class="card-text">循の内側で成立していた構造実体（五式）が、差分を伴って次の認へ遷移すること。</p>
-              <p class="card-note">※ 継は領域の更新ではなく、実体（五式）の遷移である</p>
-            </div>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <!-- ====================================================================
-         差分セクション（Delta Section）
-         継の成立条件をインタラクティブに体験
-         ==================================================================== -->
-    <section id="delta" data-section-name="衡">
-      <p class="section-label">02 — Delta</p>
-      <h2 class="section-title">差分（Δ）と継</h2>
-      <p class="section-intro">継が成立するには差分（Δ）が必要である。差分がゼロの場合、継は発生しない。</p>
-
-      <div class="delta-box">
-        <p class="delta-label">差分を操作</p>
-        <div class="delta-slider-wrap">
-          <input type="range" class="delta-slider" id="delta-slider" min="0" max="10" value="0" aria-label="差分の値">
-        </div>
-        <div class="delta-value">
-          <span class="delta-num" id="delta-num">0</span><span class="delta-unit">Δ</span>
-        </div>
-
-        <div class="delta-result inactive" id="delta-result">
-          <p class="delta-state" id="delta-state">継は発生しない</p>
-          <p class="delta-desc" id="delta-desc">差分がゼロのため、次の認への遷移は起きない</p>
-        </div>
-
-        <div class="delta-flow" id="delta-flow">
-          <span class="delta-flow-item">認</span>
-          <span class="delta-flow-arrow">→</span>
-          <span class="delta-flow-item">理</span>
-          <span class="delta-flow-arrow">→</span>
-          <span class="delta-flow-item">衡</span>
-          <span class="delta-flow-arrow">→</span>
-          <span class="delta-flow-item">縁</span>
-          <span class="delta-flow-arrow">→</span>
-          <span class="delta-flow-item dim" id="kei-item">継</span>
-          <span class="delta-flow-arrow dim" id="next-arrow">→</span>
-          <span class="delta-flow-item dim" id="next-nin">次の認</span>
-        </div>
-      </div>
-    </section>
-
-    <!-- ====================================================================
-         比較セクション（Comparison Section）
-         衡停止と絶の違いを明確化
-         ==================================================================== -->
-    <section id="compare" data-section-name="縁">
-      <p class="section-label">03 — Distinction</p>
-      <h2 class="section-title">衡停止と絶の区別</h2>
-      <p class="section-intro">衡停止と絶は異なる状態である。この区別は五式を理解する上で重要である。</p>
-
-      <div class="compare">
-        <div class="compare-item stop">
-          <h3 class="compare-title">衡停止</h3>
-          <p class="compare-sub">KOU TEISHI</p>
-          <p class="compare-desc">構造は循の幅内で維持されるが、継が発生しない状態。</p>
-          <ul class="compare-list">
-            <li>構造は観測可能</li>
-            <li>循の領域内に存在</li>
-            <li>衡が停止すると縁が働かない</li>
-            <li>縁が働かないと継が発生しない</li>
-          </ul>
-        </div>
-        <div class="compare-item end">
-          <h3 class="compare-title">絶</h3>
-          <p class="compare-sub">ZETSU</p>
-          <p class="compare-desc">構造不成立領域。</p>
-          <ul class="compare-list">
-            <li>構造が成立しない</li>
-            <li>領域であり実体ではない</li>
-            <li>更新・操作・評価の対象ではない</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- 衡停止シミュレーション -->
-      <div class="toggle-demo">
-        <div class="toggle-header">
-          <span class="toggle-title">衡停止シミュレーション</span>
-          <button class="toggle-switch" id="kou-toggle" role="switch" aria-checked="false" aria-label="衡停止の切り替え">
-            <span class="toggle-knob"></span>
-          </button>
-        </div>
-        <div class="toggle-status" id="toggle-status">
-          <div class="toggle-flow">
-            <span class="toggle-flow-item">認</span>
-            <span>→</span>
-            <span class="toggle-flow-item">理</span>
-            <span>→</span>
-            <span class="toggle-flow-item" id="kou-state">衡</span>
-            <span>→</span>
-            <span class="toggle-flow-item" id="en-state">縁</span>
-            <span>→</span>
-            <span class="toggle-flow-item" id="kei-state">継</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ====================================================================
-         関係性セクション（Relation Section）
-         十式と五式の関係を説明
-         ==================================================================== -->
-    <section id="relation" data-section-name="継">
-      <p class="section-label">04 — Framework</p>
-      <h2 class="section-title">十式との関係</h2>
-      <p class="section-intro">五式は十式の中で定義された構造実体である。十式は観測・判定・遷移のための構造であり、更新されない。</p>
-
-      <div class="relation-grid">
-        <div class="relation-item">
-          <p class="relation-head">五式は更新対象</p>
-          <p class="relation-text">五式は構造実体であり、更新対象は五式のみである。</p>
-        </div>
-        <div class="relation-item">
-          <p class="relation-head">十式は不変</p>
-          <p class="relation-text">十式は観測・判定・遷移構造であり、更新されない。</p>
-        </div>
-        <div class="relation-item">
-          <p class="relation-head">領域は実体ではない</p>
-          <p class="relation-text">循・乱・絶は領域であり、実体ではない。更新・操作・評価の対象ではない。</p>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <!-- ========================================================================
-       用語索引ボタン（Glossary Button）
-       ======================================================================== -->
-  <button class="glossary-btn" id="glossary-btn" aria-label="用語索引を開く">索</button>
-
-  <!-- ========================================================================
-       用語索引モーダル（Glossary Modal）
-       十式の全10要素を含む
-       ======================================================================== -->
-  <div class="modal-overlay" id="modal-overlay" aria-hidden="true">
-    <div class="modal" role="dialog" aria-labelledby="modal-title" aria-modal="true">
-      <div class="modal-header">
-        <h2 class="modal-title" id="modal-title">用語索引</h2>
-        <button class="modal-close" id="modal-close" aria-label="閉じる">✕</button>
-      </div>
-      <div class="modal-body">
-        <!-- 十式の全10要素 -->
-        <div class="glossary-item">
-          <div class="glossary-term"><span class="glossary-char">認</span><span class="glossary-reading">にん</span></div>
-          <p class="glossary-def">未確定だが存在している状態</p>
-        </div>
-        <div class="glossary-item">
-          <div class="glossary-term"><span class="glossary-char">理</span><span class="glossary-reading">ことわり</span></div>
-          <p class="glossary-def">構造・筋道（理＋と理−で構成される）</p>
-        </div>
-        <div class="glossary-item">
-          <div class="glossary-term"><span class="glossary-char">衡</span><span class="glossary-reading">こう</span></div>
-          <p class="glossary-def">揺れて存在している状態（評価を含まない）</p>
-        </div>
-        <div class="glossary-item">
-          <div class="glossary-term"><span class="glossary-char">縁</span><span class="glossary-reading">えん</span></div>
-          <p class="glossary-def">複数の理が相互参照関係へ遷移したことが観測される状態</p>
-        </div>
-        <div class="glossary-item">
-          <div class="glossary-term"><span class="glossary-char">幅</span><span class="glossary-reading">はば</span></div>
-          <p class="glossary-def">構造が崩壊しない値の幅</p>
-        </div>
-        <div class="glossary-item">
-          <div class="glossary-term"><span class="glossary-char">許</span><span class="glossary-reading">きょ</span></div>
-          <p class="glossary-def">その幅の中で、再現可能と定義された正常幅</p>
-        </div>
-        <div class="glossary-item">
-          <div class="glossary-term"><span class="glossary-char">循</span><span class="glossary-reading">じゅん</span></div>
-          <p class="glossary-def">再現性のある領域</p>
-        </div>
-        <div class="glossary-item">
-          <div class="glossary-term"><span class="glossary-char">乱</span><span class="glossary-reading">らん</span></div>
-          <p class="glossary-def">再現性のない領域</p>
-        </div>
-        <div class="glossary-item">
-          <div class="glossary-term"><span class="glossary-char">絶</span><span class="glossary-reading">ぜつ</span></div>
-          <p class="glossary-def">構造不成立領域</p>
-        </div>
-        <div class="glossary-item">
-          <div class="glossary-term"><span class="glossary-char">継</span><span class="glossary-reading">けい</span></div>
-          <p class="glossary-def">循の内側で成立していた構造実体（五式）が、差分を伴って次の認へ遷移すること</p>
-        </div>
-      </div>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <div class="flow-node">
+      <span class="flow-kanji">思</span>
+      <span class="flow-label">未成形（中央）</span>
+    </div>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <div class="flow-node">
+      <span class="flow-kanji">鳴</span>
+      <span class="flow-label">成形（中央）</span>
+    </div>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <div class="flow-node">
+      <span class="flow-kanji">示</span>
+      <span class="flow-label">指向（現場）</span>
+    </div>
+    <span class="flow-arrow" aria-hidden="true">→</span>
+    <div class="flow-node">
+      <span class="flow-kanji">応</span>
+      <span class="flow-label">実体（現場）</span>
     </div>
   </div>
 
-  <!-- ========================================================================
-       フッター（Footer）
-       ======================================================================== -->
-  <footer>
-    <p class="footer-text">五式は構造実体である。更新対象は五式のみである。十式は観測・判定・遷移構造であり、更新されない。解釈・比喩・感情語を用いてはならない。</p>
-  </footer>
+  <div class="hero-scroll" aria-hidden="true">
+    <span>SCROLL</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
 
-  <!-- ========================================================================
-       JavaScript
-       ======================================================================== -->
-  <script>
-    /**
-     * ============================================================================
-     * 五式 インタラクションシステム v2.0
-     * ============================================================================
-     *
-     * 【概要】
-     * このスクリプトは五式UIの全インタラクションを管理します。
-     *
-     * 【主要機能】
-     * 1. スクロール進捗の視覚化
-     * 2. セクション遷移の検出とステップインジケーター更新
-     * 3. アコーディオンカードの開閉
-     * 4. 差分スライダーによる継の成立条件シミュレーション
-     * 5. 衡停止シミュレーション
-     * 6. 用語索引モーダル管理
-     *
-     * 【設計原則】
-     * - 即時関数でグローバルスコープ汚染を防止
-     * - 'use strict'で厳格モード適用
-     * - エラーハンドリング完備
-     * - パフォーマンス最適化（passive listeners, requestAnimationFrame）
-     *
-     * 【保守情報】
-     * - AIエージェント保守前提
-     * - 各関数に詳細コメント
-     * - マジックナンバーの理由明記
-     *
-     * ============================================================================
-     */
+<!-- ===== Definition ===== -->
 
-    (function() {
-      'use strict';
+<div class="divider"><div class="divider-line"></div></div>
 
-      // ======================================================================
-      // DOM要素の取得（Elements Collection）
-      // ======================================================================
+<section id="definition">
+  <div class="reveal">
+    <p class="section-label">Definition</p>
+    <h2 class="section-title">五式とは</h2>
+    <div class="section-body">
+      <p>五式とは、差分を出す最低条件である。各層で未確定→確定が起きる。中央では思（未成形）→ 鳴（成形）、現場では示（指向）→ 応（実体）。</p>
+      <p>十三式の①〜⑤を構成し、構造実体の成立過程そのものである。十三式自体は更新されない。更新対象は五式（構造実体）のみである。</p>
+    </div>
+  </div>
 
-      // ヘッダー関連
-      const header = document.querySelector('header');
-      const progressBar = document.querySelector('.progress-bar');
-      const stepDots = document.querySelectorAll('.step-dot');
-      const stepLabel = document.querySelector('.step-label');
+  <div class="formula-block reveal reveal-d1">
+    <span class="hl">衡</span>（認, 思, 鳴, 示, 応）<br>
+    <span class="hl">縁</span> = 衡+ ∿ 衡−<br>
+    <span class="hl">継</span> = 思鳴 | 示応（差分を伴う）<br>
+    <span class="hl">継ₙ</span> → 認ₙ₊₁
+  </div>
+</section>
 
-      // セクション
-      const sections = document.querySelectorAll('section[data-section-name]');
+<!-- ===== Layer Structure ===== -->
 
-      // カード（アコーディオン）
-      const cards = document.querySelectorAll('.card');
+<div class="divider"><div class="divider-line"></div></div>
 
-      // 差分スライダー関連
-      const deltaSlider = document.getElementById('delta-slider');
-      const deltaNum = document.getElementById('delta-num');
-      const deltaResult = document.getElementById('delta-result');
-      const deltaState = document.getElementById('delta-state');
-      const deltaDesc = document.getElementById('delta-desc');
-      const keiItem = document.getElementById('kei-item');
-      const nextArrow = document.getElementById('next-arrow');
-      const nextNin = document.getElementById('next-nin');
+<section id="structure">
+  <div class="reveal">
+    <p class="section-label">Layer Structure</p>
+    <h2 class="section-title">層構造｜上下軸</h2>
+    <div class="section-body">
+      <p>上＝中央（思鳴）、下＝現場（示応）。認の進入層が中央であり、番号順が中央→現場であることによる。</p>
+    </div>
+  </div>
 
-      // 衡停止トグル関連
-      const kouToggle = document.getElementById('kou-toggle');
-      const toggleStatus = document.getElementById('toggle-status');
-      const kouState = document.getElementById('kou-state');
-      const enState = document.getElementById('en-state');
-      const keiState = document.getElementById('kei-state');
+  <div class="layer-diagram reveal reveal-d1">
+    <div class="layer-entry layer-nin">
+      <div class="layer-badge">① 進入点</div>
+      <div class="layer-title">認</div>
+      <div class="layer-desc">未確定だが存在している状態（0 &lt; 1）</div>
+    </div>
+    <div class="layer-entry layer-center">
+      <div class="layer-badge">②③ 中央（上）</div>
+      <div class="layer-title">思 → 鳴</div>
+      <div class="layer-desc">未成形 → 成形</div>
+    </div>
+    <div class="layer-entry layer-field">
+      <div class="layer-badge">④⑤ 現場（下）</div>
+      <div class="layer-title">示 → 応</div>
+      <div class="layer-desc">指向 → 実体</div>
+    </div>
+  </div>
 
-      // モーダル関連
-      const glossaryBtn = document.getElementById('glossary-btn');
-      const modalOverlay = document.getElementById('modal-overlay');
-      const modalClose = document.getElementById('modal-close');
-      const modal = modalOverlay.querySelector('.modal');
+  <div class="reveal reveal-d2">
+    <p class="section-label" style="margin-top:3rem;">Three Axes</p>
+    <h3 class="section-title" style="font-size:1.4rem;">三軸定義</h3>
+  </div>
 
-      // テーマ切替関連
-      const themeToggle = document.getElementById('theme-toggle');
-      const themeIcon = document.getElementById('theme-icon');
+  <table class="axis-table reveal reveal-d3">
+    <thead>
+      <tr><th>軸</th><th>定義</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>前後</td><td>前＝①認の側、後＝⑬継の側。番号順そのもの。</td></tr>
+      <tr><td>上下</td><td>上＝中央（思鳴）、下＝現場（示応）。認の進入層が中央であり、番号順が中央→現場であることによる。</td></tr>
+      <tr><td>左右</td><td>衡+と衡-の並列関係。どちらが左でどちらが右かは観測位置に依存する。固定しない。同等の価値を持つ。</td></tr>
+    </tbody>
+  </table>
+</section>
 
-      // 最後にフォーカスしていた要素（モーダル復帰用）
-      let lastFocusedElement = null;
+<!-- ===== Five Details ===== -->
 
-      // ======================================================================
-      // スクロール処理（Scroll Handling）
-      // ======================================================================
+<div class="divider"><div class="divider-line"></div></div>
 
-      /**
-       * スクロールイベントハンドラー
-       *
-       * 機能:
-       * 1. プログレスバーの更新（0-100%）
-       * 2. ヘッダーの背景切り替え（50px基準）
-       * 3. ステップインジケーターの更新（セクション検出）
-       *
-       * パフォーマンス:
-       * - passive: true で scrollイベントのパフォーマンス向上
-       * - getBoundingClientRect() で正確な位置取得
-       *
-       * @listens window#scroll
-       */
-      function handleScroll() {
-        const scrollY = window.scrollY;
-        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-        const progress = (scrollY / docHeight) * 100;
-        progressBar.style.width = progress + '%';
+<section id="details" class="section-wide">
+  <div class="reveal">
+    <p class="section-label">Five Forms</p>
+    <h2 class="section-title">各式の定義</h2>
+  </div>
 
-        // ヘッダー背景の切り替え
-        // 50px = ヘッダーの高さ + 余白、この値を超えたら背景を表示
-        header.classList.toggle('scrolled', scrollY > 50);
+  <div class="five-cards">
+    <article class="shiki-card reveal">
+      <div class="card-header">
+        <span class="card-number">①</span>
+        <span class="card-kanji">認</span>
+        <span class="card-layer-tag">進入点</span>
+      </div>
+      <p class="card-definition">未確定だが存在している状態（0 &lt; 1：まだ1ではないが0より大きい位相）</p>
+    </article>
 
-        // 現在のセクション検出
-        let currentSection = 'hero';
-        sections.forEach((section) => {
-          const rect = section.getBoundingClientRect();
-          // ビューポート中央（innerHeight / 2）を基準にセクション判定
-          // この基準により、セクションが画面中央に来た時点で「現在のセクション」と見なす
-          if (rect.top <= window.innerHeight / 2) {
-            currentSection = section.id;
-          }
-        });
+```
+<article class="shiki-card reveal reveal-d1">
+  <div class="card-header">
+    <span class="card-number">②</span>
+    <span class="card-kanji">思</span>
+    <span class="card-layer-tag">中央</span>
+  </div>
+  <p class="card-definition">構造内部の未成形状態（中央）</p>
+</article>
 
-        // ステップインジケーター更新
-        const sectionNames = ['hero', 'overview', 'delta', 'compare', 'relation'];
-        const labelNames = ['認', '理', '衡', '縁', '継'];
-        const currentIndex = sectionNames.indexOf(currentSection);
+<article class="shiki-card reveal reveal-d2">
+  <div class="card-header">
+    <span class="card-number">③</span>
+    <span class="card-kanji">鳴</span>
+    <span class="card-layer-tag">中央</span>
+  </div>
+  <p class="card-definition">構造内部で成形された状態（中央）</p>
+</article>
 
-        stepDots.forEach((dot, i) => {
-          dot.classList.toggle('active', i === currentIndex);
-        });
-        stepLabel.textContent = labelNames[currentIndex] || '認';
-      }
+<article class="shiki-card reveal reveal-d3">
+  <div class="card-header">
+    <span class="card-number">④</span>
+    <span class="card-kanji">示</span>
+    <span class="card-layer-tag">現場</span>
+  </div>
+  <p class="card-definition">構造から外部への指向（現場）</p>
+</article>
 
-      // ======================================================================
-      // アコーディオンカード（Accordion Cards）
-      // ======================================================================
+<article class="shiki-card reveal reveal-d4">
+  <div class="card-header">
+    <span class="card-number">⑤</span>
+    <span class="card-kanji">応</span>
+    <span class="card-layer-tag">現場</span>
+  </div>
+  <p class="card-definition">外部で実体化した状態（現場）</p>
+</article>
+```
 
-      /**
-       * カードの開閉を管理
-       *
-       * 機能:
-       * - クリックで展開/折りたたみ
-       * - ARIA属性の適切な管理（aria-expanded）
-       * - キーボード操作対応（Enter, Space）
-       *
-       * アクセシビリティ:
-       * - role="listitem" でリスト項目であることを明示
-       * - aria-expanded で展開状態を支援技術に伝達
-       * - aria-controls で制御対象を明示
-       */
-      cards.forEach(card => {
-        const btn = card.querySelector('.card-header');
+  </div>
+</section>
 
-        // クリックイベント
-        btn.addEventListener('click', () => {
-          const isOpen = card.dataset.open === 'true';
-          card.dataset.open = !isOpen;
-          btn.setAttribute('aria-expanded', !isOpen);
-        });
+<!-- ===== Relations ===== -->
 
-        // キーボードイベント
-        btn.addEventListener('keydown', e => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault();
-            btn.click();
-          }
-        });
-      });
+<div class="divider"><div class="divider-line"></div></div>
 
-      // ======================================================================
-      // 差分スライダー（Delta Slider）
-      // ======================================================================
+<section id="relations">
+  <div class="reveal">
+    <p class="section-label">Relations</p>
+    <h2 class="section-title">五式と十三式の関係</h2>
+    <div class="section-body">
+      <p>十三式の波構造において、①〜⑥側は構造実体の成立過程（五式＋衡）、⑧〜⑬側は領域定義と遷移（幅許循乱絶＋継）である。中心⑦は縁（∿）である。継→認で周回する。</p>
+    </div>
+  </div>
 
-      /**
-       * 差分（Δ）の値に応じて継の成立を視覚化
-       *
-       * ロジック:
-       * - Δ = 0: 継は発生しない（inactive状態）
-       * - Δ > 0: 継が成立（active状態）
-       *
-       * UI更新:
-       * - 数値表示
-       * - 状態メッセージ
-       * - フローの視覚化（highlight/dim）
-       *
-       * 範囲: 0-10
-       * 0: 差分なし、継不成立
-       * 1-10: 差分あり、継成立
-       */
-      function updateDelta() {
-        const value = parseInt(deltaSlider.value, 10);
-        deltaNum.textContent = value;
+  <div class="relation-grid">
+    <div class="relation-box reveal">
+      <h3>五式と衡（⑥）</h3>
+      <p>五式（認・思・鳴・示・応）が循域で均衡した状態。評価を含まない。</p>
+      <p>衡＝0 ⇒ 縁は発生しない ⇒ 継は発生しない ⇒ 五式は更新されない。</p>
+      <p>ただし構造実体自体は成立したままである。外部入力により振動が再開する可能性がある。</p>
+      <div class="formula">衡（認, 思, 鳴, 示, 応）</div>
+    </div>
+    <div class="relation-box reveal reveal-d1">
+      <h3>五式と継（⑬）</h3>
+      <p>五式が差分を伴って次の認へ遷移すること（1 &gt; 0：1から次の0&lt;1へ降りる位相）。</p>
+      <div class="formula">継ₙ → 認ₙ₊₁</div>
+    </div>
+    <div class="relation-box reveal reveal-d2">
+      <h3>差分</h3>
+      <p>差分は情報である。</p>
+      <p>差分は周回ごとに蓄積される。</p>
+      <p>差分は五式に帰属する。許はその帰属のルールを定める役割であり、帰属先ではない。</p>
+    </div>
+    <div class="relation-box reveal reveal-d3">
+      <h3>記号定義</h3>
+      <p><code>|</code>　分離（出会っていない）</p>
+      <p><code>∿</code>　波（二つのまま参照）</p>
+      <div class="formula">継 = 思鳴 | 示応</div>
+    </div>
+  </div>
 
-        if (value === 0) {
-          // 差分ゼロ: 継は発生しない
-          deltaResult.className = 'delta-result inactive';
-          deltaState.textContent = '継は発生しない';
-          deltaDesc.textContent = '差分がゼロのため、次の認への遷移は起きない';
-          keiItem.classList.add('dim');
-          keiItem.classList.remove('highlight');
-          nextArrow.classList.add('dim');
-          nextNin.classList.add('dim');
-          nextNin.classList.remove('highlight');
-        } else {
-          // 差分あり: 継が成立
-          deltaResult.className = 'delta-result active';
-          deltaState.textContent = '継が成立';
-          deltaDesc.textContent = '差分（Δ=' + value + '）を伴い、次の認へ遷移する';
-          keiItem.classList.remove('dim');
-          keiItem.classList.add('highlight');
-          nextArrow.classList.remove('dim');
-          nextNin.classList.remove('dim');
-          nextNin.classList.add('highlight');
-        }
-      }
+  <div class="reveal" style="margin-top:3rem;">
+    <p class="section-label">Wave Structure</p>
+    <h3 class="section-title" style="font-size:1.4rem;">十三式の波構造における五式の位置</h3>
+  </div>
 
-      deltaSlider.addEventListener('input', updateDelta);
+  <div class="cycle-visual reveal">
+    <div class="cycle-step cycle-five"><span class="cycle-kanji">認</span><span class="cycle-num">①</span></div>
+    <span class="cycle-arrow">→</span>
+    <div class="cycle-step cycle-five"><span class="cycle-kanji">思</span><span class="cycle-num">②</span></div>
+    <span class="cycle-arrow">→</span>
+    <div class="cycle-step cycle-five"><span class="cycle-kanji">鳴</span><span class="cycle-num">③</span></div>
+    <span class="cycle-arrow">→</span>
+    <div class="cycle-step cycle-five"><span class="cycle-kanji">示</span><span class="cycle-num">④</span></div>
+    <span class="cycle-arrow">→</span>
+    <div class="cycle-step cycle-five"><span class="cycle-kanji">応</span><span class="cycle-num">⑤</span></div>
+    <span class="cycle-arrow">→</span>
+    <div class="cycle-step cycle-five"><span class="cycle-kanji">衡</span><span class="cycle-num">⑥</span></div>
+    <span class="cycle-arrow">∿</span>
+    <div class="cycle-step cycle-obs"><span class="cycle-kanji">縁</span><span class="cycle-num">⑦</span></div>
+    <span class="cycle-arrow">→</span>
+    <div class="cycle-step cycle-obs"><span class="cycle-kanji">幅</span><span class="cycle-num">⑧</span></div>
+    <span class="cycle-arrow">→</span>
+    <div class="cycle-step cycle-obs"><span class="cycle-kanji">許</span><span class="cycle-num">⑨</span></div>
+    <span class="cycle-arrow">→</span>
+    <div class="cycle-step cycle-obs"><span class="cycle-kanji">循</span><span class="cycle-num">⑩</span></div>
+    <span class="cycle-arrow">→</span>
+    <div class="cycle-step cycle-obs"><span class="cycle-kanji">乱</span><span class="cycle-num">⑪</span></div>
+    <span class="cycle-arrow">→</span>
+    <div class="cycle-step cycle-obs"><span class="cycle-kanji">絶</span><span class="cycle-num">⑫</span></div>
+    <span class="cycle-arrow">→</span>
+    <div class="cycle-step cycle-obs"><span class="cycle-kanji">継</span><span class="cycle-num">⑬</span></div>
+    <span class="cycle-arrow">→</span>
+    <div class="cycle-step cycle-five"><span class="cycle-kanji">認</span><span class="cycle-num">①'</span></div>
+  </div>
+</section>
 
-      // ======================================================================
-      // 衡停止トグル（Kou Stop Toggle）
-      // ======================================================================
+<!-- ===== FAQ ===== -->
 
-      /**
-       * 衡停止のシミュレーション
-       *
-       * ロジック:
-       * - 衡が停止 → 縁が働かない → 継が発生しない
-       * - 五式の連鎖的な依存関係を視覚化
-       *
-       * UI:
-       * - トグルON: 衡・縁・継を無効化表示
-       * - トグルOFF: すべて有効表示
-       *
-       * アクセシビリティ:
-       * - role="switch" でトグルスイッチであることを明示
-       * - aria-checked で状態を支援技術に伝達
-       */
-      kouToggle.addEventListener('click', () => {
-        const isChecked = kouToggle.getAttribute('aria-checked') === 'true';
-        kouToggle.setAttribute('aria-checked', !isChecked);
+<div class="divider"><div class="divider-line"></div></div>
 
-        if (!isChecked) {
-          // 衡停止状態
-          toggleStatus.classList.add('stopped');
-          kouState.classList.add('disabled');
-          enState.classList.add('disabled');
-          keiState.classList.add('disabled');
-        } else {
-          // 通常状態
-          toggleStatus.classList.remove('stopped');
-          kouState.classList.remove('disabled');
-          enState.classList.remove('disabled');
-          keiState.classList.remove('disabled');
-        }
-      });
+<section id="faq">
+  <div class="reveal">
+    <p class="section-label">FAQ</p>
+    <h2 class="section-title">よくある質問</h2>
+  </div>
 
-      // キーボード操作対応
-      kouToggle.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          kouToggle.click();
-        }
-      });
+  <div class="faq-list reveal">
+    <div class="faq-item">
+      <div class="faq-q" role="button" tabindex="0" aria-expanded="false">五式とは何ですか？</div>
+      <div class="faq-a">
+        <p>差分を出す最低条件です。各層で未確定→確定が起きます。中央では思（未成形）→ 鳴（成形）、現場では示（指向）→ 応（実体）。十三式の①〜⑤を構成し、構造実体の成立過程そのものです。</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" role="button" tabindex="0" aria-expanded="false">中央と現場の違いは何ですか？</div>
+      <div class="faq-a">
+        <p>上＝中央（思鳴）、下＝現場（示応）です。認の進入層が中央であり、番号順が中央→現場であることによります。中央で未成形→成形が起き、現場で指向→実体が起きます。</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" role="button" tabindex="0" aria-expanded="false">衡＝0になるとどうなりますか？</div>
+      <div class="faq-a">
+        <p>衡＝0のとき、縁は発生しません。継は発生しません。五式は更新されません。ただし構造実体自体は成立したままであり、外部入力により振動が再開する可能性があります。これは絶（⑫）とは異なります。絶は幅の外に位置し、構造成立条件を満たさない領域であり、五式は成立できず、構造実体は存在しません。</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" role="button" tabindex="0" aria-expanded="false">差分とは何ですか？</div>
+      <div class="faq-a">
+        <p>差分は情報です。差分は周回ごとに蓄積されます。差分は五式に帰属します。許はその帰属のルールを定める役割であり、帰属先ではありません。</p>
+      </div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" role="button" tabindex="0" aria-expanded="false">三式とは何ですか？</div>
+      <div class="faq-a">
+        <p>認・衡・継。波の観測最低条件です。</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-      // ======================================================================
-      // モーダル管理（Modal Management）
-      // ======================================================================
+<footer>
+  <p class="footer-text">五式｜十三式準拠・構造実体の成立過程</p>
+</footer>
 
-      /**
-       * モーダルを開く
-       *
-       * 機能:
-       * - フォーカス管理（開く前の要素を記憶）
-       * - body のスクロール無効化
-       * - モーダル内の最初の要素にフォーカス
-       *
-       * アクセシビリティ:
-       * - aria-hidden の適切な管理
-       * - フォーカストラップ（Tab循環）
-       */
-      function openModal() {
-        lastFocusedElement = document.activeElement;
-        modalOverlay.classList.add('is-open');
-        modalOverlay.setAttribute('aria-hidden', 'false');
-        modalClose.focus();
-        document.body.style.overflow = 'hidden';
-      }
+<script>
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-      /**
-       * モーダルを閉じる
-       *
-       * 機能:
-       * - フォーカスを開く前の要素に復帰
-       * - body のスクロール再有効化
-       */
-      function closeModal() {
-        modalOverlay.classList.remove('is-open');
-        modalOverlay.setAttribute('aria-hidden', 'true');
-        document.body.style.overflow = '';
-        if (lastFocusedElement) lastFocusedElement.focus();
-      }
+  document.querySelectorAll('.faq-q').forEach(q => {
+    q.addEventListener('click', () => {
+      const item = q.parentElement;
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+      if (!isOpen) item.classList.add('open');
+      q.setAttribute('aria-expanded', !isOpen);
+    });
+    q.addEventListener('keydown', e => {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); q.click(); }
+    });
+  });
 
-      // イベントリスナー登録
-      glossaryBtn.addEventListener('click', openModal);
-      modalClose.addEventListener('click', closeModal);
+  document.querySelectorAll('nav a').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const t = document.querySelector(a.getAttribute('href'));
+      if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
 
-      // オーバーレイクリックで閉じる
-      modalOverlay.addEventListener('click', e => {
-        if (e.target === modalOverlay) closeModal();
-      });
-
-      // Escapeキーで閉じる
-      document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && modalOverlay.classList.contains('is-open')) {
-          closeModal();
-        }
-      });
-
-      // ======================================================================
-      // フォーカストラップ（Focus Trap）
-      // ======================================================================
-
-      /**
-       * モーダル内でのフォーカス循環
-       *
-       * 機能:
-       * - Tab: 最後の要素から最初の要素へ循環
-       * - Shift+Tab: 最初の要素から最後の要素へ循環
-       *
-       * アクセシビリティ:
-       * - モーダル外への意図しないフォーカス移動を防止
-       * - キーボードユーザーの体験向上
-       */
-      modal.addEventListener('keydown', e => {
-        if (e.key !== 'Tab') return;
-
-        const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      });
-
-      // ======================================================================
-      // テーマ切替（Theme Toggle）
-      // ======================================================================
-
-      /**
-       * ダークモード/ライトモードの切り替え
-       *
-       * 機能:
-       * - ボタンクリックでテーマ切替
-       * - localStorageにテーマ設定を保存
-       * - ページロード時に保存されたテーマを復元
-       * - スムーズなトランジション適用
-       *
-       * アイコン:
-       * - ダークモード: 🌙
-       * - ライトモード: ☀️
-       */
-      function initTheme() {
-        // 保存されたテーマを取得、デフォルトはダーク
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        updateThemeIcon(savedTheme);
-      }
-
-      function toggleTheme() {
-        // トランジションクラスを追加
-        document.documentElement.classList.add('theme-transitioning');
-
-        const currentTheme = document.documentElement.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        updateThemeIcon(newTheme);
-
-        // トランジション終了後にクラスを削除
-        setTimeout(() => {
-          document.documentElement.classList.remove('theme-transitioning');
-        }, 300);
-      }
-
-      function updateThemeIcon(theme) {
-        themeIcon.textContent = theme === 'dark' ? '🌙' : '☀️';
-      }
-
-      themeToggle.addEventListener('click', toggleTheme);
-
-      // ======================================================================
-      // スクロール連動アニメーション（Scroll-triggered Animations）
-      // ======================================================================
-
-      /**
-       * Intersection Observerでスクロール連動アニメーション
-       *
-       * 機能:
-       * - 要素が画面に入ったら.revealedクラスを追加
-       * - CSSトランジションでフェードイン＆スライドアップ
-       *
-       * 対象:
-       * - .cards（カードグリッド）
-       * - .delta-box（差分体験ボックス）
-       * - .compare（比較セクション）
-       * - .relation-grid（関係性グリッド）
-       */
-      function initScrollReveal() {
-        const revealElements = document.querySelectorAll('.cards, .delta-box, .compare, .relation-grid, .toggle-demo');
-
-        if ('IntersectionObserver' in window) {
-          const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-              if (entry.isIntersecting) {
-                entry.target.classList.add('scroll-reveal', 'revealed');
-                // 一度表示したら監視を解除（パフォーマンス向上）
-                observer.unobserve(entry.target);
-              }
-            });
-          }, {
-            threshold: 0.1,  // 10%表示されたらトリガー
-            rootMargin: '0px 0px -50px 0px'  // 下から50px手前でトリガー
-          });
-
-          revealElements.forEach(el => {
-            el.classList.add('scroll-reveal');
-            observer.observe(el);
-          });
-        } else {
-          // Intersection Observerが使えない場合は即座に表示
-          revealElements.forEach(el => {
-            el.classList.add('revealed');
-          });
-        }
-      }
-
-      // ======================================================================
-      // Service Worker登録（Service Worker Registration）
-      // ======================================================================
-
-      /**
-       * Service Workerの登録
-       *
-       * 機能:
-       * - オフライン対応
-       * - キャッシュ戦略でページ高速化
-       *
-       * 条件:
-       * - ブラウザがService Workerをサポートしている
-       * - HTTPSまたはlocalhost環境
-       */
-      function registerServiceWorker() {
-        if ('serviceWorker' in navigator) {
-          window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-              .then((registration) => {
-                console.log('[五式] Service Worker registered:', registration.scope);
-
-                // 更新チェック
-                registration.addEventListener('updatefound', () => {
-                  const newWorker = registration.installing;
-                  console.log('[五式] Service Worker update found');
-
-                  newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                      console.log('[五式] New Service Worker available');
-                      // 必要に応じてユーザーに更新を通知
-                    }
-                  });
-                });
-              })
-              .catch((error) => {
-                console.log('[五式] Service Worker registration failed:', error);
-              });
-          });
-        }
-      }
-
-      // ======================================================================
-      // 初期化（Initialization）
-      // ======================================================================
-
-      /**
-       * アプリケーション初期化
-       *
-       * 実行内容:
-       * 1. テーマの初期化（保存されたテーマを復元）
-       * 2. スクロールイベントリスナー登録（passive: trueで最適化）
-       * 3. 初回スクロール処理実行（初期状態設定）
-       * 4. 差分スライダーの初期化
-       * 5. スクロール連動アニメーションの初期化
-       * 6. Service Workerの登録
-       */
-      initTheme();  // テーマ初期化
-      window.addEventListener('scroll', handleScroll, { passive: true });
-      handleScroll();  // 初期状態を設定
-      updateDelta();   // 差分スライダーの初期状態を設定
-      initScrollReveal();  // スクロール連動アニメーション初期化
-      registerServiceWorker();  // Service Worker登録
-
-      /**
-       * ============================================================================
-       * エラーハンドリング（Error Handling）
-       * ============================================================================
-       *
-       * 想定されるエラー:
-       * - DOM要素が見つからない場合
-       * - ブラウザ互換性の問題
-       * - Service Worker登録失敗
-       *
-       * 対処:
-       * - 各要素取得時の null チェックは省略（HTML構造が固定のため）
-       * - 本番環境では console.error でログ記録を推奨
-       * - Service Worker非対応ブラウザでも正常動作
-       */
-
-    })();
-  </script>
 </body>
 </html>
