@@ -222,27 +222,6 @@
       user-select: none;
     }
 
-    /* ===== Hints ===== */
-    .hint {
-      position: fixed; left: 0; right: 0;
-      text-align: center;
-      font-family: var(--font-en);
-      font-size: 0.7rem;
-      letter-spacing: 0.45em;
-      color: rgba(210, 225, 255, 0.78);
-      z-index: 30;
-      pointer-events: none;
-      transition: opacity 0.4s;
-      font-weight: 300;
-    }
-    .hint.scroll { bottom: 2.8rem; }
-    .hint.zoom { bottom: 1.1rem; }
-    .hint .arrow { display: inline-block; margin-right: 0.6em; animation: hint-float 1.8s ease-in-out infinite; }
-    @keyframes hint-float {
-      0%, 100% { transform: translateY(0); opacity: 0.5; }
-      50%      { transform: translateY(6px); opacity: 1; }
-    }
-
     /* ===== Menu (revealed by zoom, lives inside zoom-stage) ===== */
     .menu {
       position: absolute;
@@ -368,8 +347,6 @@
       .meta { display: none; }
       .menu a { font-size: 1.05rem; padding: 0.85rem 1.6rem; letter-spacing: 0.4em; gap: 0.9em; }
       .chick { width: 64px; height: 84px; margin-left: -32px; margin-top: -42px; }
-      .hint { font-size: 0.65rem; letter-spacing: 0.35em; }
-      .hint.zoom { letter-spacing: 0.3em; }
       .zoom-ui { right: 0.6rem; }
       .footer { left: 1rem; font-size: 0.55rem; letter-spacing: 0.2em; }
     }
@@ -378,11 +355,10 @@
       .bh-outer { animation-duration: 30s; }
       .bh-inner { animation-duration: 24s; }
       .star-field circle { animation: none; }
-      .hint .arrow { animation: none; opacity: 0.7; }
     }
 
     @media (prefers-contrast: more) {
-      .meta, .hint { color: #ffffff; }
+      .meta { color: #ffffff; }
       .menu a { border-color: rgba(255,255,255,0.9); }
     }
   </style>
@@ -502,9 +478,6 @@
       </ul>
     </nav>
   </main>
-
-  <p class="hint scroll" id="scrollHint"><span class="arrow" aria-hidden="true">↓</span>SCROLL</p>
-  <p class="hint zoom"   id="zoomHint">CTRL / ⌘ + WHEEL  TO  ZOOM</p>
 
   <div class="zoom-ui" role="group" aria-label="ズーム操作">
     <button class="zoom-btn" id="zoomIn"  type="button" aria-label="ズームイン">+</button>
@@ -689,9 +662,6 @@
         `rotate(${rot.toFixed(1)}deg) scale(${Math.max(0, scale).toFixed(3)})`;
     }
 
-    const sh = document.getElementById('scrollHint');
-    sh.style.opacity = Math.max(0, 1 - progress * 6).toFixed(2);
-
     requestAnimationFrame(tick);
   }
   requestAnimationFrame(tick);
@@ -699,7 +669,6 @@
   // ───────── Zoom (independent of scroll) ─────────
   const stage     = document.getElementById('main');
   const menu      = document.getElementById('menu');
-  const zoomHint  = document.getElementById('zoomHint');
   const zoomLevel = document.getElementById('zoomLevel');
   const ZOOM_MIN = 1.0, ZOOM_MAX = 6.0, MENU_THRESHOLD = 2.5;
   let zoom = 1.0;
@@ -735,8 +704,6 @@
       menu.style.opacity   = '0';
       menu.style.transform = `translate(-50%, -50%) scale(0.6)`;
     }
-
-    zoomHint.style.opacity = Math.max(0, 1 - (zoom - 1) * 1.5).toFixed(2);
   }
   applyZoom();
 
