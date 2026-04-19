@@ -3,45 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>畜物語 - 観測者の景色</title>
 
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png?v=20260117" sizes="180x180">
-  <link rel="icon" href="/favicon.ico?v=20260117" sizes="any">
-  <link rel="icon" type="image/png" href="/favicon-32x32.png?v=20260117" sizes="32x32">
-  <link rel="icon" type="image/png" href="/favicon-16x16.png?v=20260117" sizes="16x16">
-  <link rel="manifest" href="/site.webmanifest?v=20260117">
-  <meta name="msapplication-TileColor" content="#0d0d1a">
-  <meta name="msapplication-TileImage" content="/mstile-150x150.png?v=20260117">
-
-
-  <!-- SEO Meta Tags -->
-  <meta name="description" content="畜物語（ちくも/chikumo）は、2033年を舞台に畜星移住計画に巻き込まれた動物たちの物語です。kokkoちゃんをはじめとする可愛いキャラクターたちが織りなす、ゆるキャラとぬい活をテーマにした物語プロジェクト。心温まるストーリーをお届けします。">
-  <meta name="keywords" content="畜物語,ちくも,chikumo,ゆるキャラ,ぬい活,物語,kokko,キャラクター,ぬいぐるみ,マスコット">
-  <meta name="author" content="畜物語プロジェクト">
+  <title>畜物語 ─ Chikumonogatari</title>
+  <meta name="description" content="畜物語 — コッコちゃんがブラックホールに吸い込まれ続ける、深淵の複合メディア作品。">
+  <meta name="author" content="畜物語">
   <meta name="robots" content="index, follow">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#05060a">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="format-detection" content="telephone=no">
+
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'none'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'; manifest-src 'self';">
+  <meta http-equiv="Permissions-Policy" content="camera=(), microphone=(), geolocation=(), gyroscope=(), accelerometer=(), magnetometer=(), payment=(), usb=(), interest-cohort=()">
+
   <link rel="canonical" href="https://chikumo.jp/">
-  
-  <!-- Open Graph / Facebook -->
+
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://chikumo.jp/">
-  <meta property="og:title" content="畜物語（ちくも）観測者の景色">
-  <meta property="og:description" content="2033年を舞台に畜星移住計画に巻き込まれた動物たちの物語">
-  <meta property="og:image" content="https://chikumo.jp/ogp.png">
-  <meta property="og:site_name" content="畜物語 - chikumo">
+  <meta property="og:title" content="畜物語 ─ Chikumonogatari">
+  <meta property="og:description" content="コッコちゃんがブラックホールに吸い込まれ続ける、深淵の複合メディア作品。">
+  <meta property="og:image" content="https://chikumo.jp/chikumo.svg">
+  <meta property="og:image:alt" content="コッコちゃん">
   <meta property="og:locale" content="ja_JP">
-  
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:site_name" content="畜物語">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:domain" content="chikumo.jp">
   <meta name="twitter:url" content="https://chikumo.jp/">
-  <meta name="twitter:title" content="畜物語（ちくも）観測者の景色">
-  <meta name="twitter:description" content="2033年を舞台に畜星移住計画に巻き込まれた動物たちの物語">
-  <meta name="twitter:image" content="https://chikumo.jp/ogp.png">
-  
-  <!-- Additional SEO -->
-  <meta name="theme-color" content="#0d0d1a">
-  <meta name="format-detection" content="telephone=no">
-  
-  <!-- Structured Data (JSON-LD) -->
+  <meta name="twitter:title" content="畜物語 ─ Chikumonogatari">
+  <meta name="twitter:description" content="コッコちゃんがブラックホールに吸い込まれ続ける、深淵の複合メディア作品。">
+  <meta name="twitter:image" content="https://chikumo.jp/chikumo.svg">
+
+  <link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+  <link rel="apple-touch-icon" href="/chikumo.svg">
+  <link rel="manifest" href="/manifest.json">
+
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -51,1130 +47,753 @@
         "@id": "https://chikumo.jp/#website",
         "url": "https://chikumo.jp/",
         "name": "畜物語",
-        "alternateName": ["ちくも", "chikumo", "Chikumonogatari"],
-        "description": "ゆるキャラとぬい活をテーマにした物語プロジェクト",
-        "inLanguage": "ja-JP"
-      },
-      {
-        "@type": "Organization",
-        "@id": "https://chikumo.jp/#organization",
-        "name": "畜物語プロジェクト",
-        "alternateName": ["ちくも", "chikumo"],
-        "url": "https://chikumo.jp/",
-        "description": "ゆるキャラ・ぬい活をテーマにしたオリジナル物語とキャラクターを制作"
+        "alternateName": "Chikumonogatari",
+        "inLanguage": "ja",
+        "description": "コッコちゃんがブラックホールに吸い込まれ続ける、深淵の複合メディア作品。"
       },
       {
         "@type": "CreativeWork",
-        "@id": "https://chikumo.jp/#creativework",
-        "name": "畜物語",
-        "alternateName": ["ちくも", "chikumo"],
-        "description": "ゆるキャラとぬい活の世界を舞台にした物語。kokkoちゃんをはじめとする個性豊かなキャラクターたちが活躍します。",
-        "genre": ["ゆるキャラ", "ぬい活", "物語", "ファンタジー"],
-        "inLanguage": "ja-JP",
-        "keywords": "畜物語, ちくも, chikumo, ゆるキャラ, ぬい活, 物語, kokko, キャラクター"
-      },
-      {
-        "@type": "WebPage",
-        "@id": "https://chikumo.jp/#webpage",
+        "@id": "https://chikumo.jp/#work",
         "url": "https://chikumo.jp/",
-        "name": "畜物語（ちくも）- ゆるキャラ・ぬい活の物語 | chikumo",
-        "description": "畜物語（ちくも/chikumo）公式サイト。ゆるキャラとぬい活をテーマにした物語プロジェクト。",
-        "isPartOf": {"@id": "https://chikumo.jp/#website"},
-        "about": {"@id": "https://chikumo.jp/#creativework"},
-        "inLanguage": "ja-JP"
+        "name": "畜物語",
+        "alternateName": "Chikumonogatari",
+        "description": "コッコちゃんがブラックホールに吸い込まれ続ける、深淵の複合メディア作品。",
+        "inLanguage": "ja",
+        "genre": "Interactive Media",
+        "image": "https://chikumo.jp/chikumo.svg",
+        "author": { "@type": "Organization", "name": "畜物語" },
+        "isPartOf": { "@id": "https://chikumo.jp/#website" }
       }
     ]
   }
   </script>
-  
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+    /* ===== Reset & base ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { overflow-x: hidden; scrollbar-width: thin; scrollbar-color: rgba(120,200,255,0.25) transparent; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(120,200,255,0.22); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(120,200,255,0.45); }
+
+    :root {
+      --bg: #05060a;
+      --ink: #e4eeff;
+      --ink-soft: rgba(220, 232, 255, 0.85);
+      --accent: #7cc4ff;
+      --accent-violet: #a988ff;
+      --ring: rgba(120, 200, 255, 0.9);
+      --font-ja: 'Hiragino Mincho ProN', 'Yu Mincho', 'YuMincho', '游明朝', 'Sawarabi Mincho', serif;
+      --font-en: 'Futura', 'Avenir Next', 'Century Gothic', 'ITC Avant Garde Gothic Std', 'Nunito Sans', 'Helvetica Neue', sans-serif;
     }
 
     body {
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-ja);
       overflow: hidden;
-      background: #000;
-      font-family: 'Cormorant Garamond', 'Palatino', Georgia, serif;
-    }
-
-    .cosmos {
-      position: relative;
-      width: 100vw;
       height: 100vh;
-      height: 100dvh;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      overscroll-behavior: none;
+      background-image:
+        radial-gradient(ellipse at 22% 18%, rgba(80, 40, 150, 0.20), transparent 55%),
+        radial-gradient(ellipse at 78% 82%, rgba(20, 80, 180, 0.17), transparent 55%),
+        radial-gradient(circle at 50% 50%, #06081a 0%, #02030a 70%);
+      background-attachment: fixed;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100svh;
     }
 
-    .cosmos-canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+    /* ===== Accessibility utilities ===== */
+    .visually-hidden {
+      position: absolute !important;
+      width: 1px; height: 1px;
+      padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0,0,0,0);
+      white-space: nowrap; border: 0;
     }
-
-    .cosmos-content {
-      position: relative;
-      text-align: center;
-      pointer-events: none;
-      z-index: 10;
-      transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .cosmos-content.menu-open {
-      transform: translateX(-15vw);
-    }
-
-    @media (max-width: 768px) {
-      .cosmos-content.menu-open {
-        transform: translateX(0) translateY(-20vh);
-      }
-    }
-
-    .cosmos-title {
-      font-size: clamp(2.5rem, 12vw, 10rem);
-      font-weight: 100;
-      letter-spacing: 0.2em;
-      color: #fff;
-      white-space: nowrap;
-      text-shadow: 
-        0 0 80px rgba(150, 120, 255, 0.5),
-        0 0 120px rgba(100, 150, 255, 0.3);
-      opacity: 0;
-      transform: translateY(40px);
-      transition: all 3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    .cosmos-title.awakened {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .cosmos-subtitle {
-      margin-top: 1.5rem;
-      font-size: clamp(0.8rem, 2vw, 1.2rem);
-      font-style: italic;
-      letter-spacing: 0.5em;
-      color: rgba(255, 255, 255, 0.4);
-      opacity: 0;
-      transform: translateY(20px);
-      transition: all 3s cubic-bezier(0.16, 1, 0.3, 1) 0.5s;
-    }
-
-    .cosmos-subtitle.awakened {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .cosmos-whisper {
-      position: absolute;
-      bottom: 2rem;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.9rem;
-      font-style: italic;
-      letter-spacing: 0.3em;
-      color: rgba(255, 255, 255, 0.2);
-      opacity: 0;
-      transition: opacity 2s ease 2s;
-      animation: breathe 4s ease-in-out infinite;
-    }
-
-    .cosmos-whisper.awakened {
-      opacity: 1;
-    }
-
-    @keyframes breathe {
-      0%, 100% { opacity: 0.2; }
-      50% { opacity: 0.1; }
-    }
-
-    .click-hint {
-      position: absolute;
-      bottom: 5rem;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.75rem;
-      letter-spacing: 0.2em;
-      color: rgba(255, 255, 255, 0.15);
-      opacity: 0;
-      transition: opacity 2s ease 3s;
-    }
-
-    .click-hint.awakened {
-      opacity: 1;
-    }
-
-    .cosmos-menu {
-      position: absolute;
-      right: 20vw;
-      top: 50%;
-      transform: translateY(-50%);
-      z-index: 20;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 1.5s ease 0.3s;
-    }
-
-    .cosmos-menu.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    @media (max-width: 768px) {
-      .cosmos-menu {
-        right: 50%;
-        top: 65%;
-        transform: translate(50%, -50%);
-        text-align: center;
-      }
-    }
-
-    .menu-item {
-      display: block;
-      margin: 1.5rem 0;
-      font-size: clamp(1rem, 2.5vw, 1.5rem);
-      font-weight: 300;
-      letter-spacing: 0.3em;
-      color: rgba(255, 255, 255, 0);
+    .skip-link {
+      position: absolute; left: -9999px; top: 0;
+      background: var(--bg);
+      color: var(--ink);
+      border: 1px solid var(--ring);
+      padding: 0.5rem 0.9rem;
       text-decoration: none;
-      cursor: pointer;
-      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-      transform: translateX(30px);
-      position: relative;
+      font-family: var(--font-en);
+      font-size: 0.8rem;
+      letter-spacing: 0.25em;
       z-index: 100;
     }
-
-    .cosmos-menu.visible .menu-item {
-      color: rgba(255, 255, 255, 0.6);
-      transform: translateX(0);
-      pointer-events: auto;
+    .skip-link:focus {
+      left: 0.6rem; top: 0.6rem;
+    }
+    :focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 3px;
+      border-radius: 2px;
     }
 
-    .menu-item:nth-child(1) { transition-delay: 0.1s; }
-    .menu-item:nth-child(2) { transition-delay: 0.2s; }
-    .menu-item:nth-child(3) { transition-delay: 0.3s; }
-    .menu-item:nth-child(4) { transition-delay: 0.4s; }
-    .menu-item:nth-child(5) { transition-delay: 0.5s; }
-
-    .menu-item:hover {
-      color: rgba(255, 255, 255, 1);
-      text-shadow: 0 0 30px rgba(150, 120, 255, 0.8);
-      transform: translateX(10px);
+    /* ===== Star field (SVG) ===== */
+    .star-field {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      display: block;
+    }
+    .star-field circle {
+      animation: star-tw var(--dur, 3s) ease-in-out infinite;
+      animation-delay: var(--delay, 0s);
+      opacity: var(--a, 0.5);
+    }
+    @keyframes star-tw {
+      0%, 100% { opacity: var(--a, 0.5); }
+      50%      { opacity: calc(var(--a, 0.5) * 0.45); }
     }
 
-    .click-counter {
-      position: absolute;
-      top: 2rem;
-      right: 2rem;
-      font-size: 0.75rem;
-      letter-spacing: 0.2em;
-      color: rgba(255, 255, 255, 0.1);
-      z-index: 30;
-      transition: opacity 0.5s ease;
+    /* ===== Zoom stage (coordinate container — zoom is applied per-child) ===== */
+    .zoom-stage {
+      position: fixed; inset: 0;
+      z-index: 2;
+      pointer-events: none;
     }
 
-    .click-counter.hidden {
-      opacity: 0;
-    }
-
-    /* Floating Kokko Styles */
-    .floating-kokko-container {
-      position: fixed;
-      bottom: 70px;
-      left: 50%;
-      transform: translateX(-50%);
-      display: flex;
-      justify-content: center;
-      align-items: flex-end;
-      gap: 15px;
+    /* ===== Header ===== */
+    .header {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.4rem 2rem;
       z-index: 50;
       pointer-events: none;
     }
-
-    .floating-kokko {
-      width: 45px;
-      height: auto;
-      opacity: 0.85;
-      filter: drop-shadow(0 0 15px rgba(255, 220, 150, 0.4));
-      animation: floatKokko 3.5s ease-in-out infinite;
+    .brand {
+      font-family: var(--font-ja);
+      font-size: 1.15rem;
+      font-weight: 400;
+      letter-spacing: 0.45em;
+      color: #d6e6ff;
+      text-shadow: 0 0 18px rgba(120, 180, 255, 0.5);
+      line-height: 1;
+    }
+    .meta {
+      font-family: var(--font-en);
+      font-size: 0.7rem;
+      letter-spacing: 0.4em;
+      color: rgba(210, 225, 255, 0.80);
+      font-weight: 300;
     }
 
-    @keyframes floatKokko {
-      0%, 100% {
-        transform: translateY(0) translateX(0);
-      }
-      25% {
-        transform: translateY(-10px) translateX(2px);
-      }
-      50% {
-        transform: translateY(-6px) translateX(-2px);
-      }
-      75% {
-        transform: translateY(-12px) translateX(1px);
-      }
-    }
-
-    /* Screen Reader Only - SEO Content */
-    .sr-only {
+    /* ===== Black hole (SVG) ===== */
+    .blackhole {
       position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
+      left: 50%; top: 45%;
+      width: clamp(220px, 32vmin, 440px);
+      height: clamp(220px, 32vmin, 440px);
+      transform: translate(-50%, -50%);
+      overflow: visible;
+    }
+    .bh-outer, .bh-inner {
+      transform-origin: 50% 50%;
+      transform-box: fill-box;
+    }
+    .bh-outer { animation: bh-spin     9s linear infinite; }
+    .bh-inner { animation: bh-spin-rev 6s linear infinite; }
+    @keyframes bh-spin     { to { transform: rotate(360deg);  } }
+    @keyframes bh-spin-rev { to { transform: rotate(-360deg); } }
+
+    /* ===== Chicks (via SVG <use>) ===== */
+    .chick-layer {
+      position: absolute; inset: 0;
+      pointer-events: none;
+    }
+    .chick {
+      position: absolute;
+      left: 50%; top: 45%;
+      width: 90px; height: 118px;
+      margin-left: -45px; margin-top: -59px;
+      opacity: 0;
+      will-change: transform, opacity;
+      filter: drop-shadow(0 0 10px rgba(120, 200, 255, 0.30));
+    }
+    .chick svg {
+      width: 100%; height: 100%;
+      display: block;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    /* ===== Hints ===== */
+    .hint {
+      position: fixed; left: 0; right: 0;
+      text-align: center;
+      font-family: var(--font-en);
+      font-size: 0.7rem;
+      letter-spacing: 0.45em;
+      color: rgba(210, 225, 255, 0.78);
+      z-index: 30;
+      pointer-events: none;
+      transition: opacity 0.4s;
+      font-weight: 300;
+    }
+    .hint.scroll { bottom: 2.8rem; }
+    .hint.zoom { bottom: 1.1rem; }
+    .hint .arrow { display: inline-block; margin-right: 0.6em; animation: hint-float 1.8s ease-in-out infinite; }
+    @keyframes hint-float {
+      0%, 100% { transform: translateY(0); opacity: 0.5; }
+      50%      { transform: translateY(6px); opacity: 1; }
+    }
+
+    /* ===== Menu (revealed by zoom, lives inside zoom-stage) ===== */
+    .menu {
+      position: absolute;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%) scale(0.6);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      will-change: transform, opacity;
+    }
+    .menu.visible { pointer-events: auto; }
+    .menu ul { list-style: none; display: flex; flex-direction: column; gap: 1.4rem; }
+    .menu a {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 1.2em;
+      padding: 1.1rem 3rem;
+      color: #eaf2ff;
+      text-decoration: none;
+      font-size: 1.5rem;
+      font-family: var(--font-ja);
+      letter-spacing: 0.55em;
+      border: 1px solid rgba(140, 200, 255, 0.55);
+      background: rgba(10, 14, 30, 0.55);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      transition: color .3s, border-color .3s, box-shadow .3s, background .3s;
+      min-height: 48px;
+      min-width: 48px;
+    }
+    .menu a:hover,
+    .menu a:focus-visible {
+      color: #fff;
+      border-color: rgba(200, 235, 255, 0.95);
+      background: rgba(20, 30, 60, 0.65);
+      box-shadow: 0 0 26px rgba(120, 200, 255, 0.45),
+                  inset 0 0 22px rgba(120, 200, 255, 0.18);
+    }
+    .menu .en {
+      font-family: var(--font-en);
+      font-size: 0.68rem;
+      letter-spacing: 0.35em;
+      opacity: 0.85;
+      text-transform: uppercase;
+      font-weight: 400;
+    }
+    .menu .ja { font-family: var(--font-ja); }
+
+    /* ===== Zoom controls ===== */
+    .zoom-ui {
+      position: fixed; right: 1.4rem; top: 50%;
+      transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 0.5rem;
+      z-index: 45;
+    }
+    .zoom-btn {
+      width: 48px; height: 48px;
+      background: rgba(10, 14, 30, 0.6);
+      color: #e4eeff;
+      border: 1px solid rgba(160, 215, 255, 0.45);
+      cursor: pointer;
+      font-size: 1.15rem;
+      line-height: 1;
+      transition: color .2s, border-color .2s, box-shadow .2s, background .2s;
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+      font-family: var(--font-en);
+      font-weight: 300;
+    }
+    .zoom-btn:hover,
+    .zoom-btn:focus-visible {
+      border-color: rgba(200, 235, 255, 0.9);
+      color: #fff;
+      background: rgba(20, 30, 60, 0.7);
+      box-shadow: 0 0 14px rgba(120, 200, 255, 0.5);
+    }
+    .zoom-btn:active { transform: scale(0.95); }
+    .zoom-level {
+      font-family: var(--font-en);
+      font-size: 0.62rem;
+      letter-spacing: 0.2em;
+      color: rgba(210, 225, 255, 0.75);
+      text-align: center;
+      margin-top: 0.2rem;
+      font-weight: 300;
+    }
+
+    /* ===== Footer ===== */
+    .footer {
+      position: fixed;
+      left: 2rem; bottom: 1rem;
+      font-family: var(--font-en);
+      font-size: 0.6rem;
+      letter-spacing: 0.3em;
+      color: rgba(180, 200, 235, 0.55);
+      z-index: 20;
+      pointer-events: none;
+      font-weight: 300;
+    }
+
+    /* ===== Noscript ===== */
+    .noscript-msg {
+      position: fixed;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      padding: 1.2rem 2rem;
+      border: 1px solid rgba(160, 215, 255, 0.6);
+      background: rgba(10, 14, 30, 0.85);
+      color: #e4eeff;
+      font-family: var(--font-ja);
+      font-size: 0.9rem;
+      letter-spacing: 0.15em;
+      text-align: center;
+      line-height: 1.8;
+      z-index: 60;
+      max-width: min(92vw, 520px);
+    }
+
+    /* ===== Mobile ===== */
+    @media (max-width: 600px) {
+      .header { padding: 1rem 1.2rem; }
+      .brand { font-size: 0.95rem; letter-spacing: 0.35em; }
+      .meta { display: none; }
+      .menu a { font-size: 1.05rem; padding: 0.85rem 1.6rem; letter-spacing: 0.4em; gap: 0.9em; }
+      .chick { width: 64px; height: 84px; margin-left: -32px; margin-top: -42px; }
+      .hint { font-size: 0.65rem; letter-spacing: 0.35em; }
+      .hint.zoom { letter-spacing: 0.3em; }
+      .zoom-ui { right: 0.6rem; }
+      .footer { left: 1rem; font-size: 0.55rem; letter-spacing: 0.2em; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .bh-outer { animation-duration: 30s; }
+      .bh-inner { animation-duration: 24s; }
+      .star-field circle { animation: none; }
+      .hint .arrow { animation: none; opacity: 0.7; }
+    }
+
+    @media (prefers-contrast: more) {
+      .meta, .hint { color: #ffffff; }
+      .menu a { border-color: rgba(255,255,255,0.9); }
     }
   </style>
 </head>
 <body>
- 
+  <a href="#main" class="skip-link">メインへスキップ</a>
 
-  <!-- Hidden SEO Content (Accessible to Screen Readers & Search Engines) -->
-  <div class="sr-only">
-    <h1>畜物語（ちくも / chikumo）- ゆるキャラ・ぬい活の物語</h1>
-    <p>畜物語（読み方：ちくものがたり、愛称：ちくも、英語表記：chikumo）は、ゆるキャラとぬい活をテーマにしたオリジナル物語プロジェクトです。</p>
-    
-    <h2>畜物語とは</h2>
-    <p>畜物語は、可愛いゆるキャラたちが織りなす心温まる物語です。ぬい活（ぬいぐるみ活動）の世界観を大切にしながら、キャラクターたちの日常や冒険を描いています。</p>
-    
-    <h2>登場キャラクター</h2>
-    <p>kokko（こっこ）ちゃんをはじめとする個性豊かなゆるキャラたちが登場します。それぞれのキャラクターには物語があり、ぬい活を楽しむ人々に愛されています。</p>
-    
-    <h2>ぬい活とゆるキャラの世界</h2>
-    <p>ぬい活とは、ぬいぐるみと一緒にお出かけしたり、写真を撮ったりする活動のこと。畜物語のキャラクターたちは、そんなぬい活の楽しさを伝える存在です。</p>
-    
-    <h2>コンテンツ</h2>
-    <ul>
-      <li>物語 - キャラクターたちの物語を読む</li>
-      <li>畜因 - 畜物語の世界設定</li>
-      <li>畜循 - ゆるキャラたちの紹介</li>
-      <li>銀河 - ギャラリー・イラスト</li>
-      <li>接触 - お問い合わせ・コンタクト</li>
-    </ul>
-    
-    <h2>関連キーワード</h2>
-    <p>畜物語, ちくも, chikumo, ゆるキャラ, ぬい活, 物語, kokko, キャラクター, ぬいぐるみ, マスコット, オリジナルキャラクター, 創作</p>
+  <svg aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <style>
+        .st0{fill:#1a2729}.st1{fill:#14282b}.st2{fill:#df953b}.st3{fill:#eca678}
+        .st4{fill:#eeaa7d}.st5{fill:#ec9f3e}.st6{fill:#152526}.st7{fill:#182628}
+        .st8{fill:#f5e8c6}.st9{fill:#fff}.st10{fill:#14272b}.st11{fill:#f3a43d}
+        .st12{fill:#eda03f}.st13{fill:#e26a3a}
+      </style>
+    </defs>
+    <symbol id="chikumo" viewBox="0 0 297.78 389.41">
+      <g><g><g>
+        <path class="st2" d="M123.18,347.89c-3.14,7.02-23.01,4.87-21.86-1.17.45-2.34,5.72-2.58,8.58-4.59,1.67-1.18-.2-5.62,1.6-6.25,4.42-1.55,13.72,7.47,11.69,12.01Z"/>
+        <path d="M112.56,355.27c-2.68,0-5.31-.39-7.46-1.07-7.23-2.27-6.97-6.73-6.72-8.04.59-3.11,3.78-4.17,6.33-5.02,1.06-.35,2.14-.72,2.95-1.15.01-.33,0-.76,0-1.05-.04-1.57-.12-4.84,2.85-5.88,4.09-1.43,9.01,1.83,11.98,5.06,3.52,3.83,4.8,7.94,3.43,11h0c-1.98,4.44-7.77,6.16-13.36,6.16ZM104.71,347.5c1.2.84,4.41,1.9,8.59,1.76,3.57-.12,6.51-1.19,7.14-2.6.13-.29-.11-1.87-2.01-4.09-1.72-2.01-3.57-3.16-4.77-3.63.04,1.71.04,4.17-2.03,5.63-1.53,1.08-3.38,1.7-5.02,2.25-.57.19-1.33.45-1.9.68Z"/>
+      </g><g>
+        <path class="st12" d="M197.75,346.74c3.24,4.12-17.94,9.67-21.71.84-1.73-4.06,7.01-11.27,11.22-11.8,3.21,11.1,7.36,6.99,10.49,10.97Z"/>
+        <path d="M185.93,355.28c-.25,0-.51,0-.76-.01-5.95-.19-10.17-2.5-11.89-6.52-.58-1.35-.91-3.57.79-6.53,2.48-4.33,8.71-8.91,12.81-9.43l2.55-.32.71,2.47c1.64,5.67,3.09,6.14,4.94,6.74,1.42.46,3.36,1.09,5.03,3.21h0c1.1,1.4,1.29,3.18.49,4.77-1.8,3.56-8.84,5.64-14.67,5.64ZM185.39,339.59c-3.09,1.71-6.75,5.47-6.58,6.86.75,1.75,3.06,2.43,4.85,2.68,4.05.57,8.25-.49,10.36-1.48-.23-.09-.49-.17-.8-.27-2.87-.93-5.64-2.28-7.84-7.79ZM195.39,348.59h0s0,0,0,0h0Z"/>
+      </g></g><g><g>
+        <path class="st8" d="M192.04,70.53c36.92,8.23,67.71,33.89,81.1,69.05,5.26,13.81,6.34,29.44,5.3,44.41-2.08,29.94-19.41,55.78-46.11,68.7-14.3,6.92,12.63,13.52,13.71,38.4.23,5.33-1.73,10.99-6.88,11.62-3.86.47-10.23-1.49-10.68-6.14l-1.12-11.72c-.23-2.43-2.74-3.69-4.66-3.17-1.53.42-2.76,2.56-2.62,4.7,1.09,16.83-5.32,34.02-20.6,42.19-24.44,13.07-71.29,12.61-95.89,1.53-17.34-7.8-27.27-24.07-24.54-42.77.33-2.24-1.65-4.72-3.27-4.73-5.17-.03-4.6,7.18-5.14,12.18-.62,5.81-5.74,8.57-10.71,8.09-12.96-1.26-8.3-25.68,10.02-41.95,1.17-1.04,2.08-2.88,1.78-3.89s-.32-3.25-3.07-4.02c-7.45-2.1-19.39-12-25.53-16.71-27.88-32-29.77-81.74-6.7-117.8,13.69-21.4,35.12-37.4,59.67-44.49,4.91-1.42,10.88-4.49,15.32-4.69l4.07-2.2c23.7-2.48,47.26-2.41,70.67.22,2.42.1,4.36,1.3,5.89,3.18Z"/>
+        <path d="M150.78,341.35c-18.36,0-36.43-3.11-48.42-8.51-19.09-8.59-29.16-26.2-26.28-45.94.05-.37-.29-.98-.58-1.26-1.04.3-1.39,2.55-1.66,6.68-.06.96-.13,1.91-.22,2.79-.84,7.79-7.83,11.35-13.98,10.76-4.55-.44-7.85-3.11-9.28-7.52-3.4-10.45,4.33-27.87,17.6-39.66.4-.35.69-.89.8-1.18-.03-.11-.05-.23-.08-.35-.22-1.05-.29-1.1-.83-1.26-7.03-1.98-17.13-9.88-23.82-15.1-.99-.78-1.91-1.49-2.72-2.11l-.24-.18-.2-.23c-28.27-32.45-31.2-83.5-6.96-121.38,14.19-22.18,35.98-38.43,61.36-45.75,1.62-.47,3.39-1.14,5.26-1.85,3.38-1.28,6.87-2.6,10.02-2.91l4.02-2.17.59-.06c23.78-2.49,47.74-2.42,71.22.21,2.74.15,5.23,1.33,7.26,3.46,38.05,8.81,68.77,35.17,82.29,70.69,4.86,12.77,6.71,28.14,5.48,45.69-2.17,31.15-20.04,57.76-47.79,71.19-2.23,1.08-2.48,1.75-2.48,1.76-.1.91,2.57,3.87,4.34,5.82,5.16,5.71,12.96,14.34,13.55,27.99.35,8.07-3.47,13.99-9.51,14.73-3.05.38-7.54-.38-10.7-2.92-1.96-1.57-3.11-3.62-3.33-5.91l-1.12-11.72c0-.08-.02-.24-.25-.4-.18-.13-.41-.17-.54-.17-.23.23-.56.9-.51,1.63,1.28,19.78-7.22,37.03-22.18,45.03-13.14,7.03-31.77,10.13-50.12,10.13ZM75.74,279.6h.05c1.55,0,3.15.83,4.37,2.25,1.45,1.69,2.15,3.9,1.85,5.91-2.48,16.98,6.26,32.16,22.81,39.61,22.74,10.23,68.42,11.83,93.25-1.44,15.37-8.22,19.9-25.72,19.02-39.35-.23-3.57,1.89-6.99,4.83-7.79,1.87-.51,3.97-.13,5.62,1.01,1.63,1.12,2.62,2.82,2.81,4.77l1.12,11.72c.02.24.09.98,1.11,1.8,1.63,1.31,4.44,1.86,6.21,1.65,3.62-.45,4.37-5.56,4.25-8.52-.5-11.49-7.15-18.85-12-24.22-3.64-4.03-6.51-7.21-5.77-11,.62-3.19,3.58-4.96,5.76-6.01,25.8-12.48,42.4-37.23,44.42-66.21,1.16-16.67-.56-31.18-5.11-43.13-12.91-33.92-42.43-59.04-78.95-67.19l-1.02-.23-.66-.81c-1.1-1.35-2.27-2.01-3.69-2.07l-.21-.02c-22.89-2.58-46.25-2.67-69.43-.28-1.61.76-3.22,1.51-4.83,2.27-2.38.11-5.69,1.36-8.89,2.58-1.9.72-3.87,1.47-5.73,2-23.98,6.92-44.57,22.27-57.97,43.22-22.78,35.6-20.14,83.49,6.24,113.99.76.59,1.61,1.25,2.52,1.96,5.93,4.63,15.87,12.39,21.76,14.05,4.09,1.15,4.81,4.52,5.07,5.79.02.11.04.21.07.29.69,2.4-.82,5.32-2.67,6.97-12.4,11.02-18.22,26.12-15.88,33.31.69,2.12,2.01,3.2,4.16,3.41,3.26.32,6.98-1.24,7.43-5.43.09-.8.14-1.66.2-2.54.3-4.61.81-12.33,7.89-12.33Z"/>
+      </g>
+      <path d="M192.53,73.71l-2.95-.65c-8.65-3.05-20.95-6.32-35.96-6.95-19.61-.81-35.43,3.24-45.31,6.63l-.58-1.83c-4.07-12.82-3.58-24.46,1.41-33.68,4.46-8.24,11.85-14.06,20.27-15.95,7.29-1.64,14.68-.07,20.81,4.41,5.23,3.83,6.97,11.06,8.36,16.88.63,2.62,1.68,6.99,2.62,7.39,0,0,0,0,.01,0,.67,0,1.82-1.46,2.84-2.74,2.75-3.46,6.9-8.68,16-7.79,6.77.66,12.03,5.36,14.07,12.58,1.84,6.5,1.48,13.5-1.04,20.24-.18.49-.37.98-.55,1.47ZM156.31,65.57c11.04,0,22.04.71,32.76,2.88,1.51-5.1,1.6-10.27.24-15.09-1.48-5.24-5.03-8.5-9.75-8.96-6.4-.62-9.05,2.71-11.6,5.93-1.84,2.31-3.76,4.68-6.87,4.63-4.72-.11-6.01-5.51-7.38-11.22-1.27-5.28-2.7-11.26-6.45-14.01-5.02-3.67-10.81-4.91-16.76-3.57-6.91,1.56-13.25,6.59-16.97,13.46-5.06,9.36-3.82,20.06-1.59,27.96,4.35-.21,8.81-.48,13.13-.74,10.32-.62,20.8-1.26,31.24-1.26Z"/>
+      <path class="st13" d="M189.58,73.06c-11.58-1.52-24.7-2.61-39.13-2.74-14.4-.13-27.53.71-39.12,2.01-3.21-10.36-3.96-21.77,1.18-31.51,7.31-13.85,23.58-20.13,36.22-10.64,8.3,6.23,6.34,24.44,12.03,24.58,4.81.11,5.95-11.68,18.06-10.47,1.58.16,3.05.58,4.38,1.26,4.55,2.29,6.35,7.2,7.15,9.44,2.87,7.98.26,15.49-.79,18.09Z"/>
+      </g></g>
+      <g>
+        <path class="st3" d="M235.64,219.64c-8.4.96-15.77-3.27-19.26-9.52-4.01-7.19-2.71-15.57,2.4-21.83,5.87-7.19,14.99-9.47,23.22-5.63s12.99,11.9,11.45,20.74c-1.48,8.46-8,15.12-17.81,16.24Z"/>
+        <path class="st4" d="M68.09,217.64c-5.86.55-11.16.03-14.99-2.72-4.76-3.41-7.12-8.21-7.47-14.2-.54-9.58,6.05-19.05,15.44-20.26,11.9-1.53,21.05,4.53,23.17,15.75,1.82,9.64-5.13,20.39-16.16,21.43Z"/>
+      </g>
+      <g>
+        <path class="st6" d="M171.85,211.77c-3.89,8.86-13.18,11.97-21.34,12.17-8.85.22-17.83-3.21-22.22-11.95-3.2-6.38-3.12-16.03-.24-22.74,3.74-8.71,13.22-12.06,21.74-12.5s18.06,3.9,22.26,12.91c2.85,6.13,2.71,15.48-.21,22.11Z"/>
+        <path class="st11" d="M164.86,190.8c9.12,10.57-29.45,8.95-30.73,4.8-.38-1.24-.03-3.24,1.19-4.81,7.17-9.22,21.98-8.75,29.54.01Z"/>
+        <path class="st5" d="M166.97,204.03c-1.49,9.95-10.05,13.46-18.85,12.61-7.5-.73-14.42-3.78-14.89-12.69,11.25,2.92,21.38,2.07,33.74.08Z"/>
+      </g>
+      <g><g>
+        <path class="st7" d="M211.97,134.49c-2.49,4.32-8.15-4.65-21.11-2.72-1.26.19-3.41-.64-3.46-1.66-.04-.9.25-2.68,1.71-3.68,9.84-6.76,25.93,2.73,22.86,8.06Z"/>
+        <path class="st0" d="M111.24,129.97c.27,4.86-7.26-1.62-18.99,5.14-1.43.82-3.76.72-4.28-.54-2.81-6.77,12-13,21.6-8.52,1.59.74,1.62,2.97,1.67,3.93Z"/>
+      </g><g>
+        <path class="st1" d="M119.59,179.54c-3.07,7.16-9.54,10.92-16.08,10.74-7.42-.21-13.64-4.89-15.61-11.28-2.3-7.44.13-14.77,6.37-19.35,5.88-4.32,14.38-4.49,20.12-.1s8.45,12.37,5.19,19.99Z"/>
+        <path class="st10" d="M188.71,188.35c-8.75-4.56-10.77-14.68-7.1-22.7s13.61-11.6,22.04-7.78,11.39,14.12,7.73,22.55-13.82,12.55-22.66,7.94Z"/>
+        <path class="st9" d="M107.27,166.14c2.37-1.09,4.19.73,4.64,2.25.54,1.81-.25,3.62-1.88,4.34-1.75.76-3.7.11-4.42-1.44s-.6-4.11,1.66-5.15Z"/>
+        <path class="st9" d="M199.1,166.31c2.13-1.13,4.05.24,4.75,1.56.95,1.78.28,3.91-1.4,4.72s-3.5.45-4.46-.79c-1.17-1.52-1.17-4.28,1.11-5.49Z"/>
+      </g></g></g>
+    </symbol>
+  </svg>
+
+  <svg class="star-field" id="starField" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"></svg>
+
+  <header class="header" role="banner">
+    <h1 class="brand">畜物語</h1>
+    <p class="meta" aria-hidden="true">CHIKUMONOGATARI</p>
+  </header>
+
+  <main id="main" class="zoom-stage" role="main" aria-label="畜物語 メインステージ">
+    <h2 class="visually-hidden">コッコちゃん吸入演出</h2>
+    <svg class="blackhole" viewBox="-100 -100 200 200" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="bh-halo">
+          <stop offset="55%" stop-color="rgba(80,160,220,0)"/>
+          <stop offset="78%" stop-color="rgba(110,190,240,0.18)"/>
+          <stop offset="100%" stop-color="rgba(80,160,220,0)"/>
+        </radialGradient>
+        <radialGradient id="bh-petal-c" cx="0.25" cy="0.5" r="0.5">
+          <stop offset="0%" stop-color="rgba(60,230,255,0.78)"/>
+          <stop offset="100%" stop-color="rgba(60,230,255,0)"/>
+        </radialGradient>
+        <radialGradient id="bh-petal-v" cx="0.25" cy="0.5" r="0.5">
+          <stop offset="0%" stop-color="rgba(180,110,255,0.62)"/>
+          <stop offset="100%" stop-color="rgba(180,110,255,0)"/>
+        </radialGradient>
+        <radialGradient id="bh-inner-c" cx="0.22" cy="0.5" r="0.45">
+          <stop offset="0%" stop-color="rgba(80,210,255,0.92)"/>
+          <stop offset="100%" stop-color="rgba(80,210,255,0)"/>
+        </radialGradient>
+        <radialGradient id="bh-inner-v" cx="0.22" cy="0.5" r="0.45">
+          <stop offset="0%" stop-color="rgba(190,120,255,0.78)"/>
+          <stop offset="100%" stop-color="rgba(190,120,255,0)"/>
+        </radialGradient>
+        <radialGradient id="bh-ring-glow">
+          <stop offset="55%" stop-color="rgba(120,200,255,0)"/>
+          <stop offset="68%" stop-color="rgba(140,220,255,0.45)"/>
+          <stop offset="73%" stop-color="rgba(190,235,255,0.85)"/>
+          <stop offset="78%" stop-color="rgba(140,220,255,0.4)"/>
+          <stop offset="100%" stop-color="rgba(120,200,255,0)"/>
+        </radialGradient>
+        <radialGradient id="bh-core">
+          <stop offset="60%" stop-color="#000"/>
+          <stop offset="100%" stop-color="rgba(0,0,0,0.85)"/>
+        </radialGradient>
+      </defs>
+      <circle r="100" fill="url(#bh-halo)"/>
+      <g class="bh-outer">
+        <circle r="95" fill="url(#bh-petal-c)"/>
+        <g transform="rotate(90)"><circle r="95" fill="url(#bh-petal-v)"/></g>
+        <g transform="rotate(180)"><circle r="95" fill="url(#bh-petal-c)" opacity="0.85"/></g>
+        <g transform="rotate(270)"><circle r="95" fill="url(#bh-petal-v)" opacity="0.85"/></g>
+      </g>
+      <g class="bh-inner">
+        <circle r="78" fill="url(#bh-inner-c)"/>
+        <g transform="rotate(120)"><circle r="78" fill="url(#bh-inner-v)"/></g>
+        <g transform="rotate(240)"><circle r="78" fill="url(#bh-inner-c)"/></g>
+      </g>
+      <circle r="62" fill="url(#bh-ring-glow)"/>
+      <circle r="62" fill="none" stroke="rgba(190,235,255,0.85)" stroke-width="1.2"/>
+      <circle r="58" fill="url(#bh-core)"/>
+    </svg>
+    <div class="chick-layer" id="chickLayer" aria-hidden="true"></div>
+
+    <nav class="menu" id="menu" aria-label="メインメニュー" aria-hidden="true">
+      <ul>
+        <li><a href="#"><span class="en">Story</span><span class="ja">作品</span></a></li>
+      </ul>
+    </nav>
+  </main>
+
+  <p class="hint scroll" id="scrollHint"><span class="arrow" aria-hidden="true">↓</span>SCROLL</p>
+  <p class="hint zoom"   id="zoomHint">CTRL / ⌘ + WHEEL  TO  ZOOM</p>
+
+  <div class="zoom-ui" role="group" aria-label="ズーム操作">
+    <button class="zoom-btn" id="zoomIn"  type="button" aria-label="ズームイン">+</button>
+    <button class="zoom-btn" id="zoomOut" type="button" aria-label="ズームアウト">−</button>
+    <output class="zoom-level" id="zoomLevel" aria-live="polite" aria-atomic="true">1.0×</output>
   </div>
 
-  <!-- Noscript Fallback for Search Engines -->
+  <footer class="footer" role="contentinfo">© 畜物語 / CHIKUMONOGATARI</footer>
+
   <noscript>
-    <div style="padding: 40px; max-width: 800px; margin: 0 auto; font-family: sans-serif;">
-      <h1>畜物語（ちくも / chikumo）</h1>
-      <p>ゆるキャラ・ぬい活の物語プロジェクト</p>
-      <h2>畜物語について</h2>
-      <p>畜物語（読み方：ちくものがたり）は、ゆるキャラとぬい活をテーマにした物語です。kokkoちゃんをはじめとする可愛いキャラクターたちが活躍します。</p>
-      <nav>
-        <ul>
-          <li><a href="story/index.html">物語</a></li>
-          <li><a href="https://chikumo.jp/Library/index.html">畜因</a></li>
-          <li><a>畜循</a></li>
-          <li><a href="https://chikumo.jp/observer-log/index.html">畜史</a></li>
-        </ul>
-      </nav>
-      <p>このサイトはJavaScriptを使用しています。より良い体験のためにJavaScriptを有効にしてください。</p>
+    <div class="noscript-msg">
+      JavaScript を有効にすると、<br>
+      コッコちゃんの吸入演出と視点ズームが体験できます。
     </div>
   </noscript>
 
-  <section class="cosmos">
-    <canvas class="cosmos-canvas" id="cosmosCanvas"></canvas>
-    <div class="cosmos-content">
-      <h1 class="cosmos-title" id="title" aria-label="畜物語 - ちくも - chikumo - ゆるキャラとぬい活の物語">畜物語</h1>
-      <p class="cosmos-subtitle" id="subtitle" aria-label="観測者の景色 - 畜物語のサブタイトル">観測者の景色</p>
-    </div>
-    <p class="cosmos-whisper" id="whisper">— gaze into eternity —</p>
-    <p class="click-hint" id="clickHint">click to make a wish</p>
-    <nav class="cosmos-menu" id="cosmosMenu" aria-label="畜物語メインナビゲーション">
-      <a class="menu-item" href="story/index.html" title="畜物語の物語を読む">物語</a>
-      <a class="menu-item" href="https://chikumo.jp/Library/index.html" title="畜物語の畜因">畜因</a>
-      <a class="menu-item" title="畜物語の畜循">畜循</a>
-      <a class="menu-item" href="https://chikumo.jp/observer-log/index.html">畜史</a>
-    </nav>
-    <div class="click-counter" id="clickCounter">wishes: 0 / 20</div>
-  </section>
+<script>
+(() => {
+  'use strict';
 
-  <!-- kokkoちゃんのSVGを非表示で埋め込み -->
-  <img id="kokkoImg" style="display:none" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyOTcuOCAzODkuNCI+PGRlZnM+PHN0eWxlPi5zdDl7ZmlsbDojZmZmfTwvc3R5bGU+PC9kZWZzPjxwYXRoIGQ9Ik0xMjMuMiAzNDcuOWMtMy4yIDctMjMgNC45LTIxLjktMS4yLjUtMi4zIDUuNy0yLjYgOC42LTQuNiAxLjctMS4yLS4yLTUuNiAxLjYtNi4yIDQuNC0xLjYgMTMuNyA3LjUgMTEuNyAxMiIgZmlsbD0iI2RmOTUzYiIvPjxwYXRoIGQ9Ik0xMTIuNiAzNTUuM3EtNC4xIDAtNy41LTEuMWMtNy4yLTIuMy03LTYuNy02LjctOCAuNi0zLjIgMy44LTQuMiA2LjMtNWwzLTEuMnYtMWMwLTEuNi0uMi00LjkgMi44LTYgNC4xLTEuNCA5IDEuOSAxMiA1LjEgMy41IDMuOCA0LjggOCAzLjQgMTEtMiA0LjUtNy43IDYuMi0xMy4zIDYuMlptLTcuOS03LjhjMS4yLjggNC40IDEuOSA4LjYgMS44IDMuNi0uMiA2LjUtMS4yIDcuMS0yLjYuMi0uMyAwLTItMi00LjFhMTMgMTMgMCAwIDAtNC43LTMuN2MwIDEuOCAwIDQuMi0yIDUuN3EtMi42IDEuNS01IDIuMnoiLz48cGF0aCBkPSJNMTk3LjggMzQ2LjdjMy4yIDQuMi0xOCA5LjctMjEuOC45LTEuNy00IDctMTEuMyAxMS4zLTExLjggMy4yIDExIDcuMyA3IDEwLjQgMTEiIGZpbGw9IiNlZGEwM2YiLz48cGF0aCBkPSJNMTg2IDM1NS4zaC0uOHEtOS4yLS40LTEyLTYuNmMtLjUtMS4zLS44LTMuNS45LTYuNSAyLjUtNC4zIDguNy04LjkgMTIuOC05LjRsMi41LS4zLjcgMi40YzEuNyA1LjcgMy4xIDYuMiA1IDYuOCAxLjQuNCAzLjMgMSA1IDMuMmE0IDQgMCAwIDEgLjUgNC44Yy0xLjggMy41LTguOCA1LjYtMTQuNyA1LjZabS0uNi0xNS43Yy0zLjEgMS43LTYuOCA1LjUtNi42IDYuOC44IDEuOCAzIDIuNSA0LjkgMi43IDQgLjYgOC4yLS41IDEwLjMtMS41bC0uOC0uMmMtMi45LTEtNS42LTIuMy03LjgtNy44Wm0xMCA5Ii8+PHBhdGggZD0iTTE5MiA3MC41YzM3IDguMyA2Ny43IDM0IDgxLjEgNjkgNS4zIDEzLjkgNi40IDI5LjUgNS4zIDQ0LjUtMiAzMC0xOS40IDU1LjgtNDYgNjguNy0xNC40IDcgMTIuNiAxMy41IDEzLjYgMzguNC4zIDUuMy0xLjcgMTEtNi44IDExLjYtMy45LjUtMTAuMy0xLjUtMTAuNy02LjFsLTEuMS0xMS44Yy0uMy0yLjQtMi44LTMuNi00LjctMy4xLTEuNS40LTIuOCAyLjUtMi42IDQuNyAxIDE2LjgtNS4zIDM0LTIwLjYgNDIuMi0yNC41IDEzLTcxLjMgMTIuNi05NiAxLjVBNDAgNDAgMCAwIDEgNzkgMjg3LjNjLjQtMi4yLTEuNi00LjctMy4yLTQuNy01LjIgMC00LjYgNy4yLTUuMiAxMi4yLS42IDUuOC01LjcgOC41LTEwLjcgOC0xMy0xLjItOC4zLTI1LjYgMTAtNDEuOSAxLjItMSAyLjEtMi45IDEuOC0zLjlzLS4zLTMuMi0zLTRjLTcuNS0yLTE5LjQtMTItMjUuNi0xNi43LTI3LjktMzItMjkuNy04MS43LTYuNy0xMTcuOEExMDYgMTA2IDAgMCAxIDk2LjEgNzRjNS0xLjQgMTAuOS00LjUgMTUuMy00LjdsNC0yLjJxMzUuNi0zLjcgNzAuOC4yIDMuNi4yIDUuOCAzLjJaIiBmaWxsPSIjZjVlOGM2Ii8+PHBhdGggZD0iTTE1MC44IDM0MS40Yy0xOC40IDAtMzYuNS0zLjItNDguNC04LjZBNDIuNSA0Mi41IDAgMCAxIDc2IDI4N3EwLS43LS42LTEuMy0xLjQuNS0xLjcgNi43IDAgMS42LS4yIDIuOGMtLjggNy44LTcuOCAxMS40LTE0IDEwLjhxLTctLjgtOS4yLTcuNWMtMy40LTEwLjUgNC4zLTI4IDE3LjYtMzkuN3EuNi0uNy44LTEuMmwtLjEtLjNjLS4yLTEtLjMtMS4xLS44LTEuMy03LTItMTcuMi05LjktMjMuOS0xNS4xbC0yLjctMi4xLS4yLS4yLS4yLS4yYy0yOC4zLTMyLjUtMzEuMi04My41LTctMTIxLjQgMTQuMi0yMi4yIDM2LTM4LjQgNjEuNC00NS43bDUuMi0xLjlhNDIgNDIgMCAwIDEgMTAtM2w0LTIgLjctLjFjMjMuNy0yLjUgNDcuNy0yLjUgNzEuMi4ycTQuMS4yIDcuMiAzLjRhMTE1IDExNSAwIDAgMSA4Mi4zIDcwLjdxNy4zIDE5LjMgNS41IDQ1LjdhODUgODUgMCAwIDEtNDcuOCA3MS4yYy0yLjIgMS0yLjUgMS44LTIuNSAxLjggMCAuOSAyLjYgMy44IDQuNCA1LjggNS4xIDUuNyAxMyAxNC4zIDEzLjUgMjggLjQgOC0zLjQgMTQtOS41IDE0LjctMyAuNC03LjUtLjQtMTAuNy0zYTkgOSAwIDAgMS0zLjMtNS44bC0xLjEtMTEuN3EwLS4yLS4zLS41bC0uNS0uMXEtLjUuNC0uNSAxLjZjMS4zIDE5LjgtNy4yIDM3LTIyLjIgNDUtMTMuMSA3LTMxLjggMTAuMi01MC4xIDEwLjJabS03NS02MS44YTYgNiAwIDAgMSA0LjQgMi4zIDggOCAwIDAgMSAxLjggNS45IDM3IDM3IDAgMCAwIDIyLjggMzkuNmMyMi44IDEwLjIgNjguNCAxMS44IDkzLjMtMS41IDE1LjMtOC4yIDE5LjktMjUuNyAxOS0zOS4zLS4yLTMuNiAxLjktNyA0LjgtNy44cTMtLjcgNS42IDFhNyA3IDAgMCAxIDIuOSA0LjhsMSAxMS43cS0uMi40IDEuMiAxLjhhOSA5IDAgMCAwIDYuMiAxLjZjMy42LS40IDQuNC01LjUgNC4yLTguNS0uNS0xMS41LTcuMS0xOC44LTEyLTI0LjItMy42LTQtNi41LTcuMi01LjctMTEgLjYtMy4yIDMuNi01IDUuNy02YTc5IDc5IDAgMCAwIDQ0LjUtNjYuMnExLjctMjUuMS01LjItNDMuMWMtMTIuOS0zNC00Mi40LTU5LTc5LTY3LjJsLTEtLjMtLjYtLjhxLTEuNi0yLTMuNy0yaC0uMmEzMjQgMzI0IDAgMCAwLTY5LjQtLjNsLTQuOCAyLjJhMzQgMzQgMCAwIDAtOSAyLjZxLTIuOCAxLjItNS43IDJjLTI0IDctNDQuNSAyMi4zLTU4IDQzLjItMjIuNyAzNS42LTIwIDgzLjUgNi4zIDExNGwyLjUgMmM2IDQuNiAxNS45IDEyLjQgMjEuOCAxNGE3IDcgMCAwIDEgNSA1LjhsLjEuM2MuNyAyLjQtLjggNS4zLTIuNiA3LTEyLjQgMTEtMTguMyAyNi0xNiAzMy4zcTEgMy4xIDQuMiAzLjRjMy4zLjMgNy0xLjIgNy41LTUuNGwuMi0yLjZjLjMtNC42LjgtMTIuMyA3LjktMTIuM1oiLz48cGF0aCBkPSJtMTkyLjUgNzMuNy0zLS42YTEyNCAxMjQgMCAwIDAtODEuMi0uNGwtLjYtMS44YTQzIDQzIDAgMCAxIDEuNC0zMy43YzQuNS04LjIgMTEuOS0xNCAyMC4zLTE2IDcuMy0xLjYgMTQuNyAwIDIwLjggNC41IDUuMyAzLjggNyAxMSA4LjQgMTYuOS42IDIuNiAxLjcgNyAyLjYgNy40LjcgMCAxLjgtMS41IDIuOC0yLjggMi44LTMuNCA3LTguNyAxNi03LjggNi44LjcgMTIgNS40IDE0LjEgMTIuNmEzMiAzMiAwIDAgMS0xIDIwLjJ6bS0zNi4yLTguMXExNi42LS4yIDMyLjggMi44YTI3IDI3IDAgMCAwIC4yLTE1Yy0xLjUtNS4zLTUtOC41LTkuNy05LTYuNC0uNi05IDIuNy0xMS42IDYtMS45IDIuMi0zLjggNC42LTcgNC42LTQuNi0uMi02LTUuNi03LjMtMTEuMy0xLjMtNS4yLTIuNy0xMS4yLTYuNC0xNHEtNy43LTUuNS0xNi44LTMuNWMtNyAxLjUtMTMuMiA2LjUtMTcgMTMuNC01IDkuNC0zLjggMjAtMS42IDI4bDEzLjItLjhxMTUuNS0xIDMxLjItMS4yIi8+PHBhdGggZD0iTTE4OS42IDczYTMyMyAzMjMgMCAwIDAtNzguMy0uNyA0MSA0MSAwIDAgMSAxLjItMzEuNWM3LjMtMTMuOCAyMy42LTIwLjEgMzYuMi0xMC42IDguMyA2LjIgNi40IDI0LjQgMTIgMjQuNiA0LjkgMCA2LTExLjcgMTguMS0xMC41cTIuMy4zIDQuNCAxLjNjNC42IDIuMiA2LjQgNy4yIDcuMiA5LjRhMjYgMjYgMCAwIDEtLjggMThaIiBmaWxsPSIjZTI2YTNhIi8+PHBhdGggZD0iTTIzNS42IDIxOS42Yy04LjQgMS0xNS43LTMuMi0xOS4yLTkuNS00LTcuMi0yLjctMTUuNiAyLjQtMjEuOCA1LjgtNy4yIDE1LTkuNSAyMy4yLTUuNnMxMyAxMS45IDExLjUgMjAuN2MtMS41IDguNS04IDE1LjEtMTcuOSAxNi4yIiBmaWxsPSIjZWNhNjc4Ii8+PHBhdGggZD0iTTY4IDIxNy42Yy01LjguNi0xMSAwLTE0LjktMi43YTE4IDE4IDAgMCAxLTcuNS0xNC4yYy0uNS05LjYgNi0xOSAxNS41LTIwLjIgMTEuOS0xLjYgMjEgNC41IDIzLjEgMTUuN2ExOC40IDE4LjQgMCAwIDEtMTYuMSAyMS40IiBmaWxsPSIjZWVhYTdkIi8+PHBhdGggZD0iTTE3MS45IDIxMS44Yy00IDguOC0xMy4yIDEyLTIxLjQgMTIuMS04LjguMy0xNy44LTMuMi0yMi4yLTEyLTMuMi02LjMtMy4xLTE2LS4zLTIyLjYgMy44LTguOCAxMy4zLTEyLjEgMjEuOC0xMi42czE4IDQgMjIuMiAxM2EyOSAyOSAwIDAgMS0uMiAyMloiIGZpbGw9IiMxNTI1MjYiLz48cGF0aCBkPSJNMTY0LjkgMTkwLjhjOSAxMC42LTI5LjUgOS0zMC44IDQuOC0uMy0xLjIgMC0zLjIgMS4yLTQuOCA3LjItOS4yIDIyLTguOCAyOS42IDAiIGZpbGw9IiNmM2E0M2QiLz48cGF0aCBkPSJNMTY3IDIwNGMtMS41IDEwLTEwIDEzLjUtMTguOSAxMi42LTcuNS0uNy0xNC40LTMuNy0xNC45LTEyLjcgMTEuMyAzIDIxLjQgMi4xIDMzLjguMSIgZmlsbD0iI2VjOWYzZSIvPjxwYXRoIGQ9Ik0yMTIgMTM0LjVjLTIuNSA0LjMtOC4yLTQuNy0yMS4xLTIuNy0xLjMuMi0zLjQtLjctMy41LTEuNyAwLS45LjMtMi43IDEuNy0zLjcgOS45LTYuNyAyNiAyLjggMjIuOSA4IiBmaWxsPSIjMTgyNjI4Ii8+PHBhdGggZD0iTTExMS4yIDEzMGMuMyA0LjgtNy4yLTEuNy0xOSA1LjEtMS40LjgtMy43LjctNC4yLS41LTIuOC02LjggMTItMTMgMjEuNi04LjUgMS42LjcgMS42IDMgMS42IDMuOSIgZmlsbD0iIzFhMjcyOSIvPjxwYXRoIGQ9Ik0xMTkuNiAxNzkuNWExNyAxNyAwIDAgMS0xNiAxMC44QTE3IDE3IDAgMCAxIDg3LjggMTc5YTE3IDE3IDAgMCAxIDYuNC0xOS4zYzUuOS00LjQgMTQuNC00LjUgMjAtLjFzOC41IDEyLjMgNS4zIDIwIiBmaWxsPSIjMTQyODJiIi8+PHBhdGggZD0iTTE4OC43IDE4OC40Yy04LjctNC42LTEwLjgtMTQuNy03LTIyLjhzMTMuNS0xMS41IDIyLTcuNyAxMS4zIDE0IDcuNyAyMi41LTEzLjggMTIuNi0yMi43IDhaIiBmaWxsPSIjMTQyNzJiIi8+PHBhdGggZD0iTTEwNy4zIDE2Ni4xYzIuMy0xIDQuMi44IDQuNiAyLjMuNSAxLjgtLjIgMy42LTEuOSA0LjMtMS43LjgtMy43LjEtNC40LTEuNHMtLjYtNC4xIDEuNy01LjJNMTk5LjEgMTY2LjNjMi4xLTEuMSA0IC4yIDQuOCAxLjYuOSAxLjcuMiAzLjktMS41IDQuN3MtMy41LjQtNC40LS44Yy0xLjItMS41LTEuMi00LjMgMS4xLTUuNSIgY2xhc3M9InN0OSIvPjwvc3ZnPg==" />
+  // ───────── Star field (SVG, vector — crisp at any zoom) ─────────
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+  const XLINK  = 'http://www.w3.org/1999/xlink';
+  const starField = document.getElementById('starField');
 
-  <script>
-    (function() {
-      // ========================================
-      // Canvas設定
-      // ========================================
-      const canvas = document.getElementById('cosmosCanvas');
-      const ctx = canvas.getContext('2d');
-      let w = canvas.width = window.innerWidth;
-      let h = canvas.height = window.innerHeight;
-      let frame = 0;
-      let mouse = { x: 0.5, y: 0.5 };
-
-      // ========================================
-      // kokkoちゃん画像の参照
-      // ========================================
-      const kokkoImage = document.getElementById('kokkoImg');
-      let kokkoLoaded = kokkoImage.complete;
-      kokkoImage.onload = function() {
-        kokkoLoaded = true;
-        console.log('kokko loaded!');
-      };
-
-      // ========================================
-      // 星クラス
-      // ========================================
-      class Star {
-        constructor() {
-          this.reset();
-        }
-
-        reset() {
-          this.x = Math.random() * w;
-          this.y = Math.random() * h;
-          this.z = Math.random();
-          this.baseRadius = 0.3 + Math.random() * 2.5;
-          this.twinkleSpeed = 0.015 + Math.random() * 0.035;
-          this.twinkleOffset = Math.random() * Math.PI * 2;
-          this.drawX = this.x;
-          this.drawY = this.y;
-          
-          const temp = Math.random();
-          if (temp > 0.92) {
-            this.hue = Math.random() * 30;
-            this.sat = 80;
-          } else if (temp > 0.85) {
-            this.hue = 30 + Math.random() * 30;
-            this.sat = 70;
-          } else if (temp > 0.6) {
-            this.hue = 45 + Math.random() * 15;
-            this.sat = 40;
-          } else if (temp > 0.3) {
-            this.hue = 60;
-            this.sat = 10;
-          } else {
-            this.hue = 200 + Math.random() * 40;
-            this.sat = 60;
-          }
-        }
-
-        update(t, mouse) {
-          this.twinkle = (Math.sin(t * this.twinkleSpeed + this.twinkleOffset) + 1) / 2;
-          const parallax = (1 - this.z) * 30;
-          this.drawX = this.x + (mouse.x - 0.5) * parallax;
-          this.drawY = this.y + (mouse.y - 0.5) * parallax;
-        }
-
-        draw(ctx) {
-          const r = this.baseRadius * (0.5 + this.z * 0.5) * (0.7 + this.twinkle * 0.3);
-          const alpha = (0.3 + this.z * 0.7) * (0.5 + this.twinkle * 0.5);
-
-          ctx.beginPath();
-          ctx.arc(this.drawX, this.drawY, r, 0, Math.PI * 2);
-          ctx.fillStyle = `hsla(${this.hue}, ${this.sat}%, 95%, ${alpha})`;
-          ctx.fill();
-
-          const glow = ctx.createRadialGradient(
-            this.drawX, this.drawY, 0,
-            this.drawX, this.drawY, r * 6
-          );
-          glow.addColorStop(0, `hsla(${this.hue}, ${this.sat}%, 80%, ${alpha * 0.4})`);
-          glow.addColorStop(0.5, `hsla(${this.hue}, ${this.sat}%, 60%, ${alpha * 0.1})`);
-          glow.addColorStop(1, 'transparent');
-          ctx.beginPath();
-          ctx.arc(this.drawX, this.drawY, r * 6, 0, Math.PI * 2);
-          ctx.fillStyle = glow;
-          ctx.fill();
-
-          if (this.baseRadius > 1.8 && this.twinkle > 0.6) {
-            ctx.strokeStyle = `hsla(${this.hue}, ${this.sat}%, 90%, ${alpha * 0.3})`;
-            ctx.lineWidth = 0.5;
-            ctx.beginPath();
-            ctx.moveTo(this.drawX - r * 4, this.drawY);
-            ctx.lineTo(this.drawX + r * 4, this.drawY);
-            ctx.moveTo(this.drawX, this.drawY - r * 4);
-            ctx.lineTo(this.drawX, this.drawY + r * 4);
-            ctx.stroke();
-          }
-        }
-      }
-
-      // ========================================
-      // 星雲クラス
-      // ========================================
-      class Nebula {
-        constructor() {
-          this.x = Math.random() * w;
-          this.y = Math.random() * h;
-          this.radius = 150 + Math.random() * 250;
-          this.hue = Math.random() * 360;
-          this.rotation = Math.random() * Math.PI * 2;
-          this.rotSpeed = (Math.random() - 0.5) * 0.0005;
-        }
-
-        update() {
-          this.rotation += this.rotSpeed;
-        }
-
-        draw(ctx) {
-          ctx.save();
-          ctx.translate(this.x, this.y);
-          ctx.rotate(this.rotation);
-
-          for (let i = 0; i < 3; i++) {
-            const grad = ctx.createRadialGradient(
-              i * 20 - 20, i * 10 - 10, 0,
-              0, 0, this.radius * (0.8 + i * 0.2)
-            );
-            const hue = (this.hue + i * 40) % 360;
-            grad.addColorStop(0, `hsla(${hue}, 70%, 50%, 0.04)`);
-            grad.addColorStop(0.4, `hsla(${hue}, 60%, 40%, 0.02)`);
-            grad.addColorStop(1, 'transparent');
-            ctx.beginPath();
-            ctx.ellipse(0, 0, this.radius * (1 + i * 0.3), this.radius * 0.5 * (1 + i * 0.2), i * 0.3, 0, Math.PI * 2);
-            ctx.fillStyle = grad;
-            ctx.fill();
-          }
-          ctx.restore();
-        }
-      }
-
-      // ========================================
-      // 銀河クラス
-      // ========================================
-      class Galaxy {
-        constructor(x, y, size) {
-          this.x = x;
-          this.y = y;
-          this.size = size;
-          this.rotation = Math.random() * Math.PI * 2;
-          this.rotSpeed = 0.0008;
-          this.arms = 2 + Math.floor(Math.random() * 3);
-          this.hue = Math.random() * 60 + 200;
-          this.particles = [];
-
-          for (let i = 0; i < 800; i++) {
-            const arm = i % this.arms;
-            const dist = Math.pow(Math.random(), 0.5) * this.size;
-            const armAngle = (arm / this.arms) * Math.PI * 2;
-            const spiral = dist * 0.015;
-            const spread = (Math.random() - 0.5) * 0.5 * (dist / this.size);
-            this.particles.push({
-              dist,
-              angle: armAngle + spiral + spread,
-              size: 0.3 + Math.random() * 1.2,
-              bright: Math.random()
-            });
-          }
-        }
-
-        update() {
-          this.rotation += this.rotSpeed;
-        }
-
-        draw(ctx) {
-          ctx.save();
-          ctx.translate(this.x, this.y);
-          ctx.rotate(this.rotation);
-
-          const core = ctx.createRadialGradient(0, 0, 0, 0, 0, this.size * 0.3);
-          core.addColorStop(0, `hsla(${this.hue + 40}, 40%, 90%, 0.3)`);
-          core.addColorStop(0.3, `hsla(${this.hue + 20}, 50%, 60%, 0.1)`);
-          core.addColorStop(1, 'transparent');
-          ctx.beginPath();
-          ctx.arc(0, 0, this.size * 0.3, 0, Math.PI * 2);
-          ctx.fillStyle = core;
-          ctx.fill();
-
-          this.particles.forEach(p => {
-            const x = Math.cos(p.angle) * p.dist;
-            const y = Math.sin(p.angle) * p.dist * 0.4;
-            const fade = 1 - (p.dist / this.size) * 0.7;
-            ctx.beginPath();
-            ctx.arc(x, y, p.size * fade, 0, Math.PI * 2);
-            ctx.fillStyle = `hsla(${this.hue + p.bright * 60}, ${30 + p.bright * 40}%, ${70 + p.bright * 25}%, ${fade * 0.6})`;
-            ctx.fill();
-          });
-          ctx.restore();
-        }
-      }
-
-      // ========================================
-      // kokkoちゃんクラス
-      // ========================================
-      class FlyingKokko {
-        constructor() {
-          this.reset();
-        }
-
-        reset() {
-          this.active = false;
-          this.x = 0;
-          this.y = 0;
-          this.vx = 0;
-          this.vy = 0;
-          this.life = 0;
-          this.maxLife = 0;
-          this.rotation = 0;
-          this.rotSpeed = 0;
-          this.size = 40;
-          this.trail = [];
-        }
-
-        trigger() {
-          if (this.active) return;
-          this.active = true;
-          this.x = Math.random() * w * 0.8;
-          this.y = Math.random() * h * 0.3;
-          
-          // ランダムな速度（5段階）
-          const speedType = Math.floor(Math.random() * 5);
-          let speed;
-          switch(speedType) {
-            case 0: // とても遅い
-              speed = 2 + Math.random() * 2;
-              this.maxLife = 150 + Math.random() * 50;
-              break;
-            case 1: // 遅い
-              speed = 4 + Math.random() * 3;
-              this.maxLife = 100 + Math.random() * 40;
-              break;
-            case 2: // 普通
-              speed = 7 + Math.random() * 4;
-              this.maxLife = 70 + Math.random() * 30;
-              break;
-            case 3: // 速い
-              speed = 12 + Math.random() * 5;
-              this.maxLife = 50 + Math.random() * 20;
-              break;
-            case 4: // とても速い
-              speed = 18 + Math.random() * 7;
-              this.maxLife = 35 + Math.random() * 15;
-              break;
-          }
-          
-          const angle = Math.PI * 0.15 + Math.random() * 0.25;
-          this.vx = Math.cos(angle) * speed;
-          this.vy = Math.sin(angle) * speed;
-          this.life = 0;
-          this.rotation = 0;
-          
-          // ランダムな回転速度（5段階）
-          const rotationType = Math.floor(Math.random() * 5);
-          const rotDirection = Math.random() > 0.5 ? 1 : -1; // 回転方向もランダム
-          switch(rotationType) {
-            case 0: // 回転しない
-              this.rotSpeed = 0;
-              break;
-            case 1: // やや回転
-              this.rotSpeed = 0.02 * rotDirection;
-              break;
-            case 2: // 回転
-              this.rotSpeed = 0.05 * rotDirection;
-              break;
-            case 3: // 沢山回転
-              this.rotSpeed = 0.12 * rotDirection;
-              break;
-            case 4: // ものすごく回転
-              this.rotSpeed = 0.25 * rotDirection;
-              break;
-          }
-          
-          // ランダムな大きさ（4段階）
-          const sizeType = Math.floor(Math.random() * 4);
-          switch(sizeType) {
-            case 0: // 小さい
-              this.size = 20 + Math.random() * 10;
-              break;
-            case 1: // 中くらい
-              this.size = 40 + Math.random() * 15;
-              break;
-            case 2: // 大きい
-              this.size = 70 + Math.random() * 20;
-              break;
-            case 3: // とても大きい
-              this.size = 100 + Math.random() * 40;
-              break;
-          }
-          
-          this.trail = [];
-        }
-
-        update() {
-          if (!this.active) return;
-          
-          this.trail.push({ x: this.x, y: this.y, life: 20 });
-          
-          this.trail = this.trail.filter(t => {
-            t.life--;
-            return t.life > 0;
-          });
-          
-          this.x += this.vx;
-          this.y += this.vy;
-          this.rotation += this.rotSpeed;
-          this.life++;
-          if (this.life > this.maxLife) this.reset();
-        }
-
-        draw(ctx) {
-          if (!this.active || !kokkoLoaded) return;
-          const progress = this.life / this.maxLife;
-          const alpha = Math.sin(progress * Math.PI);
-
-          // トレイル（サイズに応じて調整）
-          this.trail.forEach((t) => {
-            const trailAlpha = (t.life / 20) * alpha * 0.5;
-            const trailSize = (2 + (t.life / 20) * 4) * (this.size / 50);
-            
-            ctx.beginPath();
-            ctx.arc(t.x, t.y, trailSize, 0, Math.PI * 2);
-            const gradient = ctx.createRadialGradient(t.x, t.y, 0, t.x, t.y, trailSize);
-            gradient.addColorStop(0, `rgba(255, 220, 150, ${trailAlpha})`);
-            gradient.addColorStop(0.5, `rgba(255, 180, 100, ${trailAlpha * 0.5})`);
-            gradient.addColorStop(1, 'transparent');
-            ctx.fillStyle = gradient;
-            ctx.fill();
-          });
-
-          // kokkoちゃん
-          ctx.save();
-          ctx.translate(this.x, this.y);
-          ctx.rotate(this.rotation);
-          ctx.globalAlpha = alpha;
-          
-          const drawSize = this.size;
-          const aspectRatio = 389.4 / 297.8;
-          
-          // グロー効果（グラデーションで描画）
-          const glowSize = drawSize * 0.8;
-          const glowGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, glowSize);
-          glowGradient.addColorStop(0, `rgba(255, 220, 150, ${alpha * 0.4})`);
-          glowGradient.addColorStop(0.5, `rgba(255, 180, 100, ${alpha * 0.2})`);
-          glowGradient.addColorStop(1, 'transparent');
-          ctx.beginPath();
-          ctx.arc(0, 0, glowSize, 0, Math.PI * 2);
-          ctx.fillStyle = glowGradient;
-          ctx.fill();
-          
-          // kokkoちゃん本体を描画
-          ctx.drawImage(kokkoImage, -drawSize / 2, -drawSize * aspectRatio / 2, drawSize, drawSize * aspectRatio);
-          
-          ctx.restore();
-        }
-      }
-
-      // ========================================
-      // オーロラクラス
-      // ========================================
-      class Aurora {
-        constructor() {
-          this.waves = [];
-          for (let i = 0; i < 5; i++) {
-            this.waves.push({
-              y: h * 0.1 + i * 30,
-              amplitude: 20 + Math.random() * 40,
-              frequency: 0.002 + Math.random() * 0.003,
-              speed: 0.01 + Math.random() * 0.02,
-              phase: Math.random() * Math.PI * 2,
-              hue: 140 + i * 20,
-              alpha: 0.03 - i * 0.005
-            });
-          }
-        }
-
-        update() {
-          this.waves.forEach(wave => {
-            wave.phase += wave.speed;
-          });
-        }
-
-        draw(ctx) {
-          this.waves.forEach(wave => {
-            ctx.beginPath();
-            ctx.moveTo(0, wave.y);
-            for (let x = 0; x <= w; x += 5) {
-              const y = wave.y + Math.sin(x * wave.frequency + wave.phase) * wave.amplitude;
-              ctx.lineTo(x, y);
-            }
-            ctx.lineTo(w, h * 0.4);
-            ctx.lineTo(0, h * 0.4);
-            ctx.closePath();
-
-            const grad = ctx.createLinearGradient(0, wave.y - wave.amplitude, 0, h * 0.4);
-            grad.addColorStop(0, `hsla(${wave.hue}, 80%, 60%, ${wave.alpha})`);
-            grad.addColorStop(0.5, `hsla(${wave.hue + 30}, 70%, 50%, ${wave.alpha * 0.5})`);
-            grad.addColorStop(1, 'transparent');
-            ctx.fillStyle = grad;
-            ctx.fill();
-          });
-        }
-      }
-
-      // ========================================
-      // 初期化
-      // ========================================
-      const stars = [];
-      for (let i = 0; i < 600; i++) {
-        stars.push(new Star());
-      }
-
-      const nebulae = [];
-      for (let i = 0; i < 3; i++) {
-        nebulae.push(new Nebula());
-      }
-
-      const galaxy = new Galaxy(w * 0.75, h * 0.35, 180);
-
-      const flyingKokkos = [];
-      for (let i = 0; i < 12; i++) {
-        flyingKokkos.push(new FlyingKokko());
-      }
-
-      const aurora = new Aurora();
-
-      function triggerFlyingKokko() {
-        const inactive = flyingKokkos.find(k => !k.active);
-        if (inactive) {
-          inactive.trigger();
-          console.log('kokko triggered!');
-        }
-      }
-
-      // ========================================
-      // アニメーションループ
-      // ========================================
-      function animate() {
-        frame++;
-
-        const bg = ctx.createRadialGradient(w * 0.3, h * 0.3, 0, w / 2, h / 2, Math.max(w, h));
-        bg.addColorStop(0, '#0d0d1a');
-        bg.addColorStop(0.5, '#070711');
-        bg.addColorStop(1, '#020204');
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, w, h);
-
-        aurora.update();
-        aurora.draw(ctx);
-
-        nebulae.forEach(n => {
-          n.update();
-          n.draw(ctx);
-        });
-
-        galaxy.update();
-        galaxy.draw(ctx);
-
-        stars.forEach(s => {
-          s.update(frame, mouse);
-          s.draw(ctx);
-        });
-
-        if (frame % 300 === 0) {
-          triggerFlyingKokko();
-        }
-
-        flyingKokkos.forEach(k => {
-          k.update();
-          k.draw(ctx);
-        });
-
-        const vignette = ctx.createRadialGradient(w / 2, h / 2, h * 0.3, w / 2, h / 2, Math.max(w, h) * 0.8);
-        vignette.addColorStop(0, 'transparent');
-        vignette.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
-        ctx.fillStyle = vignette;
-        ctx.fillRect(0, 0, w, h);
-
-        requestAnimationFrame(animate);
-      }
-
-      // ========================================
-      // クリックカウンター & メニュー展開
-      // ========================================
-      let clickCount = 0;
-      let menuOpened = false;
-      const CLICKS_TO_OPEN = 20;
-
-      function updateClickCounter() {
-        const counter = document.getElementById('clickCounter');
-        if (!menuOpened) {
-          counter.textContent = `wishes: ${clickCount} / ${CLICKS_TO_OPEN}`;
-        }
-      }
-
-      function openMenu() {
-        if (menuOpened) return;
-        menuOpened = true;
-
-        document.getElementById('clickCounter').classList.add('hidden');
-        document.getElementById('clickHint').style.opacity = '0';
-        document.querySelector('.cosmos-content').classList.add('menu-open');
-        
-        setTimeout(function() {
-          document.getElementById('cosmosMenu').classList.add('visible');
-        }, 500);
-
-        for (let i = 0; i < 8; i++) {
-          setTimeout(function() {
-            triggerFlyingKokko();
-          }, i * 150);
-        }
-      }
-
-      // ========================================
-      // イベント
-      // ========================================
-      window.addEventListener('mousemove', function(e) {
-        mouse.x = e.clientX / w;
-        mouse.y = e.clientY / h;
-      });
-
-      window.addEventListener('resize', function() {
-        w = canvas.width = window.innerWidth;
-        h = canvas.height = window.innerHeight;
-        stars.forEach(s => s.reset());
-      });
-
-      canvas.addEventListener('click', function(e) {
-        console.log('canvas clicked!');
-        triggerFlyingKokko();
-        if (!menuOpened) {
-          clickCount++;
-          updateClickCounter();
-          if (clickCount >= CLICKS_TO_OPEN) {
-            openMenu();
-          }
-        }
-      });
-
-      // タッチイベント（モバイル対応）
-      canvas.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        console.log('canvas touched!');
-        triggerFlyingKokko();
-        if (!menuOpened) {
-          clickCount++;
-          updateClickCounter();
-          if (clickCount >= CLICKS_TO_OPEN) {
-            openMenu();
-          }
-        }
-      }, { passive: false });
-
-      // ========================================
-      // 開始
-      // ========================================
-      animate();
-
-      setTimeout(function() {
-        document.getElementById('title').classList.add('awakened');
-        document.getElementById('subtitle').classList.add('awakened');
-        document.getElementById('whisper').classList.add('awakened');
-        document.getElementById('clickHint').classList.add('awakened');
-      }, 1500);
-
-    })();
-  </script>
-  
-  
-  <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyBn5mrQbLWsi27YYED8EqkXbAaTpv27_MY",
-    authDomain: "chikumo-counter.firebaseapp.com",
-    databaseURL: "https://chikumo-counter-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "chikumo-counter",
-    storageBucket: "chikumo-counter.firebasestorage.app",
-    messagingSenderId: "405581609668",
-    appId: "1:405581609668:web:e28bbe71c0812c32b36791"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-</script>
-  
-  <!-- Current Observers (Concurrent Users) -->
-<div id="currentObservers" style="
-  position: fixed;
-  right: 14px;
-  bottom: 34px;
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  color: rgba(255,255,255,0.25);
-  font-family: 'Cormorant Garamond', serif;
-  z-index: 9999;
-  pointer-events: none;
-">
-  Current Observers: --
-</div>
-   <!-- Current Observers (Concurrent Users) -->
-  
-  <!-- 訪問者累計カウンターダグ終わり -->
-  <div id="visitorCounter" style="
-  position: fixed;
-  right: 14px;
-  bottom: 14px;
-  font-size: 11px;
-  letter-spacing: 0.2em;
-  color: rgba(255,255,255,0.25);
-  font-family: 'Cormorant Garamond', serif;
-  z-index: 9999;
-  pointer-events: none;
-">
-  OBSERVERS: --
-</div>
-<!-- 同時接続者カウンターダグ -->
-<!-- Firebase Counters Start -->
-<script type="module">
-import { getDatabase, ref, get, set, runTransaction, onValue, onDisconnect, push } 
-  from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
-
-function getOrCreateUUID() {
-  const KEY = "chikumo_uuid";
-  let uuid = localStorage.getItem(KEY);
-  if (!uuid) {
-    uuid = crypto.randomUUID();
-    localStorage.setItem(KEY, uuid);
-  }
-  return uuid;
-}
-
-function makeTextSetter(id, prefix) {
-  let el = null;
-  return (value) => {
-    if (!el) el = document.getElementById(id);
-    if (el) {
-      el.textContent = `${prefix}${value}`;
+  function buildStars() {
+    while (starField.firstChild) starField.removeChild(starField.firstChild);
+    const w = window.innerWidth, h = window.innerHeight;
+    starField.setAttribute('viewBox', `0 0 ${w} ${h}`);
+    const count = Math.floor((w * h) / 4500);
+    for (let i = 0; i < count; i++) {
+      const c    = document.createElementNS(SVG_NS, 'circle');
+      const cool = Math.random() < 0.18;
+      const r    = (Math.random() * 1.1 + 0.2).toFixed(2);
+      const a    = (Math.random() * 0.6 + 0.25).toFixed(3);
+      const dur  = (1.6 + Math.random() * 4.2).toFixed(2);
+      const dly  = (-Math.random() * 5).toFixed(2);
+      c.setAttribute('cx', (Math.random() * w).toFixed(1));
+      c.setAttribute('cy', (Math.random() * h).toFixed(1));
+      c.setAttribute('r',  r);
+      c.setAttribute('fill', cool ? '#aadcff' : '#e1e8ff');
+      c.style.setProperty('--a',     a);
+      c.style.setProperty('--dur',   dur + 's');
+      c.style.setProperty('--delay', dly + 's');
+      starField.appendChild(c);
     }
-  };
-}
-
-let countersStarted = false;
-
-async function initFirebaseCounters() {
-  if (countersStarted) return;
-  countersStarted = true;
-
-  const db = getDatabase();
-  const setUniqueText = makeTextSetter("visitorCounter", "OBSERVERS: ");
-  const setPresenceText = makeTextSetter("currentObservers", "Current Observers: ");
-
-  setUniqueText(0);
-  setPresenceText(0);
-
-  const uuid = getOrCreateUUID();
-  const visitorRef = ref(db, `visitors/${uuid}`);
-  const uniqueCountRef = ref(db, "stats/unique_count");
-
-  // 訪問者の存在確認と登録（get → set パターンで確実に判定）
-  try {
-    const snapshot = await get(visitorRef);
-    if (!snapshot.exists()) {
-      // 新規訪問者のみ: レコードを作成してカウントを増やす
-      await set(visitorRef, { firstSeen: Date.now() });
-      await runTransaction(uniqueCountRef, (n) => (n || 0) + 1);
-    }
-    // 既存訪問者（更新ボタン押下含む）: 何もしない
-  } catch (error) {
-    console.error("Visitor registration error:", error);
   }
-
-  // カウント表示の監視（リアルタイム更新）
-  onValue(uniqueCountRef, (snap) => {
-    const n = snap.val() || 0;
-    setUniqueText(n.toLocaleString());
+  buildStars();
+  let resizeRaf = 0;
+  window.addEventListener('resize', () => {
+    if (resizeRaf) return;
+    resizeRaf = requestAnimationFrame(() => { resizeRaf = 0; buildStars(); });
   });
 
-  // 同時接続者の管理（これは従来通り）
-  const presenceRef = push(ref(db, "presence"));
-  set(presenceRef, { online: true, at: Date.now() });
-  onDisconnect(presenceRef).remove();
+  // ───────── Chicks (via single SVG sprite, <use> reuse) ─────────
+  const chickLayer = document.getElementById('chickLayer');
+  const CHICK_COUNT    = 28;
+  const CHICK_DUR_MS   = 2600;      // one chick's full flight→core duration
+  const SPAWN_INTERVAL = 0.011;     // progress units between consecutive spawns
 
-  const presenceListRef = ref(db, "presence");
-  onValue(presenceListRef, (snapshot) => {
-    const val = snapshot.val();
-    const count = val ? Object.keys(val).length : 0;
-    setPresenceText(count);
-  });
-}
+  function newTraj() {
+    return {
+      angle:      Math.random() * Math.PI * 2,
+      dist:       0.60 + Math.random() * 0.45,
+      wobble:     (Math.random() - 0.5) * 0.6,
+      initRot:    Math.random() * 360,
+      turns:      3 + Math.random() * 5,
+      startScale: 0.65 + Math.random() * 0.55,
+    };
+  }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initFirebaseCounters, { once: true });
-} else {
-  initFirebaseCounters();
-}
-</script>
-<!-- Firebase Counters End -->
+  const chicks = [];
+  for (let i = 0; i < CHICK_COUNT; i++) {
+    const el = document.createElement('div');
+    el.className = 'chick';
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 297.78 389.41');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    const use = document.createElementNS(SVG_NS, 'use');
+    use.setAttribute('href', '#chikumo');
+    use.setAttributeNS(XLINK, 'xlink:href', '#chikumo');
+    svg.appendChild(use);
+    el.appendChild(svg);
+    chickLayer.appendChild(el);
+    chicks.push({ el, active: false, startMs: 0, ...newTraj() });
+  }
 
-<!-- Floating Kokko Display Start -->
-<div class="floating-kokko-container" id="floatingKokkoContainer"></div>
+  // ───────── Virtual scroll (infinite, spawn trigger only) ─────────
+  let scrollDist  = 0;              // monotonically accumulating px
+  let nextSpawnAt = 0;              // next progress threshold for spawn
+  const SCROLL_SCALE = 2500;        // px per progress unit
 
-<script type="module">
-import { getDatabase, ref, onValue } 
-  from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
+  function getScrollProgress() { return scrollDist / SCROLL_SCALE; }
 
-function initFloatingKokkos() {
-  const container = document.getElementById('floatingKokkoContainer');
-  const kokkoSrc = document.getElementById('kokkoImg').src;
-  let currentCount = 0;
-
-  function updateKokkos(count) {
-    // 現在の数と同じなら何もしない
-    if (count === currentCount) return;
-    
-    // kokkoちゃんを増減
-    if (count > currentCount) {
-      // 増やす
-      for (let i = currentCount; i < count; i++) {
-        const img = document.createElement('img');
-        img.src = kokkoSrc;
-        img.className = 'floating-kokko';
-        img.alt = 'kokko';
-        // 各kokkoに異なるアニメーション遅延を設定（自然な動きに）
-        const delay = (i * 0.4) % 3.5;
-        const duration = 3 + (i % 3) * 0.5;
-        img.style.animationDelay = `-${delay}s`;
-        img.style.animationDuration = `${duration}s`;
-        container.appendChild(img);
+  function trySpawn(nowMs) {
+    for (const c of chicks) {
+      if (!c.active) {
+        Object.assign(c, newTraj());
+        c.active  = true;
+        c.startMs = nowMs;
+        return;
       }
+    }
+  }
+
+  // Wheel (downward only advances; Ctrl/⌘+wheel is owned by zoom handler)
+  window.addEventListener('wheel', (e) => {
+    if (e.ctrlKey || e.metaKey) return;
+    if (e.deltaY > 0) scrollDist += e.deltaY;
+  }, { passive: true });
+
+  // Single-finger touch (upward swipe = scroll-down gesture)
+  let touchLastY = null;
+  window.addEventListener('touchstart', (e) => {
+    touchLastY = (e.touches.length === 1) ? e.touches[0].clientY : null;
+  }, { passive: true });
+  window.addEventListener('touchmove', (e) => {
+    if (e.touches.length !== 1 || touchLastY === null) return;
+    const y  = e.touches[0].clientY;
+    const dy = touchLastY - y;
+    if (dy > 0) scrollDist += dy;
+    touchLastY = y;
+  }, { passive: true });
+  window.addEventListener('touchend', () => { touchLastY = null; }, { passive: true });
+
+  // Keyboard: ArrowDown / PageDown / Space advance scroll
+  window.addEventListener('keydown', (e) => {
+    const tag = e.target && e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') {
+      scrollDist += (e.key === 'PageDown') ? window.innerHeight * 0.7 : 80;
+      e.preventDefault();
+    }
+  });
+
+  // ───────── Animation loop ─────────
+  function tick(t) {
+    // 1. Scroll → spawn new chicks (only spawning — not progression)
+    const progress = getScrollProgress();
+    if (nextSpawnAt < progress - 1) nextSpawnAt = progress - 1; // cap catch-up
+    while (progress >= nextSpawnAt) {
+      trySpawn(t);
+      nextSpawnAt += SPAWN_INTERVAL;
+    }
+
+    // 2. Each active chick animates by real time (unaffected by scroll)
+    const minDim = Math.min(window.innerWidth, window.innerHeight);
+    for (let i = 0; i < chicks.length; i++) {
+      const c = chicks[i];
+      if (!c.active) {
+        if (c.el.style.opacity !== '0') c.el.style.opacity = '0';
+        continue;
+      }
+      const elapsed = t - c.startMs;
+      if (elapsed >= CHICK_DUR_MS) {
+        c.active = false;
+        c.el.style.opacity = '0';
+        continue;
+      }
+      const u    = elapsed / CHICK_DUR_MS;
+      const ease = u * u * (1.4 - 0.4 * u);
+
+      const zoomF  = (typeof zoom === 'number') ? zoom : 1;
+      const radius = c.dist * minDim * 0.5 * (1 - ease) * zoomF;
+      const a      = c.angle + ease * Math.PI * 1.6 + c.wobble * Math.sin(u * Math.PI * 2);
+      const x      = Math.cos(a) * radius;
+      const y      = Math.sin(a) * radius;
+
+      const scale = c.startScale * (1 - ease) * (1 - u * 0.15) * zoomF;
+      const rot   = c.initRot + c.turns * 360 * ease;
+
+      let op;
+      if      (u < 0.08) op = u / 0.08;
+      else if (u > 0.92) op = (1 - u) / 0.08;
+      else               op = 1;
+      if (op < 0) op = 0; else if (op > 1) op = 1;
+
+      c.el.style.opacity = op.toFixed(3);
+      c.el.style.transform =
+        `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) ` +
+        `rotate(${rot.toFixed(1)}deg) scale(${Math.max(0, scale).toFixed(3)})`;
+    }
+
+    const sh = document.getElementById('scrollHint');
+    sh.style.opacity = Math.max(0, 1 - progress * 6).toFixed(2);
+
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  // ───────── Zoom (independent of scroll) ─────────
+  const stage     = document.getElementById('main');
+  const menu      = document.getElementById('menu');
+  const zoomHint  = document.getElementById('zoomHint');
+  const zoomLevel = document.getElementById('zoomLevel');
+  const ZOOM_MIN = 1.0, ZOOM_MAX = 6.0, MENU_THRESHOLD = 2.5;
+  let zoom = 1.0;
+
+  function setMenuInert(hidden) {
+    if (hidden) {
+      menu.setAttribute('aria-hidden', 'true');
+      if ('inert' in menu) menu.inert = true; else menu.setAttribute('inert', '');
     } else {
-      // 減らす
-      while (container.children.length > count) {
-        container.removeChild(container.lastChild);
-      }
+      menu.setAttribute('aria-hidden', 'false');
+      if ('inert' in menu) menu.inert = false; else menu.removeAttribute('inert');
     }
-    currentCount = count;
   }
 
-  // Firebase presence を監視
-  const db = getDatabase();
-  const presenceListRef = ref(db, "presence");
-  
-  onValue(presenceListRef, (snapshot) => {
-    const val = snapshot.val();
-    const count = val ? Object.keys(val).length : 0;
-    updateKokkos(count);
+  const blackhole = document.querySelector('.blackhole');
+
+  function applyZoom() {
+    // Apply scale DIRECTLY to blackhole SVG — Chrome's SVG renderer
+    // repaints at the new scale, so vector stays crisp at any zoom level.
+    blackhole.style.transform = `translate(-50%, -50%) scale(${zoom})`;
+    zoomLevel.textContent = zoom.toFixed(1) + '×';
+
+    if (zoom >= MENU_THRESHOLD) {
+      menu.classList.add('visible');
+      setMenuInert(false);
+      const k = Math.min(1, (zoom - MENU_THRESHOLD) / (ZOOM_MAX - MENU_THRESHOLD));
+      const visualScale = 0.6 + 0.4 * k;
+      menu.style.opacity   = (0.2 + 0.8 * k).toFixed(2);
+      menu.style.transform = `translate(-50%, -50%) scale(${visualScale.toFixed(4)})`;
+    } else {
+      menu.classList.remove('visible');
+      setMenuInert(true);
+      menu.style.opacity   = '0';
+      menu.style.transform = `translate(-50%, -50%) scale(0.6)`;
+    }
+
+    zoomHint.style.opacity = Math.max(0, 1 - (zoom - 1) * 1.5).toFixed(2);
+  }
+  applyZoom();
+
+  function setZoom(z) {
+    zoom = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, z));
+    applyZoom();
+  }
+
+  window.addEventListener('wheel', (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const delta = -e.deltaY * 0.005;
+      setZoom(zoom * Math.exp(delta));
+    }
+  }, { passive: false });
+
+  let gestureStartZoom = 1;
+  window.addEventListener('gesturestart',  (e) => { e.preventDefault(); gestureStartZoom = zoom; });
+  window.addEventListener('gesturechange', (e) => { e.preventDefault(); setZoom(gestureStartZoom * e.scale); });
+  window.addEventListener('gestureend',    (e) => { e.preventDefault(); });
+
+  let pinchStartDist = 0, pinchStartZoom = 1;
+  window.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      pinchStartDist = Math.hypot(dx, dy);
+      pinchStartZoom = zoom;
+    }
+  }, { passive: true });
+  window.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 2 && pinchStartDist > 0) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const d  = Math.hypot(dx, dy);
+      e.preventDefault();
+      setZoom(pinchStartZoom * (d / pinchStartDist));
+    }
+  }, { passive: false });
+  window.addEventListener('touchend', () => { pinchStartDist = 0; });
+
+  document.getElementById('zoomIn' ).addEventListener('click', () => setZoom(zoom * 1.3));
+  document.getElementById('zoomOut').addEventListener('click', () => setZoom(zoom / 1.3));
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '+' || e.key === '=') { setZoom(zoom * 1.2); e.preventDefault(); }
+    if (e.key === '-' || e.key === '_') { setZoom(zoom / 1.2); e.preventDefault(); }
+    if (e.key === '0' || e.key === 'Escape') { setZoom(1); }
   });
-}
 
-// 少し遅延させて初期化（Firebase初期化完了後に実行）
-setTimeout(initFloatingKokkos, 1000);
+  // ───────── Service Worker (offline-capable PWA) ─────────
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(() => { /* silent */ });
+    });
+  }
+})();
 </script>
-<!-- Floating Kokko Display End -->
-<!-- 訪問者累計カウンターダグ終わり -->
-
-
 </body>
 </html>

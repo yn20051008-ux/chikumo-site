@@ -1,0 +1,29 @@
+{
+  "name": "畜物語",
+  "short_name": "畜物語",
+  "description": "コッコちゃんとブラックホールの複合メディア作品",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#05060a",
+  "theme_color": "#05060a",
+  "lang": "ja",
+  "dir": "ltr",
+  "categories": ["entertainment", "art"],
+  "icons": [
+    {
+      "src": "chikumo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "chikumo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
