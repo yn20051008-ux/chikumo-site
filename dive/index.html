@@ -326,67 +326,54 @@ function pickType(){
   return 'chick';
 }
 
-/* ============ Bullets ============ */
+/* ============ Bullets (screen-space hitscan + tracers) ============ */
+// Aiming is screen-space with aim-assist so tapping near an enemy connects.
+// Each shot resolves targets immediately and spawns a short laser tracer for juice.
+function itemScreen(it){ const p=proj(it.zz),sp=SPREAD();
+  return {x:CX+it.ex*sp*p, y:CY+it.ey*sp*p, r:clamp(p*16,4,22)}; }
+function tracerTo(x,y){
+  const left=Math.random()<0.5;
+  bullets.push({x0:left?W*0.26:W*0.74, y0:H*0.965, x1:x, y1:y, life:0.13, max:0.13});
+}
 function fire(){
   if(G.fireT>0) return;
-  G.fireT = G.rapid>0 ? G.fireRate*0.5 : G.fireRate;
-  const ax=(G.aimX-CX)/SPREAD(), ay=(G.aimY-CY)/SPREAD();
-  const shots = G.spread>=3?[-0.06,0,0.06] : G.spread>=2?[-0.035,0.035] : [0];
-  for(const off of shots){
-    bullets.push({ex:ax+off, ey:ay, zz:0.02, sp:2.4, life:1});
+  G.fireT = G.rapid>0 ? G.fireRate*0.55 : G.fireRate;
+  Sound.shoot(); muzzle();
+  const ax=G.aimX, ay=G.aimY, assist=MINSIDE*0.055;
+  // collect enemies under the reticle (with assist), frontmost (smallest zz) first
+  const cand=[];
+  for(const e of enemies){ if(e.dead) continue;
+    const s=screenPos(e), dx=s.x-ax, dy=s.y-ay, rr=s.r+assist+(e.boss?24:6);
+    if(dx*dx+dy*dy<rr*rr) cand.push({e,s,d:dx*dx+dy*dy});
   }
-  Sound.shoot();
-  // muzzle flash from cannons
-  muzzle();
+  cand.sort((a,b)=> a.e.zz!==b.e.zz ? a.e.zz-b.e.zz : a.d-b.d);
+  let hits=0;
+  for(let i=0;i<G.spread && i<cand.length;i++){ const c=cand[i]; tracerTo(c.s.x,c.s.y); hitEnemy(c.e); hits++; }
+  // pick up an item if the reticle is on it
+  for(const it of items){ if(it.dead) continue;
+    const s=itemScreen(it), dx=s.x-ax, dy=s.y-ay, rr=s.r+assist;
+    if(dx*dx+dy*dy<rr*rr){ tracerTo(s.x,s.y); collectItem(it); it.dead=true; hits++; break; }
+  }
+  if(hits===0) tracerTo(ax,ay); // visual beam into the void
 }
 function muzzle(){
-  const ox=W*0.5;
   for(let i=0;i<2;i++){
-    particles.push({x:(i?W*0.78:W*0.22),y:H*0.96,vx:rnd(-30,30),vy:rnd(-120,-60),
+    particles.push({x:(i?W*0.74:W*0.26),y:H*0.96,vx:rnd(-30,30),vy:rnd(-120,-60),
       life:0.18,max:0.18,r:rnd(3,6),col:'180,230,255',spark:1});
   }
 }
-function updateBullets(dt){
-  for(const b of bullets){
-    b.zz += b.sp*dt;
-    // collision with enemies near same depth
-    for(const e of enemies){
-      if(e.dead) continue;
-      const dz=Math.abs(e.zz-b.zz);
-      if(dz<0.10){
-        const dx=(e.ex+e.drift*(1-e.zz))-b.ex, dy=(e.ey+e.driftY*(1-e.zz))-b.ey;
-        const hitR=e.r*1.5 + 0.03;
-        if(dx*dx+dy*dy < hitR*hitR){
-          hitEnemy(e); b.life=0; break;
-        }
-      }
-    }
-    // collision with items
-    for(const it of items){
-      if(it.dead) continue;
-      const dz=Math.abs(it.zz-b.zz);
-      if(dz<0.12){
-        const dx=it.ex-b.ex, dy=it.ey-b.ey;
-        if(dx*dx+dy*dy < 0.0045){ collectItem(it); it.dead=true; b.life=0; break; }
-      }
-    }
-    if(b.zz>1.05) b.life=0;
-  }
-  bullets=bullets.filter(b=>b.life>0);
-}
+function updateBullets(dt){ for(const b of bullets) b.life-=dt; bullets=bullets.filter(b=>b.life>0); }
 function drawBullets(){
-  const sp=SPREAD();
+  ctx.lineCap='round';
   for(const b of bullets){
-    const p=proj(b.zz), x=CX+b.ex*sp*p, y=CY+b.ey*sp*p;
-    const r=clamp(p*7,1.5,9);
-    // trail from origin toward target gives Z feel
-    const p0=proj(Math.max(0.02,b.zz-0.12)); const x0=CX+b.ex*sp*p0, y0=CY+b.ey*sp*p0;
-    const grad=ctx.createLinearGradient(x0,y0,x,y);
-    grad.addColorStop(0,'rgba(120,230,255,0)'); grad.addColorStop(1,'rgba(160,245,255,0.95)');
-    ctx.strokeStyle=grad; ctx.lineWidth=r*0.7; ctx.lineCap='round';
-    ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x,y); ctx.stroke();
-    ctx.fillStyle='#dffaff'; ctx.shadowColor='#5fe6ff'; ctx.shadowBlur=12;
-    ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.fill(); ctx.shadowBlur=0;
+    const a=clamp(b.life/b.max,0,1);
+    const grad=ctx.createLinearGradient(b.x0,b.y0,b.x1,b.y1);
+    grad.addColorStop(0,'rgba(120,230,255,0)'); grad.addColorStop(0.7,`rgba(150,240,255,${a*0.6})`);
+    grad.addColorStop(1,`rgba(200,250,255,${a})`);
+    ctx.strokeStyle=grad; ctx.lineWidth=2.5*a+1.5;
+    ctx.beginPath(); ctx.moveTo(b.x0,b.y0); ctx.lineTo(b.x1,b.y1); ctx.stroke();
+    ctx.fillStyle=`rgba(223,250,255,${a})`; ctx.shadowColor='#5fe6ff'; ctx.shadowBlur=14;
+    ctx.beginPath(); ctx.arc(b.x1,b.y1,4*a+1.5,0,TAU); ctx.fill(); ctx.shadowBlur=0;
   }
 }
 
