@@ -22,7 +22,7 @@ const winH={};
 global.window={innerWidth:1280,innerHeight:720,devicePixelRatio:1,maxTouchPoints:0,
   addEventListener:(t,cb)=>{(winH[t]=winH[t]||[]).push(cb);},removeEventListener:()=>{},
   AudioContext:function(){return{currentTime:0,state:'running',sampleRate:44100,destination:{},resume(){},
-    createGain:()=>({gain:{value:0,setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){}}),
+    createGain:()=>({gain:{value:0,setValueAtTime(){},exponentialRampToValueAtTime(){},linearRampToValueAtTime(){},cancelScheduledValues(){}},connect(){}}),
     createOscillator:()=>({type:'',frequency:{setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){},start(){},stop(){}}),
     createBuffer:(c,n)=>({getChannelData:()=>new Float32Array(n)}),
     createBufferSource:()=>({buffer:null,connect(){},start(){}}),
