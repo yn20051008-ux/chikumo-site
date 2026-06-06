@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480">
+  <defs>
+    <style>
+      .out { fill: none; stroke: #2a2622; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
+      .body { fill: #f4cf48; }
+      .cap { fill: #30363d; }
+      .eye { fill: #2a2622; }
+      .beak { fill: #d9853a; }
+      .foot { fill: #efa63b; }
+      .cheek { fill: #f0a36e; opacity: 0.45; }
+      .shadow { fill: #00000012; }
+    </style>
+  </defs>
+
+  <!-- ground shadow -->
+  <ellipse class="shadow" cx="200" cy="454" rx="118" ry="15"/>
+
+  <!-- body -->
+  <path class="body out" d="M200 128
+    C104 128, 64 206, 64 292
+    C64 382, 110 442, 200 444
+    C290 442, 336 382, 336 292
+    C336 206, 296 128, 200 128 Z"/>
+
+  <!-- feet -->
+  <path class="foot out" d="M158 438 q-16 16 -8 28 q14 7 24 -4"/>
+  <path class="foot out" d="M242 438 q16 16 8 28 q-14 7 -24 -4"/>
+
+  <!-- cheeks -->
+  <ellipse class="cheek" cx="116" cy="314" rx="21" ry="14"/>
+  <ellipse class="cheek" cx="284" cy="314" rx="21" ry="14"/>
+
+  <!-- cap (snug rounded dome) -->
+  <path class="cap out" d="M88 212
+    C72 130, 140 92, 204 94
+    C272 96, 322 134, 314 206
+    C300 196, 250 188, 200 188
+    C140 188, 104 200, 88 212 Z"/>
+  <!-- cap brim -->
+  <path class="cap out" d="M88 212 q-30 6 -34 24 q26 6 52 -10 Z"/>
+
+  <!-- eyes -->
+  <ellipse class="eye" cx="165" cy="270" rx="15" ry="18"/>
+  <ellipse class="eye" cx="235" cy="270" rx="15" ry="18"/>
+
+  <!-- eyebrow -->
+  <path d="M152 244 Q200 228 248 244" class="out" stroke-width="7"/>
+
+  <!-- beak -->
+  <path class="beak out" d="M188 289 Q200 284 212 289 Q207 304 200 306 Q193 304 188 289 Z" stroke-width="6"/>
+</svg>
