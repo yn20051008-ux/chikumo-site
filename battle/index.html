@@ -122,6 +122,15 @@
   .seg button{pointer-events:auto;background:transparent;color:#cfe0ff;border:none;padding:9px 18px;
     font-size:13px;font-weight:700;letter-spacing:.1em;cursor:pointer;}
   .seg button.sel{background:rgba(155,91,255,.55);color:#fff;}
+  .lvsel{display:inline-flex;align-items:center;gap:12px;margin-top:6px;}
+  .lvsel button{pointer-events:auto;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.25);
+    background:rgba(155,91,255,.28);color:#fff;font-size:22px;font-weight:900;cursor:pointer;line-height:1;}
+  .lvsel button:active{transform:scale(.92);}
+  .lvbox{min-width:150px;font-size:13px;font-weight:700;letter-spacing:.08em;color:#cfe0ff;text-align:center;}
+  .lvbox b{font-size:22px;color:#fff;display:inline-block;min-width:1.4em;}
+  .lvbar{height:6px;border-radius:4px;background:rgba(255,255,255,.12);margin-top:5px;overflow:hidden;}
+  .lvbar span{display:block;height:100%;width:50%;border-radius:4px;
+    background:linear-gradient(90deg,#39e0ff,#b46bff);transition:width .15s;}
 
   /* ===== Short / landscape screens: keep every control on-screen & reachable ===== */
   @media (max-height:600px){
@@ -191,10 +200,10 @@
       <button data-mode="cpu" class="sel">1P vs CPU</button>
       <button data-mode="2p">2P 対戦</button>
     </div>
-    <div class="seg" id="diffSeg">
-      <button data-diff="0">よわい</button>
-      <button data-diff="1" class="sel">ふつう</button>
-      <button data-diff="2">つよい</button>
+    <div class="lvsel" id="diffSel">
+      <button id="lvDown" aria-label="難易度を下げる">−</button>
+      <div class="lvbox">CPU レベル <b id="lvVal">5</b><div class="lvbar"><span id="lvFill"></span></div></div>
+      <button id="lvUp" aria-label="難易度を上げる">＋</button>
     </div>
     <div class="seg" id="stockSeg">
       <button data-stock="2">2 スト</button>
@@ -364,7 +373,7 @@ function makeFighter(idx){
 let P=[makeFighter(0),makeFighter(1)];
 let projectiles=[], sparks=[], floats=[];
 let shake=0, hitstop=0, slow=0;
-let state='title', mode='cpu', diff=1, startStocks=3, winner=-1, koFlash=0, koText=0, gameTime=0;
+let state='title', mode='cpu', diff=5, startStocks=3, winner=-1, koFlash=0, koText=0, gameTime=0;
 
 /* ===== Input ===== */
 const keys={};
@@ -582,41 +591,58 @@ function runAI(cpu,hu){
   cpu.ai.out=o;
   if(cpu.ko>0) return;
   const dx=hu.x-cpu.x, dy=hu.y-cpu.y, ad=Math.abs(dx);
-  const react=[20,11,5][diff], aggr=[0.5,0.75,0.95][diff];
+  const L=clamp(diff,1,10);                       // difficulty level 1..10
+  const react=Math.max(2,Math.round(28-L*2.6));   // L1~25f .. L10~2f reaction
+  const aggr=Math.min(1,0.28+L*0.075);            // L1~0.36 .. L10~1.0
   cpu.ai.t++;
-  // recover if off-stage
   const offstage = cpu.x<GROUND.x1-20 || cpu.x>GROUND.x2+20;
+  // recover if knocked off-stage
   if(offstage && cpu.y>GROUND.y-30){
-    o[dx>0? 'right':'left'] = (cpu.x<GROUND.x1)?true:false;
     o.right = cpu.x<VW/2; o.left = cpu.x>VW/2;
-    if(cpu.vy>0||cpu.y>GROUND.y){ o.up=true; if(cpu.jumps<=0 && cpu.y>GROUND.y) { o.up=true; o.special=true; } }
+    if(cpu.vy>0||cpu.y>GROUND.y){ o.up=true; if(cpu.jumps<=0 && cpu.y>GROUND.y) o.special=true; }
     cpu.ai.last=o; return;
   }
-  // hitstun -> try DI/jump out
+  // in hitstun -> DI upward to survive
   if(cpu.hitstun>4){ if(cpu.y>GROUND.y) o.up=true; cpu.ai.last=o; return; }
-
-  // decide action on a cadence (reaction)
+  // reactive defense (mid+): shield an incoming close attack
+  if(L>=4 && cpu.onGround && ad<150 && hu.state==='attack' && hu.atk && !hu.atk.hit && Math.random()<0.2+L*0.05){
+    o.shield=true; cpu.ai.last=o; return;
+  }
+  // edge-guard pursuit (high levels) — chase off-stage but turn back before suiciding
+  if(L>=6){
+    const huOff = hu.x<GROUND.x1-10 || hu.x>GROUND.x2+10;
+    if(huOff && hu.y<GROUND.y+50){
+      o[dx>0?'right':'left']=true;
+      if(dy<-30 && cpu.onGround) o.up=true;
+      if(ad<150 && Math.abs(dy)<130){ o.attack=(cpu.ai.t%5<2); if(dy>10) o.down=true; }
+      if(cpu.x<GROUND.x1-90){ o.left=false; o.right=true; }     // don't chase too far
+      if(cpu.x>GROUND.x2+90){ o.right=false; o.left=true; }
+      cpu.ai.last=o; return;
+    }
+  }
+  // decide action on a reaction cadence
   if(cpu.ai.t>=cpu.ai.dur){
-    cpu.ai.t=0; cpu.ai.dur=react+Math.floor(rnd(0,react));
-    const r=Math.random();
-    if(ad>360){ cpu.ai.act = (r<0.3 && Math.abs(dy)<70)?'beam':'approach'; }
-    else if(ad>110){ cpu.ai.act = r<aggr?'approach':(r<aggr+0.15?'jumpapp':'wait'); }
-    else { // close
+    cpu.ai.t=0; cpu.ai.dur=react+Math.floor(rnd(0,react*0.6));
+    const r=Math.random(), wantKO=hu.percent>80;
+    if(ad>360){ cpu.ai.act=(r<0.25+(L>=3?0.1:0) && Math.abs(dy)<80)?'beam':'approach'; }
+    else if(ad>110){ cpu.ai.act = r<aggr?'approach':(r<aggr+0.2?'jumpapp':'wait'); }
+    else {
       if(dy<-50) cpu.ai.act='upatk';
-      else if(r<0.18) cpu.ai.act='shield';
-      else if(r<0.6) cpu.ai.act='atk';
+      else if(L>=4 && r<0.13) cpu.ai.act='shield';
+      else if(wantKO && L>=3 && r<0.55) cpu.ai.act='side';   // smash for the kill
+      else if(r<0.55) cpu.ai.act='atk';
       else cpu.ai.act = r<0.8?'side':'grabspace';
     }
-    if(Math.random()>aggr+0.1) cpu.ai.act='wait';
+    if(Math.random()>aggr+0.15) cpu.ai.act='wait';
   }
-  const act=cpu.ai.act;
-  // face & move
-  const toward = dx>0?'right':'left';
-  if(act==='approach'||act==='jumpapp'){ if(ad>70) o[toward]=true; if(act==='jumpapp'&&cpu.onGround&&Math.random()<0.1)o.up=true; if(dy<-90&&cpu.onGround&&Math.random()<0.15)o.up=true; }
+  const act=cpu.ai.act, toward=dx>0?'right':'left';
+  const atkPulse = cpu.ai.t % (L>=8?4:6) < 2;     // faster attack inputs at high level
+  if(act==='approach'||act==='jumpapp'){ if(ad>66) o[toward]=true; if(act==='jumpapp'&&cpu.onGround&&Math.random()<0.12)o.up=true; if(dy<-90&&cpu.onGround&&Math.random()<0.18)o.up=true; }
   else if(act==='grabspace'){ o[dx>0?'left':'right']=true; }
-  else if(act==='beam'){ o.special=true; if(dx>0)o.right=true; else o.left=true; o.up=false; }
-  else if(act==='atk'||act==='side'){ if(ad>78)o[toward]=true; else { o[toward]=true; o.attack=(cpu.ai.t%6<2); } }
-  else if(act==='upatk'){ if(ad>50)o[toward]=true; else { o.up=true; o.attack=(cpu.ai.t%6<2);} }
+  else if(act==='beam'){ o.special=true; o[dx>0?'right':'left']=true; o.up=false; }
+  else if(act==='atk'){ if(ad>74)o[toward]=true; else { o[toward]=true; o.attack=atkPulse; } }
+  else if(act==='side'){ if(ad>92)o[toward]=true; else { o[toward]=true; o.attack=atkPulse; } }
+  else if(act==='upatk'){ if(ad>50)o[toward]=true; else { o.up=true; o.attack=atkPulse; } }
   else if(act==='shield'){ o.shield=true; }
   // never walk off the stage while grounded (prevents self-destructs)
   if(cpu.onGround && !offstage){
@@ -831,8 +857,14 @@ function seg(id,attr,cb){ const c=document.getElementById(id); c.querySelectorAl
   b.addEventListener('click',()=>{ Sound.init();Sound.resume(); Sound.select();
     c.querySelectorAll('button').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); cb(b.dataset[attr]); }); }); }
 seg('modeSeg','mode',v=>mode=v);
-seg('diffSeg','diff',v=>diff=+v);
 seg('stockSeg','stock',v=>startStocks=+v);
+/* CPU level stepper (1..10) */
+function setLv(v){ diff=clamp(v,1,10);
+  const val=document.getElementById('lvVal'), fill=document.getElementById('lvFill');
+  if(val) val.textContent=diff; if(fill) fill.style.width=(diff*10)+'%'; }
+(function(){ const d=document.getElementById('lvDown'), u=document.getElementById('lvUp');
+  const bump=(n)=>{ Sound.init();Sound.resume();Sound.select(); setLv(diff+n); };
+  if(d) d.onclick=()=>bump(-1); if(u) u.onclick=()=>bump(1); setLv(diff); })();
 function uiBtn(id,fn){ const e=document.getElementById(id); if(!e)return;
   e.onclick=()=>{ Sound.init();Sound.resume(); Sound.ui(); fn(); }; }
 uiBtn('startBtn',startMatch);
