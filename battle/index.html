@@ -54,6 +54,10 @@
     background:rgba(20,30,55,.5);color:#fff;font-size:17px;cursor:pointer;pointer-events:auto;}
   #muteBtn:active{transform:scale(.92);}
   #muteBtn.off{opacity:.5;}
+  #fsBtn{position:absolute;top:calc(8px + env(safe-area-inset-top));right:calc(10px + env(safe-area-inset-right));
+    z-index:30;width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,.25);
+    background:rgba(20,30,55,.5);color:#fff;font-size:18px;cursor:pointer;pointer-events:auto;}
+  #fsBtn:active{transform:scale(.92);}
   /* rotate-to-landscape prompt */
   #rotate{position:absolute;inset:0;z-index:60;display:none;flex-direction:column;
     align-items:center;justify-content:center;text-align:center;gap:18px;
@@ -167,6 +171,7 @@
 
   <div id="timer">∞</div>
   <button id="muteBtn" aria-label="サウンド切替">🔊</button>
+  <button id="fsBtn" aria-label="全画面切替">⛶</button>
 
   <!-- rotate prompt (portrait, touch) -->
   <div id="rotate"><div class="ph"></div><div class="t">📱 横向きにしてね</div><div class="s">よこ画面で対戦しよう</div></div>
@@ -880,6 +885,20 @@ let audioOn=true;
     mb.textContent = audioOn?'🔊':'🔇'; mb.classList.toggle('off',!audioOn);
     if(audioOn){ Sound.resume(); if(state==='countdown'||state==='fight'||state==='result') Sound.startBGM(); }
   };
+})();
+
+/* ===== Fullscreen toggle ===== */
+(function(){ const fb=document.getElementById('fsBtn'); if(!fb)return;
+  const docEl=document.documentElement||{};
+  const reqFn=docEl.requestFullscreen||docEl.webkitRequestFullscreen||docEl.webkitRequestFullScreen||docEl.msRequestFullscreen;
+  if(!reqFn){ fb.style.display='none'; return; }   // unsupported (e.g. iPhone Safari)
+  function fsEl(){ return document.fullscreenElement||document.webkitFullscreenElement||document.msFullscreenElement; }
+  function exit(){ (document.exitFullscreen||document.webkitExitFullscreen||document.msExitFullscreen||function(){}).call(document); }
+  fb.onclick=()=>{ Sound.init();Sound.resume();
+    try{ if(!fsEl()){ const p=reqFn.call(docEl); if(p&&p.catch)p.catch(()=>{}); tryLockLandscape(); } else exit(); }catch(e){} };
+  function sync(){ fb.textContent = fsEl()?'🡼':'⛶'; setTimeout(resize,80); }
+  document.addEventListener('fullscreenchange',sync);
+  document.addEventListener('webkitfullscreenchange',sync);
 })();
 
 /* ===== Debug hook (for headless test) ===== */
