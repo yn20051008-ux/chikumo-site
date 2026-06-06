@@ -220,9 +220,12 @@ const Sound=(function(){
     jump(){ tone(420,.1,'sine',.18,720); },
     shield(){ tone(300,.1,'sine',.18); },
     beam(){ tone(700,.14,'sawtooth',.2,200); },
-    ko(){ noise(.5,.6,900); tone(90,.5,'sawtooth',.3,40); },
+    ko(){ noise(.55,.6,900); tone(90,.55,'sawtooth',.3,40); tone(1200,.18,'square',.2,300); },
     win(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,.16,'sine',.3),i*120)); },
-    count(f){ tone(f,.14,'sine',.3); } };
+    count(f){ tone(f,.14,'sine',.3); },
+    whoosh(){ noise(.14,.18,3000); tone(520,.1,'sine',.12,1100); },
+    select(){ tone(560,.05,'square',.16,840); },
+    ui(){ tone(700,.04,'triangle',.14); } };
 })();
 
 /* ===== Mascot sprites ===== */
@@ -333,6 +336,7 @@ function canAct(f){ return (f.state==='idle'||f.state==='shield') && f.hitstun<=
 function startAttack(f,name){
   const d=ATK[name]; if(!d)return;
   f.state='attack'; f.atk={name,def:d,t:0,active:false,hit:false}; f.squash=0.2;
+  if(d.smash||name==='up'||name==='dair'||name==='upB') Sound.whoosh();
   if(name==='upB'){ f.vy=RECOVER; f.onGround=false; f.jumps=0; }
 }
 function hurtbox(f){ return {x:f.x-FW/2, y:f.y-FH, w:FW, h:FH}; }
@@ -568,10 +572,10 @@ function startMatch(){
   P[1].cpu = (mode!=='2p'); P[1].ai={t:0,act:null,dur:10,out:{}};
   projectiles=[]; sparks=[]; shake=0; hitstop=0; slow=0; koFlash=0; koText=0; winner=-1; gameTime=0;
   document.getElementById('n2').textContent = mode==='2p'?'ブラックこっこ(2P)':'ブラックこっこ';
-  hideScreens(); state='countdown'; countdown=3.0;
+  hideScreens(); state='countdown'; countdown=3.0; lastCount=99;
   updateHUD();
 }
-let countdown=0;
+let countdown=0, lastCount=99;
 function endMatch(win){ state='result'; winner=win; Sound.win();
   document.getElementById('winText').textContent = (win===0?'こっこ':'ブラックこっこ')+' WIN!';
   const wi=document.getElementById('winImg'); wi.className = win===1?'imgdark':'';
@@ -617,8 +621,9 @@ function loop(ts){
   let steps=0;
   while(acc>=STEP && steps<8){
     if(state==='countdown'){ countdown-=STEP*(slow>0?0.4:1);
-      const prev=Math.ceil(countdown+STEP*(slow>0?0.4:1));
-      if(countdown<=0){ state='fight'; }
+      const n=Math.ceil(countdown);
+      if(n!==lastCount){ lastCount=n; if(n>0) Sound.count(660); }   // 3,2,1 beeps
+      if(countdown<=0){ state='fight'; Sound.count(1040); }          // FIGHT! chime
     }
     else tickGame();
     acc-=STEP; steps++;
@@ -739,15 +744,18 @@ setInterval(()=>{ if(state==='fight'){ const s=Math.floor(gameTime);
 function show(id){ ['titleScreen','howScreen','resultScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id)); }
 function hideScreens(){ ['titleScreen','howScreen','resultScreen'].forEach(s=>document.getElementById(s).classList.add('hidden')); }
 function seg(id,attr,cb){ const c=document.getElementById(id); c.querySelectorAll('button').forEach(b=>{
-  b.addEventListener('click',()=>{ c.querySelectorAll('button').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); cb(b.dataset[attr]); }); }); }
+  b.addEventListener('click',()=>{ Sound.init();Sound.resume(); Sound.select();
+    c.querySelectorAll('button').forEach(x=>x.classList.remove('sel')); b.classList.add('sel'); cb(b.dataset[attr]); }); }); }
 seg('modeSeg','mode',v=>mode=v);
 seg('diffSeg','diff',v=>diff=+v);
 seg('stockSeg','stock',v=>startStocks=+v);
-document.getElementById('startBtn').onclick=startMatch;
-document.getElementById('rematchBtn').onclick=startMatch;
-document.getElementById('toTitleBtn').onclick=()=>{ state='title'; show('titleScreen'); };
-document.getElementById('howBtn').onclick=()=>show('howScreen');
-document.getElementById('howBack').onclick=()=>show('titleScreen');
+function uiBtn(id,fn){ const e=document.getElementById(id); if(!e)return;
+  e.onclick=()=>{ Sound.init();Sound.resume(); Sound.ui(); fn(); }; }
+uiBtn('startBtn',startMatch);
+uiBtn('rematchBtn',startMatch);
+uiBtn('toTitleBtn',()=>{ state='title'; show('titleScreen'); });
+uiBtn('howBtn',()=>show('howScreen'));
+uiBtn('howBack',()=>show('titleScreen'));
 
 /* ===== Debug hook (for headless test) ===== */
 window.__cocco={ get state(){return state;}, set state(v){state=v;}, P:()=>P, set diff(v){diff=v;}, set mode(v){mode=v;},
