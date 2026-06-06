@@ -777,7 +777,11 @@ function drawFighter(f){
   // invuln blink
   if(f.invuln>0 && Math.floor(f.invuln/4)%2===0) ctx.globalAlpha=0.4;
   ctx.scale(f.facing*sx, sy);
-  if(ready){ ctx.drawImage(img, -w/2, -h+6, w, h); }
+  if(ready){
+    if(f.dark){ ctx.shadowColor='rgba(200,165,255,0.95)'; ctx.shadowBlur=24; }  // rim light so black is visible
+    ctx.drawImage(img, -w/2, -h+6, w, h);
+    if(f.dark){ ctx.shadowBlur=2; ctx.drawImage(img, -w/2, -h+6, w, h); ctx.shadowBlur=0; } // 2nd pass to thicken halo
+  }
   else { ctx.fillStyle=f.dark?'#2a1840':'#f5e8c6'; ctx.beginPath(); ctx.arc(0,-h*0.5,w*0.4,0,TAU); ctx.fill(); }
   // hit flash overlay
   if(f.hitFlash>0){ ctx.globalAlpha=clamp(f.hitFlash,0,1)*0.8; ctx.globalCompositeOperation='source-atop';
@@ -808,7 +812,7 @@ function render(){
   if(shake>0.3) ctx.translate(rnd(-shake,shake),rnd(-shake,shake));
   // background
   const bg=ctx.createLinearGradient(0,0,0,VH);
-  bg.addColorStop(0,'#10162e'); bg.addColorStop(0.5,'#0a0c1c'); bg.addColorStop(1,'#05060f');
+  bg.addColorStop(0,'#28315c'); bg.addColorStop(0.5,'#1b2347'); bg.addColorStop(1,'#10162f');
   ctx.fillStyle=bg; ctx.fillRect(-200,-300,VW+400,VH+600);
   // distant glow
   ctx.save(); const rg=ctx.createRadialGradient(VW/2,VH*0.4,40,VW/2,VH*0.4,VW*0.6);
