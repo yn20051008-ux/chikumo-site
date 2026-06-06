@@ -49,6 +49,11 @@
   #timer{position:absolute;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);
     z-index:10;font-size:24px;font-weight:900;font-variant-numeric:tabular-nums;opacity:.85;
     text-shadow:0 0 10px rgba(0,0,0,.8);}
+  #muteBtn{position:absolute;top:calc(8px + env(safe-area-inset-top));left:calc(10px + env(safe-area-inset-left));
+    z-index:30;width:40px;height:40px;border-radius:50%;border:2px solid rgba(255,255,255,.25);
+    background:rgba(20,30,55,.5);color:#fff;font-size:17px;cursor:pointer;pointer-events:auto;}
+  #muteBtn:active{transform:scale(.92);}
+  #muteBtn.off{opacity:.5;}
 
   /* ===== Touch controls ===== */
   #pad{position:absolute;inset:0;z-index:11;pointer-events:none;}
@@ -114,6 +119,7 @@
   <canvas id="game"></canvas>
 
   <div id="timer">∞</div>
+  <button id="muteBtn" aria-label="サウンド切替">🔊</button>
   <!-- HUD -->
   <div id="hud">
     <div class="pl p1"><div class="nm" id="n1">こっこ</div><div class="pct" id="pct1">0<small>%</small></div><div class="stk" id="stk1"></div></div>
@@ -214,7 +220,33 @@ const Sound=(function(){
     for(let i=0;i<len;i++)dt[i]=(Math.random()*2-1)*(1-i/len);
     const s=ac.createBufferSource(); s.buffer=b; const fl=ac.createBiquadFilter(); fl.type='lowpass'; fl.frequency.value=f||1500;
     const g=ac.createGain(); g.gain.value=v||.4; s.connect(fl); fl.connect(g); g.connect(master); s.start(n); }
+  /* ---- BGM: original synthesized chiptune loop (no external/copyrighted audio) ---- */
+  let bgmGain=null,bgmTimer=null,bgmStep=0,bgmNext=0,bgmOn=false;
+  const SD=60/132/2; // eighth note @132bpm
+  const PROG=[ {bass:110.00,arp:[440.00,523.25,659.25]}, {bass:87.31,arp:[349.23,440.00,523.25]},
+               {bass:130.81,arp:[523.25,659.25,783.99]}, {bass:98.00,arp:[392.00,493.88,587.33]} ];
+  function bnote(f,t,d,type,v){ const o=ac.createOscillator(),g=ac.createGain();
+    o.type=type; o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(v,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g); g.connect(bgmGain); o.start(t); o.stop(t+d+.02); }
+  function bhat(t){ const len=Math.floor(ac.sampleRate*0.03),b=ac.createBuffer(1,len,ac.sampleRate),d=b.getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
+    const s=ac.createBufferSource(); s.buffer=b; const f=ac.createBiquadFilter(); f.type='highpass'; f.frequency.value=6500;
+    const g=ac.createGain(); g.gain.value=.05; s.connect(f); f.connect(g); g.connect(bgmGain); s.start(t); }
+  function bstep(i,t){ const ch=PROG[Math.floor(i/4)%4], k=i%4;
+    bnote(ch.bass*(k%2?2:1), t, SD*0.9, 'triangle', .42);
+    bnote(k===3?ch.arp[2]*2:ch.arp[k%3], t, SD*0.8, 'square', k===3?.12:.15);
+    bhat(t+SD*0.5); }
+  function bsched(){ if(!ac||!bgmOn)return; while(bgmNext<ac.currentTime+0.15){ bstep(bgmStep,bgmNext); bgmNext+=SD; bgmStep=(bgmStep+1)%16; } }
+  function startBGM(){ if(!ac||muted)return; if(!bgmGain){ bgmGain=ac.createGain(); bgmGain.gain.value=0.0001; bgmGain.connect(master); }
+    if(bgmOn)return; bgmOn=true; bgmStep=0; bgmNext=ac.currentTime+0.1;
+    try{ bgmGain.gain.cancelScheduledValues(ac.currentTime); bgmGain.gain.setValueAtTime(0.0001,ac.currentTime);
+      bgmGain.gain.linearRampToValueAtTime(0.15,ac.currentTime+1.0);}catch(e){}
+    bgmTimer=setInterval(bsched,40); }
+  function stopBGM(){ bgmOn=false; if(bgmTimer){clearInterval(bgmTimer);bgmTimer=null;}
+    if(bgmGain){ try{ bgmGain.gain.cancelScheduledValues(ac.currentTime); bgmGain.gain.linearRampToValueAtTime(0.0001,ac.currentTime+0.3);}catch(e){} } }
   return { init, resume(){ if(ac&&ac.state==='suspended')ac.resume(); },
+    setMuted(b){ muted=b; if(b) stopBGM(); }, startBGM, stopBGM,
     hit(p){ noise(.08,.25,2200); tone(180+p*4,.06,'square',.16,120); },
     heavy(){ noise(.16,.5,1400); tone(120,.16,'sawtooth',.3,50); },
     jump(){ tone(420,.1,'sine',.18,720); },
@@ -573,6 +605,7 @@ function startMatch(){
   projectiles=[]; sparks=[]; shake=0; hitstop=0; slow=0; koFlash=0; koText=0; winner=-1; gameTime=0;
   document.getElementById('n2').textContent = mode==='2p'?'ブラックこっこ(2P)':'ブラックこっこ';
   hideScreens(); state='countdown'; countdown=3.0; lastCount=99;
+  if(audioOn) Sound.startBGM();
   updateHUD();
 }
 let countdown=0, lastCount=99;
@@ -753,9 +786,18 @@ function uiBtn(id,fn){ const e=document.getElementById(id); if(!e)return;
   e.onclick=()=>{ Sound.init();Sound.resume(); Sound.ui(); fn(); }; }
 uiBtn('startBtn',startMatch);
 uiBtn('rematchBtn',startMatch);
-uiBtn('toTitleBtn',()=>{ state='title'; show('titleScreen'); });
+uiBtn('toTitleBtn',()=>{ state='title'; Sound.stopBGM(); show('titleScreen'); });
 uiBtn('howBtn',()=>show('howScreen'));
 uiBtn('howBack',()=>show('titleScreen'));
+
+/* sound on/off toggle (controls SFX mute + BGM) */
+let audioOn=true;
+(function(){ const mb=document.getElementById('muteBtn'); if(!mb)return;
+  mb.onclick=()=>{ Sound.init(); audioOn=!audioOn; Sound.setMuted(!audioOn);
+    mb.textContent = audioOn?'🔊':'🔇'; mb.classList.toggle('off',!audioOn);
+    if(audioOn){ Sound.resume(); if(state==='countdown'||state==='fight'||state==='result') Sound.startBGM(); }
+  };
+})();
 
 /* ===== Debug hook (for headless test) ===== */
 window.__cocco={ get state(){return state;}, set state(v){state=v;}, P:()=>P, set diff(v){diff=v;}, set mode(v){mode=v;},
