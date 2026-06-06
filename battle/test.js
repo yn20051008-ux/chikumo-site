@@ -84,5 +84,18 @@ ok(P[0].x>-400&&P[0].x<VWcheck()+400,'fighters remain near the arena');
 ok(P[0].percent>dmg0 || P[0].stocks<3 || C.state==='result','aggressive CPU actually fights (dmg/stock/end)');
 function VWcheck(){return 1280;}
 
+// --- landscape optimization: portrait on a touch device blocks play & pauses the loop ---
+C.startMatch(); C.setCountReady();
+global.navigator.maxTouchPoints=2;                 // pretend touch device
+global.window.innerWidth=420; global.window.innerHeight=900; // portrait
+C.resize();
+ok(C.blocked===true,'portrait on touch is blocked (rotate prompt)');
+ok(els['rotate']._cls.has('show'),'rotate-to-landscape overlay is shown');
+const sBefore=JSON.stringify(C.P().map(f=>[f.x.toFixed(1),f.percent]));
+frames(120);
+ok(JSON.stringify(C.P().map(f=>[f.x.toFixed(1),f.percent]))===sBefore,'game is paused while portrait (no movement/dmg)');
+global.window.innerWidth=1280; global.window.innerHeight=620; C.resize();   // back to landscape
+ok(C.blocked===false && !els['rotate']._cls.has('show'),'landscape resumes play (prompt hidden)');
+
 console.log('\nframes run: '+frame+'   '+(fail?(fail+' CHECK(S) FAILED'):'ALL CHECKS PASSED'));
 process.exit(fail?1:0);
