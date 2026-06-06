@@ -70,6 +70,9 @@
   #bombBtn.off{opacity:.35;}
   #pauseBtn{right:calc(14px + env(safe-area-inset-right));top:calc(64px + env(safe-area-inset-top));
     width:42px;height:42px;font-size:16px;}
+  #muteBtn{right:calc(64px + env(safe-area-inset-right));top:calc(64px + env(safe-area-inset-top));
+    width:42px;height:42px;font-size:17px;}
+  #muteBtn.off{opacity:.5;}
 
   /* ===== Overlays ===== */
   .screen{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;
@@ -130,6 +133,7 @@
     <div id="waveTag"><div class="n" id="waveN">1</div><div class="s" id="waveS">WAVE</div></div>
     <div id="shieldWrap"><div class="lbl">SHIELD</div><div id="shieldBar"><div id="shieldFill"></div></div></div>
     <div class="ctrlbtn" id="pauseBtn">❚❚</div>
+    <div class="ctrlbtn" id="muteBtn">🔊</div>
     <div class="ctrlbtn" id="bombBtn"><span class="c">✸</span><span>BOMB</span></div>
   </div>
 
@@ -223,9 +227,37 @@ const Sound = (function(){
     const g=ac.createGain(); g.gain.value=vol||0.4;
     s.connect(f); f.connect(g); g.connect(master); s.start(t);
   }
+  /* ---- BGM: original synthesized driving loop (no external/copyrighted audio) ---- */
+  let bgmGain=null,bgmTimer=null,bgmStep=0,bgmNext=0,bgmOn=false;
+  const SD=60/140/2; // eighth @140bpm
+  const PROG=[ {bass:82.41,arp:[329.63,392.00,493.88]},   // Em
+               {bass:65.41,arp:[261.63,329.63,392.00]},   // C
+               {bass:98.00,arp:[392.00,493.88,587.33]},   // G
+               {bass:73.42,arp:[293.66,369.99,440.00]} ]; // D
+  function bnote(f,t,d,type,v){ const o=ac.createOscillator(),g=ac.createGain();
+    o.type=type; o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(v,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g); g.connect(bgmGain); o.start(t); o.stop(t+d+.02); }
+  function bhat(t){ const len=Math.floor(ac.sampleRate*0.025),b=ac.createBuffer(1,len,ac.sampleRate),d=b.getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
+    const s=ac.createBufferSource(); s.buffer=b; const f=ac.createBiquadFilter(); f.type='highpass'; f.frequency.value=7000;
+    const g=ac.createGain(); g.gain.value=.04; s.connect(f); f.connect(g); g.connect(bgmGain); s.start(t); }
+  function bstep(i,t){ const ch=PROG[Math.floor(i/4)%4], k=i%4;
+    bnote(ch.bass*(k%2?2:1), t, SD*0.9, 'triangle', .42);
+    bnote(k===3?ch.arp[2]*2:ch.arp[k%3], t, SD*0.85, 'square', k===3?.10:.13);
+    bhat(t+SD*0.5); }
+  function bsched(){ if(!ac||!bgmOn)return; while(bgmNext<ac.currentTime+0.15){ bstep(bgmStep,bgmNext); bgmNext+=SD; bgmStep=(bgmStep+1)%16; } }
+  function startBGM(){ if(!ac||muted)return; if(!bgmGain){ bgmGain=ac.createGain(); bgmGain.gain.value=0.0001; bgmGain.connect(master); }
+    if(bgmOn)return; bgmOn=true; bgmStep=0; bgmNext=ac.currentTime+0.1;
+    try{ bgmGain.gain.cancelScheduledValues(ac.currentTime); bgmGain.gain.setValueAtTime(0.0001,ac.currentTime);
+      bgmGain.gain.linearRampToValueAtTime(0.13,ac.currentTime+1.0);}catch(e){}
+    bgmTimer=setInterval(bsched,40); }
+  function stopBGM(){ bgmOn=false; if(bgmTimer){clearInterval(bgmTimer);bgmTimer=null;}
+    if(bgmGain){ try{ bgmGain.gain.cancelScheduledValues(ac.currentTime); bgmGain.gain.linearRampToValueAtTime(0.0001,ac.currentTime+0.3);}catch(e){} } }
   return {
     init,
     resume(){ if(ac&&ac.state==='suspended') ac.resume(); },
+    setMuted(b){ muted=b; if(b) stopBGM(); }, startBGM, stopBGM,
     shoot(){ tone(880,0.07,'square',0.12,420); },
     hit(){ tone(220,0.05,'square',0.18,140); },
     boom(big){ noise(big?0.5:0.22, big?0.6:0.4, big?900:1400); tone(big?90:160,big?0.5:0.2,'sawtooth',0.25,40); },
@@ -812,6 +844,12 @@ window.addEventListener('keyup',e=>{ if(e.code==='Space') G.firing=false; });
 
 document.getElementById('bombBtn').addEventListener('click',useBomb);
 document.getElementById('pauseBtn').addEventListener('click',togglePause);
+let audioOn=true;
+(function(){ const mb=document.getElementById('muteBtn'); if(!mb)return;
+  mb.addEventListener('click',()=>{ Sound.init(); audioOn=!audioOn; Sound.setMuted(!audioOn);
+    mb.textContent=audioOn?'🔊':'🔇'; mb.classList.toggle('off',!audioOn);
+    if(audioOn){ Sound.resume(); if(G.state==='play') Sound.startBGM(); }
+  }); })();
 
 /* ============ Flow ============ */
 function loadHi(){ try{ G.hi=parseInt(localStorage.getItem('coccoDiveHi')||'0',10)||0; }catch(e){ G.hi=0; }
@@ -824,7 +862,7 @@ function hideScreens(){ ['titleScreen','howScreen','overScreen'].forEach(s=>
   document.getElementById(s).classList.add('hidden')); }
 
 function startGame(){
-  Sound.init(); Sound.resume();
+  Sound.init(); Sound.resume(); if(audioOn) Sound.startBGM();
   enemies=[];bullets=[];particles=[];items=[];floaters=[];
   Object.assign(G,{state:'play',score:0,combo:0,comboTimer:0,mult:1,shield:100,
     wave:0,waveActive:false,bossMode:false,toSpawn:0,spawnT:0,fireT:0,spread:1,rapid:0,
@@ -849,7 +887,7 @@ function rankFor(s){
   return {r:'D',msg:'もういちどダイブ！',col:'#c8d4e8'};
 }
 function gameOver(){
-  G.state='over'; G.firing=false; Sound.over();
+  G.state='over'; G.firing=false; Sound.stopBGM(); Sound.over();
   if(G.score>G.hi){ G.hi=G.score; saveHi(); G.best=true; setTimeout(()=>Sound.best(),400);
     document.getElementById('hiscore').textContent=G.hi.toLocaleString(); }
   const rk=rankFor(G.score); G.rank=rk.r;
