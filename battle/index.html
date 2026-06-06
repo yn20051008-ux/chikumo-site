@@ -533,9 +533,11 @@ function runAI(cpu,hu){
   else if(act==='atk'||act==='side'){ if(ad>78)o[toward]=true; else { o[toward]=true; o.attack=(cpu.ai.t%6<2); } }
   else if(act==='upatk'){ if(ad>50)o[toward]=true; else { o.up=true; o.attack=(cpu.ai.t%6<2);} }
   else if(act==='shield'){ o.shield=true; }
-  // avoid walking off edge
-  if(o.left && cpu.onGround && cpu.x<GROUND.x1+30 && hu.x>cpu.x) o.left=false;
-  if(o.right && cpu.onGround && cpu.x>GROUND.x2-30 && hu.x<cpu.x) o.right=false;
+  // never walk off the stage while grounded (prevents self-destructs)
+  if(cpu.onGround && !offstage){
+    if(o.left  && cpu.x<GROUND.x1+45) o.left=false;
+    if(o.right && cpu.x>GROUND.x2-45) o.right=false;
+  }
   cpu.ai.last=o;
 }
 
