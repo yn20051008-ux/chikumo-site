@@ -54,6 +54,16 @@
     background:rgba(20,30,55,.5);color:#fff;font-size:17px;cursor:pointer;pointer-events:auto;}
   #muteBtn:active{transform:scale(.92);}
   #muteBtn.off{opacity:.5;}
+  /* rotate-to-landscape prompt */
+  #rotate{position:absolute;inset:0;z-index:60;display:none;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;gap:18px;
+    background:radial-gradient(ellipse at center,#0a0c1c,#05060a);color:#eaf2ff;}
+  #rotate.show{display:flex;}
+  #rotate .ph{width:96px;height:60px;border:4px solid #c8a8ff;border-radius:12px;
+    box-shadow:0 0 26px rgba(155,91,255,.5);animation:rot 1.8s ease-in-out infinite;}
+  @keyframes rot{0%,30%{transform:rotate(0);}70%,100%{transform:rotate(-90deg);}}
+  #rotate .t{font-size:20px;font-weight:900;letter-spacing:.12em;}
+  #rotate .s{font-size:13px;opacity:.7;letter-spacing:.1em;}
 
   /* ===== Touch controls ===== */
   #pad{position:absolute;inset:0;z-index:11;pointer-events:none;}
@@ -120,6 +130,9 @@
 
   <div id="timer">∞</div>
   <button id="muteBtn" aria-label="サウンド切替">🔊</button>
+
+  <!-- rotate prompt (portrait, touch) -->
+  <div id="rotate"><div class="ph"></div><div class="t">📱 横向きにしてね</div><div class="s">よこ画面で対戦しよう</div></div>
   <!-- HUD -->
   <div id="hud">
     <div class="pl p1"><div class="nm" id="n1">こっこ</div><div class="pct" id="pct1">0<small>%</small></div><div class="stk" id="stk1"></div></div>
@@ -197,14 +210,22 @@
 const cv=document.getElementById('game'), ctx=cv.getContext('2d');
 const VW=1280, VH=720;            // logical play resolution
 let W=0,H=0,DPR=1,scale=1,offx=0,offy=0;
+let isTouch=false, portraitBlock=false;
 function resize(){
   DPR=Math.min(window.devicePixelRatio||1,2);
   W=window.innerWidth; H=window.innerHeight;
   cv.width=Math.floor(W*DPR); cv.height=Math.floor(H*DPR);
   scale=Math.min(W/VW,H/VH); offx=(W-VW*scale)/2; offy=(H-VH*scale)/2;
+  // landscape-only on touch devices: block & prompt rotation in portrait
+  const touchNow = ('ontouchstart' in window) || navigator.maxTouchPoints>0;
+  portraitBlock = touchNow && H>W;
+  const r=document.getElementById('rotate'); if(r) r.classList.toggle('show',portraitBlock);
 }
-window.addEventListener('resize',resize); resize();
-if(!('ontouchstart' in window) && !navigator.maxTouchPoints) document.body.classList.add('notouch');
+isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints>0;
+window.addEventListener('resize',resize);
+window.addEventListener('orientationchange',()=>setTimeout(resize,60));
+resize();
+if(!isTouch) document.body.classList.add('notouch');
 
 /* ===== Audio ===== */
 const Sound=(function(){
@@ -595,8 +616,9 @@ function resolveHits(){
 }
 
 /* ===== Match flow ===== */
+function tryLockLandscape(){ try{ if(isTouch && screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(()=>{}); }catch(e){} }
 function startMatch(){
-  Sound.init(); Sound.resume();
+  Sound.init(); Sound.resume(); tryLockLandscape();
   P=[makeFighter(0),makeFighter(1)];
   P[0].stocks=startStocks; P[1].stocks=startStocks;
   P[0].x=VW/2-150; P[0].y=GROUND.y; P[0].facing=1;
@@ -649,6 +671,7 @@ function tickGame(){
 function loop(ts){
   requestAnimationFrame(loop);
   let dt=(ts-last)/1000; last=ts; if(dt>0.25)dt=0.25; if(!dt)dt=1/60;
+  if(portraitBlock){ acc=0; render(); return; }   // paused while phone is portrait
   if(slow>0){ slow-=dt; }
   acc+=dt;
   let steps=0;
@@ -802,7 +825,7 @@ let audioOn=true;
 /* ===== Debug hook (for headless test) ===== */
 window.__cocco={ get state(){return state;}, set state(v){state=v;}, P:()=>P, set diff(v){diff=v;}, set mode(v){mode=v;},
   set startStocks(v){startStocks=v;}, startMatch, hit:(i)=>applyHit(P[i],P[1-i],ATK.side),
-  setCountReady:()=>{state='fight';} };
+  setCountReady:()=>{state='fight';}, resize, get blocked(){return portraitBlock;} };
 
 /* ===== Boot ===== */
 show('titleScreen'); updateHUD();
