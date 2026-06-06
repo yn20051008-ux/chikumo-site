@@ -75,7 +75,7 @@ while(C.state==='fight' && guard++<20){ const pp=C.P(); pp[1].x=3000; pp[1].ko=0
 ok(C.state==='result','match ends when a fighter loses all stocks');
 
 // --- CPU vs idle human runs clean for a while, something happens ---
-C.mode='cpu'; C.diff=2; C.startStocks=3; C.startMatch(); C.setCountReady();
+C.mode='cpu'; C.diff=9; C.startStocks=3; C.startMatch(); C.setCountReady();
 const dmg0=C.P()[0].percent;
 frames(1800); // ~30s of CPU pressure on an idle P1
 P=C.P();
