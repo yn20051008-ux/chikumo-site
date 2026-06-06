@@ -1,52 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 480">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">
   <defs>
     <style>
-      .out { fill: none; stroke: #2a2622; stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; }
-      .body { fill: #f4cf48; }
-      .cap { fill: #30363d; }
-      .eye { fill: #2a2622; }
-      .beak { fill: #d9853a; }
-      .foot { fill: #efa63b; }
-      .cheek { fill: #f0a36e; opacity: 0.45; }
-      .shadow { fill: #00000012; }
+      .out  { fill: none; stroke: #3a342c; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+      .body { fill: #f4d35e; }
+      .cap  { fill: #2f343c; }
+      .eye  { fill: #2c2722; }
+      .beak { fill: #d98a3c; }
+      .foot { fill: #e9a23a; }
+      .shadow { fill: #00000010; }
     </style>
+    <clipPath id="bodyclip">
+      <path d="M200 95 C120 95, 78 150, 76 215 C74 285, 110 345, 200 348 C290 345, 326 285, 324 215 C322 150, 280 95, 200 95 Z"/>
+    </clipPath>
   </defs>
 
   <!-- ground shadow -->
-  <ellipse class="shadow" cx="200" cy="454" rx="118" ry="15"/>
+  <ellipse class="shadow" cx="200" cy="356" rx="110" ry="13"/>
+
+  <!-- wings -->
+  <path class="body out" d="M92 224 q-24 11 -19 35 q14 12 25 -3 q5 -21 -6 -32 Z"/>
+  <path class="body out" d="M308 224 q24 11 19 35 q-14 12 -25 -3 q-5 -21 6 -32 Z"/>
 
   <!-- body -->
-  <path class="body out" d="M200 128
-    C104 128, 64 206, 64 292
-    C64 382, 110 442, 200 444
-    C290 442, 336 382, 336 292
-    C336 206, 296 128, 200 128 Z"/>
+  <path class="body out" d="M200 95
+    C120 95, 78 150, 76 215
+    C74 285, 110 345, 200 348
+    C290 345, 326 285, 324 215
+    C322 150, 280 95, 200 95 Z"/>
+
+  <!-- soft volume shading inside body -->
+  <g clip-path="url(#bodyclip)">
+    <ellipse cx="200" cy="392" rx="140" ry="58" fill="#e7bf45" opacity="0.30"/>
+  </g>
 
   <!-- feet -->
-  <path class="foot out" d="M158 438 q-16 16 -8 28 q14 7 24 -4"/>
-  <path class="foot out" d="M242 438 q16 16 8 28 q-14 7 -24 -4"/>
+  <path class="foot out" d="M176 344 q-14 14 -7 25 q12 6 21 -4"/>
+  <path class="foot out" d="M224 344 q14 14 7 25 q-12 6 -21 -4"/>
 
-  <!-- cheeks -->
-  <ellipse class="cheek" cx="116" cy="314" rx="21" ry="14"/>
-  <ellipse class="cheek" cx="284" cy="314" rx="21" ry="14"/>
+  <!-- cap (compact, perched & tilted) — brim under, crown on top -->
+  <g transform="rotate(-8 200 140)">
+    <!-- brim (drawn first; inner part hidden under crown) -->
+    <path class="cap out" d="M152 134 C108 135, 74 157, 66 174 C86 182, 120 174, 152 156 C162 150, 162 140, 152 134 Z"/>
+    <!-- crown (on top) -->
+    <path class="cap out" d="M105 150
+      C104 100, 150 78, 200 78
+      C255 78, 296 100, 294 148
+      C245 150, 160 150, 120 156
+      C112 156, 106 154, 105 150 Z"/>
+  </g>
 
-  <!-- cap (snug rounded dome) -->
-  <path class="cap out" d="M88 212
-    C72 130, 140 92, 204 94
-    C272 96, 322 134, 314 206
-    C300 196, 250 188, 200 188
-    C140 188, 104 200, 88 212 Z"/>
-  <!-- cap brim -->
-  <path class="cap out" d="M88 212 q-30 6 -34 24 q26 6 52 -10 Z"/>
+  <!-- eyebrow (single soft arc) -->
+  <path d="M158 206 Q200 192 242 206" class="out" stroke-width="5"/>
 
   <!-- eyes -->
-  <ellipse class="eye" cx="165" cy="270" rx="15" ry="18"/>
-  <ellipse class="eye" cx="235" cy="270" rx="15" ry="18"/>
-
-  <!-- eyebrow -->
-  <path d="M152 244 Q200 228 248 244" class="out" stroke-width="7"/>
+  <ellipse class="eye" cx="174" cy="226" rx="11" ry="13"/>
+  <ellipse class="eye" cx="226" cy="226" rx="11" ry="13"/>
 
   <!-- beak -->
-  <path class="beak out" d="M188 289 Q200 284 212 289 Q207 304 200 306 Q193 304 188 289 Z" stroke-width="6"/>
+  <path class="beak out" d="M192 243 Q200 240 208 243 Q205 255 200 257 Q195 255 192 243 Z" stroke-width="4.5"/>
 </svg>
