@@ -122,6 +122,34 @@
   .seg button{pointer-events:auto;background:transparent;color:#cfe0ff;border:none;padding:9px 18px;
     font-size:13px;font-weight:700;letter-spacing:.1em;cursor:pointer;}
   .seg button.sel{background:rgba(155,91,255,.55);color:#fff;}
+
+  /* ===== Short / landscape screens: keep every control on-screen & reachable ===== */
+  @media (max-height:600px){
+    .screen{justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;
+      padding:12px 16px 24px;gap:0;}
+    .fighters{margin-bottom:2px;}
+    .fighters img{width:64px;}
+    .fighters .vs{font-size:26px;}
+    .logo{font-size:clamp(28px,7vh,44px);line-height:1;}
+    .logo.small{font-size:clamp(22px,6vh,34px);}
+    .winner{font-size:clamp(30px,9vh,56px);}
+    .sub{margin-top:2px;font-size:11px;}
+    .desc{margin-top:8px;font-size:12px;line-height:1.6;}
+    .seg{margin-top:5px;}
+    .seg button{padding:6px 13px;font-size:12px;}
+    .btn{margin-top:9px;padding:10px 30px;font-size:15px;}
+    .btn.ghost{margin-top:8px;padding:8px 20px;font-size:13px;}
+    .btn-row{margin-top:8px;gap:10px;}
+    .hint{margin-top:10px;}
+    .credit{position:static;margin-top:10px;}
+  }
+  /* very short (landscape phone) — tighten further */
+  @media (max-height:430px){
+    .fighters img{width:50px;} .fighters{gap:14vw;}
+    .logo{font-size:clamp(24px,8vh,38px);}
+    .seg button{padding:5px 11px;font-size:11px;}
+    .btn{padding:9px 26px;font-size:14px;}
+  }
 </style>
 </head>
 <body>
