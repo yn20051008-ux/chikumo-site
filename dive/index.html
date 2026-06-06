@@ -77,6 +77,10 @@
     background:radial-gradient(ellipse at center,rgba(8,12,28,.72),rgba(3,4,10,.94));
     -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
   .screen.hidden{display:none;}
+  .hero{width:min(34vw,150px);height:auto;margin-bottom:14px;
+    filter:drop-shadow(0 8px 26px rgba(255,200,120,.35));
+    animation:heroFloat 3.4s ease-in-out infinite;}
+  @keyframes heroFloat{0%,100%{transform:translateY(0) rotate(-2deg);}50%{transform:translateY(-10px) rotate(2deg);}}
   .logo{font-size:13vw;line-height:.92;font-weight:900;font-style:italic;letter-spacing:.02em;
     background:linear-gradient(180deg,#fff 0%,#9fd0ff 55%,#5b8bff 100%);
     -webkit-background-clip:text;background-clip:text;color:transparent;
@@ -131,6 +135,7 @@
 
   <!-- TITLE -->
   <div class="screen" id="titleScreen">
+    <img class="hero" src="/chikumo.svg" alt="コッコちゃん" width="120" height="157">
     <div class="logo">COCCO DIVE</div>
     <div class="sub">コッコダイブ</div>
     <div class="desc">
@@ -254,6 +259,23 @@ const G = {
   best:false,
 };
 let enemies=[], bullets=[], particles=[], items=[], stars=[], floaters=[];
+
+/* ============ Official mascot (コッコちゃん) ============ */
+const coccoImg = new Image();
+let coccoReady = false;
+coccoImg.onload = ()=>{ coccoReady = true; };
+coccoImg.src = '/chikumo.svg';
+const COCCO_AR = 297.78/389.41; // width/height of the official artwork
+// draw the official character centered at (cx,cy) with the given width (uses current transform)
+function drawCocco(cx,cy,w){
+  if(coccoReady){
+    const h=w/COCCO_AR;
+    ctx.drawImage(coccoImg, cx-w/2, cy-h/2, w, h);
+  } else { // fallback while the SVG loads
+    ctx.fillStyle='#f5e8c6'; ctx.beginPath(); ctx.arc(cx,cy,w*0.45,0,TAU); ctx.fill();
+    ctx.fillStyle='#df953b'; ctx.beginPath(); ctx.arc(cx,cy,w*0.18,0,TAU); ctx.fill();
+  }
+}
 
 /* ============ Starfield (Z streaks) ============ */
 function initStars(){
@@ -505,14 +527,12 @@ function drawEnemy(e){
   // glow halo by depth
   ctx.shadowColor=t.col; ctx.shadowBlur=clamp(s.p*16,2,16);
   if(e.type==='chick'){
-    // コッコ星: yellow chick orb with beak
-    const g=ctx.createRadialGradient(-s.r*0.3,-s.r*0.3,s.r*0.1,0,0,s.r);
-    g.addColorStop(0,'#fff6c8'); g.addColorStop(0.5,t.col); g.addColorStop(1,t.col2);
-    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,s.r,0,TAU); ctx.fill();
-    ctx.shadowBlur=0; ctx.fillStyle='#ff8a3a';
-    ctx.beginPath(); ctx.moveTo(s.r*0.95,0); ctx.lineTo(s.r*0.55,-s.r*0.22); ctx.lineTo(s.r*0.55,s.r*0.22); ctx.fill();
-    ctx.fillStyle='#23170a'; const eo=s.r*0.34;
-    ctx.beginPath(); ctx.arc(eo,-s.r*0.18,s.r*0.11,0,TAU); ctx.arc(eo*0.4,-s.r*0.3,s.r*0.11,0,TAU); ctx.fill();
+    // 畜星：公式キャラ「コッコちゃん」。キャラは向きがあるので回転を打ち消して直立で描く
+    ctx.rotate(-e.rot);
+    ctx.shadowColor='#ffd98a'; ctx.shadowBlur=clamp(s.p*18,3,18);
+    const bob=Math.sin(G.time*3+e.wob)*s.r*0.06;
+    drawCocco(0,bob,s.r*2.5);
+    ctx.shadowBlur=0;
   } else if(e.type==='rock'){
     const g=ctx.createRadialGradient(-s.r*0.3,-s.r*0.3,s.r*0.1,0,0,s.r);
     g.addColorStop(0,'#e3b483'); g.addColorStop(1,t.col2); ctx.fillStyle=g;
@@ -753,14 +773,11 @@ function drawShip(){
   ctx.moveTo(0,H); ctx.lineTo(0,H-40+bob);
   ctx.quadraticCurveTo(W*0.5,H-90+bob,W,H-40+bob); ctx.lineTo(W,H); ctx.closePath(); ctx.fill();
   ctx.strokeStyle='rgba(120,200,255,.5)'; ctx.lineWidth=2; ctx.stroke();
-  // little コッコ pilot
-  const px=W*0.5, py=H-26+bob;
-  ctx.fillStyle='#ffe14d'; ctx.shadowColor='#ffe14d'; ctx.shadowBlur=10;
-  ctx.beginPath(); ctx.arc(px,py,15,0,TAU); ctx.fill(); ctx.shadowBlur=0;
-  ctx.fillStyle='#ff8a3a'; ctx.beginPath();
-  ctx.moveTo(px,py-2); ctx.lineTo(px-7,py-7); ctx.lineTo(px-7,py+3); ctx.fill();
-  ctx.fillStyle='#23170a';
-  ctx.beginPath(); ctx.arc(px+3,py-4,2.2,0,TAU); ctx.arc(px-2,py-5,2.2,0,TAU); ctx.fill();
+  // 操縦する公式キャラ「コッコちゃん」（コックピットから顔を出す）
+  const pw=clamp(MINSIDE*0.13,46,84);
+  ctx.shadowColor='#ffd98a'; ctx.shadowBlur=14;
+  drawCocco(W*0.5, H-pw*0.34+bob, pw);
+  ctx.shadowBlur=0;
 }
 function drawReticle(){
   const x=G.aimX,y=G.aimY,r=18+Math.sin(G.time*5)*2;
