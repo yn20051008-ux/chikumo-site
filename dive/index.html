@@ -98,6 +98,14 @@
   .score-final .v{font-size:52px;font-weight:900;color:#fff;display:block;
     font-variant-numeric:tabular-nums;text-shadow:0 0 24px rgba(120,180,255,.8);}
   .nb{margin-top:10px;font-size:12px;color:#ffe14d;letter-spacing:.2em;opacity:0;}
+  #rankWrap{margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  #rankBadge{width:104px;height:104px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:62px;font-weight:900;font-style:italic;line-height:1;
+    border:3px solid currentColor;color:#9ec3ff;
+    box-shadow:0 0 30px -4px currentColor,inset 0 0 22px -6px currentColor;
+    animation:rankpop .5s cubic-bezier(.2,1.4,.4,1) both;}
+  @keyframes rankpop{0%{transform:scale(0) rotate(-25deg);opacity:0;}100%{transform:scale(1) rotate(0);opacity:1;}}
+  #rankMsg{font-size:13px;letter-spacing:.18em;font-weight:700;color:#dfeaff;}
   .hint{margin-top:26px;font-size:11px;opacity:.5;letter-spacing:.12em;line-height:1.8;}
   .credit{position:absolute;bottom:14px;font-size:10px;letter-spacing:.2em;opacity:.4;}
   .credit a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3);}
@@ -154,6 +162,7 @@
   <!-- GAME OVER -->
   <div class="screen hidden" id="overScreen">
     <div class="logo small" id="overTitle">GAME OVER</div>
+    <div id="rankWrap"><div id="rankBadge">A</div><div id="rankMsg">ナイスダイブ！</div></div>
     <div class="score-final">SCORE<span class="v" id="finalScore">0</span></div>
     <div class="nb" id="newBest">★ NEW BEST! ★</div>
     <div class="desc" id="overStat" style="font-size:12px;opacity:.7;letter-spacing:.15em;"></div>
@@ -810,10 +819,21 @@ function togglePause(){
     banner('PAUSE','',''); }
   else if(G.state==='pause'){ G.state='play'; document.getElementById('pauseBtn').textContent='❚❚'; }
 }
+function rankFor(s){
+  if(s>=80000) return {r:'S',msg:'宇宙の覇者！',col:'#ffd84d'};
+  if(s>=45000) return {r:'A',msg:'エースパイロット！',col:'#7fe9ff'};
+  if(s>=22000) return {r:'B',msg:'なかなかやるね！',col:'#5bff9e'};
+  if(s>=9000)  return {r:'C',msg:'その調子だ！',col:'#9ec3ff'};
+  return {r:'D',msg:'もういちどダイブ！',col:'#c8d4e8'};
+}
 function gameOver(){
   G.state='over'; G.firing=false; Sound.over();
   if(G.score>G.hi){ G.hi=G.score; saveHi(); G.best=true; setTimeout(()=>Sound.best(),400);
     document.getElementById('hiscore').textContent=G.hi.toLocaleString(); }
+  const rk=rankFor(G.score); G.rank=rk.r;
+  const badge=document.getElementById('rankBadge');
+  badge.textContent=rk.r; badge.style.color=rk.col;
+  document.getElementById('rankMsg').textContent=rk.msg;
   document.getElementById('finalScore').textContent=G.score.toLocaleString();
   document.getElementById('newBest').style.opacity=G.best?'1':'0';
   document.getElementById('overStat').textContent=`WAVE ${G.wave} ／ 撃破 ${G.enemiesKilled}`;
@@ -829,7 +849,7 @@ document.getElementById('howBtn').onclick=()=>show('howScreen');
 document.getElementById('howBack').onclick=()=>show('titleScreen');
 
 document.getElementById('shareBtn').onclick=async()=>{
-  const txt=`コッコダイブで ${G.score.toLocaleString()} 点！Z軸の宇宙シューティング🚀 #コッコダイブ #畜物語`;
+  const txt=`コッコダイブで ${G.score.toLocaleString()} 点・ランク${G.rank||rankFor(G.score).r}！Z軸の宇宙シューティング🚀 きみは何点取れる？ #コッコダイブ #畜物語`;
   const url='https://chikumo.jp/dive/';
   if(navigator.share){ try{ await navigator.share({title:'COCCO DIVE',text:txt,url}); return; }catch(e){} }
   window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(txt)+'&url='+encodeURIComponent(url),'_blank','noopener');
