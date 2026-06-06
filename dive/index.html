@@ -707,10 +707,8 @@ function render(){
   drawStars();
 
   if(G.state==='play'||G.state==='pause'||G.state==='over'){
-    // depth sort: far first
-    const drawList=[...enemies,...items.map(i=>({_item:i,zz:i.zz}))].sort((a,b)=>b.zz-a.zz);
-    drawItems(); // simple: items then enemies sorted; draw items separately
-    enemies.sort((a,b)=>b.zz-a.zz);
+    drawItems();                      // items behind enemies
+    enemies.sort((a,b)=>b.zz-a.zz);   // draw far-to-near
     for(const e of enemies) drawEnemy(e);
     drawBullets();
     drawParticles();
@@ -728,6 +726,13 @@ function render(){
   const vg=ctx.createRadialGradient(CX,H*0.5,MINSIDE*0.3,CX,H*0.5,MINSIDE*0.85);
   vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,0.55)');
   ctx.fillStyle=vg; ctx.fillRect(0,0,W,H);
+  // low-shield danger pulse
+  if(G.state==='play' && G.shield<30){
+    const pulse=(0.18+(30-G.shield)/30*0.28)*(0.5+0.5*Math.sin(G.time*7));
+    const dv=ctx.createRadialGradient(CX,H*0.5,MINSIDE*0.35,CX,H*0.5,MINSIDE*0.9);
+    dv.addColorStop(0,'rgba(255,40,60,0)'); dv.addColorStop(1,`rgba(255,40,60,${pulse})`);
+    ctx.fillStyle=dv; ctx.fillRect(0,0,W,H);
+  }
 }
 
 /* player ship (cockpit-ish, bottom) + コッコ */
