@@ -84,7 +84,18 @@ ok(P[0].x>-400&&P[0].x<VWcheck()+400,'fighters remain near the arena');
 ok(P[0].percent>dmg0 || P[0].stocks<3 || C.state==='result','aggressive CPU actually fights (dmg/stock/end)');
 function VWcheck(){return 1280;}
 
+// --- training mode: P2 is a dummy, KOs don't cost stocks and the match never ends ---
+C.mode='train'; C.startStocks=3; C.startMatch(); C.setCountReady();
+P=C.P();
+ok(P[1].cpu===false,'training: opponent is not CPU (dummy)');
+const trStock=P[0].stocks;
+for(let i=0;i<10;i++){ const q=C.P(); q[1].x=3000; q[1].ko=0; q[0].x=-3000; q[0].ko=0; frames(4); }
+ok(C.state==='fight','training: match never ends after many KOs');
+ok(C.P()[0].stocks===trStock && C.P()[1].stocks===trStock,'training: KOs do not reduce stocks');
+C.mode='cpu';
+
 // --- landscape optimization: portrait on a touch device blocks play & pauses the loop ---
+C.startMatch(); C.setCountReady();
 C.startMatch(); C.setCountReady();
 global.navigator.maxTouchPoints=2;                 // pretend touch device
 global.window.innerWidth=420; global.window.innerHeight=900; // portrait

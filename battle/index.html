@@ -216,8 +216,9 @@
     <div class="logo">COCCO RUMBLE</div>
     <div class="sub">コッコランブル</div>
     <div class="seg" id="modeSeg">
-      <button data-mode="cpu" class="sel">1P vs CPU</button>
-      <button data-mode="2p">2P 対戦</button>
+      <button data-mode="cpu" class="sel">CPU対戦</button>
+      <button data-mode="train">練習</button>
+      <button data-mode="2p">2P対戦</button>
     </div>
     <div class="lvsel" id="diffSel">
       <button id="lvDown" aria-label="難易度を下げる">−</button>
@@ -412,7 +413,7 @@ function kbInput(i){
     a.attack = keys['KeyF']||keys['KeyJ']||keys['KeyZ'];
     a.special= keys['KeyG']||keys['KeyK']||keys['KeyX'];
     a.shield = keys['KeyV']||keys['KeyL']||keys['KeyC'];
-    return i===0?a:a; // CPU overrides P2 anyway
+    return i===0?a:{left:false,right:false,up:false,down:false,attack:false,special:false,shield:false}; // P2 is CPU/dummy here
   } else {
     if(i===0){ a.left=keys['KeyA']; a.right=keys['KeyD']; a.up=keys['KeyW']; a.down=keys['KeyS'];
       a.attack=keys['KeyF']; a.special=keys['KeyG']; a.shield=keys['KeyV']; }
@@ -591,10 +592,11 @@ function stepFighter(f,opp){
 
 function koFighter(f){
   if(f.ko>0)return;
-  f.stocks--; Sound.ko(); shake=22; koFlash=1; koText=1.2; slow=0.5;
+  Sound.ko(); shake=22; koFlash=1; koText=1.2; slow=0.5;
   for(let i=0;i<26;i++) sparks.push({x:clamp(f.x,40,VW-40),y:clamp(f.y-FH/2,40,VH-40),
     vx:rnd(-12,12),vy:rnd(-12,12),life:rnd(.3,.7),max:.7,r:rnd(3,7),col:f.dark?'#b46bff':'#ffe14d'});
-  updateHUD();
+  if(mode==='train'){ f.ko=45; return; }   // training: infinite respawn, no stock loss, no end
+  f.stocks--; updateHUD();
   if(f.stocks<=0){ endMatch(f.idx===0?1:0); f.ko=99999; }
   else f.ko=60;
 }
@@ -696,9 +698,9 @@ function startMatch(){
   P[0].stocks=startStocks; P[1].stocks=startStocks;
   P[0].x=VW/2-150; P[0].y=GROUND.y; P[0].facing=1;
   P[1].x=VW/2+150; P[1].y=GROUND.y; P[1].facing=-1; P[1].dark=true;
-  P[1].cpu = (mode!=='2p'); P[1].ai={t:0,act:null,dur:10,out:{}};
+  P[1].cpu = (mode==='cpu'); P[1].ai={t:0,act:null,dur:10,out:{}};   // 2p & train: P2 not CPU
   projectiles=[]; sparks=[]; shake=0; hitstop=0; slow=0; koFlash=0; koText=0; winner=-1; gameTime=0;
-  document.getElementById('n2').textContent = mode==='2p'?'ブラックこっこ(2P)':'ブラックこっこ';
+  document.getElementById('n2').textContent = mode==='2p'?'ブラックこっこ(2P)':mode==='train'?'サンドバッグ':'ブラックこっこ';
   hideScreens(); state='countdown'; countdown=3.0; lastCount=99;
   if(audioOn) Sound.startBGM();
   updateHUD();
