@@ -288,7 +288,7 @@ function aimDir(){
   const a=clamp(ang,minA,maxA);
   return {x:Math.cos(a), y:Math.sin(a)};
 }
-const SPEED=11;
+const SPEED=11, ACCEL=0.22, SPEEDMAX=SPEED*1.95;   // balls speed up a touch on every bounce
 const SPECIALS=[
   {id:'fire',   name:'ファイア',  col:'#ff7b3a', emoji:'🔥'},
   {id:'thunder',name:'いかずち',  col:'#ffe066', emoji:'⚡'},
@@ -314,12 +314,12 @@ function spawnBall(){
   const fx=G.activeSpecial;
   const r = fx==='giant'? R*2.3 : R;
   balls.push({x:G.launchX,y:launchY-r-1,vx:G.firedDir.x*SPEED,vy:G.firedDir.y*SPEED,alive:true,
-    r, dmg: fx==='giant'?2:1, fx, split: fx==='split', trail:[]});
+    r, sp:SPEED, dmg: fx==='giant'?2:1, fx, split: fx==='split', trail:[]});
   Sound.ball();
 }
 function addSplitBall(b){ if(balls.length>180)return;
-  const ang=Math.atan2(b.vy,b.vx)+rnd(-0.7,0.7);
-  balls.push({x:b.x,y:b.y,vx:Math.cos(ang)*SPEED,vy:Math.sin(ang)*SPEED,alive:true,r:R,dmg:1,fx:'split',split:false,trail:[]});
+  const ang=Math.atan2(b.vy,b.vx)+rnd(-0.7,0.7), sp=b.sp||SPEED;
+  balls.push({x:b.x,y:b.y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,alive:true,r:R,sp,dmg:1,fx:'split',split:false,trail:[]});
 }
 function makeBolt(col,branch){ const pts=[]; let x=cellX(col)+rnd(-cell*0.3,cell*0.3), y=gridTop-cell*1.2;
   const endY=launchY;
@@ -365,8 +365,8 @@ function collideBlocks(b){
     const ox=half+rad-Math.abs(b.x-bx), oy=half+rad-Math.abs(b.y-by);
     if(ox<=0||oy<=0) continue;
     if(b.fx==='pierce'){ bl._pl=5; }                      // pierce: no reflect, slice through
-    else if(ox<oy){ b.vx=-b.vx; b.x += (b.x>bx?1:-1)*ox; }
-    else { b.vy=-b.vy; b.y += (b.y>by?1:-1)*oy; }
+    else { if(ox<oy){ b.vx=-b.vx; b.x += (b.x>bx?1:-1)*ox; }
+      else { b.vy=-b.vy; b.y += (b.y>by?1:-1)*oy; } accel(b); }
     hitBlock(bl,bx,by,b.dmg||1);
     if(b.fx==='fire') fireAOE(bl);
     else if(b.fx==='giant'){ addShock(bx,by,cell*1.6,'255,158,232',5); burst(bx,by,'255,190,245',10,6,true); G.shake=Math.min(G.shake+5,20); }
@@ -398,15 +398,15 @@ function updateShoot(dt){
   G.shootClock+=dt;
   for(const bl of blocks){ if(bl._pl>0) bl._pl--; }
   if(G.toFire>0){ G.fireT-=dt; if(G.fireT<=0){ spawnBall(); G.toFire--; G.fireT=0.05; } }
-  const sub=Math.max(1,Math.ceil(SPEED/R));
   for(const b of balls){ if(!b.alive) continue;
     const rad=b.r||R;
+    const sub=Math.max(1,Math.ceil((b.sp||SPEED)/rad));
     if(b.fx){ b.trail.push({x:b.x,y:b.y}); if(b.trail.length>(b.fx==='pierce'?14:7)) b.trail.shift(); }
     for(let s=0;s<sub;s++){
       b.x+=b.vx/sub; b.y+=b.vy/sub;
-      if(b.x<gx+rad){ b.x=gx+rad; b.vx=Math.abs(b.vx); }
-      if(b.x>gx+COLS*cell-rad){ b.x=gx+COLS*cell-rad; b.vx=-Math.abs(b.vx); }
-      if(b.y<gridTop+rad){ b.y=gridTop+rad; b.vy=Math.abs(b.vy); }
+      if(b.x<gx+rad){ b.x=gx+rad; b.vx=Math.abs(b.vx); accel(b); }
+      if(b.x>gx+COLS*cell-rad){ b.x=gx+COLS*cell-rad; b.vx=-Math.abs(b.vx); accel(b); }
+      if(b.y<gridTop+rad){ b.y=gridTop+rad; b.vy=Math.abs(b.vy); accel(b); }
       collideBumpers(b);
       collideBlocks(b);
       collectItems(b);
@@ -420,7 +420,7 @@ function updateShoot(dt){
   blocks=blocks.filter(b=>!b.dead);
   items=items.filter(i=>!i.dead);
   // anti-stuck: nudge near-horizontal balls
-  for(const b of balls){ if(b.alive && Math.abs(b.vy)<SPEED*0.18){ b.vy += (b.vy<0?-1:1)*SPEED*0.05; renorm(b); } }
+  for(const b of balls){ if(b.alive && Math.abs(b.vy)<(b.sp||SPEED)*0.18){ b.vy += (b.vy<0?-1:1)*(b.sp||SPEED)*0.05; renorm(b); } }
   // force end if too long
   if(G.shootClock>14){ for(const b of balls) b.alive=false; }
   if(G.toFire<=0 && balls.every(b=>!b.alive)){
@@ -431,14 +431,15 @@ function updateShoot(dt){
     startTurnShift();
   }
 }
-function renorm(b){ const l=Math.hypot(b.vx,b.vy)||1; b.vx=b.vx/l*SPEED; b.vy=b.vy/l*SPEED; }
+function renorm(b){ const sp=b.sp||SPEED, l=Math.hypot(b.vx,b.vy)||1; b.vx=b.vx/l*sp; b.vy=b.vy/l*sp; }
+function accel(b){ if((b.sp||SPEED)<SPEEDMAX){ b.sp=Math.min(SPEEDMAX,(b.sp||SPEED)+ACCEL); renorm(b); } }
 function collideBumpers(b){
   const rad=b.r||R;
   for(const bm of bumpers){
     const dx=b.x-bm.x, dy=b.y-bm.y, rr=rad+bm.r, d2=dx*dx+dy*dy;
     if(d2<rr*rr){
       const d=Math.sqrt(d2)||1, nx=dx/d, ny=dy/d, dot=b.vx*nx+b.vy*ny;
-      b.vx-=2*dot*nx; b.vy-=2*dot*ny; renorm(b);
+      b.vx-=2*dot*nx; b.vy-=2*dot*ny; renorm(b); accel(b);
       b.x=bm.x+nx*(rr+0.5); b.y=bm.y+ny*(rr+0.5);
       bm.pop=1; Sound.ball();
       return true;
