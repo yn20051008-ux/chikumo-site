@@ -403,7 +403,10 @@ function updateShoot(dt){
   for(const b of balls){ if(!b.alive) continue;
     const rad=b.r||R;
     const sub=Math.max(1,Math.ceil((b.sp||SPEED)/rad));
-    if(b.fx){ b.trail.push({x:b.x,y:b.y}); if(b.trail.length>(b.fx==='pierce'?14:7)) b.trail.shift(); }
+    if(b.fx || (b.dmg||1)>=2){ b.trail.push({x:b.x,y:b.y});
+      const tmax=b.fx==='pierce'?14:((b.dmg||1)>=3?12:7); if(b.trail.length>tmax) b.trail.shift(); }
+    if((b.dmg||1)>=3 && Math.random()<0.5){ const pal=['120,230,255','255,120,255','180,150,255'];
+      particles.push({x:b.x,y:b.y,vx:rnd(-1.5,1.5),vy:rnd(-1.5,1.5),life:.3,max:.3,r:rnd(1.5,3.2),col:pal[Math.floor(rnd(0,3))],glow:1,g:0}); }
     for(let s=0;s<sub;s++){
       b.x+=b.vx/sub; b.y+=b.vy/sub;
       if(b.x<gx+rad){ b.x=gx+rad; b.vx=Math.abs(b.vx); accel(b); }
@@ -434,7 +437,9 @@ function updateShoot(dt){
   }
 }
 function renorm(b){ const sp=b.sp||SPEED, l=Math.hypot(b.vx,b.vy)||1; b.vx=b.vx/l*sp; b.vy=b.vy/l*sp; }
-function accel(b){ b.bounces=(b.bounces||0)+1; if(b.bounces>=10 && (b.dmg||1)<2) b.dmg=2;   // 10 bounces -> power up
+function accel(b){ b.bounces=(b.bounces||0)+1;
+  if(b.bounces>=10 && (b.dmg||1)<2) b.dmg=2;      // 10 bounces -> power up
+  if(b.bounces>=20 && (b.dmg||1)<3) b.dmg=3;      // 20 bounces -> super (plasma)
   if((b.sp||SPEED)<SPEEDMAX){ b.sp=Math.min(SPEEDMAX,(b.sp||SPEED)+ACCEL); renorm(b); } }
 function collideBumpers(b){
   const rad=b.r||R;
@@ -577,16 +582,22 @@ function render(){
     ctx.beginPath(); for(let i=0;i<bl.pts.length;i++){ const p=bl.pts[i]; i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y); } ctx.stroke();
     ctx.restore(); }
 
-  // balls (with special-effect glow & trail)
-  for(const b of balls){ if(!b.alive)continue; const rad=b.r||R; const d=b.fx?specialDef(b.fx):null;
-    if(d && b.trail){ ctx.globalAlpha=0.4; ctx.fillStyle=d.col;
-      for(let i=0;i<b.trail.length;i++){ const tp=b.trail[i]; ctx.globalAlpha=0.05+0.05*i;
-        ctx.beginPath(); ctx.arc(tp.x,tp.y,rad*0.8,0,TAU); ctx.fill(); } ctx.globalAlpha=1; }
-    if(d){ ctx.shadowColor=d.col; ctx.shadowBlur=14; ctx.fillStyle=d.col; }
-    else if((b.dmg||1)>=2){ ctx.shadowColor='#ffd24d'; ctx.shadowBlur=14; ctx.fillStyle='#ffd24d'; }  // powered (10+ bounces)
+  // balls (special-effect / power-tier glow & trail)
+  const tnow=Date.now();
+  for(const b of balls){ if(!b.alive)continue; const rad=b.r||R; const d=b.fx?specialDef(b.fx):null; const dmg=b.dmg||1;
+    let glow=null;
+    if(d) glow=d.col;
+    else if(dmg>=3) glow='hsl('+((tnow*0.6)%360)+',100%,62%)';   // plasma: cycling rainbow
+    else if(dmg>=2) glow='#ffd24d';                              // powered: gold
+    if((d||dmg>=2) && b.trail){ ctx.fillStyle=glow;
+      for(let i=0;i<b.trail.length;i++){ const tp=b.trail[i]; ctx.globalAlpha=0.05+0.06*i;
+        ctx.beginPath(); ctx.arc(tp.x,tp.y,rad*(dmg>=3?0.95:0.8),0,TAU); ctx.fill(); } ctx.globalAlpha=1; }
+    if(dmg>=3){ ctx.globalAlpha=0.55; ctx.strokeStyle=glow; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.arc(b.x,b.y,rad*(1.5+Math.sin(tnow*0.02)*0.2),0,TAU); ctx.stroke(); ctx.globalAlpha=1; }
+    if(glow){ ctx.shadowColor=glow; ctx.shadowBlur=dmg>=3?22:14; ctx.fillStyle=glow; }
     else { ctx.shadowBlur=0; ctx.fillStyle='#fff'; }
     ctx.beginPath(); ctx.arc(b.x,b.y,rad,0,TAU); ctx.fill();
-    if(d||(b.dmg||1)>=2){ ctx.fillStyle='rgba(255,255,255,.85)'; ctx.beginPath(); ctx.arc(b.x,b.y,rad*0.45,0,TAU); ctx.fill(); }
+    if(glow){ ctx.fillStyle='rgba(255,255,255,.9)'; ctx.beginPath(); ctx.arc(b.x,b.y,rad*0.45,0,TAU); ctx.fill(); }
     ctx.shadowBlur=0;
   }
 
