@@ -288,11 +288,12 @@ function render(){
   // player (official cocco) + hit core
   if(G.state==='play'||G.state==='over'){
     const px=G.px,py=G.py;
-    if(coccoReady){ const w=46,h=w/AR; ctx.save(); ctx.translate(px,py);
+    if(coccoReady){ const w=54,h=w/AR; ctx.save(); ctx.translate(px,py);
       ctx.shadowColor=G.mult>1?'#ffe14d':'#7fe3ff'; ctx.shadowBlur=18; ctx.globalAlpha=G.state==='over'?0.3:1;
       ctx.drawImage(cocco,-w/2,-h/2,w,h); ctx.restore(); }
-    if(G.state==='play'){ ctx.fillStyle='#fff'; ctx.shadowColor='#fff'; ctx.shadowBlur=10;
-      ctx.beginPath(); ctx.arc(px,py,HITR,0,TAU); ctx.fill(); ctx.shadowBlur=0; }
+    if(G.state==='play'){ // small hit-core indicator (kept tiny so コッコ's face stays visible)
+      ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=1.4; ctx.beginPath(); ctx.arc(px,py,HITR,0,TAU); ctx.stroke();
+      ctx.fillStyle='#fff'; ctx.shadowColor='#7fe3ff'; ctx.shadowBlur=7; ctx.beginPath(); ctx.arc(px,py,2.6,0,TAU); ctx.fill(); ctx.shadowBlur=0; }
   }
   // explosion parts
   for(const p of parts){ if(p.ring)continue; const a=clamp(p.life/p.max,0,1); ctx.globalAlpha=a; ctx.fillStyle='rgb('+p.col+')';
