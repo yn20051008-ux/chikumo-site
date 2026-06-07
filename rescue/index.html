@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>コッコレスキュー ─ COCCO RESCUE｜ブロック救出パズル</title>
+<meta name="description" content="ボールをはじいてブロックを崩し、囚われたこっこちゃんを助け出す。片手で遊べる中毒性パズル。無料ブラウザゲーム。">
+<meta name="author" content="畜物語">
+<meta name="robots" content="index, follow">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#05060a">
+<meta name="format-detection" content="telephone=no">
+<link rel="canonical" href="https://chikumo.jp/rescue/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chikumo.jp/rescue/">
+<meta property="og:title" content="コッコレスキュー ─ COCCO RESCUE">
+<meta property="og:description" content="ボールでブロックを崩して、こっこちゃんを助け出す中毒性パズル。">
+<meta property="og:image" content="https://chikumo.jp/ogp.png">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="畜物語">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="コッコレスキュー ─ COCCO RESCUE">
+<meta name="twitter:description" content="ボールでブロックを崩して、こっこちゃんを助け出す中毒性パズル。">
+<meta name="twitter:image" content="https://chikumo.jp/ogp.png">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="コッコレスキュー">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#070811;
+    font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
+    user-select:none;-webkit-user-select:none;color:#eef3ff;touch-action:none;}
+  #wrap{position:fixed;inset:0;}
+  canvas{display:block;width:100%;height:100%;}
+
+  .ctrlbtn{position:absolute;z-index:12;pointer-events:auto;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;
+    border:2px solid rgba(255,255,255,.25);background:rgba(30,26,55,.5);cursor:pointer;
+    width:40px;height:40px;font-size:17px;}
+  .ctrlbtn:active{transform:scale(.92);}
+  .ctrlbtn.off{opacity:.5;}
+  #muteBtn{top:calc(10px + env(safe-area-inset-top));right:calc(58px + env(safe-area-inset-right));}
+  #fsBtn{top:calc(10px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));}
+
+  .screen{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;text-align:center;padding:24px;overflow-y:auto;
+    background:radial-gradient(ellipse at 50% 35%,rgba(40,30,70,.7),rgba(5,6,12,.96));
+    -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
+  .screen.hidden{display:none;}
+  .hero{width:min(40vw,150px);height:auto;margin-bottom:6px;
+    filter:drop-shadow(0 8px 24px rgba(255,200,120,.4));animation:fl 3s ease-in-out infinite;}
+  @keyframes fl{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-10px) rotate(3deg);}}
+  .cage{position:relative;display:inline-block;}
+  .cage::after{content:'';position:absolute;inset:-6% 6%;border-radius:8px;
+    background:repeating-linear-gradient(90deg,rgba(200,210,255,.85) 0 3px,transparent 3px 16px);
+    pointer-events:none;}
+  .logo{font-size:13vw;line-height:.92;font-weight:900;font-style:italic;letter-spacing:.01em;
+    background:linear-gradient(180deg,#fff 0%,#ffd98a 55%,#ff9e5b 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 20px rgba(255,170,90,.45));max-width:11ch;}
+  .logo.small{font-size:9vw;max-width:none;}
+  .sub{margin-top:4px;font-size:13px;letter-spacing:.36em;color:#ffd98a;opacity:.9;}
+  .desc{margin-top:16px;font-size:13px;line-height:1.9;opacity:.85;max-width:340px;}
+  .desc b{color:#ffd36b;}
+  .btn{pointer-events:auto;margin-top:20px;padding:15px 44px;font-size:18px;font-weight:900;
+    letter-spacing:.16em;border:none;border-radius:40px;cursor:pointer;color:#3a1d05;
+    background:linear-gradient(180deg,#ffe0a0,#ff9e3b);
+    box-shadow:0 8px 26px rgba(255,140,40,.45),inset 0 1px 0 rgba(255,255,255,.6);transition:transform .08s;}
+  .btn:active{transform:translateY(2px) scale(.98);}
+  .btn.ghost{background:rgba(255,255,255,.08);color:#eef3ff;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);font-size:14px;padding:12px 26px;margin-top:12px;}
+  .btn-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:12px;}
+  .score-final{margin-top:14px;font-size:13px;letter-spacing:.2em;opacity:.8;}
+  .score-final .v{font-size:50px;font-weight:900;color:#fff;display:block;font-variant-numeric:tabular-nums;
+    text-shadow:0 0 22px rgba(255,180,90,.7);}
+  .rescued{margin-top:8px;font-size:14px;color:#ffd36b;font-weight:700;letter-spacing:.1em;}
+  .nb{margin-top:8px;font-size:12px;color:#ffd36b;letter-spacing:.2em;opacity:0;}
+  .hint{margin-top:20px;font-size:11px;opacity:.5;letter-spacing:.08em;line-height:1.8;}
+  .credit{margin-top:16px;font-size:10px;letter-spacing:.2em;opacity:.4;}
+  .credit a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3);}
+  a{pointer-events:auto;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game"></canvas>
+  <div class="ctrlbtn" id="muteBtn">🔊</div>
+  <div class="ctrlbtn" id="fsBtn">⛶</div>
+
+  <!-- TITLE -->
+  <div class="screen" id="titleScreen">
+    <span class="cage"><img class="hero" src="/chikumo.svg" alt="こっこちゃん"></span>
+    <div class="logo">COCCO RESCUE</div>
+    <div class="sub">コッコレスキュー</div>
+    <div class="desc">
+      ボールを <b>はじいて</b> ブロックをこわそう。<br>
+      とらわれた <b>こっこちゃん</b> を、ぜんぶ助け出して！
+    </div>
+    <button class="btn" id="startBtn">あそぶ</button>
+    <button class="btn ghost" id="howBtn">あそびかた</button>
+    <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+  </div>
+
+  <!-- HOW -->
+  <div class="screen hidden" id="howScreen">
+    <div class="logo small">あそびかた</div>
+    <div class="desc" style="max-width:380px;text-align:left;">
+      ◆ 画面を <b>ドラッグ</b> して発射する向きをきめる（点線がガイド）。<br><br>
+      ◆ 指を <b>はなす</b> と、たくさんのボールが発射！ブロックに当たると数字が減って、0でこわれる。<br><br>
+      ◆ <b>＋ボール</b>を拾うと、次から発射数が増える。<br><br>
+      ◆ オリの中の <b>こっこちゃん</b> をこわすと <b>救出</b>！ボーナス点。<br><br>
+      ◆ ブロックは1ターンごとに下がってくる。<b>下の線まで来たらゲームオーバー</b>。
+    </div>
+    <button class="btn" id="howBack">もどる</button>
+  </div>
+
+  <!-- OVER -->
+  <div class="screen hidden" id="overScreen">
+    <div class="logo small">GAME OVER</div>
+    <div class="score-final">SCORE<span class="v" id="finalScore">0</span></div>
+    <div class="rescued" id="rescuedLine">🐤 救出 0 羽</div>
+    <div class="nb" id="newBest">★ ベスト更新！ ★</div>
+    <div class="score-final" style="font-size:11px;opacity:.7;margin-top:8px;">BEST <span id="bestLine" style="font-size:18px">0</span></div>
+    <div class="btn-row">
+      <button class="btn" id="retryBtn">もう一回</button>
+      <button class="btn ghost" id="shareBtn">スコアを共有</button>
+    </div>
+    <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+(function(){
+const cv=document.getElementById('game'), ctx=cv.getContext('2d');
+let W=0,H=0,DPR=1;
+function resize(){ DPR=Math.min(window.devicePixelRatio||1,2);
+  W=window.innerWidth; H=window.innerHeight;
+  cv.width=Math.floor(W*DPR); cv.height=Math.floor(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0);
+  layout();
+}
+window.addEventListener('resize',resize);
+
+/* ===== Audio ===== */
+const Sound=(function(){
+  let ac=null,master=null,muted=false;
+  function init(){ if(ac)return; try{ ac=new (window.AudioContext||window.webkitAudioContext)();
+    master=ac.createGain(); master.gain.value=0.5; master.connect(ac.destination);}catch(e){ac=null;} }
+  function tone(f,d,t,v,sl){ if(!ac||muted)return; const n=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();
+    o.type=t||'sine'; o.frequency.setValueAtTime(f,n); if(sl)o.frequency.exponentialRampToValueAtTime(Math.max(40,sl),n+d);
+    g.gain.setValueAtTime(.0001,n); g.gain.exponentialRampToValueAtTime(v||.3,n+.006); g.gain.exponentialRampToValueAtTime(.0001,n+d);
+    o.connect(g); g.connect(master); o.start(n); o.stop(n+d+.02); }
+  function noise(d,v,f){ if(!ac||muted)return; const n=ac.currentTime,len=Math.floor(ac.sampleRate*d),b=ac.createBuffer(1,len,ac.sampleRate),dt=b.getChannelData(0);
+    for(let i=0;i<len;i++)dt[i]=(Math.random()*2-1)*(1-i/len);
+    const s=ac.createBufferSource(); s.buffer=b; const fl=ac.createBiquadFilter(); fl.type='lowpass'; fl.frequency.value=f||1800;
+    const g=ac.createGain(); g.gain.value=v||.3; s.connect(fl); fl.connect(g); g.connect(master); s.start(n); }
+  // BGM (original gentle loop)
+  let bg=null,bt=null,bs=0,bn=0,bon=false; const SD=60/96/2;
+  const PROG=[ {b:130.81,a:[523.25,659.25,783.99]}, {b:174.61,a:[523.25,698.46,880.00]},
+               {b:196.00,a:[587.33,698.46,880.00]}, {b:146.83,a:[587.33,698.46,880.00]} ]; // C F G Dm-ish
+  function bnote(f,t,d,ty,v){ const o=ac.createOscillator(),g=ac.createGain(); o.type=ty; o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(v,t+.03); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g); g.connect(bg); o.start(t); o.stop(t+d+.02); }
+  function bstep(i,t){ const c=PROG[Math.floor(i/4)%4],k=i%4;
+    bnote(c.b, t, SD*1.4, 'triangle', .34);
+    bnote(c.a[k%3], t, SD*1.2, 'sine', .14); }
+  function bsched(){ if(!ac||!bon)return; while(bn<ac.currentTime+0.2){ bstep(bs,bn); bn+=SD; bs=(bs+1)%16; } }
+  function startBGM(){ if(!ac||muted)return; if(!bg){bg=ac.createGain(); bg.gain.value=.0001; bg.connect(master);}
+    if(bon)return; bon=true; bs=0; bn=ac.currentTime+0.1;
+    try{ bg.gain.cancelScheduledValues(ac.currentTime); bg.gain.setValueAtTime(.0001,ac.currentTime); bg.gain.linearRampToValueAtTime(.12,ac.currentTime+1.2);}catch(e){}
+    bt=setInterval(bsched,50); }
+  function stopBGM(){ bon=false; if(bt){clearInterval(bt);bt=null;} if(bg){try{bg.gain.cancelScheduledValues(ac.currentTime); bg.gain.linearRampToValueAtTime(.0001,ac.currentTime+0.4);}catch(e){}} }
+  return { init, resume(){ if(ac&&ac.state==='suspended')ac.resume(); }, setMuted(b){muted=b; if(b)stopBGM();}, startBGM, stopBGM,
+    hit(n){ tone(300+Math.min(n,18)*30,0.05,'square',0.12); },
+    pop(){ noise(.08,.25,2600); tone(660,0.08,'sine',0.18,990); },
+    launch(){ tone(500,0.08,'sine',0.16,820); },
+    ball(){ tone(880,0.07,'sine',0.2,1320); },
+    rescue(){ [659,784,1047,1319].forEach((f,i)=>setTimeout(()=>tone(f,0.16,'sine',0.32),i*100)); noise(.2,.2,4000); },
+    over(){ tone(440,0.2,'sine',0.3,120); setTimeout(()=>tone(196,0.5,'sine',0.3,80),180); },
+    best(){ [523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>tone(f,0.15,'sine',0.3),i*90)); },
+    ui(){ tone(700,0.04,'triangle',0.14); } };
+})();
+
+/* ===== Mascot ===== */
+const cocco=new Image(); let coccoReady=false; cocco.onload=()=>coccoReady=true; cocco.src='/chikumo.svg';
+const AR=298/390;
+
+/* ===== Helpers ===== */
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const TAU=Math.PI*2;
+
+/* ===== Layout / grid ===== */
+const COLS=7;
+let cell=50, gx=0, gridTop=0, deadY=0, launchY=0, R=6, maxRow=10;
+function layout(){
+  cell=Math.floor(Math.min(W/COLS, H/12));
+  const playW=cell*COLS; gx=Math.floor((W-playW)/2);
+  gridTop=Math.max(76, (H*0.02)+70) + (window.__safeTop||0);
+  launchY=H-Math.max(64, H*0.10);
+  deadY=launchY-cell*0.5;
+  maxRow=Math.floor((deadY-gridTop)/cell);
+  R=Math.max(5, cell*0.13);
+}
+
+/* ===== State ===== */
+const G={ phase:'title', score:0, best:0, turn:0, balls:1, rescued:0, best_rescued:0,
+  aiming:false, aimX:0, aimY:0, launchX:0, fireT:0, toFire:0, firedDir:{x:0,y:-1},
+  pendingBalls:0, nextLaunchX:null, shootClock:0, shake:0, flash:0, newBest:false };
+let blocks=[], items=[], balls=[], particles=[], floats=[];
+
+function cellX(c){ return gx+c*cell+cell/2; }
+function cellY(r){ return gridTop+r*cell+cell/2; }
+
+function newGame(){
+  Sound.init(); Sound.resume(); if(audioOn) Sound.startBGM();
+  blocks=[]; items=[]; balls=[]; particles=[]; floats=[];
+  Object.assign(G,{phase:'aim',score:0,turn:0,balls:1,rescued:0,
+    aiming:false,launchX:gx+COLS*cell/2,nextLaunchX:null,pendingBalls:0,shake:0,flash:0,newBest:false});
+  document.getElementById('score') && 0;
+  spawnRow(true);
+  hideScreens();
+  updateHUDtext();
+}
+
+/* spawn a new top row, push existing down handled separately */
+function spawnRow(first){
+  G.turn++;
+  const hp=1+Math.floor(G.turn*0.9);
+  const density = clamp(0.45+G.turn*0.02, 0.45, 0.8);
+  const row=[];
+  for(let c=0;c<COLS;c++){
+    if(Math.random()<density) row.push(c);
+  }
+  if(row.length===0) row.push(Math.floor(rnd(0,COLS)));
+  if(row.length>=COLS) row.splice(Math.floor(rnd(0,COLS)),1); // keep a gap
+  // place blocks (row index 0 = top)
+  for(const c of row){
+    let type='normal', bhp=hp;
+    blocks.push({col:c,row:0,hp:bhp,maxhp:bhp,type,pop:0});
+  }
+  // empty cells: chance of +ball item
+  for(let c=0;c<COLS;c++){
+    if(row.indexOf(c)<0 && Math.random()< (first?0.5:0.28)){ items.push({col:c,row:0,t:'ball',ph:rnd(0,TAU)}); break; }
+  }
+  // captured cocco every few turns
+  if(!first && G.turn%6===0){
+    const empt=[]; for(let c=0;c<COLS;c++) if(row.indexOf(c)<0) empt.push(c);
+    const c = empt.length?empt[Math.floor(rnd(0,empt.length))]:Math.floor(rnd(0,COLS));
+    // remove any block at that col row0
+    blocks=blocks.filter(b=>!(b.row===0&&b.col===c));
+    blocks.push({col:c,row:0,hp:hp*2+4,maxhp:hp*2+4,type:'cocco',pop:0});
+  }
+}
+
+function startTurnShift(){
+  // move everything down one row
+  for(const b of blocks) b.row++;
+  for(const it of items) it.row++;
+  spawnRow(false);
+  // game over if any block at/under deadline
+  for(const b of blocks){ if(cellY(b.row)+cell*0.5 >= deadY+1){ gameOver(); return; } }
+  G.phase='aim';
+  updateHUDtext();
+}
+
+/* ===== Launch / shoot ===== */
+function aimDir(){
+  let dx=G.aimX-G.launchX, dy=G.aimY-launchY;
+  if(dy> -10) dy=-10;                 // must point upward
+  const len=Math.hypot(dx,dy)||1; dx/=len; dy/=len;
+  // clamp angle away from horizontal
+  const ang=Math.atan2(dy,dx); // negative (upward)
+  const minA=-Math.PI+0.32, maxA=-0.32;
+  const a=clamp(ang,minA,maxA);
+  return {x:Math.cos(a), y:Math.sin(a)};
+}
+function launch(){
+  const d=aimDir();
+  G.firedDir=d; G.phase='shoot'; G.toFire=G.balls; G.fireT=0; G.nextLaunchX=null; G.shootClock=0;
+  Sound.launch();
+}
+function spawnBall(){
+  balls.push({x:G.launchX,y:launchY-R,vx:G.firedDir.x*SPEED,vy:G.firedDir.y*SPEED,alive:true});
+  Sound.ball();
+}
+const SPEED=11;
+
+function collideBlocks(b){
+  const half=cell*0.46;
+  // candidate blocks near ball
+  for(const bl of blocks){
+    if(bl.dead) continue;
+    const bx=cellX(bl.col), by=cellY(bl.row);
+    if(Math.abs(b.x-bx)>half+R || Math.abs(b.y-by)>half+R) continue;
+    const ox=half+R-Math.abs(b.x-bx), oy=half+R-Math.abs(b.y-by);
+    if(ox<=0||oy<=0) continue;
+    if(ox<oy){ b.vx=-b.vx; b.x += (b.x>bx?1:-1)*ox; }
+    else { b.vy=-b.vy; b.y += (b.y>by?1:-1)*oy; }
+    bl.hp--; bl.pop=1; G.score++; Sound.hit(bl.maxhp-bl.hp);
+    addFloat(bx,by);
+    if(bl.hp<=0){ breakBlock(bl,bx,by); }
+    return true;
+  }
+  return false;
+}
+function breakBlock(bl,bx,by){
+  bl.dead=true;
+  const col = bl.type==='cocco'?'255,200,90':'255,150,90';
+  for(let i=0;i<10;i++) particles.push(spark(bx,by,col));
+  if(bl.type==='cocco'){ G.rescued++; G.score+=200; Sound.rescue();
+    addText('RESCUE!', bx, by, '#ffd36b'); G.flash=0.5; G.shake=Math.min(G.shake+8,16);
+    for(let i=0;i<20;i++) particles.push(spark(bx,by,'255,225,120')); updateHUDtext(); }
+  else Sound.pop();
+}
+function collectItems(b){
+  for(const it of items){ if(it.dead) continue;
+    const ix=cellX(it.col), iy=cellY(it.row), r=cell*0.26+R;
+    if((b.x-ix)**2+(b.y-iy)**2 < r*r){ it.dead=true; G.pendingBalls++; addText('+1',ix,iy,'#9fe8ff'); }
+  }
+}
+function updateShoot(dt){
+  G.shootClock+=dt;
+  if(G.toFire>0){ G.fireT-=dt; if(G.fireT<=0){ spawnBall(); G.toFire--; G.fireT=0.05; } }
+  const sub=Math.max(1,Math.ceil(SPEED/R));
+  for(const b of balls){ if(!b.alive) continue;
+    for(let s=0;s<sub;s++){
+      b.x+=b.vx/sub; b.y+=b.vy/sub;
+      if(b.x<gx+R){ b.x=gx+R; b.vx=Math.abs(b.vx); }
+      if(b.x>gx+COLS*cell-R){ b.x=gx+COLS*cell-R; b.vx=-Math.abs(b.vx); }
+      if(b.y<gridTop+R){ b.y=gridTop+R; b.vy=Math.abs(b.vy); }
+      collideBlocks(b);
+      collectItems(b);
+      if(b.y>=launchY-R){ // caught
+        b.alive=false;
+        if(G.nextLaunchX===null) G.nextLaunchX=clamp(b.x,gx+R,gx+COLS*cell-R);
+        break;
+      }
+    }
+  }
+  blocks=blocks.filter(b=>!b.dead);
+  items=items.filter(i=>!i.dead);
+  // anti-stuck: nudge near-horizontal balls
+  for(const b of balls){ if(b.alive && Math.abs(b.vy)<SPEED*0.18){ b.vy += (b.vy<0?-1:1)*SPEED*0.05; renorm(b); } }
+  // force end if too long
+  if(G.shootClock>14){ for(const b of balls) b.alive=false; }
+  if(G.toFire<=0 && balls.every(b=>!b.alive)){
+    balls=[];
+    if(G.nextLaunchX!==null) G.launchX=G.nextLaunchX;
+    G.balls += G.pendingBalls; G.pendingBalls=0;
+    G.phase='shift';
+    startTurnShift();
+  }
+}
+function renorm(b){ const l=Math.hypot(b.vx,b.vy)||1; b.vx=b.vx/l*SPEED; b.vy=b.vy/l*SPEED; }
+
+/* ===== Particles / floats ===== */
+function spark(x,y,col){ const a=rnd(0,TAU),s=rnd(1,5); return {x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,life:rnd(.3,.6),max:.6,r:rnd(2,4),col}; }
+function addFloat(x,y){ floats.push({x,y:y-6,life:.4,max:.4}); }
+function addText(t,x,y,col){ floats.push({t,x,y,col,life:1,max:1,big:1}); }
+function updateFX(dt){
+  for(const p of particles){ p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.life-=dt; }
+  particles=particles.filter(p=>p.life>0);
+  for(const f of floats){ f.y-=20*dt; f.life-=dt; }
+  floats=floats.filter(f=>f.life>0);
+}
+
+/* ===== HUD ===== */
+function updateHUDtext(){ /* drawn on canvas */ }
+
+/* ===== Game over ===== */
+function gameOver(){
+  G.phase='over'; Sound.stopBGM(); Sound.over();
+  G.newBest=false;
+  if(G.score>G.best){ G.best=G.score; G.newBest=true; saveBest(); setTimeout(()=>Sound.best(),400); }
+  if(G.rescued>G.best_rescued){ G.best_rescued=G.rescued; }
+  document.getElementById('finalScore').textContent=G.score.toLocaleString();
+  document.getElementById('rescuedLine').textContent='🐤 救出 '+G.rescued+' 羽';
+  document.getElementById('bestLine').textContent=G.best.toLocaleString();
+  document.getElementById('newBest').style.opacity=G.newBest?'1':'0';
+  setTimeout(()=>show('overScreen'),500);
+}
+
+/* ===== Render ===== */
+function blockColor(hp){
+  if(hp<=3) return ['#7fe3ff','#2b6fc9'];
+  if(hp<=7) return ['#9affc0','#2faf6a'];
+  if(hp<=14) return ['#ffe066','#d49a1e'];
+  if(hp<=24) return ['#ffae5b','#c9651e'];
+  return ['#ff6f8b','#a01e3a'];
+}
+function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function render(){
+  ctx.clearRect(0,0,W,H);
+  // bg
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#141232'); bg.addColorStop(0.6,'#0a0a1c'); bg.addColorStop(1,'#06060f');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  ctx.save();
+  if(G.shake>0.3) ctx.translate(rnd(-G.shake,G.shake),rnd(-G.shake,G.shake));
+
+  // side walls of play area
+  ctx.fillStyle='rgba(255,255,255,0.03)'; ctx.fillRect(gx,gridTop,COLS*cell,deadY-gridTop+cell);
+
+  // blocks
+  for(const bl of blocks){
+    const x=gx+bl.col*cell+cell*0.06, y=gridTop+bl.row*cell+cell*0.06, s=cell*0.88;
+    const pop=bl.pop||0; const e=1-pop*0.12;
+    if(bl.type==='cocco'){
+      ctx.save(); ctx.translate(x+s/2,y+s/2); ctx.scale(e,e);
+      if(coccoReady){ const w=s*0.9,h=w/AR; ctx.shadowColor='#ffd98a'; ctx.shadowBlur=12; ctx.drawImage(cocco,-w/2,-h/2,w,h); ctx.shadowBlur=0; }
+      // cage bars
+      ctx.strokeStyle='rgba(210,220,255,.9)'; ctx.lineWidth=2;
+      for(let i=-1;i<=1;i++){ ctx.beginPath(); ctx.moveTo(i*s*0.3,-s/2); ctx.lineTo(i*s*0.3,s/2); ctx.stroke(); }
+      ctx.restore();
+      // hp
+      ctx.fillStyle='#fff'; ctx.font='900 '+(cell*0.3)+'px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(bl.hp, x+s/2, y+s*0.5);
+    } else {
+      const [c1,c2]=blockColor(bl.maxhp);
+      ctx.save(); ctx.translate(x+s/2,y+s/2); ctx.scale(e,e); ctx.translate(-(x+s/2),-(y+s/2));
+      const g=ctx.createLinearGradient(x,y,x,y+s); g.addColorStop(0,c1); g.addColorStop(1,c2);
+      ctx.fillStyle=g; roundRect(x,y,s,s,cell*0.16); ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.18)'; roundRect(x+s*0.1,y+s*0.08,s*0.8,s*0.2,cell*0.1); ctx.fill();
+      ctx.fillStyle='#1a1226'; ctx.font='900 '+(cell*0.34)+'px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(bl.hp, x+s/2, y+s/2);
+      ctx.restore();
+    }
+    if(bl.pop>0) bl.pop-=0.12;
+  }
+  // items (+ball)
+  for(const it of items){ it.ph+=0.1; const ix=cellX(it.col),iy=cellY(it.row),r=cell*0.2*(1+Math.sin(it.ph)*0.12);
+    ctx.save(); ctx.shadowColor='#9fe8ff'; ctx.shadowBlur=12;
+    ctx.strokeStyle='#9fe8ff'; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(ix,iy,r,0,TAU); ctx.stroke();
+    ctx.shadowBlur=0; ctx.fillStyle='#9fe8ff'; ctx.font='900 '+(cell*0.26)+'px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('+', ix, iy+1); ctx.restore(); }
+
+  // deadline
+  ctx.strokeStyle='rgba(255,90,110,.55)'; ctx.lineWidth=2; ctx.setLineDash([8,8]);
+  ctx.beginPath(); ctx.moveTo(gx,deadY+cell*0.5); ctx.lineTo(gx+COLS*cell,deadY+cell*0.5); ctx.stroke(); ctx.setLineDash([]);
+
+  // balls
+  ctx.fillStyle='#fff';
+  for(const b of balls){ if(!b.alive)continue; ctx.beginPath(); ctx.arc(b.x,b.y,R,0,TAU); ctx.fill(); }
+
+  // launcher + aim
+  if(G.phase==='aim'){
+    ctx.fillStyle='#ffd98a'; ctx.beginPath(); ctx.arc(G.launchX,launchY,R*1.3,0,TAU); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.7)'; ctx.font='700 12px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('×'+G.balls, G.launchX, launchY+22);
+    if(G.aiming){ drawAim(); }
+  } else if(G.phase==='shoot'){
+    ctx.fillStyle='rgba(255,217,138,.5)'; ctx.beginPath(); ctx.arc(G.launchX,launchY,R*1.1,0,TAU); ctx.fill();
+  }
+
+  // particles
+  for(const p of particles){ const a=clamp(p.life/p.max,0,1); ctx.globalAlpha=a; ctx.fillStyle='rgb('+p.col+')';
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,TAU); ctx.fill(); } ctx.globalAlpha=1;
+  // floats
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(const f of floats){ const a=clamp(f.life/f.max,0,1); ctx.globalAlpha=a;
+    if(f.t){ ctx.font='900 '+(f.big?cell*0.5:14)+'px sans-serif'; ctx.fillStyle=f.col||'#fff'; ctx.fillText(f.t,f.x,f.y); }
+  } ctx.globalAlpha=1;
+
+  ctx.restore();
+
+  // HUD text
+  ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.font='900 26px sans-serif'; ctx.fillText(G.score.toLocaleString(), 14, 14+(window.__safeTop||0));
+  ctx.font='700 10px sans-serif'; ctx.fillStyle='rgba(255,255,255,.6)'; ctx.fillText('SCORE',14,8+(window.__safeTop||0));
+  ctx.textAlign='center'; ctx.fillStyle='rgba(255,211,107,.95)'; ctx.font='900 16px sans-serif';
+  ctx.fillText('🐤 '+G.rescued, W/2, 16+(window.__safeTop||0));
+  // flash
+  if(G.flash>0){ ctx.fillStyle='rgba(255,220,140,'+clamp(G.flash,0,0.5)+')'; ctx.fillRect(0,0,W,H); }
+}
+function drawAim(){
+  const d=aimDir(); let x=G.launchX,y=launchY-R, vx=d.x,vy=d.y;
+  ctx.fillStyle='rgba(255,255,255,.5)';
+  let bounced=false;
+  for(let i=0;i<90;i++){
+    x+=vx*cell*0.4; y+=vy*cell*0.4;
+    if(x<gx+R){ x=gx+R; vx=Math.abs(vx); if(bounced)break; bounced=true; }
+    if(x>gx+COLS*cell-R){ x=gx+COLS*cell-R; vx=-Math.abs(vx); if(bounced)break; bounced=true; }
+    if(y<gridTop+R) break;
+    // stop at first block
+    let hit=false; const half=cell*0.46;
+    for(const bl of blocks){ if(Math.abs(x-cellX(bl.col))<half&&Math.abs(y-cellY(bl.row))<half){hit=true;break;} }
+    if(hit) break;
+    if(i%2===0){ ctx.beginPath(); ctx.arc(x,y,2.5,0,TAU); ctx.fill(); }
+  }
+}
+
+/* ===== Loop ===== */
+let last=0;
+function loop(ts){ requestAnimationFrame(loop);
+  let dt=(ts-last)/1000; last=ts; if(dt>0.05)dt=0.05; if(!dt)dt=1/60;
+  if(G.phase==='shoot') updateShoot(dt);
+  updateFX(dt);
+  if(G.shake>0.3)G.shake*=0.85; if(G.flash>0)G.flash-=dt*1.4;
+  render();
+}
+
+/* ===== Input ===== */
+function pos(e){ const t=e.touches&&e.touches[0]; const cx=t?t.clientX:e.clientX, cy=t?t.clientY:e.clientY; return {x:cx,y:cy}; }
+function down(e){ if(G.phase!=='aim')return; e.preventDefault(); Sound.init();Sound.resume();
+  const p=pos(e); G.aiming=true; G.aimX=p.x; G.aimY=p.y; }
+function move(e){ if(!G.aiming)return; e.preventDefault(); const p=pos(e); G.aimX=p.x; G.aimY=p.y; }
+function up(e){ if(!G.aiming)return; G.aiming=false;
+  const p=pos(e); G.aimX=p.x; G.aimY=p.y;
+  if(launchY-G.aimY>16) launch(); }
+cv.addEventListener('mousedown',down); window.addEventListener('mousemove',move); window.addEventListener('mouseup',up);
+cv.addEventListener('touchstart',down,{passive:false}); cv.addEventListener('touchmove',move,{passive:false}); window.addEventListener('touchend',up,{passive:false});
+
+/* ===== Best (localStorage) ===== */
+function loadBest(){ try{ G.best=parseInt(localStorage.getItem('coccoRescueBest')||'0',10)||0; }catch(e){G.best=0;} }
+function saveBest(){ try{ localStorage.setItem('coccoRescueBest',String(G.best)); }catch(e){} }
+
+/* ===== Screens ===== */
+function show(id){ ['titleScreen','howScreen','overScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id)); }
+function hideScreens(){ ['titleScreen','howScreen','overScreen'].forEach(s=>document.getElementById(s).classList.add('hidden')); }
+function uiBtn(id,fn){ const e=document.getElementById(id); if(e) e.onclick=()=>{ Sound.init();Sound.resume();Sound.ui(); fn(); }; }
+uiBtn('startBtn',newGame);
+uiBtn('retryBtn',newGame);
+uiBtn('howBtn',()=>show('howScreen'));
+uiBtn('howBack',()=>show('titleScreen'));
+document.getElementById('shareBtn').onclick=async()=>{ Sound.init();Sound.resume();
+  const txt=`コッコレスキューで ${G.score.toLocaleString()}点・${G.rescued}羽 救出！🐤 ブロックを崩してこっこちゃんを助けよう #コッコレスキュー #畜物語`;
+  const url='https://chikumo.jp/rescue/';
+  if(navigator.share){ try{ await navigator.share({title:'COCCO RESCUE',text:txt,url}); return; }catch(e){} }
+  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(txt)+'&url='+encodeURIComponent(url),'_blank','noopener');
+};
+
+/* sound + fullscreen */
+let audioOn=true;
+(function(){ const mb=document.getElementById('muteBtn'); if(!mb)return;
+  mb.onclick=()=>{ Sound.init(); audioOn=!audioOn; Sound.setMuted(!audioOn);
+    mb.textContent=audioOn?'🔊':'🔇'; mb.classList.toggle('off',!audioOn);
+    if(audioOn){ Sound.resume(); if(G.phase!=='title'&&G.phase!=='over') Sound.startBGM(); } }; })();
+(function(){ const fb=document.getElementById('fsBtn'); if(!fb)return;
+  const de=document.documentElement||{}; const req=de.requestFullscreen||de.webkitRequestFullscreen||de.msRequestFullscreen;
+  const standalone=(navigator.standalone)||(window.matchMedia&&window.matchMedia('(display-mode:standalone)').matches);
+  if(standalone){ fb.style.display='none'; }
+  fb.onclick=()=>{ Sound.init();Sound.resume();
+    const fe=document.fullscreenElement||document.webkitFullscreenElement;
+    if(req){ try{ if(!fe){ const p=req.call(de); if(p&&p.catch)p.catch(()=>{});} else (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){} }
+    else { alert('iPhoneは「共有」→「ホーム画面に追加」で全画面で遊べます'); } };
+  document.addEventListener('fullscreenchange',()=>setTimeout(resize,80));
+})();
+
+/* ===== Debug hook ===== */
+window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G.score,balls:G.balls,turn:G.turn,
+    rescued:G.rescued,blocks:blocks.length,best:G.best}),
+  start:newGame, fire:(ang)=>{ if(G.phase!=='aim')return false; G.aimX=G.launchX+Math.cos(ang)*200; G.aimY=launchY+Math.sin(ang)*200; launch(); return true; },
+  settle:()=>{ for(const b of balls) b.alive=false; }, };
+
+/* ===== Boot ===== */
+try{ window.__safeTop=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0; }catch(e){ window.__safeTop=0; }
+resize(); loadBest(); show('titleScreen');
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
