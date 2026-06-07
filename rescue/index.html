@@ -204,10 +204,11 @@ function layout(){
   deadY=launchY-cell*0.5;
   maxRow=Math.floor((deadY-gridTop)/cell);
   R=Math.max(5, cell*0.13);
-  // two fixed bumpers in the lower area for extra ricochets
-  const by=gridTop+(launchY-gridTop)*0.72, br=cell*0.42;
-  bumpers=[ {x:gx+COLS*cell*0.30, y:by, r:br, pop:0},
-            {x:gx+COLS*cell*0.70, y:by, r:br, pop:0} ];
+  // three fixed bumpers, lower (closer to the player), in a gentle triangle
+  const span=launchY-gridTop, br=cell*0.40, pw=COLS*cell;
+  bumpers=[ {x:gx+pw*0.24, y:gridTop+span*0.80, r:br, pop:0},
+            {x:gx+pw*0.50, y:gridTop+span*0.88, r:br, pop:0},
+            {x:gx+pw*0.76, y:gridTop+span*0.80, r:br, pop:0} ];
 }
 
 /* ===== State ===== */
