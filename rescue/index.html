@@ -312,9 +312,9 @@ function launch(){
 }
 function spawnBall(){
   const fx=G.activeSpecial;
-  const r = fx==='giant'? R*2.3 : R;
+  const r = fx==='giant'? R*3.0 : R;
   balls.push({x:G.launchX,y:launchY-r-1,vx:G.firedDir.x*SPEED,vy:G.firedDir.y*SPEED,alive:true,
-    r, sp:SPEED, dmg: fx==='giant'?2:1, fx, split: fx==='split', trail:[]});
+    r, sp:SPEED, dmg: fx==='giant'?3:1, fx, split: fx==='split', trail:[]});
   Sound.ball();
 }
 function addSplitBall(b){ if(balls.length>180)return;

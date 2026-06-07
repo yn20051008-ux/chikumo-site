@@ -69,7 +69,7 @@ ok(R.phase==='aim','retry restarts into aim phase');
 
 // each of the 5 special effects activates & runs without error
 for(const id of ['fire','thunder','split','pierce','giant']){
-  if(R.phase!=='aim'){ R.start(); frames(2); }
+  R.start(); frames(2);                 // fresh game each time → empty special queue
   R.setSpecial(id);
   R.fire(-Math.PI/2 + (Math.random()*0.6-0.3));
   ok(R.getSpecial()===null,'special "'+id+'" consumed on launch');
