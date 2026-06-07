@@ -297,6 +297,8 @@ const SPECIALS=[
   {id:'giant',  name:'でかボール',col:'#ff9ee8', emoji:'🪐'},
 ];
 function specialDef(id){ return SPECIALS.find(s=>s.id===id); }
+const VIBE={fire:[0,30,25,45],thunder:[0,70,45,95],split:[0,18,18,18,18,18],pierce:[0,50],giant:[0,55,30,65]};
+function vibe(id){ try{ if(audioOn && navigator.vibrate) navigator.vibrate(VIBE[id]||40); }catch(e){} }
 function grantSpecial(bx,by){
   const s=SPECIALS[Math.floor(rnd(0,SPECIALS.length))];
   if(G.specials.length<9) G.specials.push(s.id);   // each rescue = one charge, they stack
@@ -306,7 +308,7 @@ function launch(){
   const d=aimDir();
   G.firedDir=d; G.activeSpecial=G.specials.length?G.specials.shift():null;
   G.phase='shoot'; G.toFire=G.balls; G.fireT=0; G.nextLaunchX=null; G.shootClock=0;
-  if(G.activeSpecial){ const d=specialDef(G.activeSpecial); showBig(d); flashTint(hexRgb(d.col),0.32); slowmo(0.5); }
+  if(G.activeSpecial){ const d=specialDef(G.activeSpecial); showBig(d); flashTint(hexRgb(d.col),0.32); slowmo(0.5); vibe(G.activeSpecial); }
   if(G.activeSpecial==='thunder') applyThunder();
   Sound.launch();
 }
