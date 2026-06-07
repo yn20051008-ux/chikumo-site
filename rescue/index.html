@@ -195,20 +195,22 @@ const TAU=Math.PI*2;
 
 /* ===== Layout / grid ===== */
 const COLS=7;
-let cell=50, gx=0, gridTop=0, deadY=0, launchY=0, R=6, maxRow=10;
+let cell=50, gx=0, gridTop=0, deadY=0, launchY=0, catchY=0, R=6, maxRow=10;
 function layout(){
   cell=Math.floor(Math.min(W/COLS, H/12));
   const playW=cell*COLS; gx=Math.floor((W-playW)/2);
   gridTop=Math.max(76, (H*0.02)+70) + (window.__safeTop||0);
-  launchY=H-Math.max(64, H*0.10);
+  catchY=H-Math.max(22, H*0.035);                 // balls are caught at the very bottom
+  launchY=H-clamp(H*0.22, 130, 250);              // launcher raised, leaving a bounce zone below
   deadY=launchY-cell*0.5;
   maxRow=Math.floor((deadY-gridTop)/cell);
   R=Math.max(5, cell*0.13);
-  // three fixed bumpers, lower (closer to the player), in a gentle triangle
-  const span=launchY-gridTop, br=cell*0.40, pw=COLS*cell;
-  bumpers=[ {x:gx+pw*0.24, y:gridTop+span*0.80, r:br, pop:0},
-            {x:gx+pw*0.50, y:gridTop+span*0.88, r:br, pop:0},
-            {x:gx+pw*0.76, y:gridTop+span*0.80, r:br, pop:0} ];
+  // three bumpers BELOW the launcher (toward the player): don't block firing,
+  // and knock returning balls back up for extra hits. Gentle triangle.
+  const zone=catchY-launchY, br=cell*0.40, pw=COLS*cell;
+  bumpers=[ {x:gx+pw*0.24, y:launchY+zone*0.40, r:br, pop:0},
+            {x:gx+pw*0.50, y:launchY+zone*0.62, r:br, pop:0},
+            {x:gx+pw*0.76, y:launchY+zone*0.40, r:br, pop:0} ];
 }
 
 /* ===== State ===== */
@@ -340,7 +342,7 @@ function updateShoot(dt){
       collideBumpers(b);
       collideBlocks(b);
       collectItems(b);
-      if(b.y>=launchY-R){ // caught
+      if(b.y>=catchY-R){ // caught at the bottom
         b.alive=false;
         if(G.nextLaunchX===null) G.nextLaunchX=clamp(b.x,gx+R,gx+COLS*cell-R);
         break;
