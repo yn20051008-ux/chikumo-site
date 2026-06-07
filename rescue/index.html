@@ -328,16 +328,18 @@ function makeBolt(col,branch){ const pts=[]; let x=cellX(col)+rnd(-cell*0.3,cell
   return {pts,life:0.5,max:0.5,branch:!!branch}; }
 function applyThunder(){
   const col=clamp(Math.round((G.launchX-gx)/cell-0.5),0,COLS-1);
+  const cols=[col-1,col,col+1];
+  // total annihilation across the 3-wide strike zone
   for(const bl of blocks){ if(bl.dead)continue;
-    if(bl.col===col) hitBlock(bl,cellX(bl.col),cellY(bl.row),6);
-    else if(Math.abs(bl.col-col)===1) hitBlock(bl,cellX(bl.col),cellY(bl.row),3);
-  }
-  bolts=[ makeBolt(col,false), makeBolt(col,true), makeBolt(col,true) ];
+    if(cols.indexOf(bl.col)>=0) hitBlock(bl,cellX(bl.col),cellY(bl.row),bl.hp); }
+  bolts=[];
+  for(const c of cols){ if(c<0||c>=COLS)continue;
+    bolts.push(makeBolt(c,c!==col)); bolts.push(makeBolt(c,true));
+    addShock(cellX(c),launchY,cell*2.0,'255,230,120',5);
+    for(let i=0;i<12;i++) particles.push({x:cellX(c)+rnd(-cell*0.45,cell*0.45),y:rnd(gridTop,launchY),
+      vx:rnd(-8,8),vy:rnd(-8,8),life:rnd(.3,.7),max:.7,r:rnd(2,6),col:'255,240,150',glow:1,g:0.04}); }
   G.thunderCol=col; G.thunderT=0.5;
-  flashTint('255,245,200',0.6); G.shake=22; slowmo(0.34);
-  addShock(cellX(col),launchY,cell*2.4,'255,230,120',6);
-  for(let i=0;i<24;i++) particles.push({x:cellX(col)+rnd(-cell*0.4,cell*0.4),y:rnd(gridTop,launchY),
-    vx:rnd(-7,7),vy:rnd(-7,7),life:rnd(.3,.7),max:.7,r:rnd(2,5),col:'255,240,150',glow:1,g:0.04});
+  flashTint('255,245,200',0.72); G.shake=26; slowmo(0.30);
   Sound.rescue();
 }
 function hitBlock(bl,bx,by,dmg){
