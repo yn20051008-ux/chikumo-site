@@ -197,20 +197,21 @@ const TAU=Math.PI*2;
 const COLS=7;
 let cell=50, gx=0, gridTop=0, deadY=0, launchY=0, catchY=0, R=6, maxRow=10;
 function layout(){
-  cell=Math.floor(Math.min(W/COLS, H/12));
-  const playW=cell*COLS; gx=Math.floor((W-playW)/2);
-  gridTop=Math.max(76, (H*0.02)+70) + (window.__safeTop||0);
-  catchY=H-Math.max(22, H*0.035);                 // balls are caught at the very bottom
-  launchY=H-clamp(H*0.22, 130, 250);              // launcher raised, leaving a bounce zone below
-  deadY=launchY-cell*0.5;
-  maxRow=Math.floor((deadY-gridTop)/cell);
-  R=Math.max(5, cell*0.13);
-  // three bumpers BELOW the launcher (toward the player): don't block firing,
-  // and knock returning balls back up for extra hits. Gentle triangle.
-  const zone=catchY-launchY, br=cell*0.40, pw=COLS*cell;
-  bumpers=[ {x:gx+pw*0.24, y:launchY+zone*0.40, r:br, pop:0},
-            {x:gx+pw*0.50, y:launchY+zone*0.62, r:br, pop:0},
-            {x:gx+pw*0.76, y:launchY+zone*0.40, r:br, pop:0} ];
+  const safeTop=window.__safeTop||0;
+  gridTop=safeTop+64;
+  catchY=H-Math.max(20,H*0.03);
+  const ROWS=10, BZONE=2.6;                         // 10 rows before game over + bumper zone below
+  cell=Math.floor(Math.min(W/COLS,(catchY-gridTop)/(ROWS+BZONE)));
+  const pw=cell*COLS; gx=Math.floor((W-pw)/2);
+  deadY=gridTop+ROWS*cell;                          // a block reaching this line = game over
+  launchY=deadY+cell*0.45;                          // launcher just below the deadline
+  maxRow=ROWS;
+  R=Math.max(5,cell*0.13);
+  // three bumpers in the bounce zone below the launcher
+  const zone=catchY-launchY, br=cell*0.38;
+  bumpers=[ {x:gx+pw*0.24, y:launchY+zone*0.42, r:br, pop:0},
+            {x:gx+pw*0.50, y:launchY+zone*0.66, r:br, pop:0},
+            {x:gx+pw*0.76, y:launchY+zone*0.42, r:br, pop:0} ];
 }
 
 /* ===== State ===== */
@@ -559,7 +560,7 @@ function render(){
 
   // deadline
   ctx.strokeStyle='rgba(255,90,110,.55)'; ctx.lineWidth=2; ctx.setLineDash([8,8]);
-  ctx.beginPath(); ctx.moveTo(gx,deadY+cell*0.5); ctx.lineTo(gx+COLS*cell,deadY+cell*0.5); ctx.stroke(); ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(gx,deadY); ctx.lineTo(gx+COLS*cell,deadY); ctx.stroke(); ctx.setLineDash([]);
 
   // bumpers (pinball-style ricochet pegs)
   for(const bm of bumpers){ const e=1+(bm.pop||0)*0.3; if(bm.pop>0)bm.pop-=0.1;
