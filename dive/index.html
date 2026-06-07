@@ -335,10 +335,10 @@ function drawStars(){
 
 /* ============ Entities ============ */
 const ETYPES={
-  rock:{hp:1,score:100,r:0.052,speed:0.34,col:'#c98b5a',col2:'#6b4326'},
-  drone:{hp:2,score:220,r:0.05,speed:0.46,col:'#7fd0ff',col2:'#1c5e9e'},
-  chick:{hp:3,score:360,r:0.06,speed:0.4,col:'#ffe14d',col2:'#d89a1e'}, // 畜星(コッコ)
-  comet:{hp:1,score:160,r:0.045,speed:0.62,col:'#ff7be0',col2:'#a01e7e'},
+  rock:{hp:1,score:100,r:0.052,speed:0.40,col:'#c98b5a',col2:'#6b4326'},
+  drone:{hp:2,score:220,r:0.05,speed:0.54,col:'#7fd0ff',col2:'#1c5e9e'},
+  chick:{hp:3,score:360,r:0.06,speed:0.47,col:'#ffe14d',col2:'#d89a1e'}, // 畜星(コッコ)
+  comet:{hp:1,score:160,r:0.045,speed:0.74,col:'#ff7be0',col2:'#a01e7e'},
 };
 function spawnEnemy(type){
   const t=ETYPES[type];
@@ -346,7 +346,7 @@ function spawnEnemy(type){
   const ang=rnd(0,TAU), rr=rnd(0.18,0.95);
   enemies.push({
     type, ex:Math.cos(ang)*rr, ey:Math.sin(ang)*rr, zz:1,
-    hp:t.hp, maxhp:t.hp, r:t.r, speed:t.speed*rnd(0.85,1.15),
+    hp:t.hp, maxhp:t.hp, r:t.r, speed:t.speed*rnd(0.85,1.15)*(1+(G.wave-1)*0.07),
     rot:rnd(0,TAU), rotS:rnd(-2,2), wob:rnd(0,TAU),
     drift:rnd(-0.12,0.12), driftY:rnd(-0.1,0.1), hitFx:0,
     boss:false,
@@ -354,8 +354,8 @@ function spawnEnemy(type){
 }
 function spawnBoss(){
   enemies.push({
-    type:'boss', ex:0, ey:0, zz:1, hp:60+G.wave*14, maxhp:60+G.wave*14,
-    r:0.18, speed:0.06, rot:0, rotS:0.4, wob:0, drift:0, driftY:0,
+    type:'boss', ex:0, ey:0, zz:1, hp:75+G.wave*20, maxhp:75+G.wave*20,
+    r:0.18, speed:0.08, rot:0, rotS:0.4, wob:0, drift:0, driftY:0,
     hitFx:0, boss:true, atkT:1.6, phase:0,
   });
   G.bossMode=true;
@@ -376,16 +376,17 @@ function startWave(n){
   G.wave=n; G.waveActive=true;
   if(n%5===0){ spawnBoss(); G.toSpawn=0; return; }
   G.bossMode=false;
-  G.toSpawn = 8 + n*3;
-  G.spawnGap = clamp(0.85 - n*0.05, 0.28, 0.85);
-  G.spawnT = 0.4;
+  G.toSpawn = 10 + n*4;
+  G.spawnGap = clamp(0.80 - n*0.06, 0.18, 0.80);
+  G.spawnT = 0.35;
   banner(n, 'WAVE', '#9ec3ff');
 }
 function pickType(){
   const r=Math.random(), w=G.wave;
-  if(r<0.42) return 'rock';
-  if(r<0.42+clamp(0.1+w*0.03,0,0.3)) return 'comet';
-  if(r<0.85) return 'drone';
+  const cometCh=clamp(0.12+w*0.035,0,0.36);
+  if(r<0.32) return 'rock';
+  if(r<0.32+cometCh) return 'comet';
+  if(r<0.80) return 'drone';
   return 'chick';
 }
 
@@ -627,15 +628,16 @@ function updateEnemies(dt){
       e.zz = clamp(e.zz,0.45,1); // boss hovers
       if(e.zz<=0.46){ e.zz=0.46; }
       e.atkT-=dt;
-      if(e.atkT<=0){ e.atkT=clamp(1.8-G.wave*0.05,0.7,1.8);
+      if(e.atkT<=0){ e.atkT=clamp(1.5-G.wave*0.05,0.5,1.5);
         // spawn minions
-        for(let i=0;i<2;i++) spawnEnemy(pickType());
+        const m=2+Math.floor(G.wave/5);
+        for(let i=0;i<m;i++) spawnEnemy(pickType());
       }
     }
     if(!e.boss && e.zz<=0.04){
       // crashed into player
       e.dead=true;
-      damage(e.type==='rock'?16:12);
+      damage(e.type==='rock'?20:15);
       const s=screenPos(e);
       for(let i=0;i<10;i++) particles.push(boomP(s.x,s.y,'255,90,110',1,false));
     }
@@ -717,7 +719,7 @@ function loop(ts){
     if(G.comboTimer>0){ G.comboTimer-=dt; if(G.comboTimer<=0){G.combo=0;G.mult=1;} }
     // shield slow regen
     if(G.shieldRegenLock>0) G.shieldRegenLock-=dt;
-    else if(G.shield<100){ G.shield=Math.min(100,G.shield+dt*1.5); updateShield(); }
+    else if(G.shield<100){ G.shield=Math.min(100,G.shield+dt*1.0); updateShield(); }
     // spawning
     if(G.waveActive && !G.bossMode){
       if(G.toSpawn>0){
