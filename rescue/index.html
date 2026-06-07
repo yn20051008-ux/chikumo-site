@@ -348,11 +348,9 @@ function hitBlock(bl,bx,by,dmg){
   if(bl.hp<=0) breakBlock(bl,bx,by);
 }
 function fireAOE(bl){
-  const nb=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];   // big 8-way blast
-  for(const [dc,dr] of nb){ const t=blocks.find(x=>!x.dead&&x.col===bl.col+dc&&x.row===bl.row+dr);
-    if(t) hitBlock(t,cellX(t.col),cellY(t.row),1); }
   const bx=cellX(bl.col),by=cellY(bl.row);
-  addShock(bx,by,cell*2.0,'255,150,50',6);
+  // expanding shockwave that DAMAGES every block its ring sweeps over (1 dmg each, once)
+  addShock(bx,by,cell*2.3,'255,150,50',6,1);
   burst(bx,by,'255,180,70',16,8,true); burst(bx,by,'255,90,30',12,4,true);
   flashTint('255,120,40',0.16); G.shake=Math.min(G.shake+5,22);
 }
@@ -454,7 +452,7 @@ function collideBumpers(b){
 function spark(x,y,col){ const a=rnd(0,TAU),s=rnd(1,5); return {x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,life:rnd(.3,.6),max:.6,r:rnd(2,4),col}; }
 function addFloat(x,y){ floats.push({x,y:y-6,life:.4,max:.4}); }
 function addText(t,x,y,col){ floats.push({t,x,y,col,life:1,max:1,big:1}); }
-function addShock(x,y,maxR,col,w){ shockwaves.push({x,y,r:Math.min(maxR*0.18,10),maxR,life:.45,max:.45,col,w:w||4}); }
+function addShock(x,y,maxR,col,w,dmg){ shockwaves.push({x,y,r:Math.min(maxR*0.18,10),maxR,life:.45,max:.45,col,w:w||4,dmg:dmg||0,hit:dmg?new Set():null}); }
 function burst(x,y,col,n,spd,glow){ for(let i=0;i<n;i++){ const a=rnd(0,TAU),s=rnd(spd*0.3,spd);
   particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.3,.8),max:.8,r:rnd(2,5),col,glow:glow?1:0,g:0.08}); } }
 function flashTint(col,amt){ G.flash=Math.max(G.flash,amt); G.flashCol=col; }
@@ -466,8 +464,14 @@ function updateFX(dt){
   particles=particles.filter(p=>p.life>0);
   for(const f of floats){ f.y-=20*dt; f.life-=dt; }
   floats=floats.filter(f=>f.life>0);
-  for(const s of shockwaves){ s.r += (s.maxR-s.r)*0.20; s.life-=dt; }
+  for(const s of shockwaves){ s.r += (s.maxR-s.r)*0.20; s.life-=dt;
+    if(s.dmg){ const reach=(s.r+cell*0.40)*(s.r+cell*0.40);
+      for(const bl of blocks){ if(bl.dead||s.hit.has(bl))continue;
+        const dxx=cellX(bl.col)-s.x, dyy=cellY(bl.row)-s.y;
+        if(dxx*dxx+dyy*dyy<=reach){ s.hit.add(bl); hitBlock(bl,cellX(bl.col),cellY(bl.row),s.dmg); } } }
+  }
   shockwaves=shockwaves.filter(s=>s.life>0);
+  blocks=blocks.filter(b=>!b.dead);
   for(const b of bolts){ b.life-=dt; }
   bolts=bolts.filter(b=>b.life>0);
   if(G.thunderT>0) G.thunderT-=dt;
