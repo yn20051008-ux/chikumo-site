@@ -288,7 +288,7 @@ function aimDir(){
   const a=clamp(ang,minA,maxA);
   return {x:Math.cos(a), y:Math.sin(a)};
 }
-const SPEED=11, ACCEL=0.35, SPEEDMAX=SPEED*1.95+5;   // balls speed up on every bounce (higher cap, ramps faster)
+const SPEED=13, ACCEL=0.35, SPEEDMAX=SPEED*1.95+10;   // faster start + higher accel cap to cut downtime
 const SPECIALS=[
   {id:'fire',   name:'ファイア',  col:'#ff7b3a', emoji:'🔥'},
   {id:'thunder',name:'いかずち',  col:'#ffe066', emoji:'⚡'},
