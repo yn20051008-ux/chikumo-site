@@ -216,7 +216,8 @@ function layout(){
 /* ===== State ===== */
 const G={ phase:'title', score:0, best:0, turn:0, balls:1, rescued:0, best_rescued:0,
   aiming:false, aimX:0, aimY:0, launchX:0, fireT:0, toFire:0, firedDir:{x:0,y:-1},
-  pendingBalls:0, nextLaunchX:null, shootClock:0, shake:0, flash:0, newBest:false };
+  pendingBalls:0, nextLaunchX:null, shootClock:0, shake:0, flash:0, newBest:false,
+  special:null, activeSpecial:null, thunderT:0, thunderCol:null };
 let blocks=[], items=[], balls=[], particles=[], floats=[], bumpers=[];
 
 function cellX(c){ return gx+c*cell+cell/2; }
@@ -226,7 +227,8 @@ function newGame(){
   Sound.init(); Sound.resume(); if(audioOn) Sound.startBGM();
   blocks=[]; items=[]; balls=[]; particles=[]; floats=[];
   Object.assign(G,{phase:'aim',score:0,turn:0,balls:1,rescued:0,
-    aiming:false,launchX:gx+COLS*cell/2,nextLaunchX:null,pendingBalls:0,shake:0,flash:0,newBest:false});
+    aiming:false,launchX:gx+COLS*cell/2,nextLaunchX:null,pendingBalls:0,shake:0,flash:0,newBest:false,
+    special:null,activeSpecial:null,thunderT:0,thunderCol:null});
   document.getElementById('score') && 0;
   spawnRow(true);
   hideScreens();
@@ -285,31 +287,74 @@ function aimDir(){
   const a=clamp(ang,minA,maxA);
   return {x:Math.cos(a), y:Math.sin(a)};
 }
+const SPEED=11;
+const SPECIALS=[
+  {id:'fire',   name:'ファイア',  col:'#ff7b3a', emoji:'🔥'},
+  {id:'thunder',name:'いかずち',  col:'#ffe066', emoji:'⚡'},
+  {id:'split',  name:'ぶんれつ',  col:'#9affc0', emoji:'✨'},
+  {id:'pierce', name:'つらぬき',  col:'#7fe3ff', emoji:'🌀'},
+  {id:'giant',  name:'でかボール',col:'#ff9ee8', emoji:'🪐'},
+];
+function specialDef(id){ return SPECIALS.find(s=>s.id===id); }
+function grantSpecial(bx,by){
+  const s=SPECIALS[Math.floor(rnd(0,SPECIALS.length))];
+  G.special=s.id;
+  addText(s.emoji+s.name+'!', bx, by-cell*0.7, s.col);
+}
 function launch(){
   const d=aimDir();
-  G.firedDir=d; G.phase='shoot'; G.toFire=G.balls; G.fireT=0; G.nextLaunchX=null; G.shootClock=0;
+  G.firedDir=d; G.activeSpecial=G.special||null; G.special=null;
+  G.phase='shoot'; G.toFire=G.balls; G.fireT=0; G.nextLaunchX=null; G.shootClock=0;
+  if(G.activeSpecial==='thunder') applyThunder();
   Sound.launch();
 }
 function spawnBall(){
-  balls.push({x:G.launchX,y:launchY-R,vx:G.firedDir.x*SPEED,vy:G.firedDir.y*SPEED,alive:true});
+  const fx=G.activeSpecial;
+  const r = fx==='giant'? R*2.3 : R;
+  balls.push({x:G.launchX,y:launchY-r-1,vx:G.firedDir.x*SPEED,vy:G.firedDir.y*SPEED,alive:true,
+    r, dmg: fx==='giant'?2:1, fx, split: fx==='split', trail:[]});
   Sound.ball();
 }
-const SPEED=11;
+function addSplitBall(b){ if(balls.length>180)return;
+  const ang=Math.atan2(b.vy,b.vx)+rnd(-0.7,0.7);
+  balls.push({x:b.x,y:b.y,vx:Math.cos(ang)*SPEED,vy:Math.sin(ang)*SPEED,alive:true,r:R,dmg:1,fx:'split',split:false,trail:[]});
+}
+function applyThunder(){
+  const col=clamp(Math.round((G.launchX-gx)/cell-0.5),0,COLS-1);
+  for(const bl of blocks){ if(bl.dead)continue;
+    if(bl.col===col) hitBlock(bl,cellX(bl.col),cellY(bl.row),6);
+    else if(Math.abs(bl.col-col)===1) hitBlock(bl,cellX(bl.col),cellY(bl.row),3);
+  }
+  G.thunderCol=col; G.thunderT=0.45; G.flash=0.45; G.shake=Math.min(G.shake+10,18); Sound.rescue();
+}
+function hitBlock(bl,bx,by,dmg){
+  if(bl.dead) return;
+  bl.hp-=dmg; bl.pop=1; G.score+=dmg; Sound.hit((bl.maxhp-bl.hp)||1); addFloat(bx,by);
+  if(bl.hp<=0) breakBlock(bl,bx,by);
+}
+function fireAOE(bl){
+  const nb=[[1,0],[-1,0],[0,1],[0,-1]];
+  for(const [dc,dr] of nb){ const t=blocks.find(x=>!x.dead&&x.col===bl.col+dc&&x.row===bl.row+dr);
+    if(t) hitBlock(t,cellX(t.col),cellY(t.row),1); }
+  const bx=cellX(bl.col),by=cellY(bl.row);
+  for(let i=0;i<6;i++) particles.push(spark(bx,by,'255,140,60'));
+}
 
 function collideBlocks(b){
-  const half=cell*0.46;
-  // candidate blocks near ball
+  const rad=b.r||R, half=cell*0.46;
   for(const bl of blocks){
     if(bl.dead) continue;
+    if(b.fx==='pierce' && bl._pl>0) continue;            // brief lock so pierce doesn't multi-hit same block
     const bx=cellX(bl.col), by=cellY(bl.row);
-    if(Math.abs(b.x-bx)>half+R || Math.abs(b.y-by)>half+R) continue;
-    const ox=half+R-Math.abs(b.x-bx), oy=half+R-Math.abs(b.y-by);
+    if(Math.abs(b.x-bx)>half+rad || Math.abs(b.y-by)>half+rad) continue;
+    const ox=half+rad-Math.abs(b.x-bx), oy=half+rad-Math.abs(b.y-by);
     if(ox<=0||oy<=0) continue;
-    if(ox<oy){ b.vx=-b.vx; b.x += (b.x>bx?1:-1)*ox; }
+    if(b.fx==='pierce'){ bl._pl=5; }                      // pierce: no reflect, slice through
+    else if(ox<oy){ b.vx=-b.vx; b.x += (b.x>bx?1:-1)*ox; }
     else { b.vy=-b.vy; b.y += (b.y>by?1:-1)*oy; }
-    bl.hp--; bl.pop=1; G.score++; Sound.hit(bl.maxhp-bl.hp);
-    addFloat(bx,by);
-    if(bl.hp<=0){ breakBlock(bl,bx,by); }
+    hitBlock(bl,bx,by,b.dmg||1);
+    if(b.fx==='fire') fireAOE(bl);
+    if(b.split){ b.split=false; addSplitBall(b); addSplitBall(b); }
     return true;
   }
   return false;
@@ -320,31 +365,37 @@ function breakBlock(bl,bx,by){
   for(let i=0;i<10;i++) particles.push(spark(bx,by,col));
   if(bl.type==='cocco'){ G.rescued++; G.score+=200; Sound.rescue();
     addText('RESCUE!', bx, by, '#ffd36b'); G.flash=0.5; G.shake=Math.min(G.shake+8,16);
-    for(let i=0;i<20;i++) particles.push(spark(bx,by,'255,225,120')); updateHUDtext(); }
+    for(let i=0;i<20;i++) particles.push(spark(bx,by,'255,225,120'));
+    grantSpecial(bx,by); updateHUDtext(); }
   else Sound.pop();
 }
 function collectItems(b){
+  const rad=b.r||R;
   for(const it of items){ if(it.dead) continue;
-    const ix=cellX(it.col), iy=cellY(it.row), r=cell*0.26+R;
+    const ix=cellX(it.col), iy=cellY(it.row), r=cell*0.26+rad;
     if((b.x-ix)**2+(b.y-iy)**2 < r*r){ it.dead=true; G.pendingBalls++; addText('+1',ix,iy,'#9fe8ff'); }
   }
 }
 function updateShoot(dt){
   G.shootClock+=dt;
+  if(G.thunderT>0) G.thunderT-=dt;
+  for(const bl of blocks){ if(bl._pl>0) bl._pl--; }
   if(G.toFire>0){ G.fireT-=dt; if(G.fireT<=0){ spawnBall(); G.toFire--; G.fireT=0.05; } }
   const sub=Math.max(1,Math.ceil(SPEED/R));
   for(const b of balls){ if(!b.alive) continue;
+    const rad=b.r||R;
+    if(b.fx){ b.trail.push({x:b.x,y:b.y}); if(b.trail.length>6) b.trail.shift(); }
     for(let s=0;s<sub;s++){
       b.x+=b.vx/sub; b.y+=b.vy/sub;
-      if(b.x<gx+R){ b.x=gx+R; b.vx=Math.abs(b.vx); }
-      if(b.x>gx+COLS*cell-R){ b.x=gx+COLS*cell-R; b.vx=-Math.abs(b.vx); }
-      if(b.y<gridTop+R){ b.y=gridTop+R; b.vy=Math.abs(b.vy); }
+      if(b.x<gx+rad){ b.x=gx+rad; b.vx=Math.abs(b.vx); }
+      if(b.x>gx+COLS*cell-rad){ b.x=gx+COLS*cell-rad; b.vx=-Math.abs(b.vx); }
+      if(b.y<gridTop+rad){ b.y=gridTop+rad; b.vy=Math.abs(b.vy); }
       collideBumpers(b);
       collideBlocks(b);
       collectItems(b);
-      if(b.y>=catchY-R){ // caught at the bottom
+      if(b.y>=catchY-rad){ // caught at the bottom
         b.alive=false;
-        if(G.nextLaunchX===null) G.nextLaunchX=clamp(b.x,gx+R,gx+COLS*cell-R);
+        if(G.nextLaunchX===null) G.nextLaunchX=clamp(b.x,gx+rad,gx+COLS*cell-rad);
         break;
       }
     }
@@ -356,7 +407,7 @@ function updateShoot(dt){
   // force end if too long
   if(G.shootClock>14){ for(const b of balls) b.alive=false; }
   if(G.toFire<=0 && balls.every(b=>!b.alive)){
-    balls=[];
+    balls=[]; G.activeSpecial=null;
     if(G.nextLaunchX!==null) G.launchX=G.nextLaunchX;
     G.balls += G.pendingBalls; G.pendingBalls=0;
     G.phase='shift';
@@ -365,8 +416,9 @@ function updateShoot(dt){
 }
 function renorm(b){ const l=Math.hypot(b.vx,b.vy)||1; b.vx=b.vx/l*SPEED; b.vy=b.vy/l*SPEED; }
 function collideBumpers(b){
+  const rad=b.r||R;
   for(const bm of bumpers){
-    const dx=b.x-bm.x, dy=b.y-bm.y, rr=R+bm.r, d2=dx*dx+dy*dy;
+    const dx=b.x-bm.x, dy=b.y-bm.y, rr=rad+bm.r, d2=dx*dx+dy*dy;
     if(d2<rr*rr){
       const d=Math.sqrt(d2)||1, nx=dx/d, ny=dy/d, dot=b.vx*nx+b.vy*ny;
       b.vx-=2*dot*nx; b.vy-=2*dot*ny; renorm(b);
@@ -473,15 +525,36 @@ function render(){
     ctx.shadowBlur=0; ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(0,0,bm.r*0.26,0,TAU); ctx.fill();
     ctx.restore(); }
 
-  // balls
-  ctx.fillStyle='#fff';
-  for(const b of balls){ if(!b.alive)continue; ctx.beginPath(); ctx.arc(b.x,b.y,R,0,TAU); ctx.fill(); }
+  // thunder bolt
+  if(G.thunderT>0 && G.thunderCol!=null){ const cxp=cellX(G.thunderCol);
+    ctx.save(); ctx.globalAlpha=clamp(G.thunderT/0.45,0,1); ctx.strokeStyle='#fff';
+    ctx.shadowColor='#ffe066'; ctx.shadowBlur=20; ctx.lineWidth=cell*0.18;
+    ctx.beginPath(); let yy=gridTop; ctx.moveTo(cxp,yy);
+    while(yy<launchY){ yy+=cell*0.6; ctx.lineTo(cxp+rnd(-cell*0.2,cell*0.2),yy); } ctx.stroke();
+    ctx.restore(); }
+
+  // balls (with special-effect glow & trail)
+  for(const b of balls){ if(!b.alive)continue; const rad=b.r||R; const d=b.fx?specialDef(b.fx):null;
+    if(d && b.trail){ ctx.globalAlpha=0.4; ctx.fillStyle=d.col;
+      for(let i=0;i<b.trail.length;i++){ const tp=b.trail[i]; ctx.globalAlpha=0.05+0.05*i;
+        ctx.beginPath(); ctx.arc(tp.x,tp.y,rad*0.8,0,TAU); ctx.fill(); } ctx.globalAlpha=1; }
+    if(d){ ctx.shadowColor=d.col; ctx.shadowBlur=14; ctx.fillStyle=d.col; }
+    else { ctx.shadowBlur=0; ctx.fillStyle='#fff'; }
+    ctx.beginPath(); ctx.arc(b.x,b.y,rad,0,TAU); ctx.fill();
+    if(d){ ctx.fillStyle='rgba(255,255,255,.85)'; ctx.beginPath(); ctx.arc(b.x,b.y,rad*0.45,0,TAU); ctx.fill(); }
+    ctx.shadowBlur=0;
+  }
 
   // launcher + aim
   if(G.phase==='aim'){
-    ctx.fillStyle='#ffd98a'; ctx.beginPath(); ctx.arc(G.launchX,launchY,R*1.3,0,TAU); ctx.fill();
+    const sp=G.special?specialDef(G.special):null;
+    ctx.fillStyle=sp?sp.col:'#ffd98a';
+    if(sp){ ctx.shadowColor=sp.col; ctx.shadowBlur=14; }
+    ctx.beginPath(); ctx.arc(G.launchX,launchY,R*1.3,0,TAU); ctx.fill(); ctx.shadowBlur=0;
     ctx.fillStyle='rgba(255,255,255,.7)'; ctx.font='700 12px sans-serif'; ctx.textAlign='center';
     ctx.fillText('×'+G.balls, G.launchX, launchY+22);
+    if(sp){ ctx.fillStyle=sp.col; ctx.font='900 13px sans-serif';
+      ctx.fillText(sp.emoji+sp.name, G.launchX, launchY-R*1.3-12); }
     if(G.aiming){ drawAim(); }
   } else if(G.phase==='shoot'){
     ctx.fillStyle='rgba(255,217,138,.5)'; ctx.beginPath(); ctx.arc(G.launchX,launchY,R*1.1,0,TAU); ctx.fill();
@@ -585,7 +658,8 @@ let audioOn=true;
 /* ===== Debug hook ===== */
 window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G.score,balls:G.balls,turn:G.turn,
     rescued:G.rescued,blocks:blocks.length,best:G.best}),
-  start:newGame, fire:(ang)=>{ if(G.phase!=='aim')return false; G.aimX=G.launchX+Math.cos(ang)*200; G.aimY=launchY+Math.sin(ang)*200; launch(); return true; },
+  start:newGame, setSpecial:(id)=>{ G.special=id; }, getSpecial:()=>G.special,
+  fire:(ang)=>{ if(G.phase!=='aim')return false; G.aimX=G.launchX+Math.cos(ang)*200; G.aimY=launchY+Math.sin(ang)*200; launch(); return true; },
   settle:()=>{ for(const b of balls) b.alive=false; }, };
 
 /* ===== Boot ===== */

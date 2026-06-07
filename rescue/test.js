@@ -67,5 +67,15 @@ ok(global.localStorage.getItem('coccoRescueBest')!==null,'best score saved ('+gl
 R.start(); frames(2);
 ok(R.phase==='aim','retry restarts into aim phase');
 
+// each of the 5 special effects activates & runs without error
+for(const id of ['fire','thunder','split','pierce','giant']){
+  if(R.phase!=='aim'){ R.start(); frames(2); }
+  R.setSpecial(id);
+  R.fire(-Math.PI/2 + (Math.random()*0.6-0.3));
+  let g=0; while(R.phase==='shoot' && g++<240){ frames(1); if(g===200) R.settle(); }
+  frames(2);
+  ok(R.getSpecial()===null,'special "'+id+'" activates & is consumed');
+}
+
 console.log('\nframes run: '+frame+'   '+(fail?(fail+' CHECK(S) FAILED'):'ALL CHECKS PASSED'));
 process.exit(fail?1:0);
