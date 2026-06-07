@@ -59,6 +59,13 @@ frames(2);
 ok(R.state==='over','a direct hit ends the run');
 ok(global.localStorage.getItem('coccoGrazeBest')!==null,'best score saved ('+global.localStorage.getItem('coccoGrazeBest')+')');
 
+// praise: rack a 10-graze streak -> milestone celebration fires a praise text
+R.start(); frames(2); R.setPos(215,440);
+for(let i=0;i<10;i++){ const a=i/10*Math.PI*2; R.spawnAt(215+Math.cos(a)*25,440+Math.sin(a)*25,0,0,8); }
+frames(1);
+ok(R.info().combo>=10,'consecutive grazes build a streak ('+R.info().combo+')');
+ok(R.praised(),'milestone shows a praise callout');
+
 // retry
 R.start(); frames(2);
 ok(R.state==='play','retry restarts the run');
