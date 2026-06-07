@@ -316,12 +316,12 @@ function spawnBall(){
   const fx=G.activeSpecial;
   const r = fx==='giant'? R*3.0 : R;
   balls.push({x:G.launchX,y:launchY-r-1,vx:G.firedDir.x*SPEED,vy:G.firedDir.y*SPEED,alive:true,
-    r, sp:SPEED, dmg: fx==='giant'?3:1, fx, split: fx==='split', trail:[]});
+    r, sp:SPEED, bounces:0, dmg: fx==='giant'?3:1, fx, split: fx==='split', trail:[]});
   Sound.ball();
 }
 function addSplitBall(b){ if(balls.length>180)return;
   const ang=Math.atan2(b.vy,b.vx)+rnd(-0.7,0.7), sp=b.sp||SPEED;
-  balls.push({x:b.x,y:b.y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,alive:true,r:R,sp,dmg:1,fx:'split',split:false,trail:[]});
+  balls.push({x:b.x,y:b.y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,alive:true,r:R,sp,bounces:0,dmg:1,fx:'split',split:false,trail:[]});
 }
 function makeBolt(col,branch){ const pts=[]; let x=cellX(col)+rnd(-cell*0.3,cell*0.3), y=gridTop-cell*1.2;
   const endY=launchY;
@@ -434,7 +434,8 @@ function updateShoot(dt){
   }
 }
 function renorm(b){ const sp=b.sp||SPEED, l=Math.hypot(b.vx,b.vy)||1; b.vx=b.vx/l*sp; b.vy=b.vy/l*sp; }
-function accel(b){ if((b.sp||SPEED)<SPEEDMAX){ b.sp=Math.min(SPEEDMAX,(b.sp||SPEED)+ACCEL); renorm(b); } }
+function accel(b){ b.bounces=(b.bounces||0)+1; if(b.bounces>=10 && (b.dmg||1)<2) b.dmg=2;   // 10 bounces -> power up
+  if((b.sp||SPEED)<SPEEDMAX){ b.sp=Math.min(SPEEDMAX,(b.sp||SPEED)+ACCEL); renorm(b); } }
 function collideBumpers(b){
   const rad=b.r||R;
   for(const bm of bumpers){
@@ -582,9 +583,10 @@ function render(){
       for(let i=0;i<b.trail.length;i++){ const tp=b.trail[i]; ctx.globalAlpha=0.05+0.05*i;
         ctx.beginPath(); ctx.arc(tp.x,tp.y,rad*0.8,0,TAU); ctx.fill(); } ctx.globalAlpha=1; }
     if(d){ ctx.shadowColor=d.col; ctx.shadowBlur=14; ctx.fillStyle=d.col; }
+    else if((b.dmg||1)>=2){ ctx.shadowColor='#ffd24d'; ctx.shadowBlur=14; ctx.fillStyle='#ffd24d'; }  // powered (10+ bounces)
     else { ctx.shadowBlur=0; ctx.fillStyle='#fff'; }
     ctx.beginPath(); ctx.arc(b.x,b.y,rad,0,TAU); ctx.fill();
-    if(d){ ctx.fillStyle='rgba(255,255,255,.85)'; ctx.beginPath(); ctx.arc(b.x,b.y,rad*0.45,0,TAU); ctx.fill(); }
+    if(d||(b.dmg||1)>=2){ ctx.fillStyle='rgba(255,255,255,.85)'; ctx.beginPath(); ctx.arc(b.x,b.y,rad*0.45,0,TAU); ctx.fill(); }
     ctx.shadowBlur=0;
   }
 
