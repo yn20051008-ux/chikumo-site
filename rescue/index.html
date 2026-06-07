@@ -217,7 +217,7 @@ function layout(){
 const G={ phase:'title', score:0, best:0, turn:0, balls:1, rescued:0, best_rescued:0,
   aiming:false, aimX:0, aimY:0, launchX:0, fireT:0, toFire:0, firedDir:{x:0,y:-1},
   pendingBalls:0, nextLaunchX:null, shootClock:0, shake:0, flash:0, flashCol:'255,255,255', timeScale:1, newBest:false,
-  special:null, activeSpecial:null, thunderT:0, thunderCol:null };
+  special:null, specials:[], activeSpecial:null, thunderT:0, thunderCol:null };
 let shockwaves=[], bolts=[], bigText=null;
 let blocks=[], items=[], balls=[], particles=[], floats=[], bumpers=[];
 
@@ -229,7 +229,7 @@ function newGame(){
   blocks=[]; items=[]; balls=[]; particles=[]; floats=[]; shockwaves=[]; bolts=[]; bigText=null;
   Object.assign(G,{phase:'aim',score:0,turn:0,balls:1,rescued:0,
     aiming:false,launchX:gx+COLS*cell/2,nextLaunchX:null,pendingBalls:0,shake:0,flash:0,flashCol:'255,255,255',timeScale:1,newBest:false,
-    special:null,activeSpecial:null,thunderT:0,thunderCol:null});
+    special:null,specials:[],activeSpecial:null,thunderT:0,thunderCol:null});
   document.getElementById('score') && 0;
   spawnRow(true);
   hideScreens();
@@ -299,12 +299,12 @@ const SPECIALS=[
 function specialDef(id){ return SPECIALS.find(s=>s.id===id); }
 function grantSpecial(bx,by){
   const s=SPECIALS[Math.floor(rnd(0,SPECIALS.length))];
-  G.special=s.id;
+  if(G.specials.length<9) G.specials.push(s.id);   // each rescue = one charge, they stack
   addText(s.emoji+s.name+'!', bx, by-cell*0.7, s.col);
 }
 function launch(){
   const d=aimDir();
-  G.firedDir=d; G.activeSpecial=G.special||null; G.special=null;
+  G.firedDir=d; G.activeSpecial=G.specials.length?G.specials.shift():null;
   G.phase='shoot'; G.toFire=G.balls; G.fireT=0; G.nextLaunchX=null; G.shootClock=0;
   if(G.activeSpecial){ const d=specialDef(G.activeSpecial); showBig(d); flashTint(hexRgb(d.col),0.32); slowmo(0.5); }
   if(G.activeSpecial==='thunder') applyThunder();
@@ -581,14 +581,14 @@ function render(){
 
   // launcher + aim
   if(G.phase==='aim'){
-    const sp=G.special?specialDef(G.special):null;
+    const sp=G.specials.length?specialDef(G.specials[0]):null;
     ctx.fillStyle=sp?sp.col:'#ffd98a';
     if(sp){ ctx.shadowColor=sp.col; ctx.shadowBlur=14; }
     ctx.beginPath(); ctx.arc(G.launchX,launchY,R*1.3,0,TAU); ctx.fill(); ctx.shadowBlur=0;
     ctx.fillStyle='rgba(255,255,255,.7)'; ctx.font='700 12px sans-serif'; ctx.textAlign='center';
     ctx.fillText('×'+G.balls, G.launchX, launchY+22);
     if(sp){ ctx.fillStyle=sp.col; ctx.font='900 13px sans-serif';
-      ctx.fillText(sp.emoji+sp.name, G.launchX, launchY-R*1.3-12); }
+      ctx.fillText(sp.emoji+sp.name+(G.specials.length>1?' ×'+G.specials.length:''), G.launchX, launchY-R*1.3-12); }
     if(G.aiming){ drawAim(); }
   } else if(G.phase==='shoot'){
     ctx.fillStyle='rgba(255,217,138,.5)'; ctx.beginPath(); ctx.arc(G.launchX,launchY,R*1.1,0,TAU); ctx.fill();
@@ -705,7 +705,7 @@ let audioOn=true;
 /* ===== Debug hook ===== */
 window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G.score,balls:G.balls,turn:G.turn,
     rescued:G.rescued,blocks:blocks.length,best:G.best}),
-  start:newGame, setSpecial:(id)=>{ G.special=id; }, getSpecial:()=>G.special,
+  start:newGame, setSpecial:(id)=>{ G.specials.push(id); }, getSpecial:()=>G.specials[0]||null, queue:()=>G.specials.length,
   fire:(ang)=>{ if(G.phase!=='aim')return false; G.aimX=G.launchX+Math.cos(ang)*200; G.aimY=launchY+Math.sin(ang)*200; launch(); return true; },
   settle:()=>{ for(const b of balls) b.alive=false; }, };
 

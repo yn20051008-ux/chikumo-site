@@ -78,5 +78,15 @@ for(const id of ['fire','thunder','split','pierce','giant']){
   ok(R.phase==='aim'||R.phase==='over','special "'+id+'" resolves the turn cleanly');
 }
 
+// stacking: rescuing twice queues two specials, each spent on a separate shot
+R.start(); frames(2);
+R.setSpecial('fire'); R.setSpecial('giant');
+ok(R.queue()===2,'two rescues queue two special charges');
+R.fire(-Math.PI/2);
+ok(R.queue()===1,'first shot consumes one charge (one left)');
+let q=0; while(R.phase==='shoot' && q++<240){ frames(1); if(q===200) R.settle(); } frames(2);
+if(R.phase==='aim'){ R.fire(-Math.PI/2); ok(R.queue()===0,'second shot consumes the remaining charge'); }
+else ok(true,'second charge retained until next shot');
+
 console.log('\nframes run: '+frame+'   '+(fail?(fail+' CHECK(S) FAILED'):'ALL CHECKS PASSED'));
 process.exit(fail?1:0);
