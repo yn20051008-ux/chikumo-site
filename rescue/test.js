@@ -72,9 +72,10 @@ for(const id of ['fire','thunder','split','pierce','giant']){
   if(R.phase!=='aim'){ R.start(); frames(2); }
   R.setSpecial(id);
   R.fire(-Math.PI/2 + (Math.random()*0.6-0.3));
+  ok(R.getSpecial()===null,'special "'+id+'" consumed on launch');
   let g=0; while(R.phase==='shoot' && g++<240){ frames(1); if(g===200) R.settle(); }
   frames(2);
-  ok(R.getSpecial()===null,'special "'+id+'" activates & is consumed');
+  ok(R.phase==='aim'||R.phase==='over','special "'+id+'" resolves the turn cleanly');
 }
 
 console.log('\nframes run: '+frame+'   '+(fail?(fail+' CHECK(S) FAILED'):'ALL CHECKS PASSED'));
