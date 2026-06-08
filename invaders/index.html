@@ -137,7 +137,6 @@ let W=0,H=0,DPR=1;
 const COLS=11, ROWS=5, TOTAL=COLS*ROWS;
 let SM=16, topHUD=64, gridW=0, cellW=40, cellH=44, invBox=30;
 let playerW=46, playerH=58, playerY=0, bunkerY=0, invasionY=0, safeTop=0, safeBottom=0;
-function num(v){ return (typeof v==='number'&&isFinite(v))?v:0; }
 function resize(){
   DPR=Math.min(window.devicePixelRatio||1,2);
   W=window.innerWidth; H=window.innerHeight;
@@ -159,6 +158,21 @@ function resize(){
   if(player.x===0) player.x=W/2;
   player.x=clampPlayer(player.x);
   layoutBunkers();
+  clampFormation();
+}
+// Keep the live formation on-screen and above the invasion line after a resize
+// or orientation change, so the new geometry can't teleport invaders off the
+// edge or past the cannon and trigger an instant game over.
+function clampFormation(){
+  if(!invaders.length) return;
+  let minC=COLS, maxC=-1, maxR=-1;
+  for(let i=0;i<invaders.length;i++){ const a=invaders[i]; if(!a.alive) continue;
+    if(a.col<minC)minC=a.col; if(a.col>maxC)maxC=a.col; if(a.row>maxR)maxR=a.row; }
+  if(maxC<0) return;
+  const minX=SM - minC*cellW, maxX=(W-SM) - (maxC*cellW+invBox);
+  if(maxX>=minX) form.x=Math.max(minX, Math.min(maxX, form.x));
+  const maxY=invasionY - (maxR+1)*cellH - 6;
+  if(form.y>maxY) form.y=maxY;
 }
 
 // ---- classic invader bitmaps (two animation frames each) ----
@@ -223,7 +237,7 @@ const G={ state:'title', score:0, best:+(safeGet(BEST_KEY)||0), lives:3, wave:1,
 let invaders=[], pBullets=[], eBullets=[], particles=[], bunkers=[], ufo=null;
 const player={ x:0, vx:0, invul:0, dead:0 };
 let form={ x:0, y:0, dir:1, beat:0, beatMax:0.6 };
-let bombTimer=1.2, ufoTimer=12, clearTimer=0, fireCooldown=0, started=false;
+let bombTimer=1.2, ufoTimer=12, clearTimer=0, fireCooldown=0;
 let stars=[];
 
 function safeGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
@@ -275,6 +289,8 @@ function newWave(w){
   form.x=SM + cellW*0.10;
   form.y=topHUD + safeTop + 18 + Math.min(w-1,7)*cellH*0.5;
   bombTimer=Math.max(0.5, 1.4-w*0.08);
+  ufoTimer=8+Math.random()*10;   // fresh mystery-ship delay each wave
+  ufo=null;
   layoutBunkers(); // refresh barriers each wave for fairness
 }
 function reset(){
@@ -286,7 +302,7 @@ function reset(){
 }
 function start(){
   initAudio(); if(AC&&AC.state==='suspended'){ try{AC.resume();}catch(e){} }
-  reset(); G.state='play'; started=true;
+  reset(); G.state='play';
   showScreen(null);
 }
 
@@ -459,8 +475,9 @@ function update(dt){
   if(bombTimer<=0){ enemyFire();
     bombTimer=Math.max(0.32, (1.1 - G.wave*0.05)*(0.4+0.9*frac)) * (0.6+Math.random()*0.8); }
 
-  // ufo
-  if(!ufo){ ufoTimer-=dt; if(ufoTimer<=0 && alive>3){ spawnUfo(); ufoTimer=14+Math.random()*12; } }
+  // ufo — the cabinet suppresses the mystery ship once the formation is tiny;
+  // pause the timer there too so it doesn't bank up and fire instantly later.
+  if(!ufo){ if(alive>3){ ufoTimer-=dt; if(ufoTimer<=0){ spawnUfo(); ufoTimer=14+Math.random()*12; } } }
   else {
     ufo.x += ufo.dir*Math.max(80,W*0.16)*dt;
     if(Math.random()<0.5) sndUfo();
@@ -473,17 +490,18 @@ function update(dt){
 function stepBullets(dt){
   // player bullets
   for(let i=pBullets.length-1;i>=0;i--){ const b=pBullets[i];
-    b.y+=b.vy*dt;
+    const py0=b.y;            // sweep from old to new y so a fast bullet can't
+    b.y+=b.vy*dt;             // tunnel through a thin invader on a long frame
     if(b.y<topHUD-10){ pBullets.splice(i,1); continue; }
     let gone=false;
-    // ufo
-    if(ufo && b.x>ufo.x-ufo.w/2 && b.x<ufo.x+ufo.w/2 && b.y>ufo.y-ufo.h/2 && b.y<ufo.y+ufo.h/2){
+    // ufo (swept along the bullet's travel band)
+    if(ufo && b.x>ufo.x-ufo.w/2 && b.x<ufo.x+ufo.w/2 && b.y<=ufo.y+ufo.h/2 && py0>=ufo.y-ufo.h/2){
       G.score+=ufo.pts; spawnBurst(ufo.x,ufo.y,'#FF5AA0'); sweep(1600,400,0.3,'square',0.2); ufo=null; pBullets.splice(i,1); continue;
     }
-    // invaders
+    // invaders (swept)
     for(let j=0;j<invaders.length;j++){ const a=invaders[j]; if(!a.alive) continue;
       const ax=invX(a), ay=invY(a);
-      if(b.x>=ax && b.x<=ax+invBox && b.y<=ay+invBox && b.y>=ay){
+      if(b.x>=ax && b.x<=ax+invBox && b.y<=ay+invBox && py0>=ay){
         destroyInvader(a); gone=true; break; } }
     if(gone){ pBullets.splice(i,1); continue; }
     if(bunkerHit(b.x,b.y,2)){ pBullets.splice(i,1); continue; }
@@ -609,20 +627,23 @@ function initStars(){ stars=[]; for(let i=0;i<46;i++) stars.push({x:Math.random(
 // ---- input ----
 // Relative drag: the cannon moves by the finger's delta, so you can rest your
 // thumb anywhere (e.g. a bottom corner) and never cover Kokko-chan or the bombs.
-let dragging=false, dragFinger0=0, dragPlayer0=0;
+let dragging=false, dragFinger0=0, dragPlayer0=0, activePointer=null;
 const DRAG_GAIN=1.35;
 function dragMove(clientX){ if(!dragging) return; if(G.state!=='play'&&G.state!=='clear') return;
   player.x=clampPlayer(dragPlayer0 + (clientX-dragFinger0)*DRAG_GAIN); }
 window.addEventListener('pointerdown',e=>{ if(e.target.closest&&e.target.closest('.btn,.ctrlbtn,a')) return;
   initAudio(); if(AC&&AC.state==='suspended'){try{AC.resume();}catch(_){}}
-  dragging=true; dragFinger0=e.clientX; dragPlayer0=player.x; },{passive:true});
-window.addEventListener('pointermove',e=>{ dragMove(e.clientX); },{passive:true});
-window.addEventListener('pointerup',()=>{ dragging=false; },{passive:true});
-window.addEventListener('pointercancel',()=>{ dragging=false; },{passive:true});
+  // lock to the first pointer so a second finger (e.g. tapping mute) can't yank the cannon
+  if(dragging) return;
+  dragging=true; activePointer=e.pointerId; dragFinger0=e.clientX; dragPlayer0=player.x; },{passive:true});
+window.addEventListener('pointermove',e=>{ if(e.pointerId!==activePointer) return; dragMove(e.clientX); },{passive:true});
+function endDrag(e){ if(e&&e.pointerId!==activePointer) return; dragging=false; activePointer=null; }
+window.addEventListener('pointerup',endDrag,{passive:true});
+window.addEventListener('pointercancel',endDrag,{passive:true});
 window.addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft'){ player.vx=-Math.max(420,W*0.7); }
   else if(e.key==='ArrowRight'){ player.vx=Math.max(420,W*0.7); }
-  else if(e.key===' '||e.key==='Spacebar'){ if(G.state==='play') firePlayer(true); e.preventDefault&&e.preventDefault(); }
+  else if(e.key===' '||e.key==='Spacebar'){ e.preventDefault(); if(G.state==='play') firePlayer(true); }
 });
 window.addEventListener('keyup',e=>{
   if(e.key==='ArrowLeft'&&player.vx<0) player.vx=0;
