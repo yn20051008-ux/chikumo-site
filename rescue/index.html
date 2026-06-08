@@ -158,6 +158,11 @@ const Sound=(function(){
     for(let i=0;i<len;i++)dt[i]=(Math.random()*2-1)*(1-i/len);
     const s=ac.createBufferSource(); s.buffer=b; const fl=ac.createBiquadFilter(); fl.type='lowpass'; fl.frequency.value=f||1800;
     const g=ac.createGain(); g.gain.value=v||.3; s.connect(fl); fl.connect(g); g.connect(master); s.start(n); }
+  // rising "charge" — pitch climbs while the volume swells (for the 加速 build-up)
+  function swell(f0,f1,d,v,t){ if(!ac||muted)return; const n=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();
+    o.type=t||'sawtooth'; o.frequency.setValueAtTime(f0,n); o.frequency.exponentialRampToValueAtTime(Math.max(40,f1),n+d);
+    g.gain.setValueAtTime(.0001,n); g.gain.exponentialRampToValueAtTime(v||.3,n+d*0.85); g.gain.exponentialRampToValueAtTime(.0001,n+d+.05);
+    o.connect(g); g.connect(master); o.start(n); o.stop(n+d+.07); }
   // BGM (original gentle loop)
   let bg=null,bt=null,bs=0,bn=0,bon=false; const SD=60/96/2;
   const PROG=[ {b:130.81,a:[523.25,659.25,783.99]}, {b:174.61,a:[523.25,698.46,880.00]},
@@ -179,9 +184,17 @@ const Sound=(function(){
     pop(){ noise(.08,.25,2600); tone(660,0.08,'sine',0.18,990); },
     launch(){ tone(500,0.08,'sine',0.16,820); },
     ball(){ tone(880,0.07,'sine',0.2,1320); },
-    rescue(){ [659,784,1047,1319].forEach((f,i)=>setTimeout(()=>tone(f,0.16,'sine',0.32),i*100)); noise(.2,.2,4000); },
+    // めっちゃ可愛い救出音：きらきら上がる三角波ベル＋ぴょこっと跳ねるしっぽ＋スパークル
+    rescue(){ const seq=[784,988,1319,1568,2093];
+      seq.forEach((f,i)=>setTimeout(()=>{ tone(f,0.13,'triangle',0.30,f*1.06); tone(f*2,0.08,'sine',0.10); },i*55));
+      setTimeout(()=>{ tone(2637,0.20,'sine',0.24,3520); tone(3136,0.16,'triangle',0.14); noise(.12,.10,8000); }, seq.length*55); },
     over(){ tone(440,0.2,'sine',0.3,120); setTimeout(()=>tone(196,0.5,'sine',0.3,80),180); },
     best(){ [523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>tone(f,0.15,'sine',0.3),i*90)); },
+    // 一番カッコいい加速音：1秒のタメで鳴る上昇チャージ
+    boostCharge(){ swell(110,1500,0.92,0.34,'sawtooth'); swell(220,3000,0.92,0.12,'square'); noise(.9,.06,1400); },
+    // 解放の瞬間のインパクト：ズドン＋ヒュバッ＋ホワイトアウト
+    boostHit(){ tone(180,0.20,'square',0.42,55); tone(1900,0.24,'sawtooth',0.30,420);
+      tone(900,0.10,'square',0.24,1700); noise(.26,.30,5200); setTimeout(()=>tone(1320,0.12,'sine',0.18,2640),60); },
     ui(){ tone(700,0.04,'triangle',0.14); } };
 })();
 
@@ -508,7 +521,7 @@ function boostCinematic(){
   if(G.freezeT>0) return;
   G.freezeT=1.0; G.boostPending=true;
   bigText={name:'加速',emoji:'⚡',col:'#ff3b3b',life:1.7,max:1.7};
-  flashTint('255,70,70',0.55); G.shake=Math.min(G.shake+8,22); Sound.best();
+  flashTint('255,70,70',0.55); G.shake=Math.min(G.shake+8,22); Sound.boostCharge();
 }
 function applyBoost(){
   let fx=G.launchX, fy=launchY;
@@ -516,7 +529,7 @@ function applyBoost(){
     b.sp=Math.min(SPEEDMAX*1.5,(b.sp||SPEED)*1.5); renorm(b);
     burst(b.x,b.y,'255,70,70',18,11,true); }
   addShock(fx,fy,cell*3,'255,70,70',8);
-  flashTint('255,140,140',0.4); G.shake=Math.min(G.shake+16,28); Sound.launch();
+  flashTint('255,140,140',0.4); G.shake=Math.min(G.shake+16,28); Sound.boostHit();
 }
 function hexRgb(h){ h=h.replace('#',''); const n=parseInt(h,16); return ((n>>16)&255)+','+((n>>8)&255)+','+(n&255); }
 function updateFX(dt){
