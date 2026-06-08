@@ -105,5 +105,22 @@ R.setRescued(40);  ok(Math.abs(R.ballR()-(base+4))<1e-9,'40 rescued -> base +4px
 R.setRescued(Math.round((giant-base))*10); ok(Math.abs(R.ballR()-giant)<1e-9,'reaching the cap = でかボール size');
 R.setRescued(99999); ok(Math.abs(R.ballR()-giant)<1e-9,'never grows past でかボール size');
 
+// perfect clear: emptying the board pops a 3-こっこ bonus
+R.start(); frames(2);
+let pr0=R.info().rescued, ps0=R.info().score;
+R.perfectClear();
+ok(R.info().rescued===pr0+3,'perfect-clear bonus rescues 3 こっこ');
+ok(R.info().score>ps0+500,'perfect-clear bonus adds score');
+ok(R.bonusCount()===3,'3 bonus こっこ fly out');
+
+// integration: clearing every block at turn end triggers the bonus
+R.start(); frames(2);
+R.clearBlocks();
+const ir=R.info().rescued;
+R.fire(-Math.PI/2);
+let pg=0; while(R.phase==='shoot' && pg++<420){ frames(1); if(pg===400) R.settle(); }
+frames(3);
+ok(R.info().rescued>=ir+3,'clearing the whole board grants the perfect bonus on turn end');
+
 console.log('\nframes run: '+frame+'   '+(fail?(fail+' CHECK(S) FAILED'):'ALL CHECKS PASSED'));
 process.exit(fail?1:0);
