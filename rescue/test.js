@@ -131,6 +131,7 @@ ok(R.bigName()==='加速','「加速」 cinematic text appears');
 frames(30); ok(R.freezeT()>0,'still frozen mid-cinematic');
 frames(60); ok(R.freezeT()===0,'freeze releases (~0.7s) then accelerates');
 ok(R.ballDmg()>=15,'after 加速 the ball becomes a piercing meteor (火力'+R.ballDmg()+')');
+ok(R.testPierceKill()===true,'加速メテオ destroys any block it pierces, ignoring HP');
 
 // the freeze actually halts ball physics (movement is fixed-step, not dt-scaled)
 R.start(); frames(2);
