@@ -121,6 +121,9 @@ R.fire(-Math.PI/2);
 let pg=0; while(R.phase==='shoot' && pg++<420){ frames(1); if(pg===400) R.settle(); }
 frames(3);
 ok(R.info().rescued>=ir+3,'clearing the whole board grants the perfect bonus on turn end');
+ok(R.freezeT()>0.5,'全消しで約0.8秒のお祝い停止に入る');
+let pf=0; while(R.freezeT()>0 && pf++<90) frames(1); frames(3);
+ok(R.info().blocks>0,'お祝い停止のあと新しい行が出る');
 
 // 50th reflection (火力6) cinematic: freeze ~1s, show 「加速」, then accelerate
 R.start(); frames(2);
