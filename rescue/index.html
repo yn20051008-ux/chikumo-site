@@ -190,11 +190,16 @@ const Sound=(function(){
       setTimeout(()=>{ tone(2637,0.20,'sine',0.24,3520); tone(3136,0.16,'triangle',0.14); noise(.12,.10,8000); }, seq.length*55); },
     over(){ tone(440,0.2,'sine',0.3,120); setTimeout(()=>tone(196,0.5,'sine',0.3,80),180); },
     best(){ [523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>tone(f,0.15,'sine',0.3),i*90)); },
-    // 一番カッコいい加速音：1秒のタメで鳴る上昇チャージ
-    boostCharge(){ swell(110,1500,0.64,0.34,'sawtooth'); swell(220,3000,0.64,0.12,'square'); noise(.64,.06,1400); },
-    // 解放の瞬間のインパクト：ズドン＋ヒュバッ＋ホワイトアウト
-    boostHit(){ tone(180,0.20,'square',0.42,55); tone(1900,0.24,'sawtooth',0.30,420);
-      tone(900,0.10,'square',0.24,1700); noise(.26,.30,5200); setTimeout(()=>tone(1320,0.12,'sine',0.18,2640),60); },
+    // 一番カッコいい加速音：タメ＝重厚な上昇チャージ＋加速するカウントダウン的ティック
+    boostCharge(){ swell(55,520,0.64,0.40,'sine'); swell(150,2200,0.64,0.42,'sawtooth');
+      swell(300,3400,0.64,0.18,'square'); noise(.64,.10,1200);
+      [0,.14,.26,.36,.44,.50,.55,.59,.62].forEach((t,i)=>setTimeout(()=>tone(560+i*190,0.05,'square',0.17),t*1000)); },
+    // 解放の瞬間：サブベースのドーン＋大爆発＋金属リング＋メテオの轟音
+    boostHit(){ tone(150,0.55,'sine',0.60,38); tone(95,0.45,'square',0.42,30);
+      tone(2600,0.30,'sawtooth',0.42,260); tone(1300,0.16,'square',0.26,2600);
+      noise(.55,.50,4200); [784,1175,1568].forEach(f=>tone(f,0.45,'triangle',0.18));
+      setTimeout(()=>noise(.42,.34,2600),120);
+      noise(1.35,.22,720); tone(70,1.35,'sawtooth',0.22,46); tone(104,1.35,'sawtooth',0.12,70); },
     ui(){ tone(700,0.04,'triangle',0.14); } };
 })();
 
