@@ -315,11 +315,13 @@ function launch(){
 }
 function spawnBall(){
   const fx=G.activeSpecial;
-  const r = fx==='giant'? R*3.0 : R;
+  const r = fx==='giant'? R*3.0 : defaultBallR();
   balls.push({x:G.launchX,y:launchY-r-1,vx:G.firedDir.x*SPEED,vy:G.firedDir.y*SPEED,alive:true,
     r, sp:SPEED, bounces:0, dmg: fx==='giant'?3:1, fx, split: fx==='split', trail:[]});
   Sound.ball();
 }
+// default ball grows +1px per 10 こっこ rescued, capped at the でかボール (giant) size
+function defaultBallR(){ return Math.min(R + Math.floor(G.rescued/10), R*3.0); }
 function addSplitBall(b){ if(balls.length>180)return;
   const ang=Math.atan2(b.vy,b.vx)+rnd(-0.7,0.7), sp=b.sp||SPEED;
   balls.push({x:b.x,y:b.y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,alive:true,r:R,sp,bounces:0,dmg:1,fx:'split',split:false,trail:[]});
@@ -391,6 +393,10 @@ function breakBlock(bl,bx,by){
   if(bl.type==='cocco'){ G.rescued++; G.score+=200; Sound.rescue();
     addText('RESCUE!', bx, by, '#ffd36b'); G.flash=0.5; G.shake=Math.min(G.shake+8,16);
     for(let i=0;i<20;i++) particles.push(spark(bx,by,'255,225,120'));
+    // every 10 rescues grows the default ball by 1px (up to でかボール size)
+    if(G.rescued%10===0 && defaultBallR()>R){
+      const px=Math.round(defaultBallR()-R);
+      addText('ボール ＋'+px+'px!', bx, by+cell*0.5, '#9fe8ff'); flashTint('120,210,255',0.12); }
     grantSpecial(bx,by); updateHUDtext(); }
   else Sound.pop();
 }
@@ -620,16 +626,17 @@ function render(){
   // launcher + aim
   if(G.phase==='aim'){
     const sp=G.specials.length?specialDef(G.specials[0]):null;
+    const previewR=(sp&&sp.id==='giant')?R*3.0:defaultBallR();
     ctx.fillStyle=sp?sp.col:'#ffd98a';
     if(sp){ ctx.shadowColor=sp.col; ctx.shadowBlur=14; }
-    ctx.beginPath(); ctx.arc(G.launchX,launchY,R*1.3,0,TAU); ctx.fill(); ctx.shadowBlur=0;
+    ctx.beginPath(); ctx.arc(G.launchX,launchY,previewR*1.15,0,TAU); ctx.fill(); ctx.shadowBlur=0;
     ctx.fillStyle='rgba(255,255,255,.7)'; ctx.font='700 12px sans-serif'; ctx.textAlign='center';
     ctx.fillText('×'+G.balls, G.launchX, launchY+22);
     if(sp){ ctx.fillStyle=sp.col; ctx.font='900 13px sans-serif';
       ctx.fillText(sp.emoji+sp.name+(G.specials.length>1?' ×'+G.specials.length:''), G.launchX, launchY-R*1.3-12); }
     if(G.aiming){ drawAim(); }
   } else if(G.phase==='shoot'){
-    ctx.fillStyle='rgba(255,217,138,.5)'; ctx.beginPath(); ctx.arc(G.launchX,launchY,R*1.1,0,TAU); ctx.fill();
+    ctx.fillStyle='rgba(255,217,138,.5)'; ctx.beginPath(); ctx.arc(G.launchX,launchY,defaultBallR()*1.1,0,TAU); ctx.fill();
   }
 
   // particles (glow-aware)
@@ -746,7 +753,8 @@ window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G
   start:newGame, setSpecial:(id)=>{ G.specials.push(id); }, getSpecial:()=>G.specials[0]||null, queue:()=>G.specials.length,
   fire:(ang)=>{ if(G.phase!=='aim')return false; G.aimX=G.launchX+Math.cos(ang)*200; G.aimY=launchY+Math.sin(ang)*200; launch(); return true; },
   settle:()=>{ for(const b of balls) b.alive=false; },
-  tierFor:(n)=>powerTier(n), blastTier:()=>6, };
+  tierFor:(n)=>powerTier(n), blastTier:()=>6,
+  baseR:()=>R, giantR:()=>R*3.0, ballR:()=>defaultBallR(), setRescued:(n)=>{ G.rescued=n; }, };
 
 /* ===== Boot ===== */
 try{ window.__safeTop=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0; }catch(e){ window.__safeTop=0; }

@@ -96,5 +96,14 @@ ok(R.tierFor(30)===4,'30 reflections -> power 4');
 ok(R.tierFor(40)===5,'40 reflections -> power 5');
 ok(R.tierFor(50)===6 && R.tierFor(99)===6,'50+ reflections -> power 6 (爆破波動)');
 
+// default ball grows +1px per 10 こっこ rescued, capped at でかボール (giant) size
+R.start(); frames(2);
+const base=R.baseR(), giant=R.giantR();
+R.setRescued(0);   ok(Math.abs(R.ballR()-base)<1e-9,'0 rescued -> base ball size');
+R.setRescued(10);  ok(Math.abs(R.ballR()-(base+1))<1e-9,'10 rescued -> base +1px');
+R.setRescued(40);  ok(Math.abs(R.ballR()-(base+4))<1e-9,'40 rescued -> base +4px');
+R.setRescued(Math.round((giant-base))*10); ok(Math.abs(R.ballR()-giant)<1e-9,'reaching the cap = でかボール size');
+R.setRescued(99999); ok(Math.abs(R.ballR()-giant)<1e-9,'never grows past でかボール size');
+
 console.log('\nframes run: '+frame+'   '+(fail?(fail+' CHECK(S) FAILED'):'ALL CHECKS PASSED'));
 process.exit(fail?1:0);
