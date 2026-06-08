@@ -220,7 +220,7 @@ const G={ phase:'title', score:0, best:0, turn:0, balls:1, rescued:0, best_rescu
   aiming:false, aimX:0, aimY:0, launchX:0, fireT:0, toFire:0, firedDir:{x:0,y:-1},
   pendingBalls:0, nextLaunchX:null, shootClock:0, shake:0, flash:0, flashCol:'255,255,255', timeScale:1, newBest:false,
   special:null, specials:[], activeSpecial:null, thunderT:0, thunderCol:null };
-let shockwaves=[], bolts=[], bigText=null;
+let shockwaves=[], bolts=[], bigText=null, bonusCoccos=[];
 let blocks=[], items=[], balls=[], particles=[], floats=[], bumpers=[];
 
 function cellX(c){ return gx+c*cell+cell/2; }
@@ -228,7 +228,7 @@ function cellY(r){ return gridTop+r*cell+cell/2; }
 
 function newGame(){
   Sound.init(); Sound.resume(); if(audioOn) Sound.startBGM();
-  blocks=[]; items=[]; balls=[]; particles=[]; floats=[]; shockwaves=[]; bolts=[]; bigText=null;
+  blocks=[]; items=[]; balls=[]; particles=[]; floats=[]; shockwaves=[]; bolts=[]; bigText=null; bonusCoccos=[];
   Object.assign(G,{phase:'aim',score:0,turn:0,balls:1,rescued:0,
     aiming:false,launchX:gx+COLS*cell/2,nextLaunchX:null,pendingBalls:0,shake:0,flash:0,flashCol:'255,255,255',timeScale:1,newBest:false,
     special:null,specials:[],activeSpecial:null,thunderT:0,thunderCol:null});
@@ -445,8 +445,21 @@ function updateShoot(dt){
     if(G.nextLaunchX!==null) G.launchX=G.nextLaunchX;
     G.balls += G.pendingBalls; G.pendingBalls=0;
     G.phase='shift';
+    if(blocks.length===0) perfectClearBonus();   // 全消し = パーフェクト・ボーナス
     startTurnShift();
   }
+}
+// Clearing every block on the board pops a PERFECT bonus: three こっこちゃん fly
+// out and are rescued (score + counts toward the ball-growth / rescue goal).
+function perfectClearBonus(){
+  G.score+=500; flashTint('255,220,140',0.45); G.shake=Math.min(G.shake+12,24);
+  addText('PERFECT! ボーナス', W/2, gridTop+cell*1.6, '#ffd36b'); Sound.rescue();
+  for(let i=0;i<3;i++){
+    G.rescued++; G.score+=200;
+    bonusCoccos.push({ x:W*(0.26+0.24*i), y:gridTop+cell*1.5, vy:-(cell*0.9+rnd(0,cell*0.5)),
+      vx:rnd(-cell*0.4,cell*0.4), spin:rnd(-4,4), rot:0, life:1.4, max:1.4 });
+  }
+  updateHUDtext();
 }
 function renorm(b){ const sp=b.sp||SPEED, l=Math.hypot(b.vx,b.vy)||1; b.vx=b.vx/l*sp; b.vy=b.vy/l*sp; }
 // power tiers by reflection count: 10->2, 20->3, 30->4, 40->5, 50->6 (爆破波動)
@@ -496,6 +509,8 @@ function updateFX(dt){
   particles=particles.filter(p=>p.life>0);
   for(const f of floats){ f.y-=20*dt; f.life-=dt; }
   floats=floats.filter(f=>f.life>0);
+  for(const bc of bonusCoccos){ bc.x+=bc.vx*dt; bc.y+=bc.vy*dt; bc.vy+=cell*2.2*dt; bc.rot+=bc.spin*dt; bc.life-=dt; }
+  bonusCoccos=bonusCoccos.filter(bc=>bc.life>0);
   for(const s of shockwaves){ s.r += (s.maxR-s.r)*0.20; s.life-=dt;
     if(s.dmg){ const reach=(s.r+cell*0.40)*(s.r+cell*0.40);
       for(const bl of blocks){ if(bl.dead||s.hit.has(bl))continue;
@@ -650,6 +665,15 @@ function render(){
     if(f.t){ ctx.font='900 '+(f.big?cell*0.5:14)+'px sans-serif'; ctx.fillStyle=f.col||'#fff'; ctx.fillText(f.t,f.x,f.y); }
   } ctx.globalAlpha=1;
 
+  // perfect-clear bonus こっこ flying out
+  for(const bc of bonusCoccos){ const a=clamp(bc.life/bc.max,0,1); const w=cell*1.0, h=w/AR;
+    ctx.save(); ctx.globalAlpha=a; ctx.translate(bc.x,bc.y); ctx.rotate(bc.rot);
+    ctx.shadowColor='#ffd98a'; ctx.shadowBlur=14;
+    if(coccoReady) ctx.drawImage(cocco,-w/2,-h/2,w,h);
+    else { ctx.fillStyle='#ffd36b'; ctx.font='900 '+Math.round(w)+'px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('🐤',0,0); }
+    ctx.restore(); }
+  ctx.globalAlpha=1; ctx.shadowBlur=0;
+
   ctx.restore();
 
   // HUD text
@@ -763,7 +787,8 @@ window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G
   fire:(ang)=>{ if(G.phase!=='aim')return false; G.aimX=G.launchX+Math.cos(ang)*200; G.aimY=launchY+Math.sin(ang)*200; launch(); return true; },
   settle:()=>{ for(const b of balls) b.alive=false; },
   tierFor:(n)=>powerTier(n), blastTier:()=>6,
-  baseR:()=>R, giantR:()=>R*3.0, ballR:()=>defaultBallR(), setRescued:(n)=>{ G.rescued=n; }, };
+  baseR:()=>R, giantR:()=>R*3.0, ballR:()=>defaultBallR(), setRescued:(n)=>{ G.rescued=n; },
+  clearBlocks:()=>{ blocks=[]; }, bonusCount:()=>bonusCoccos.length, perfectClear:()=>perfectClearBonus(), };
 
 /* ===== Boot ===== */
 try{ window.__safeTop=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0; }catch(e){ window.__safeTop=0; }
