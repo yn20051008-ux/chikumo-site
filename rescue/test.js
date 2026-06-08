@@ -131,5 +131,15 @@ ok(R.bigName()==='加速','「加速」 cinematic text appears');
 frames(30); ok(R.freezeT()>0,'still frozen mid-cinematic');
 frames(60); ok(R.freezeT()===0,'freeze releases (~1s) then accelerates');
 
+// the freeze actually halts ball physics (movement is fixed-step, not dt-scaled)
+R.start(); frames(2);
+R.fire(-Math.PI/2);
+let gg=0; while(R.phase==='shoot' && !R.ballPos() && gg++<30) frames(1);
+const bp1=R.ballPos();
+if(bp1 && R.phase==='shoot'){
+  R.setFreeze(1.0); frames(12); const bp2=R.ballPos();
+  ok(bp2 && Math.abs(bp1.x-bp2.x)<1e-6 && Math.abs(bp1.y-bp2.y)<1e-6,'ball is frozen in place during the 1s stop');
+} else ok(true,'(ball not in play to sample freeze — skipped)');
+
 console.log('\nframes run: '+frame+'   '+(fail?(fail+' CHECK(S) FAILED'):'ALL CHECKS PASSED'));
 process.exit(fail?1:0);

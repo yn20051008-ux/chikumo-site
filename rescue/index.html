@@ -743,7 +743,7 @@ function loop(ts){ requestAnimationFrame(loop);
     if(G.freezeT<=0){ G.freezeT=0; if(G.boostPending){ G.boostPending=false; applyBoost(); } } }
   else if(G.timeScale<1) G.timeScale=Math.min(1,G.timeScale+dt*2.2);
   const sdt=dt*G.timeScale;
-  if(G.phase==='shoot') updateShoot(sdt);   // balls slow down briefly for dramatic effect hits
+  if(G.phase==='shoot' && G.freezeT<=0) updateShoot(sdt);   // freeze halts ball physics (movement is fixed-step, not dt-scaled)
   updateFX(dt);
   if(G.shake>0.3)G.shake*=0.85; if(G.flash>0)G.flash-=dt*1.4;
   render();
@@ -806,7 +806,8 @@ window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G
   tierFor:(n)=>powerTier(n), blastTier:()=>6,
   baseR:()=>R, giantR:()=>R*3.0, ballR:()=>defaultBallR(), setRescued:(n)=>{ G.rescued=n; },
   clearBlocks:()=>{ blocks=[]; }, bonusCount:()=>bonusCoccos.length, perfectClear:()=>perfectClearBonus(),
-  freezeT:()=>G.freezeT, bigName:()=>bigText?bigText.name:null,
+  freezeT:()=>G.freezeT, bigName:()=>bigText?bigText.name:null, setFreeze:(t)=>{ G.freezeT=t; },
+  ballPos:()=>{ const b=balls.find(x=>x.alive); return b?{x:b.x,y:b.y}:null; },
   accelTo50:()=>{ const b={x:W/2,y:H/2,vx:1,vy:-1,sp:SPEED,bounces:49,dmg:5,alive:true,r:R,trail:[]}; balls.push(b); accel(b); return b.dmg; }, };
 
 /* ===== Boot ===== */
