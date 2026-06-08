@@ -386,7 +386,7 @@ function collideBlocks(b){
     if(b.fx==='pierce'||b.boosted){ bl._pl=5; }                      // pierce / 加速メテオ: no reflect, slice through
     else { if(ox<oy){ b.vx=-b.vx; b.x += (b.x>bx?1:-1)*ox; }
       else { b.vy=-b.vy; b.y += (b.y>by?1:-1)*oy; } accel(b); }
-    hitBlock(bl,bx,by,b.dmg||1);
+    hitBlock(bl,bx,by, b.boosted ? bl.hp : (b.dmg||1));   // 加速メテオは貫通したブロックをHP無視で即破壊
     if((b.dmg||1)>=6){                                   // 火力6: 爆破波動 — 加速後(メテオ)は大型・高威力
       const bo=b.boosted;
       addShock(bx,by, cell*(bo?4.0:2.1), powerRGB(6), bo?10:7, bo?8:3);
@@ -828,6 +828,9 @@ window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G
   freezeT:()=>G.freezeT, bigName:()=>bigText?bigText.name:null, setFreeze:(t)=>{ G.freezeT=t; },
   ballPos:()=>{ const b=balls.find(x=>x.alive); return b?{x:b.x,y:b.y}:null; },
   ballDmg:()=>{ const b=balls.find(x=>x.alive); return b?(b.dmg||1):0; },
+  testPierceKill:()=>{ blocks=[]; const bl={col:0,row:0,hp:999,maxhp:999,type:'normal',pop:0}; blocks.push(bl);
+    collideBlocks({x:cellX(0),y:cellY(0),vx:1,vy:-1,sp:SPEED,dmg:15,boosted:true,alive:true,r:R*1.7,trail:[]});
+    return bl.dead===true; },
   accelTo50:()=>{ const b={x:W/2,y:H/2,vx:1,vy:-1,sp:SPEED,bounces:49,dmg:5,alive:true,r:R,trail:[]}; balls.push(b); accel(b); return b.dmg; }, };
 
 /* ===== Boot ===== */
