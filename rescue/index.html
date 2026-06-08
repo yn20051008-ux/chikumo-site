@@ -387,10 +387,11 @@ function collideBlocks(b){
     else { if(ox<oy){ b.vx=-b.vx; b.x += (b.x>bx?1:-1)*ox; }
       else { b.vy=-b.vy; b.y += (b.y>by?1:-1)*oy; } accel(b); }
     hitBlock(bl,bx,by,b.dmg||1);
-    if((b.dmg||1)>=6){                                   // 火力6: 爆破波動 — sweeps nearby blocks for 3 dmg each
-      addShock(bx,by,cell*2.1,powerRGB(6),7,3);
-      burst(bx,by,powerRGB(6),16,8,true); flashTint(powerRGB(6),0.14);
-      G.shake=Math.min(G.shake+6,22); }
+    if((b.dmg||1)>=6){                                   // 火力6: 爆破波動 — 加速後(メテオ)は大型・高威力
+      const bo=b.boosted;
+      addShock(bx,by, cell*(bo?3.4:2.1), powerRGB(6), bo?9:7, bo?6:3);
+      burst(bx,by,powerRGB(6), bo?24:16, bo?12:8, true); flashTint(powerRGB(6), bo?0.22:0.14);
+      G.shake=Math.min(G.shake+(bo?10:6),24); }
     if(b.fx==='fire') fireAOE(bl);
     else if(b.fx==='giant'){ addShock(bx,by,cell*1.6,'255,158,232',5); burst(bx,by,'255,190,245',10,6,true); G.shake=Math.min(G.shake+5,20); }
     else if(b.fx==='pierce'){ burst(bx,by,'150,235,255',8,8,true); }
@@ -526,10 +527,11 @@ function boostCinematic(){
 function applyBoost(){
   let fx=G.launchX, fy=launchY;
   for(const b of balls){ if(!b.alive)continue; fx=b.x; fy=b.y;
-    b.sp=Math.min(SPEEDMAX*1.5,(b.sp||SPEED)*1.5); renorm(b);
-    burst(b.x,b.y,'255,70,70',18,11,true); }
-  addShock(fx,fy,cell*3,'255,70,70',8);
-  flashTint('255,140,140',0.4); G.shake=Math.min(G.shake+16,28); Sound.boostHit();
+    b.boosted=true; b.dmg=Math.max(b.dmg||1, 10);              // メテオ化: 火力10
+    b.sp=Math.min(SPEEDMAX*1.6,(b.sp||SPEED)*1.6); renorm(b);
+    burst(b.x,b.y,'255,70,70',22,12,true); }
+  addShock(fx,fy,cell*3.4,'255,70,70',9,6);                    // 解放の一撃も範囲6ダメージ
+  flashTint('255,140,140',0.45); G.shake=Math.min(G.shake+18,30); Sound.boostHit();
 }
 function hexRgb(h){ h=h.replace('#',''); const n=parseInt(h,16); return ((n>>16)&255)+','+((n>>8)&255)+','+(n&255); }
 function updateFX(dt){
@@ -821,6 +823,7 @@ window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G
   clearBlocks:()=>{ blocks=[]; }, bonusCount:()=>bonusCoccos.length, perfectClear:()=>perfectClearBonus(),
   freezeT:()=>G.freezeT, bigName:()=>bigText?bigText.name:null, setFreeze:(t)=>{ G.freezeT=t; },
   ballPos:()=>{ const b=balls.find(x=>x.alive); return b?{x:b.x,y:b.y}:null; },
+  ballDmg:()=>{ const b=balls.find(x=>x.alive); return b?(b.dmg||1):0; },
   accelTo50:()=>{ const b={x:W/2,y:H/2,vx:1,vy:-1,sp:SPEED,bounces:49,dmg:5,alive:true,r:R,trail:[]}; balls.push(b); accel(b); return b.dmg; }, };
 
 /* ===== Boot ===== */
