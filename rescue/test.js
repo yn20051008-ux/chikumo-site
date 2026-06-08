@@ -122,5 +122,14 @@ let pg=0; while(R.phase==='shoot' && pg++<420){ frames(1); if(pg===400) R.settle
 frames(3);
 ok(R.info().rescued>=ir+3,'clearing the whole board grants the perfect bonus on turn end');
 
+// 50th reflection (火力6) cinematic: freeze ~1s, show 「加速」, then accelerate
+R.start(); frames(2);
+const d50=R.accelTo50();
+ok(d50===6,'50th reflection reaches 火力6');
+ok(R.freezeT()>0.8,'50th reflection freezes time (~1s)');
+ok(R.bigName()==='加速','「加速」 cinematic text appears');
+frames(30); ok(R.freezeT()>0,'still frozen mid-cinematic');
+frames(60); ok(R.freezeT()===0,'freeze releases (~1s) then accelerates');
+
 console.log('\nframes run: '+frame+'   '+(fail?(fail+' CHECK(S) FAILED'):'ALL CHECKS PASSED'));
 process.exit(fail?1:0);
