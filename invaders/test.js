@@ -79,6 +79,16 @@ let safety=0;
 while(R.info().lives===3 && safety++<40){ R.setX(px); frames(1); }
 ok(R.info().lives===2,'a bomb hitting the cannon costs a life');
 
+// reaching the ground costs ONE life and gives a reprieve (not instant over)
+R.start(); frames(2);
+ok(R.info().lives===3 && R.state==='play','fresh run: 3 lives, playing');
+R.forceInvade();
+ok(R.info().lives===2 && R.state==='play','invasion costs a life but keeps the run alive');
+R.forceInvade();
+ok(R.info().lives===1 && R.state==='play','second invasion: still alive on the last life');
+R.forceInvade();
+ok(R.state==='over','invasion on the last life ends the run');
+
 // depleting lives ends the run and persists the hi-score
 R.start(); frames(2);
 for(let i=0;i<40;i++){ R.killOne(); }   // bank some score first

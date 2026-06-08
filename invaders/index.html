@@ -366,14 +366,14 @@ function firePlayer(force){
   fireCooldown=0.28; sndShoot();
 }
 function dropBomb(a, x, y){
-  const speed=Math.max(220, H*0.32)*(1+G.wave*0.04);
+  const speed=Math.max(170, H*0.26)*(1+G.wave*0.03);
   const zig = Math.random()<0.5;
   eBullets.push({ x:x, y:y, vy:speed, zig:zig, t:0 });
 }
 function enemyFire(){
   // cap simultaneous bombs like the original cabinet, so the late game stays
   // dodge-able with one thumb instead of becoming an unavoidable barrage.
-  const maxBombs=Math.min(3, 1+Math.ceil(G.wave/2));
+  const maxBombs = G.wave<=1 ? 1 : Math.min(3, Math.ceil(G.wave/2)+1);
   if(eBullets.length>=maxBombs) return;
   // pick a random column, fire from its lowest alive invader
   const colOrder=[]; for(let c=0;c<COLS;c++) colOrder.push(c);
@@ -399,6 +399,19 @@ function hitPlayer(force){
   spawnBurst(player.x, playerY+playerH/2, '#FFC65A');
   if(G.lives<=0){ gameOver(); }
   else { player.invul=1.6; }
+}
+function invade(){
+  // formation touched the ground: lose a life, clear bombs, push the column
+  // back up several rows and grant a breather instead of an instant loss.
+  G.lives--; sndHit();
+  spawnBurst(player.x, playerY+playerH/2, '#FF5A5A');
+  eBullets=[];
+  if(G.lives<=0){ gameOver(); return; }
+  form.y -= cellH*3.4;
+  const topLimit=topHUD+safeTop+18;
+  if(form.y<topLimit) form.y=topLimit;
+  form.dir=1; form.beat=form.beatMax;
+  player.invul=2.2;
 }
 function gameOver(){
   G.state='over';
@@ -463,17 +476,18 @@ function update(dt){
     let drop=false;
     if(form.dir>0 && rightPx+stepX > W-SM) drop=true;
     else if(form.dir<0 && leftPx-stepX < SM) drop=true;
-    if(drop){ form.y+=cellH*0.55; form.dir*=-1; }
+    if(drop){ form.y+=cellH*0.42; form.dir*=-1; }
     else { form.x+=stepX*form.dir; }
-    // invasion check
+    // invasion: reaching the ground costs ONE life and shoves the formation
+    // back up — no more "they touched down, instant game over" sudden death.
     for(let i=0;i<invaders.length;i++){ const a=invaders[i];
-      if(a.alive && invY(a)+invBox>=invasionY){ G.lives=0; gameOver(); return; } }
+      if(a.alive && invY(a)+invBox>=invasionY){ invade(); return; } }
   }
 
   // enemy bombs
   bombTimer-=dt;
   if(bombTimer<=0){ enemyFire();
-    bombTimer=Math.max(0.32, (1.1 - G.wave*0.05)*(0.4+0.9*frac)) * (0.6+Math.random()*0.8); }
+    bombTimer=Math.max(0.55, (1.45 - G.wave*0.05)*(0.5+0.8*frac)) * (0.7+Math.random()*0.7); }
 
   // ufo — the cabinet suppresses the mystery ship once the formation is tiny;
   // pause the timer there too so it doesn't bank up and fire instantly later.
@@ -697,6 +711,7 @@ window.__invaders={
   clearWave:()=>{ for(let i=0;i<invaders.length;i++){ if(invaders[i].alive) destroyInvader(invaders[i]); } },
   dropBombAt:(x,y)=>{ dropBomb(null,x,y); },
   loseLife:()=>{ hitPlayer(true); },
+  forceInvade:()=>{ invade(); },
   best:()=>+(safeGet(BEST_KEY)||0),
   playerY:()=>playerY, playerW:()=>playerW
 };
