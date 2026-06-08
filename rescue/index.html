@@ -378,20 +378,20 @@ function collideBlocks(b){
   const rad=b.r||R, half=cell*0.46;
   for(const bl of blocks){
     if(bl.dead) continue;
-    if(b.fx==='pierce' && bl._pl>0) continue;            // brief lock so pierce doesn't multi-hit same block
+    if((b.fx==='pierce'||b.boosted) && bl._pl>0) continue;            // brief lock so pierce doesn't multi-hit same block
     const bx=cellX(bl.col), by=cellY(bl.row);
     if(Math.abs(b.x-bx)>half+rad || Math.abs(b.y-by)>half+rad) continue;
     const ox=half+rad-Math.abs(b.x-bx), oy=half+rad-Math.abs(b.y-by);
     if(ox<=0||oy<=0) continue;
-    if(b.fx==='pierce'){ bl._pl=5; }                      // pierce: no reflect, slice through
+    if(b.fx==='pierce'||b.boosted){ bl._pl=5; }                      // pierce / 加速メテオ: no reflect, slice through
     else { if(ox<oy){ b.vx=-b.vx; b.x += (b.x>bx?1:-1)*ox; }
       else { b.vy=-b.vy; b.y += (b.y>by?1:-1)*oy; } accel(b); }
     hitBlock(bl,bx,by,b.dmg||1);
     if((b.dmg||1)>=6){                                   // 火力6: 爆破波動 — 加速後(メテオ)は大型・高威力
       const bo=b.boosted;
-      addShock(bx,by, cell*(bo?3.4:2.1), powerRGB(6), bo?9:7, bo?6:3);
-      burst(bx,by,powerRGB(6), bo?24:16, bo?12:8, true); flashTint(powerRGB(6), bo?0.22:0.14);
-      G.shake=Math.min(G.shake+(bo?10:6),24); }
+      addShock(bx,by, cell*(bo?4.0:2.1), powerRGB(6), bo?10:7, bo?8:3);
+      burst(bx,by,powerRGB(6), bo?26:16, bo?13:8, true); flashTint(powerRGB(6), bo?0.26:0.14);
+      G.shake=Math.min(G.shake+(bo?12:6),26); }
     if(b.fx==='fire') fireAOE(bl);
     else if(b.fx==='giant'){ addShock(bx,by,cell*1.6,'255,158,232',5); burst(bx,by,'255,190,245',10,6,true); G.shake=Math.min(G.shake+5,20); }
     else if(b.fx==='pierce'){ burst(bx,by,'150,235,255',8,8,true); }
@@ -430,9 +430,12 @@ function updateShoot(dt){
     const rad=b.r||R;
     const sub=Math.max(1,Math.ceil((b.sp||SPEED)/rad));
     if(b.fx || (b.dmg||1)>=2){ b.trail.push({x:b.x,y:b.y});
-      const tmax=b.fx==='pierce'?14:((b.dmg||1)>=3?12:7); if(b.trail.length>tmax) b.trail.shift(); }
+      const tmax=(b.fx==='pierce'||b.boosted)?18:((b.dmg||1)>=3?12:7); if(b.trail.length>tmax) b.trail.shift(); }
     if((b.dmg||1)>=3 && Math.random()<0.5){ const pal=['120,230,255','255,120,255','180,150,255'];
       particles.push({x:b.x,y:b.y,vx:rnd(-1.5,1.5),vy:rnd(-1.5,1.5),life:.3,max:.3,r:rnd(1.5,3.2),col:pal[Math.floor(rnd(0,3))],glow:1,g:0}); }
+    if(b.boosted){ b.trailT=(b.trailT||0)+dt;            // 加速メテオの軌跡に爆風を撒く
+      if(b.trailT>=0.045){ b.trailT=0; addShock(b.x,b.y,cell*1.8,'255,90,40',6,3);
+        for(let i=0;i<3;i++) particles.push({x:b.x,y:b.y,vx:rnd(-3,3),vy:rnd(-3,3),life:.35,max:.35,r:rnd(2,4.5),col:'255,'+Math.floor(rnd(80,160))+',40',glow:1,g:0}); } }
     for(let s=0;s<sub;s++){
       b.x+=b.vx/sub; b.y+=b.vy/sub;
       if(b.x<gx+rad){ b.x=gx+rad; b.vx=Math.abs(b.vx); accel(b); }
@@ -527,11 +530,12 @@ function boostCinematic(){
 function applyBoost(){
   let fx=G.launchX, fy=launchY;
   for(const b of balls){ if(!b.alive)continue; fx=b.x; fy=b.y;
-    b.boosted=true; b.dmg=Math.max(b.dmg||1, 10);              // メテオ化: 火力10
-    b.sp=Math.min(SPEEDMAX*1.6,(b.sp||SPEED)*1.6); renorm(b);
-    burst(b.x,b.y,'255,70,70',22,12,true); }
-  addShock(fx,fy,cell*3.4,'255,70,70',9,6);                    // 解放の一撃も範囲6ダメージ
-  flashTint('255,140,140',0.45); G.shake=Math.min(G.shake+18,30); Sound.boostHit();
+    b.boosted=true; b.dmg=Math.max(b.dmg||1, 15);             // メテオ化: 貫通する火力15のコメット
+    b.r=(b.r||R)*1.7;                                          // 巨大化（当たり判定も拡大）
+    b.sp=Math.min(SPEEDMAX*1.7,(b.sp||SPEED)*1.7); renorm(b);
+    burst(b.x,b.y,'255,70,70',26,13,true); }
+  addShock(fx,fy,cell*4.0,'255,70,70',10,8);                  // 解放の一撃: 広範囲8ダメージ
+  flashTint('255,150,150',0.5); G.shake=Math.min(G.shake+20,32); Sound.boostHit();
 }
 function hexRgb(h){ h=h.replace('#',''); const n=parseInt(h,16); return ((n>>16)&255)+','+((n>>8)&255)+','+(n&255); }
 function updateFX(dt){
