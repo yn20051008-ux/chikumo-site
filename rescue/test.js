@@ -88,5 +88,13 @@ let q=0; while(R.phase==='shoot' && q++<240){ frames(1); if(q===200) R.settle();
 if(R.phase==='aim'){ R.fire(-Math.PI/2); ok(R.queue()===0,'second shot consumes the remaining charge'); }
 else ok(true,'second charge retained until next shot');
 
+// power tiers ramp by reflection count: 10->2, 20->3, 30->4, 40->5, 50->6 (爆破波動)
+ok(R.tierFor(0)===1 && R.tierFor(9)===1,'below 10 reflections stays power 1');
+ok(R.tierFor(10)===2,'10 reflections -> power 2');
+ok(R.tierFor(20)===3,'20 reflections -> power 3');
+ok(R.tierFor(30)===4,'30 reflections -> power 4');
+ok(R.tierFor(40)===5,'40 reflections -> power 5');
+ok(R.tierFor(50)===6 && R.tierFor(99)===6,'50+ reflections -> power 6 (爆破波動)');
+
 console.log('\nframes run: '+frame+'   '+(fail?(fail+' CHECK(S) FAILED'):'ALL CHECKS PASSED'));
 process.exit(fail?1:0);
