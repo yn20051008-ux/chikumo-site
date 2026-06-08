@@ -239,7 +239,7 @@ function layout(){
 /* ===== State ===== */
 const G={ phase:'title', score:0, best:0, turn:0, balls:1, rescued:0, best_rescued:0,
   aiming:false, aimX:0, aimY:0, launchX:0, fireT:0, toFire:0, firedDir:{x:0,y:-1},
-  pendingBalls:0, nextLaunchX:null, shootClock:0, shake:0, flash:0, flashCol:'255,255,255', timeScale:1, freezeT:0, boostPending:false, newBest:false,
+  pendingBalls:0, nextLaunchX:null, shootClock:0, shake:0, flash:0, flashCol:'255,255,255', timeScale:1, freezeT:0, boostPending:false, perfectPending:false, newBest:false,
   special:null, specials:[], activeSpecial:null, thunderT:0, thunderCol:null };
 let shockwaves=[], bolts=[], bigText=null, bonusCoccos=[];
 let blocks=[], items=[], balls=[], particles=[], floats=[], bumpers=[];
@@ -251,7 +251,7 @@ function newGame(){
   Sound.init(); Sound.resume(); if(audioOn) Sound.startBGM();
   blocks=[]; items=[]; balls=[]; particles=[]; floats=[]; shockwaves=[]; bolts=[]; bigText=null; bonusCoccos=[];
   Object.assign(G,{phase:'aim',score:0,turn:0,balls:1,rescued:0,
-    aiming:false,launchX:gx+COLS*cell/2,nextLaunchX:null,pendingBalls:0,shake:0,flash:0,flashCol:'255,255,255',timeScale:1,freezeT:0,boostPending:false,newBest:false,
+    aiming:false,launchX:gx+COLS*cell/2,nextLaunchX:null,pendingBalls:0,shake:0,flash:0,flashCol:'255,255,255',timeScale:1,freezeT:0,boostPending:false,perfectPending:false,newBest:false,
     special:null,specials:[],activeSpecial:null,thunderT:0,thunderCol:null});
   document.getElementById('score') && 0;
   spawnRow(true);
@@ -471,19 +471,27 @@ function updateShoot(dt){
     if(G.nextLaunchX!==null) G.launchX=G.nextLaunchX;
     G.balls += G.pendingBalls; G.pendingBalls=0;
     G.phase='shift';
-    if(blocks.length===0) perfectClearBonus();   // 全消し = パーフェクト・ボーナス
-    startTurnShift();
+    if(blocks.length===0) perfectClearBonus();   // 全消し→0.8秒お祝い停止後に行生成（loop側で再開）
+    else startTurnShift();
   }
 }
-// Clearing every block on the board pops a PERFECT bonus: three こっこちゃん fly
-// out and are rescued (score + counts toward the ball-growth / rescue goal).
+// 全消し（パーフェクト）：0.8秒だけ時を止め、嬉しい「救出！」のお祝い演出。
+// 停止が明けてから次の行が出る（loop の freeze 解除で startTurnShift）。
 function perfectClearBonus(){
-  G.score+=500; flashTint('255,220,140',0.45); G.shake=Math.min(G.shake+12,24);
-  addText('PERFECT! ボーナス', W/2, gridTop+cell*1.6, '#ffd36b'); Sound.rescue();
+  G.score+=500;
+  G.freezeT=0.8; G.perfectPending=true;                 // 0.8秒お祝い停止 → 解除後に新しい行
+  bigText={name:'救出！',emoji:'✨',col:'#ffe07a',life:1.5,max:1.5};
+  flashTint('255,235,170',0.6); G.shake=Math.min(G.shake+10,24);
+  Sound.rescue(); setTimeout(()=>Sound.best(),130);
+  // カラフルな星のシャワー
+  const pal=['255,120,170','120,220,255','255,225,120','170,255,150','200,160,255'];
+  for(let i=0;i<48;i++) particles.push({x:rnd(gx,gx+COLS*cell),y:rnd(gridTop,gridTop+cell*4.5),
+    vx:rnd(-3,3),vy:rnd(-5,-1),life:rnd(.7,1.3),max:1.3,r:rnd(2,5),col:pal[Math.floor(rnd(0,pal.length))],glow:1,g:0.06});
+  // こっこ3羽が嬉しそうに飛び出す（公式SVG）
   for(let i=0;i<3;i++){
     G.rescued++; G.score+=200;
-    bonusCoccos.push({ x:W*(0.26+0.24*i), y:gridTop+cell*1.5, vy:-(cell*0.9+rnd(0,cell*0.5)),
-      vx:rnd(-cell*0.4,cell*0.4), spin:rnd(-4,4), rot:0, life:1.4, max:1.4 });
+    bonusCoccos.push({ x:W*(0.24+0.26*i), y:gridTop+cell*1.7, vy:-(cell*1.0+rnd(0,cell*0.5)),
+      vx:rnd(-cell*0.5,cell*0.5), spin:rnd(-5,5), rot:0, life:1.7, max:1.7 });
   }
   updateHUDtext();
 }
@@ -784,8 +792,10 @@ function drawAim(){
 let last=0;
 function loop(ts){ requestAnimationFrame(loop);
   let dt=(ts-last)/1000; last=ts; if(dt>0.05)dt=0.05; if(!dt)dt=1/60;
-  if(G.freezeT>0){ G.timeScale=0; G.freezeT-=dt;            // 50反射の「停止」: physics frozen, FX keep animating
-    if(G.freezeT<=0){ G.freezeT=0; if(G.boostPending){ G.boostPending=false; applyBoost(); } } }
+  if(G.freezeT>0){ G.timeScale=0; G.freezeT-=dt;            // 停止演出: physics frozen, FX keep animating
+    if(G.freezeT<=0){ G.freezeT=0;
+      if(G.boostPending){ G.boostPending=false; applyBoost(); }
+      if(G.perfectPending){ G.perfectPending=false; startTurnShift(); } } }
   else if(G.timeScale<1) G.timeScale=Math.min(1,G.timeScale+dt*2.2);
   const sdt=dt*G.timeScale;
   if(G.phase==='shoot' && G.freezeT<=0) updateShoot(sdt);   // freeze halts ball physics (movement is fixed-step, not dt-scaled)
