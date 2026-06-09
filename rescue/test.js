@@ -52,6 +52,7 @@ for(let shot=0; shot<80 && R.phase!=='over'; shot++){
   // resolve this shot: run frames until back to aim or over (cap), settle if stuck
   let guard=0;
   while(R.phase==='shoot' && guard++<200){ frames(1); if(guard===180) R.settle(); }
+  { let s=0; while((R.phase==='shift'||R.freezeT()>0) && s++<120) frames(1); }  // ride out any 全消し celebration freeze
   frames(2);
   const inf=R.info();
   if(inf.score>0) sawScore=true;
@@ -74,6 +75,8 @@ for(const id of ['fire','thunder','split','pierce','giant']){
   R.fire(-Math.PI/2 + (Math.random()*0.6-0.3));
   ok(R.getSpecial()===null,'special "'+id+'" consumed on launch');
   let g=0; while(R.phase==='shoot' && g++<240){ frames(1); if(g===200) R.settle(); }
+  // a board clear adds a ~0.8s celebration freeze (phase stays 'shift') — wait it out
+  let s=0; while((R.phase==='shift'||R.freezeT()>0) && s++<120) frames(1);
   frames(2);
   ok(R.phase==='aim'||R.phase==='over','special "'+id+'" resolves the turn cleanly');
 }
@@ -84,7 +87,8 @@ R.setSpecial('fire'); R.setSpecial('giant');
 ok(R.queue()===2,'two rescues queue two special charges');
 R.fire(-Math.PI/2);
 ok(R.queue()===1,'first shot consumes one charge (one left)');
-let q=0; while(R.phase==='shoot' && q++<240){ frames(1); if(q===200) R.settle(); } frames(2);
+let q=0; while(R.phase==='shoot' && q++<240){ frames(1); if(q===200) R.settle(); }
+{ let s=0; while((R.phase==='shift'||R.freezeT()>0) && s++<120) frames(1); } frames(2);
 if(R.phase==='aim'){ R.fire(-Math.PI/2); ok(R.queue()===0,'second shot consumes the remaining charge'); }
 else ok(true,'second charge retained until next shot');
 
