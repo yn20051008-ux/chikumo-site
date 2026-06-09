@@ -165,6 +165,18 @@
   .rankin-conf{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
   .rankin-conf i{position:absolute;top:-16px;width:10px;height:15px;border-radius:2px;opacity:.96;animation:rankinConf 2.6s linear forwards;}
   @keyframes rankinConf{0%{top:-16px}100%{top:112%}}
+  /* 花火 */
+  .rankin-fws{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+  .rankin-fw{position:absolute;width:0;height:0;}
+  .rankin-fw i{position:absolute;left:0;top:0;width:7px;height:7px;border-radius:50%;opacity:1;
+    box-shadow:0 0 8px currentColor;animation:rankinFw .9s ease-out forwards;}
+  @keyframes rankinFw{0%{opacity:1;transform:translate(0,0) scale(1.1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)}}
+  /* 祝福するこっこちゃん */
+  .rankin-cocco{position:absolute;left:50%;top:-16vh;width:min(20vw,116px);height:auto;transform:translateX(-50%) scale(.3);opacity:0;
+    pointer-events:none;filter:drop-shadow(0 6px 16px rgba(255,200,90,.6));}
+  .rankin-ov.reveal .rankin-cocco{animation:coccoIn .5s cubic-bezier(.2,1.6,.4,1) .12s forwards,coccoBob 1s ease-in-out 1.1s infinite;}
+  @keyframes coccoIn{from{opacity:0;transform:translateX(-50%) translateY(24px) scale(.3)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+  @keyframes coccoBob{0%,100%{transform:translateX(-50%) translateY(0) rotate(-5deg)}50%{transform:translateX(-50%) translateY(-14px) rotate(5deg)}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -314,7 +326,8 @@ const Sound=(function(){
     fanfare(){ noise(.55,.32,9000); tone(80,0.5,'sine',0.45,46);                 // シンバル＋低音ドン
       var n=[[523,40],[659,120],[784,200],[1047,300],[1319,400]];
       n.forEach(function(p){ setTimeout(function(){ tone(p[0],0.24,'triangle',0.32,p[0]*1.004); tone(p[0]*2,0.12,'sine',0.12); tone(p[0]*1.5,0.16,'square',0.07); }, p[1]); });
-      setTimeout(function(){ tone(1568,0.6,'triangle',0.30); tone(2093,0.6,'sine',0.18); tone(1319,0.6,'triangle',0.16); tone(98,0.5,'sine',0.42,60); noise(.36,.16,8000); }, 520); } };
+      setTimeout(function(){ tone(1568,0.6,'triangle',0.30); tone(2093,0.6,'sine',0.18); tone(1319,0.6,'triangle',0.16); tone(98,0.5,'sine',0.42,60); noise(.36,.16,8000); }, 520);
+      for(var k=0;k<12;k++){ (function(t){ setTimeout(function(){ noise(.28,.06,3200); }, 560+t*85); })(k); } } };   // 歓声（拍手っぽいノイズ連打）
 })();
 
 /* ===== Mascot ===== */
@@ -1105,17 +1118,25 @@ requestAnimationFrame(loop);
   function celebrate(rank, total){
     var old=document.getElementById('rankinOv'); if(old&&old.parentNode) old.parentNode.removeChild(old);
     var ov=document.createElement('div'); ov.id='rankinOv'; ov.className='rankin-ov';
-    ov.innerHTML='<div class="rankin-flash"></div><div class="rankin-rays"></div><div class="rankin-conf"></div>'
+    ov.innerHTML='<div class="rankin-flash"></div><div class="rankin-rays"></div><div class="rankin-fws"></div><div class="rankin-conf"></div>'
       +'<div class="rankin-card">'
+      +'<img class="rankin-cocco" src="/chikumo.svg" alt="">'
       +'<div class="rankin-sub" id="riSub">結果発表</div>'
       +'<div class="rankin-rank"><span class="rankin-ring"></span><span class="rankin-num" id="riNum">?</span><span class="rankin-pos">位</span></div>'
       +'<div class="rankin-msg" id="riMsg">…</div>'
       +'<div class="rankin-total" id="riTot"></div></div>';
     document.body.appendChild(ov);
     var numEl=ov.querySelector('#riNum'), subEl=ov.querySelector('#riSub'),
-        msgEl=ov.querySelector('#riMsg'), totEl=ov.querySelector('#riTot'), confEl=ov.querySelector('.rankin-conf');
-    var killed=false, revealed=false;
-    var kill=function(){ if(killed)return; killed=true; ov.classList.add('out'); setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },420); };
+        msgEl=ov.querySelector('#riMsg'), totEl=ov.querySelector('#riTot'), confEl=ov.querySelector('.rankin-conf'),
+        fwsEl=ov.querySelector('.rankin-fws');
+    var killed=false, revealed=false, fwTimer=0;
+    function firework(){ var fw=document.createElement('div'); fw.className='rankin-fw';
+      fw.style.left=(12+Math.random()*76)+'%'; fw.style.top=(12+Math.random()*44)+'%';
+      var hue=Math.floor(Math.random()*360), n=14, html='';
+      for(var i=0;i<n;i++){ var a=(i/n)*6.283, d=44+Math.random()*46;
+        html+='<i style="--dx:'+Math.round(Math.cos(a)*d)+'px;--dy:'+Math.round(Math.sin(a)*d)+'px;background:hsl('+(hue+Math.floor(Math.random()*50))+',100%,64%)"></i>'; }
+      fw.innerHTML=html; fwsEl.appendChild(fw); setTimeout(function(){ if(fw.parentNode) fw.parentNode.removeChild(fw); },950); }
+    var kill=function(){ if(killed)return; killed=true; if(fwTimer) clearInterval(fwTimer); ov.classList.add('out'); setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },420); };
     var roll=setInterval(function(){ numEl.textContent=Math.floor(Math.random()*Math.max(total,9))+1; }, 68);
     var revealT;
     function doReveal(){
@@ -1126,13 +1147,14 @@ requestAnimationFrame(loop);
       msgEl.innerHTML = champ?'<b>優勝！</b>' : (top3?'<b>入賞！</b>ランクイン！':'ランクイン！');
       if(total) totEl.textContent='全 '+total+' 人中';
       var pal=['#ffd24d','#ff5d6c','#7ce0ff','#b15bff','#9affc0','#ff9a3c','#fff7cf'];
-      var html=''; var N=champ?64:44;
+      var html=''; var N=champ?72:48;
       for(var i=0;i<N;i++){ html+='<i style="left:'+(Math.random()*100)+'%;background:'+pal[i%pal.length]
         +';animation-delay:'+(Math.random()*0.35).toFixed(2)+'s;animation-duration:'+(2.0+Math.random()*1.6).toFixed(2)
         +'s;transform:rotate('+Math.floor(Math.random()*360)+'deg)"></i>'; }
       confEl.innerHTML=html;
+      firework(); fwTimer=setInterval(firework, champ?300:420);              // 花火を連発
       if(window.CoccoRescueSfx) window.CoccoRescueSfx('rankin'); vib([0,40,40,90]);
-      setTimeout(kill, champ?5200:4200);
+      setTimeout(kill, champ?6000:4600);
     }
     // Phase 1: ドラムロール＋数字スロット回転 → Phase 2: ドーン確定
     if(window.CoccoRescueSfx) window.CoccoRescueSfx('roll'); vib(30);
