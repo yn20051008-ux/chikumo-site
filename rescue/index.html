@@ -89,8 +89,19 @@
   .rankentry input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:2px solid rgba(255,180,90,.5);
     background:rgba(20,14,8,.6);color:#fff;font-size:15px;text-align:center;outline:none;}
   .rankentry input::placeholder{color:rgba(255,255,255,.4);}
-  .rankflag{flex:none;padding:10px 4px;border-radius:10px;border:2px solid rgba(255,180,90,.5);
-    background:rgba(20,14,8,.6);color:#fff;font-size:18px;outline:none;cursor:pointer;}
+  .rankflag{flex:none;padding:9px 10px;border-radius:10px;border:2px solid rgba(255,180,90,.5);
+    background:rgba(20,14,8,.6);color:#fff;font-size:20px;outline:none;cursor:pointer;line-height:1;}
+  .flagpicker{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:18px;
+    background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
+  .flagpicker.hidden{display:none;}
+  .flagpicker-inner{width:min(94vw,420px);max-height:84vh;overflow-y:auto;text-align:center;
+    background:rgba(18,14,24,.96);border:1px solid rgba(255,180,90,.35);border-radius:16px;padding:18px 16px 16px;}
+  .flagpicker-title{font-size:16px;font-weight:800;color:#ffd36b;letter-spacing:.14em;margin-bottom:12px;}
+  .flaggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:6px;margin-bottom:12px;}
+  .flaggrid.hidden{display:none;}
+  .flagopt{font-size:24px;line-height:1;padding:8px 0;border-radius:8px;border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.05);cursor:pointer;color:#fff;}
+  .flagopt:active{transform:scale(.9);} .flagopt.sel{border-color:#ffd24d;background:rgba(255,210,77,.18);}
   .btn.small{padding:10px 16px;font-size:14px;margin-top:0;}
   .rankmsg{min-height:15px;margin-top:6px;font-size:12px;color:#ffd36b;letter-spacing:.05em;}
   .ranktitle{margin-top:12px;font-size:14px;font-weight:800;color:#ffd36b;letter-spacing:.12em;}
@@ -182,7 +193,7 @@
     <div class="score-final" style="font-size:11px;opacity:.7;margin-top:8px;">BEST <span id="bestLine" style="font-size:18px">0</span></div>
     <div class="rankbox">
       <div class="rankentry">
-        <select id="rankFlag" class="rankflag" aria-label="国旗"></select>
+        <button type="button" id="rankFlagBtn" class="rankflag" aria-label="国旗をえらぶ">🇯🇵</button>
         <input id="rankName" maxlength="10" placeholder="なまえ" autocomplete="off" spellcheck="false">
         <button class="btn small" id="rankSubmit">ランキング登録</button>
       </div>
@@ -983,6 +994,17 @@ resize(); loadBest(); show('titleScreen');
 requestAnimationFrame(loop);
 })();
 </script>
+
+<!-- 国旗ピッカー -->
+<div id="flagPicker" class="flagpicker hidden">
+  <div class="flagpicker-inner">
+    <div class="flagpicker-title">国旗をえらぶ</div>
+    <div class="flaggrid" id="flagGridMajor"></div>
+    <button type="button" class="btn ghost small" id="flagMoreBtn">🏳️ その他をすべて表示</button>
+    <div class="flaggrid all hidden" id="flagGridAll"></div>
+    <button type="button" class="btn small" id="flagPickerClose">とじる</button>
+  </div>
+</div>
 <script>
 /* ===== ランキング（Firebase Realtime Database） ===== */
 (function(){
@@ -999,7 +1021,11 @@ requestAnimationFrame(loop);
   var db; try{ db=firebase.database(); }catch(e){ return; }
   var ref=db.ref('rankings/rescue');
   var NAME_KEY='coccoRescueName', UID_KEY='coccoRescueUid', FLAG_KEY='coccoRescueFlag';
-  var FLAGS=[['🇯🇵'],['🇺🇸'],['🇬🇧'],['🇨🇦'],['🇦🇺'],['🇰🇷'],['🇨🇳'],['🇹🇼'],['🇭🇰'],['🇹🇭'],['🇻🇳'],['🇵🇭'],['🇮🇩'],['🇲🇾'],['🇸🇬'],['🇮🇳'],['🇫🇷'],['🇩🇪'],['🇮🇹'],['🇪🇸'],['🇵🇹'],['🇳🇱'],['🇸🇪'],['🇧🇷'],['🇲🇽'],['🇦🇷'],['🇷🇺'],['🇺🇦'],['🇹🇷'],['🇪🇬'],['🇿🇦'],['🇸🇦'],['🇳🇿'],['🏳️']];
+  var selFlag='🇯🇵';
+  function flagOf(cc){ return cc.replace(/./g,function(c){ return String.fromCodePoint(0x1F1E6+c.charCodeAt(0)-65); }); }
+  var MAJOR=('JP US GB CA AU KR CN TW HK TH VN PH ID MY SG IN FR DE IT ES PT NL SE BR MX AR RU UA TR EG ZA SA NZ').split(' ').map(flagOf);
+  var ALL_CC=('AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW').split(' ');
+  var ALL=['🏳️','🏴','🏁','🇺🇳','🇪🇺'].concat(ALL_CC.map(flagOf));
   var $=function(id){return document.getElementById(id);};
   var pending=null, lastSubmitTs=0;
   function uid(){ var u; try{ u=localStorage.getItem(UID_KEY); }catch(e){}
@@ -1049,7 +1075,7 @@ requestAnimationFrame(loop);
     if(!pending) return;
     var now=Date.now(); if(now-lastSubmitTs<1500) return; lastSubmitTs=now;
     var name=fmtName($('rankName')&&$('rankName').value);
-    var flag=($('rankFlag')&&$('rankFlag').value)||'🇯🇵';
+    var flag=selFlag||'🇯🇵';
     try{ localStorage.setItem(NAME_KEY,name); localStorage.setItem(FLAG_KEY,flag); }catch(e){}
     var score=Math.max(0,Math.min(99999999,Math.floor(pending.score||0)));
     var rescued=Math.max(0,Math.floor(pending.rescued||0));
@@ -1069,13 +1095,22 @@ requestAnimationFrame(loop);
     var msg=$('rankMsg'); if(msg) msg.textContent='';
     var btn=$('rankSubmit'); if(btn) btn.disabled=false;
     var nm=$('rankName'); if(nm){ try{ nm.value=localStorage.getItem(NAME_KEY)||''; }catch(e){} }
-    var fl=$('rankFlag'); if(fl){ try{ var sv=localStorage.getItem(FLAG_KEY); if(sv) fl.value=sv; }catch(e){} }
+    setFlag(selFlag);
     loadTop(['rankList']);
   }
-  // 国旗セレクトを生成
-  (function fillFlags(){ var sel=$('rankFlag'); if(!sel) return;
-    sel.innerHTML=FLAGS.map(function(f){ return '<option value="'+f[0]+'">'+f[0]+'</option>'; }).join('');
-    try{ var sv=localStorage.getItem(FLAG_KEY); if(sv) sel.value=sv; }catch(e){}
+  // 国旗ピッカー（主要＋「その他」で全国旗）
+  function setFlag(f){ selFlag=f; var b=$('rankFlagBtn'); if(b) b.textContent=f; try{ localStorage.setItem(FLAG_KEY,f); }catch(e){} }
+  function buildGrid(elId, flags){ var el=$(elId); if(!el||el._built) return; el._built=true;
+    el.innerHTML=flags.map(function(f){ return '<button type="button" class="flagopt'+(f===selFlag?' sel':'')+'" data-f="'+f+'">'+f+'</button>'; }).join('');
+    el.addEventListener('click', function(e){ var t=e.target&&e.target.closest?e.target.closest('.flagopt'):null; if(!t)return; setFlag(t.getAttribute('data-f')); closePicker(); }); }
+  function openPicker(){ buildGrid('flagGridMajor', MAJOR); var p=$('flagPicker'); if(p) p.classList.remove('hidden'); }
+  function closePicker(){ var p=$('flagPicker'); if(p) p.classList.add('hidden'); }
+  function showAllFlags(){ buildGrid('flagGridAll', ALL); var g=$('flagGridAll'); if(g) g.classList.remove('hidden'); var b=$('flagMoreBtn'); if(b) b.classList.add('hidden'); }
+  (function(){ try{ var sv=localStorage.getItem(FLAG_KEY); if(sv) selFlag=sv; }catch(e){} setFlag(selFlag);
+    var fb=$('rankFlagBtn'); if(fb) fb.addEventListener('click', openPicker);
+    var mb=$('flagMoreBtn'); if(mb) mb.addEventListener('click', showAllFlags);
+    var pc=$('flagPickerClose'); if(pc) pc.addEventListener('click', closePicker);
+    var pov=$('flagPicker'); if(pov) pov.addEventListener('click', function(e){ if(e.target===pov) closePicker(); });
   })();
   var sb=$('rankSubmit'); if(sb) sb.addEventListener('click', submit);
   var ni=$('rankName'); if(ni) ni.addEventListener('keydown', function(e){ if(e.key==='Enter') submit(); });
