@@ -46,7 +46,8 @@
   #fsBtn{top:calc(10px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));}
 
   .screen{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;
-    align-items:center;justify-content:center;text-align:center;padding:24px;overflow-y:auto;
+    align-items:center;justify-content:center;text-align:center;padding:24px;overflow-y:auto;overflow-x:hidden;
+    touch-action:pan-y;overscroll-behavior:contain;
     background:radial-gradient(ellipse at 50% 35%,rgba(40,30,70,.7),rgba(5,6,12,.96));
     -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
   .screen.hidden{display:none;}
@@ -91,10 +92,10 @@
   .rankentry input::placeholder{color:rgba(255,255,255,.4);}
   .rankflag{flex:none;padding:9px 10px;border-radius:10px;border:2px solid rgba(255,180,90,.5);
     background:rgba(20,14,8,.6);color:#fff;font-size:20px;outline:none;cursor:pointer;line-height:1;}
-  .flagpicker{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:18px;
+  .flagpicker{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:18px;touch-action:none;
     background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
   .flagpicker.hidden{display:none;}
-  .flagpicker-inner{width:min(94vw,420px);max-height:84vh;overflow-y:auto;text-align:center;
+  .flagpicker-inner{width:min(94vw,420px);max-height:84vh;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;overscroll-behavior:contain;text-align:center;
     background:rgba(18,14,24,.96);border:1px solid rgba(255,180,90,.35);border-radius:16px;padding:18px 16px 16px;}
   .flagpicker-title{font-size:16px;font-weight:800;color:#ffd36b;letter-spacing:.14em;margin-bottom:12px;}
   .flaggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:6px;margin-bottom:12px;}
@@ -106,7 +107,7 @@
   .rankmsg{min-height:15px;margin-top:6px;font-size:12px;color:#ffd36b;letter-spacing:.05em;}
   .ranktitle{margin-top:12px;font-size:14px;font-weight:800;color:#ffd36b;letter-spacing:.12em;}
   .ranktitle.big{font-size:22px;margin-bottom:12px;}
-  .ranklist{list-style:none;margin:8px auto 0;padding:0;width:min(92vw,360px);text-align:left;max-height:46vh;overflow-y:auto;}
+  .ranklist{list-style:none;margin:8px auto 0;padding:0;width:min(92vw,360px);text-align:left;max-height:46vh;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;overscroll-behavior:contain;}
   .ranklist li{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:8px;
     background:rgba(255,255,255,.05);margin-bottom:5px;font-variant-numeric:tabular-nums;font-size:14px;}
   .ranklist li:nth-child(1){background:rgba(255,200,80,.20);}
