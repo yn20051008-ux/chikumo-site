@@ -311,7 +311,7 @@ function aimDir(){
   const a=clamp(ang,minA,maxA);
   return {x:Math.cos(a), y:Math.sin(a)};
 }
-const SPEED=13, ACCEL=0.35, SPEEDMAX=SPEED*1.95+10;   // faster start + higher accel cap to cut downtime
+const SPEED=15, ACCEL=0.45, SPEEDMAX=SPEED*2.05+12;   // faster start + higher accel cap to cut downtime
 const SPECIALS=[
   {id:'fire',   name:'ファイア',  col:'#ff7b3a', emoji:'🔥'},
   {id:'thunder',name:'いかずち',  col:'#ffe066', emoji:'⚡'},
@@ -465,7 +465,7 @@ function updateShoot(dt){
   // anti-stuck: nudge near-horizontal balls
   for(const b of balls){ if(b.alive && Math.abs(b.vy)<(b.sp||SPEED)*0.18){ b.vy += (b.vy<0?-1:1)*(b.sp||SPEED)*0.05; renorm(b); } }
   // force end if too long
-  if(G.shootClock>14){ for(const b of balls) b.alive=false; }
+  if(G.shootClock>22){ for(const b of balls) b.alive=false; }   // ターン強制終了を延長（50反射を狙える猶予）
   if(G.toFire<=0 && balls.every(b=>!b.alive)){
     balls=[]; G.activeSpecial=null;
     if(G.nextLaunchX!==null) G.launchX=G.nextLaunchX;
