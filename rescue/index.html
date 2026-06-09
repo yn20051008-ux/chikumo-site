@@ -194,6 +194,8 @@ const Sound=(function(){
     boostCharge(){ swell(55,520,0.64,0.40,'sine'); swell(150,2200,0.64,0.42,'sawtooth');
       swell(300,3400,0.64,0.18,'square'); noise(.64,.10,1200);
       [0,.14,.26,.36,.44,.50,.55,.59,.62].forEach((t,i)=>setTimeout(()=>tone(560+i*190,0.05,'square',0.17),t*1000)); },
+    // 連続加速の途中用：短いチャージ
+    boostChargeShort(){ swell(240,2100,0.28,0.34,'sawtooth'); tone(1500,0.06,'square',0.18); },
     // 解放の瞬間：サブベースのドーン＋大爆発＋金属リング＋メテオの轟音
     boostHit(){ tone(150,0.55,'sine',0.60,38); tone(95,0.45,'square',0.42,30);
       tone(2600,0.30,'sawtooth',0.42,260); tone(1300,0.16,'square',0.26,2600);
@@ -540,10 +542,14 @@ function showBig(d){ bigText={name:d.name,emoji:d.emoji,col:d.col,life:1.1,max:1
 // 50反射 (火力6) reached: freeze for ~1s with a 「加速」 callout, then blast the ball forward.
 function boostCinematic(b){
   if(G.freezeT>0) return;
-  G.boostBall=b||null;                                  // 50反射に達した本人だけを後で加速
-  G.freezeT=0.7; G.boostPending=true;
-  bigText={name:'加速',emoji:'⚡',col:'#ff3b3b',life:1.7,max:1.7};
-  flashTint('255,70,70',0.55); G.shake=Math.min(G.shake+8,22); Sound.boostCharge();
+  G.boostBall=b||null;
+  // 連続加速の途中は短く(0.3s)、最後／単発はしっかり(0.7s)。
+  // 他に「50反射目前(未加速)」のボールがいれば“まだ続く＝途中”とみなす。
+  const more = balls.some(x=>x!==b && x.alive && !x.boosted && (x.dmg||1)<6 && (x.bounces||0)>=47);
+  G.freezeT = more ? 0.3 : 0.7; G.boostPending=true;
+  bigText={name:'加速',emoji:'⚡',col:'#ff3b3b',life:more?1.0:1.7,max:more?1.0:1.7};
+  flashTint('255,70,70',more?0.4:0.55); G.shake=Math.min(G.shake+(more?5:8),22);
+  if(more) Sound.boostChargeShort(); else Sound.boostCharge();
 }
 function applyBoost(){
   const b=G.boostBall; G.boostBall=null;
@@ -874,6 +880,16 @@ window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G
     const a={x:W/2,y:H*0.5,vx:1,vy:-1,sp:SPEED,bounces:49,dmg:5,alive:true,r:R,trail:[]};
     const c={x:W/3,y:H*0.5,vx:1,vy:-1,sp:SPEED,bounces:3,dmg:1,alive:true,r:R,trail:[]};
     balls.push(a,c); accel(a); applyBoost(); return { self:!!a.boosted, other:!!c.boosted }; },
+  testChainFreeze:()=>{ balls.length=0; G.boostBall=null; G.freezeT=0; G.boostPending=false;
+    const mk=()=>({x:W/2,y:H*0.5,vx:1,vy:-1,sp:SPEED,bounces:49,dmg:5,alive:true,r:R,trail:[]});
+    const a=mk(),b=mk(),c=mk(); balls.push(a,b,c); const res=[];
+    accel(a); res.push(+G.freezeT.toFixed(2)); G.freezeT=0; applyBoost();
+    accel(b); res.push(+G.freezeT.toFixed(2)); G.freezeT=0; applyBoost();
+    accel(c); res.push(+G.freezeT.toFixed(2)); G.freezeT=0; applyBoost();
+    return res; },
+  testIsoFreeze:()=>{ balls.length=0; G.boostBall=null; G.freezeT=0; G.boostPending=false;
+    const a={x:W/2,y:H*0.5,vx:1,vy:-1,sp:SPEED,bounces:49,dmg:5,alive:true,r:R,trail:[]};
+    balls.push(a); accel(a); return +G.freezeT.toFixed(2); },
   accelTo50:()=>{ const b={x:W/2,y:H/2,vx:1,vy:-1,sp:SPEED,bounces:49,dmg:5,alive:true,r:R,trail:[]}; balls.push(b); accel(b); return b.dmg; }, };
 
 /* ===== Boot ===== */
