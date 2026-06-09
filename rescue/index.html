@@ -385,10 +385,12 @@ function spawnRow(first){
     let type='normal', bhp=hp;
     blocks.push({col:c,row:0,hp:bhp,maxhp:bhp,type,pop:0});
   }
-  // empty cells: chance of +ball item
-  for(let c=0;c<COLS;c++){
-    if(row.indexOf(c)<0 && Math.random()< (first?0.5:0.28)){ items.push({col:c,row:0,t:'ball',ph:rnd(0,TAU)}); break; }
-  }
+  // empty cells: +ボール と −ボール を同じ確率で出す（別々の空きマスに）
+  const empties=[]; for(let c=0;c<COLS;c++) if(row.indexOf(c)<0) empties.push(c);
+  for(let i=empties.length-1;i>0;i--){ const j=Math.floor(rnd(0,i+1)),t=empties[i]; empties[i]=empties[j]; empties[j]=t; }
+  const P=first?0.5:0.28; let ei=0;
+  if(empties.length>ei && Math.random()<P){ items.push({col:empties[ei++],row:0,t:'ball',ph:rnd(0,TAU)}); }
+  if(empties.length>ei && Math.random()<P){ items.push({col:empties[ei++],row:0,t:'minus',ph:rnd(0,TAU)}); }
   // captured cocco — appears early and often so the rescue goal is front & center
   if(!first && (G.turn===2 || G.turn%3===0)){
     const empt=[]; for(let c=0;c<COLS;c++) if(row.indexOf(c)<0) empt.push(c);
@@ -537,7 +539,9 @@ function collectItems(b){
   const rad=b.r||R;
   for(const it of items){ if(it.dead) continue;
     const ix=cellX(it.col), iy=cellY(it.row), r=cell*0.26+rad;
-    if((b.x-ix)**2+(b.y-iy)**2 < r*r){ it.dead=true; G.pendingBalls++; addText('+1',ix,iy,'#9fe8ff'); }
+    if((b.x-ix)**2+(b.y-iy)**2 < r*r){ it.dead=true;
+      if(it.t==='minus'){ G.pendingBalls--; addText('-1',ix,iy,'#ff6b6b'); }
+      else { G.pendingBalls++; addText('+1',ix,iy,'#9fe8ff'); } }
   }
 }
 function updateShoot(dt){
@@ -584,7 +588,7 @@ function updateShoot(dt){
 function endTurn(){
   balls=[]; G.activeSpecial=null;
   if(G.nextLaunchX!==null) G.launchX=G.nextLaunchX;
-  G.balls += G.pendingBalls; G.pendingBalls=0;
+  G.balls = Math.max(1, G.balls + G.pendingBalls); G.pendingBalls=0;   // −ボールでも最低1個は維持
   G.phase='shift';
   if(blocks.length===0) perfectClearBonus();   // 全消し→0.8秒お祝い停止後に行生成（loop側で再開）
   else startTurnShift();
@@ -779,10 +783,11 @@ function render(){
   }
   // items (+ball)
   for(const it of items){ it.ph+=0.1; const ix=cellX(it.col),iy=cellY(it.row),r=cell*0.2*(1+Math.sin(it.ph)*0.12);
-    ctx.save(); ctx.shadowColor='#9fe8ff'; ctx.shadowBlur=12;
-    ctx.strokeStyle='#9fe8ff'; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(ix,iy,r,0,TAU); ctx.stroke();
-    ctx.shadowBlur=0; ctx.fillStyle='#9fe8ff'; ctx.font='900 '+(cell*0.26)+'px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillText('+', ix, iy+1); ctx.restore(); }
+    const minus=it.t==='minus', col=minus?'#ff6b6b':'#9fe8ff';
+    ctx.save(); ctx.shadowColor=col; ctx.shadowBlur=12;
+    ctx.strokeStyle=col; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(ix,iy,r,0,TAU); ctx.stroke();
+    ctx.shadowBlur=0; ctx.fillStyle=col; ctx.font='900 '+(cell*0.26)+'px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(minus?'−':'+', ix, iy+1); ctx.restore(); }
 
   // deadline
   ctx.strokeStyle='rgba(255,90,110,.55)'; ctx.lineWidth=2; ctx.setLineDash([8,8]);
