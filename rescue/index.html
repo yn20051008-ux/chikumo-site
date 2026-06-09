@@ -130,7 +130,7 @@
 
   <!-- RANKING -->
   <div class="screen hidden" id="rankScreen">
-    <div class="ranktitle big">🏆 ランキング TOP10</div>
+    <div class="ranktitle big">🏆 ランキング TOP100</div>
     <ol class="ranklist" id="rankListTitle"><li class="rankempty">読み込み中…</li></ol>
     <button class="btn" id="rankBack">もどる</button>
   </div>
@@ -161,7 +161,7 @@
         <button class="btn small" id="rankSubmit">ランキング登録</button>
       </div>
       <div class="rankmsg" id="rankMsg"></div>
-      <div class="ranktitle">🏆 TOP10</div>
+      <div class="ranktitle">🏆 TOP100</div>
       <ol class="ranklist" id="rankList"><li class="rankempty">…</li></ol>
     </div>
     <div class="btn-row">
@@ -982,7 +982,7 @@ requestAnimationFrame(loop);
     }).join('');
   }
   function loadTop(targets){
-    ref.orderByChild('score').limitToLast(10).once('value').then(function(snap){
+    ref.orderByChild('score').limitToLast(100).once('value').then(function(snap){
       var rows=[]; snap.forEach(function(c){ var v=c.val()||{}; rows.push({name:v.name,score:+v.score||0}); });
       rows.sort(function(a,b){return b.score-a.score;});
       targets.forEach(function(t){ renderInto(t,rows); });
