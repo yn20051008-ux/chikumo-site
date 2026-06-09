@@ -239,7 +239,7 @@ function layout(){
 /* ===== State ===== */
 const G={ phase:'title', score:0, best:0, turn:0, balls:1, rescued:0, best_rescued:0,
   aiming:false, aimX:0, aimY:0, launchX:0, fireT:0, toFire:0, firedDir:{x:0,y:-1},
-  pendingBalls:0, nextLaunchX:null, shootClock:0, shake:0, flash:0, flashCol:'255,255,255', timeScale:1, freezeT:0, boostPending:false, perfectPending:false, newBest:false,
+  pendingBalls:0, nextLaunchX:null, shootClock:0, shake:0, flash:0, flashCol:'255,255,255', timeScale:1, freezeT:0, boostPending:false, perfectPending:false, boostBall:null, newBest:false,
   special:null, specials:[], activeSpecial:null, thunderT:0, thunderCol:null };
 let shockwaves=[], bolts=[], bigText=null, bonusCoccos=[];
 let blocks=[], items=[], balls=[], particles=[], floats=[], bumpers=[];
@@ -251,7 +251,7 @@ function newGame(){
   Sound.init(); Sound.resume(); if(audioOn) Sound.startBGM();
   blocks=[]; items=[]; balls=[]; particles=[]; floats=[]; shockwaves=[]; bolts=[]; bigText=null; bonusCoccos=[];
   Object.assign(G,{phase:'aim',score:0,turn:0,balls:1,rescued:0,
-    aiming:false,launchX:gx+COLS*cell/2,nextLaunchX:null,pendingBalls:0,shake:0,flash:0,flashCol:'255,255,255',timeScale:1,freezeT:0,boostPending:false,perfectPending:false,newBest:false,
+    aiming:false,launchX:gx+COLS*cell/2,nextLaunchX:null,pendingBalls:0,shake:0,flash:0,flashCol:'255,255,255',timeScale:1,freezeT:0,boostPending:false,perfectPending:false,boostBall:null,newBest:false,
     special:null,specials:[],activeSpecial:null,thunderT:0,thunderCol:null});
   document.getElementById('score') && 0;
   spawnRow(true);
@@ -510,7 +510,7 @@ function accel(b){ b.bounces=(b.bounces||0)+1;
     burst(b.x,b.y,rgb,tier>=6?18:12,tier>=6?9:6,true);
     flashTint(rgb,tier>=6?0.18:0.10);
     G.shake=Math.min(G.shake+(tier>=6?9:3),22);
-    if(tier>=6){ Sound.rescue(); boostCinematic(); } else Sound.ball(); }
+    if(tier>=6){ Sound.rescue(); boostCinematic(b); } else Sound.ball(); }
   if((b.sp||SPEED)<SPEEDMAX){ b.sp=Math.min(SPEEDMAX,(b.sp||SPEED)+ACCEL); renorm(b); } }
 function collideBumpers(b){
   const rad=b.r||R;
@@ -538,21 +538,22 @@ function flashTint(col,amt){ G.flash=Math.max(G.flash,amt); G.flashCol=col; }
 function slowmo(scale){ G.timeScale=Math.min(G.timeScale,scale); }
 function showBig(d){ bigText={name:d.name,emoji:d.emoji,col:d.col,life:1.1,max:1.1}; }
 // 50反射 (火力6) reached: freeze for ~1s with a 「加速」 callout, then blast the ball forward.
-function boostCinematic(){
+function boostCinematic(b){
   if(G.freezeT>0) return;
+  G.boostBall=b||null;                                  // 50反射に達した本人だけを後で加速
   G.freezeT=0.7; G.boostPending=true;
   bigText={name:'加速',emoji:'⚡',col:'#ff3b3b',life:1.7,max:1.7};
   flashTint('255,70,70',0.55); G.shake=Math.min(G.shake+8,22); Sound.boostCharge();
 }
 function applyBoost(){
-  let fx=G.launchX, fy=launchY;
-  for(const b of balls){ if(!b.alive)continue; fx=b.x; fy=b.y;
-    b.boosted=true; b.dmg=Math.max(b.dmg||1, 15);             // メテオ化: 貫通する火力15のコメット
-    b.boostLeft=8;                                            // チート反射は8回まで → 消滅
-    b.r=(b.r||R)*1.7;                                          // 巨大化（当たり判定も拡大）
-    b.sp=Math.min(SPEEDMAX*1.7,(b.sp||SPEED)*1.7); renorm(b);
-    burst(b.x,b.y,'255,70,70',26,13,true); }
-  addShock(fx,fy,cell*4.0,'255,70,70',10,8);                  // 解放の一撃: 広範囲8ダメージ
+  const b=G.boostBall; G.boostBall=null;
+  if(!b || !b.alive) return;                                  // 本人が既に消えていたら何もしない
+  b.boosted=true; b.dmg=Math.max(b.dmg||1, 15);              // メテオ化: 貫通する火力15のコメット
+  b.boostLeft=8;                                             // チート反射は8回まで → 消滅
+  b.r=(b.r||R)*1.7;                                           // 巨大化（当たり判定も拡大）
+  b.sp=Math.min(SPEEDMAX*1.7,(b.sp||SPEED)*1.7); renorm(b);
+  burst(b.x,b.y,'255,70,70',26,13,true);
+  addShock(b.x,b.y,cell*4.0,'255,70,70',10,8);               // 解放の一撃: 広範囲8ダメージ
   flashTint('255,150,150',0.5); G.shake=Math.min(G.shake+20,32); Sound.boostHit();
 }
 // 加速中、壁/バンパーにぶつかるたびのドカン演出＋反射回数の消費
@@ -869,6 +870,10 @@ window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G
     return bl.dead===true; },
   testBoostBudget:()=>{ const b={x:cellX(0),y:cellY(0),vx:1,vy:-1,sp:SPEED,dmg:15,boosted:true,alive:true,r:R,trail:[],boostLeft:8};
     let n=0; while(b.alive && n<99){ b.wallCd=0; boostWallFX(b); n++; } return n; },
+  testOnlyOneBoosted:()=>{ balls.length=0; G.boostBall=null; G.freezeT=0; G.boostPending=false;
+    const a={x:W/2,y:H*0.5,vx:1,vy:-1,sp:SPEED,bounces:49,dmg:5,alive:true,r:R,trail:[]};
+    const c={x:W/3,y:H*0.5,vx:1,vy:-1,sp:SPEED,bounces:3,dmg:1,alive:true,r:R,trail:[]};
+    balls.push(a,c); accel(a); applyBoost(); return { self:!!a.boosted, other:!!c.boosted }; },
   accelTo50:()=>{ const b={x:W/2,y:H/2,vx:1,vy:-1,sp:SPEED,bounces:49,dmg:5,alive:true,r:R,trail:[]}; balls.push(b); accel(b); return b.dmg; }, };
 
 /* ===== Boot ===== */
