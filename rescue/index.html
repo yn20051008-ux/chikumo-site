@@ -83,7 +83,29 @@
   .credit{margin-top:16px;font-size:10px;letter-spacing:.2em;opacity:.4;}
   .credit a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3);}
   a{pointer-events:auto;}
+  /* ===== Ranking ===== */
+  .rankbox{margin-top:14px;width:min(92vw,360px);}
+  .rankentry{display:flex;gap:8px;justify-content:center;align-items:center;}
+  .rankentry input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:2px solid rgba(255,180,90,.5);
+    background:rgba(20,14,8,.6);color:#fff;font-size:15px;text-align:center;outline:none;}
+  .rankentry input::placeholder{color:rgba(255,255,255,.4);}
+  .btn.small{padding:10px 16px;font-size:14px;margin-top:0;}
+  .rankmsg{min-height:15px;margin-top:6px;font-size:12px;color:#ffd36b;letter-spacing:.05em;}
+  .ranktitle{margin-top:12px;font-size:14px;font-weight:800;color:#ffd36b;letter-spacing:.12em;}
+  .ranktitle.big{font-size:22px;margin-bottom:12px;}
+  .ranklist{list-style:none;margin:8px auto 0;padding:0;width:min(92vw,360px);text-align:left;max-height:46vh;overflow-y:auto;}
+  .ranklist li{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:8px;
+    background:rgba(255,255,255,.05);margin-bottom:5px;font-variant-numeric:tabular-nums;font-size:14px;}
+  .ranklist li:nth-child(1){background:rgba(255,200,80,.20);}
+  .ranklist li:nth-child(2){background:rgba(210,220,255,.13);}
+  .ranklist li:nth-child(3){background:rgba(255,170,120,.13);}
+  .ranklist .rk{width:30px;flex:none;text-align:center;font-weight:800;}
+  .ranklist .rn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff;}
+  .ranklist .rs{flex:none;font-weight:800;color:#ffe07a;}
+  .rankempty{justify-content:center;opacity:.6;}
 </style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 </head>
 <body>
 <div id="wrap">
@@ -102,7 +124,15 @@
     </div>
     <button class="btn" id="startBtn">あそぶ</button>
     <button class="btn ghost" id="howBtn">あそびかた</button>
+    <button class="btn ghost" id="rankBtn">🏆 ランキング</button>
     <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+  </div>
+
+  <!-- RANKING -->
+  <div class="screen hidden" id="rankScreen">
+    <div class="ranktitle big">🏆 ランキング TOP10</div>
+    <ol class="ranklist" id="rankListTitle"><li class="rankempty">読み込み中…</li></ol>
+    <button class="btn" id="rankBack">もどる</button>
   </div>
 
   <!-- HOW -->
@@ -125,6 +155,15 @@
     <div class="rescued" id="rescuedLine"><img src="/chikumo.svg" alt="こっこ"> 救出 0 羽</div>
     <div class="nb" id="newBest">★ ベスト更新！ ★</div>
     <div class="score-final" style="font-size:11px;opacity:.7;margin-top:8px;">BEST <span id="bestLine" style="font-size:18px">0</span></div>
+    <div class="rankbox">
+      <div class="rankentry">
+        <input id="rankName" maxlength="10" placeholder="なまえ" autocomplete="off" spellcheck="false">
+        <button class="btn small" id="rankSubmit">ランキング登録</button>
+      </div>
+      <div class="rankmsg" id="rankMsg"></div>
+      <div class="ranktitle">🏆 TOP10</div>
+      <ol class="ranklist" id="rankList"><li class="rankempty">…</li></ol>
+    </div>
     <div class="btn-row">
       <button class="btn" id="retryBtn">もう一回</button>
       <button class="btn ghost" id="shareBtn">スコアを共有</button>
@@ -617,6 +656,7 @@ function gameOver(){
   document.getElementById('rescuedLine').innerHTML='<img src="/chikumo.svg" alt="こっこ"> 救出 '+G.rescued+' 羽';
   document.getElementById('bestLine').textContent=G.best.toLocaleString();
   document.getElementById('newBest').style.opacity=G.newBest?'1':'0';
+  if(window.CoccoRank) window.CoccoRank.onGameOver(G.score, G.rescued);   // ランキング読み込み＋登録準備
   setTimeout(()=>show('overScreen'),500);
 }
 
@@ -834,13 +874,15 @@ function loadBest(){ try{ G.best=parseInt(localStorage.getItem('coccoRescueBest'
 function saveBest(){ try{ localStorage.setItem('coccoRescueBest',String(G.best)); }catch(e){} }
 
 /* ===== Screens ===== */
-function show(id){ ['titleScreen','howScreen','overScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id)); }
-function hideScreens(){ ['titleScreen','howScreen','overScreen'].forEach(s=>document.getElementById(s).classList.add('hidden')); }
+function show(id){ ['titleScreen','howScreen','overScreen','rankScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id)); }
+function hideScreens(){ ['titleScreen','howScreen','overScreen','rankScreen'].forEach(s=>document.getElementById(s).classList.add('hidden')); }
 function uiBtn(id,fn){ const e=document.getElementById(id); if(e) e.onclick=()=>{ Sound.init();Sound.resume();Sound.ui(); fn(); }; }
 uiBtn('startBtn',newGame);
 uiBtn('retryBtn',newGame);
 uiBtn('howBtn',()=>show('howScreen'));
 uiBtn('howBack',()=>show('titleScreen'));
+uiBtn('rankBtn',()=>{ show('rankScreen'); if(window.CoccoRank) window.CoccoRank.onShowRanking(); });
+uiBtn('rankBack',()=>show('titleScreen'));
 document.getElementById('shareBtn').onclick=async()=>{ Sound.init();Sound.resume();
   const txt=`コッコレスキューで ${G.score.toLocaleString()}点・${G.rescued}羽 救出！🐤 ブロックを崩してこっこちゃんを助けよう #コッコレスキュー #畜物語`;
   const url='https://chikumo.jp/rescue/';
@@ -906,6 +948,64 @@ window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G
 try{ window.__safeTop=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0; }catch(e){ window.__safeTop=0; }
 resize(); loadBest(); show('titleScreen');
 requestAnimationFrame(loop);
+})();
+</script>
+<script>
+/* ===== ランキング（Firebase Realtime Database） ===== */
+(function(){
+  if(typeof firebase==='undefined') return;                 // SDK未読込（オフライン等）なら無効化してゲームは続行
+  try{ if(!firebase.apps||!firebase.apps.length) firebase.initializeApp({
+    apiKey:"AIzaSyBw5-6oAuOmgYC_7G27Z0Qavwn78ZrkhdQ",
+    authDomain:"chikumonogatarikiroku.firebaseapp.com",
+    databaseURL:"https://chikumonogatarikiroku-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:"chikumonogatarikiroku",
+    storageBucket:"chikumonogatarikiroku.firebasestorage.app",
+    messagingSenderId:"725202431277",
+    appId:"1:725202431277:web:c49c911cfcae26d63ab7a4"
+  }); }catch(e){}
+  var db; try{ db=firebase.database(); }catch(e){ return; }
+  var ref=db.ref('rankings/rescue');
+  var NAME_KEY='coccoRescueName';
+  var $=function(id){return document.getElementById(id);};
+  var pending=null, lastSubmitTs=0;
+  function esc(s){ return String(s).replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; }); }
+  function fmtName(s){ s=(s||'').replace(/\s+/g,' ').trim().slice(0,10); return s||'ななし'; }
+  function renderInto(elId, rows){
+    var el=$(elId); if(!el) return;
+    if(!rows||!rows.length){ el.innerHTML='<li class="rankempty">まだ記録がありません</li>'; return; }
+    el.innerHTML=rows.map(function(r,i){
+      var medal=['🥇','🥈','🥉'][i]||((i+1)+'.');
+      return '<li><span class="rk">'+medal+'</span><span class="rn">'+esc(r.name)+'</span><span class="rs">'+Number(r.score).toLocaleString()+'</span></li>';
+    }).join('');
+  }
+  function loadTop(targets){
+    ref.orderByChild('score').limitToLast(10).once('value').then(function(snap){
+      var rows=[]; snap.forEach(function(c){ var v=c.val()||{}; rows.push({name:v.name,score:+v.score||0}); });
+      rows.sort(function(a,b){return b.score-a.score;});
+      targets.forEach(function(t){ renderInto(t,rows); });
+    }).catch(function(e){ targets.forEach(function(t){ var el=$(t); if(el) el.innerHTML='<li class="rankempty">読み込めませんでした</li>'; }); });
+  }
+  function submit(){
+    if(!pending) return;
+    var now=Date.now(); if(now-lastSubmitTs<1500) return; lastSubmitTs=now;
+    var name=fmtName($('rankName')&&$('rankName').value);
+    try{ localStorage.setItem(NAME_KEY,name); }catch(e){}
+    var score=Math.max(0,Math.min(99999999,Math.floor(pending.score||0)));
+    var msg=$('rankMsg'); var btn=$('rankSubmit'); if(btn) btn.disabled=true;
+    ref.push({ name:name, score:score, rescued:Math.max(0,Math.floor(pending.rescued||0)), ts:firebase.database.ServerValue.TIMESTAMP })
+      .then(function(){ if(msg){ msg.textContent='登録しました！🏆'; } pending=null; loadTop(['rankList']); })
+      .catch(function(e){ if(msg){ msg.textContent='登録に失敗しました（接続を確認）'; } if(btn) btn.disabled=false; });
+  }
+  function onGameOver(score, rescued){
+    pending={score:score, rescued:rescued};
+    var msg=$('rankMsg'); if(msg) msg.textContent='';
+    var btn=$('rankSubmit'); if(btn) btn.disabled=false;
+    var nm=$('rankName'); if(nm){ try{ nm.value=localStorage.getItem(NAME_KEY)||''; }catch(e){} }
+    loadTop(['rankList']);
+  }
+  var sb=$('rankSubmit'); if(sb) sb.addEventListener('click', submit);
+  var ni=$('rankName'); if(ni) ni.addEventListener('keydown', function(e){ if(e.key==='Enter') submit(); });
+  window.CoccoRank={ onGameOver:onGameOver, onShowRanking:function(){ loadTop(['rankListTitle']); }, submit:submit };
 })();
 </script>
 </body>
