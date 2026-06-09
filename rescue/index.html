@@ -89,6 +89,8 @@
   .rankentry input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:2px solid rgba(255,180,90,.5);
     background:rgba(20,14,8,.6);color:#fff;font-size:15px;text-align:center;outline:none;}
   .rankentry input::placeholder{color:rgba(255,255,255,.4);}
+  .rankflag{flex:none;padding:10px 4px;border-radius:10px;border:2px solid rgba(255,180,90,.5);
+    background:rgba(20,14,8,.6);color:#fff;font-size:18px;outline:none;cursor:pointer;}
   .btn.small{padding:10px 16px;font-size:14px;margin-top:0;}
   .rankmsg{min-height:15px;margin-top:6px;font-size:12px;color:#ffd36b;letter-spacing:.05em;}
   .ranktitle{margin-top:12px;font-size:14px;font-weight:800;color:#ffd36b;letter-spacing:.12em;}
@@ -157,6 +159,7 @@
     <div class="score-final" style="font-size:11px;opacity:.7;margin-top:8px;">BEST <span id="bestLine" style="font-size:18px">0</span></div>
     <div class="rankbox">
       <div class="rankentry">
+        <select id="rankFlag" class="rankflag" aria-label="国旗"></select>
         <input id="rankName" maxlength="10" placeholder="なまえ" autocomplete="off" spellcheck="false">
         <button class="btn small" id="rankSubmit">ランキング登録</button>
       </div>
@@ -965,7 +968,8 @@ requestAnimationFrame(loop);
   }); }catch(e){}
   var db; try{ db=firebase.database(); }catch(e){ return; }
   var ref=db.ref('rankings/rescue');
-  var NAME_KEY='coccoRescueName', UID_KEY='coccoRescueUid';
+  var NAME_KEY='coccoRescueName', UID_KEY='coccoRescueUid', FLAG_KEY='coccoRescueFlag';
+  var FLAGS=[['🇯🇵'],['🇺🇸'],['🇬🇧'],['🇨🇦'],['🇦🇺'],['🇰🇷'],['🇨🇳'],['🇹🇼'],['🇭🇰'],['🇹🇭'],['🇻🇳'],['🇵🇭'],['🇮🇩'],['🇲🇾'],['🇸🇬'],['🇮🇳'],['🇫🇷'],['🇩🇪'],['🇮🇹'],['🇪🇸'],['🇵🇹'],['🇳🇱'],['🇸🇪'],['🇧🇷'],['🇲🇽'],['🇦🇷'],['🇷🇺'],['🇺🇦'],['🇹🇷'],['🇪🇬'],['🇿🇦'],['🇸🇦'],['🇳🇿'],['🏳️']];
   var $=function(id){return document.getElementById(id);};
   var pending=null, lastSubmitTs=0;
   function uid(){ var u; try{ u=localStorage.getItem(UID_KEY); }catch(e){}
@@ -978,12 +982,13 @@ requestAnimationFrame(loop);
     if(!rows||!rows.length){ el.innerHTML='<li class="rankempty">まだ記録がありません</li>'; return; }
     el.innerHTML=rows.map(function(r,i){
       var medal=['🥇','🥈','🥉'][i]||((i+1)+'.');
-      return '<li><span class="rk">'+medal+'</span><span class="rn">'+esc(r.name)+'</span><span class="rs">'+Number(r.score).toLocaleString()+'</span></li>';
+      var fl=r.flag?esc(r.flag)+' ':'';
+      return '<li><span class="rk">'+medal+'</span><span class="rn">'+fl+esc(r.name)+'</span><span class="rs">'+Number(r.score).toLocaleString()+'</span></li>';
     }).join('');
   }
   function loadTop(targets){
     ref.orderByChild('score').limitToLast(10000).once('value').then(function(snap){
-      var rows=[]; snap.forEach(function(c){ var v=c.val()||{}; rows.push({name:v.name,score:+v.score||0}); });
+      var rows=[]; snap.forEach(function(c){ var v=c.val()||{}; rows.push({name:v.name,flag:v.flag,score:+v.score||0}); });
       rows.sort(function(a,b){return b.score-a.score;});
       targets.forEach(function(t){ renderInto(t,rows); });
     }).catch(function(e){ targets.forEach(function(t){ var el=$(t); if(el) el.innerHTML='<li class="rankempty">読み込めませんでした</li>'; }); });
@@ -992,14 +997,15 @@ requestAnimationFrame(loop);
     if(!pending) return;
     var now=Date.now(); if(now-lastSubmitTs<1500) return; lastSubmitTs=now;
     var name=fmtName($('rankName')&&$('rankName').value);
-    try{ localStorage.setItem(NAME_KEY,name); }catch(e){}
+    var flag=($('rankFlag')&&$('rankFlag').value)||'🇯🇵';
+    try{ localStorage.setItem(NAME_KEY,name); localStorage.setItem(FLAG_KEY,flag); }catch(e){}
     var score=Math.max(0,Math.min(99999999,Math.floor(pending.score||0)));
     var rescued=Math.max(0,Math.floor(pending.rescued||0));
     var msg=$('rankMsg'); var btn=$('rankSubmit'); if(btn) btn.disabled=true;
     // 1端末1枠・自己ベストのみ保持（同じ端末からの登録は最高スコアだけ更新）
     ref.child(uid()).transaction(function(cur){
-      if(cur && (cur.score||0)>=score){ cur.name=name; return cur; }   // 今回が自己ベスト未満→ベスト維持（名前だけ更新）
-      return { name:name, score:score, rescued:rescued, ts:now };
+      if(cur && (cur.score||0)>=score){ cur.name=name; cur.flag=flag; return cur; }   // 今回が自己ベスト未満→ベスト維持（名前・国旗だけ更新）
+      return { name:name, flag:flag, score:score, rescued:rescued, ts:now };
     }).then(function(res){
       var kept = res && res.snapshot && (res.snapshot.val()||{}).score>score;
       if(msg){ msg.textContent = kept ? '自己ベスト('+Number((res.snapshot.val()||{}).score).toLocaleString()+')を表示中🏆' : '登録しました！🏆'; }
@@ -1011,8 +1017,14 @@ requestAnimationFrame(loop);
     var msg=$('rankMsg'); if(msg) msg.textContent='';
     var btn=$('rankSubmit'); if(btn) btn.disabled=false;
     var nm=$('rankName'); if(nm){ try{ nm.value=localStorage.getItem(NAME_KEY)||''; }catch(e){} }
+    var fl=$('rankFlag'); if(fl){ try{ var sv=localStorage.getItem(FLAG_KEY); if(sv) fl.value=sv; }catch(e){} }
     loadTop(['rankList']);
   }
+  // 国旗セレクトを生成
+  (function fillFlags(){ var sel=$('rankFlag'); if(!sel) return;
+    sel.innerHTML=FLAGS.map(function(f){ return '<option value="'+f[0]+'">'+f[0]+'</option>'; }).join('');
+    try{ var sv=localStorage.getItem(FLAG_KEY); if(sv) sel.value=sv; }catch(e){}
+  })();
   var sb=$('rankSubmit'); if(sb) sb.addEventListener('click', submit);
   var ni=$('rankName'); if(ni) ni.addEventListener('keydown', function(e){ if(e.key==='Enter') submit(); });
   window.CoccoRank={ onGameOver:onGameOver, onShowRanking:function(){ loadTop(['rankListTitle']); }, submit:submit };
