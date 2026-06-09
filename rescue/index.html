@@ -451,11 +451,15 @@ function spawnBall(){
   const fx=G.activeSpecial;
   const r = fx==='giant'? R*3.0 : defaultBallR();
   balls.push({x:G.launchX,y:launchY-r-1,vx:G.firedDir.x*SPEED,vy:G.firedDir.y*SPEED,alive:true,
-    r, sp:SPEED, bounces:0, dmg: fx==='giant'?3:1, fx, split: fx==='split', trail:[]});
+    r, sp:SPEED, bounces:0, dmg: fx==='giant'?3:defaultBallPower(), fx, split: fx==='split', trail:[]});
   Sound.ball();
 }
 // default ball grows +1px per 10 こっこ rescued, capped at the でかボール (giant) size
-function defaultBallR(){ return Math.min(R + Math.floor(G.rescued/10), R*3.0); }
+// 救出10ごとに+1px成長。MAX（約R*3）に達したら元サイズに戻り火力+1、を繰り返す。
+function growSteps(){ return Math.max(1, Math.round(R*2)); }            // 1サイクルの成長段数(px)
+function ballCycle(){ var s=Math.floor(G.rescued/10), per=growSteps()+1; return { cycle:Math.floor(s/per), step:s%per }; }
+function defaultBallR(){ return R + ballCycle().step; }                  // R 〜 MAX を循環
+function defaultBallPower(){ return 1 + ballCycle().cycle; }             // サイクルごとに火力+1
 function addSplitBall(b){ if(balls.length>180)return;
   const ang=Math.atan2(b.vy,b.vx)+rnd(-0.7,0.7), sp=b.sp||SPEED;
   balls.push({x:b.x,y:b.y,vx:Math.cos(ang)*sp,vy:Math.sin(ang)*sp,alive:true,r:R,sp,bounces:0,dmg:1,fx:'split',split:false,trail:[]});
@@ -528,10 +532,11 @@ function breakBlock(bl,bx,by){
   if(bl.type==='cocco'){ G.rescued++; G.score+=200; Sound.rescue();
     addText('RESCUE!', bx, by, '#ffd36b'); G.flash=0.5; G.shake=Math.min(G.shake+8,16);
     for(let i=0;i<20;i++) particles.push(spark(bx,by,'255,225,120'));
-    // every 10 rescues grows the default ball by 1px (up to でかボール size)
-    if(G.rescued%10===0 && defaultBallR()>R){
-      const px=Math.round(defaultBallR()-R);
-      addText('ボール ＋'+px+'px!', bx, by+cell*0.5, '#9fe8ff'); flashTint('120,210,255',0.12); }
+    // 10救出ごと：+1px成長。MAX到達後の節目は「火力Nボール！」へプレステージ
+    if(G.rescued%10===0){ const cyc=ballCycle();
+      if(cyc.step===0 && cyc.cycle>0){ addText('火力'+defaultBallPower()+'ボール！🔥', bx, by+cell*0.5, '#ff9a3c');
+        flashTint('255,150,60',0.20); G.shake=Math.min(G.shake+6,16); }
+      else if(cyc.step>0){ addText('ボール ＋'+cyc.step+'px!', bx, by+cell*0.5, '#9fe8ff'); flashTint('120,210,255',0.12); } }
     grantSpecial(bx,by); updateHUDtext(); }
   else Sound.pop();
 }
@@ -991,7 +996,7 @@ window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G
   fire:(ang)=>{ if(G.phase!=='aim')return false; G.aimX=G.launchX+Math.cos(ang)*200; G.aimY=launchY+Math.sin(ang)*200; launch(); return true; },
   settle:()=>{ for(const b of balls) b.alive=false; },
   tierFor:(n)=>powerTier(n), blastTier:()=>6,
-  baseR:()=>R, giantR:()=>R*3.0, ballR:()=>defaultBallR(), setRescued:(n)=>{ G.rescued=n; },
+  baseR:()=>R, giantR:()=>R*3.0, ballR:()=>defaultBallR(), ballPower:()=>defaultBallPower(), growSteps:()=>growSteps(), setRescued:(n)=>{ G.rescued=n; },
   clearBlocks:()=>{ blocks=[]; }, bonusCount:()=>bonusCoccos.length, perfectClear:()=>perfectClearBonus(),
   freezeT:()=>G.freezeT, bigName:()=>bigText?bigText.name:null, setFreeze:(t)=>{ G.freezeT=t; },
   ballPos:()=>{ const b=balls.find(x=>x.alive); return b?{x:b.x,y:b.y}:null; },
