@@ -117,6 +117,19 @@
   .ranklist .rn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff;}
   .ranklist .rs{flex:none;font-weight:800;color:#ffe07a;}
   .rankempty{justify-content:center;opacity:.6;}
+  /* 結果発表/ランキング画面: ヘッダー固定・一覧だけスクロール（ページは縦固定） */
+  #overScreen,#rankScreen{justify-content:flex-start;overflow:hidden;
+    padding-top:calc(env(safe-area-inset-top) + 10px);padding-bottom:calc(env(safe-area-inset-bottom) + 10px);}
+  #overScreen .logo.small{font-size:30px;margin-bottom:0;}
+  #overScreen .score-final{margin-top:2px;}
+  #overScreen .score-final .v{font-size:34px;}
+  #overScreen .rescued{margin-top:2px;font-size:13px;}
+  #overScreen .nb{margin-top:2px;}
+  #overScreen .credit{display:none;}
+  #overScreen .rankbox{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;width:min(94vw,380px);margin-top:8px;}
+  #overScreen .ranklist,#rankScreen .ranklist{flex:1 1 auto;min-height:0;max-height:none;width:min(94vw,380px);}
+  #overScreen .btn-row{flex:none;margin-top:10px;}
+  #rankScreen .ranktitle.big,#rankScreen #rankBack{flex:none;}
   /* ===== 結果発表「◯位にランクイン！」 ===== */
   .rankin-ov{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;
     background:radial-gradient(ellipse at 50% 44%,rgba(50,24,72,.62),rgba(0,0,0,.84));
