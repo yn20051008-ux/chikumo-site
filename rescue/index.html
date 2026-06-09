@@ -397,9 +397,9 @@ function spawnRow(first){
     const c = empt.length?empt[Math.floor(rnd(0,empt.length))]:Math.floor(rnd(0,COLS));
     // remove any block at that col row0
     blocks=blocks.filter(b=>!(b.row===0&&b.col===c));
-    // 檻のグレード: 鉄=2倍, 銀=3倍(中盤〜), 金=4倍(後半・レア)
+    // 檻のグレード(ブロックHPの倍率): 鉄=2倍, 銀=3倍, 金=4倍 — 最初から混ぜて出す
     let cage=2; const rr=Math.random();
-    if(G.turn>=6 && rr<0.14) cage=4; else if(G.turn>=3 && rr<0.40) cage=3;
+    if(rr<0.15) cage=4; else if(rr<0.45) cage=3;
     const chp=hp*cage+4;
     blocks.push({col:c,row:0,hp:chp,maxhp:chp,type:'cocco',cage:cage,pop:0});
   }
