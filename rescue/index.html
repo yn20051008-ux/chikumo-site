@@ -965,9 +965,12 @@ requestAnimationFrame(loop);
   }); }catch(e){}
   var db; try{ db=firebase.database(); }catch(e){ return; }
   var ref=db.ref('rankings/rescue');
-  var NAME_KEY='coccoRescueName';
+  var NAME_KEY='coccoRescueName', UID_KEY='coccoRescueUid';
   var $=function(id){return document.getElementById(id);};
   var pending=null, lastSubmitTs=0;
+  function uid(){ var u; try{ u=localStorage.getItem(UID_KEY); }catch(e){}
+    if(!u){ u='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); try{ localStorage.setItem(UID_KEY,u); }catch(e){} }
+    return u; }
   function esc(s){ return String(s).replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; }); }
   function fmtName(s){ s=(s||'').replace(/\s+/g,' ').trim().slice(0,10); return s||'ななし'; }
   function renderInto(elId, rows){
@@ -991,10 +994,17 @@ requestAnimationFrame(loop);
     var name=fmtName($('rankName')&&$('rankName').value);
     try{ localStorage.setItem(NAME_KEY,name); }catch(e){}
     var score=Math.max(0,Math.min(99999999,Math.floor(pending.score||0)));
+    var rescued=Math.max(0,Math.floor(pending.rescued||0));
     var msg=$('rankMsg'); var btn=$('rankSubmit'); if(btn) btn.disabled=true;
-    ref.push({ name:name, score:score, rescued:Math.max(0,Math.floor(pending.rescued||0)), ts:firebase.database.ServerValue.TIMESTAMP })
-      .then(function(){ if(msg){ msg.textContent='登録しました！🏆'; } pending=null; loadTop(['rankList']); })
-      .catch(function(e){ if(msg){ msg.textContent='登録に失敗しました（接続を確認）'; } if(btn) btn.disabled=false; });
+    // 1端末1枠・自己ベストのみ保持（同じ端末からの登録は最高スコアだけ更新）
+    ref.child(uid()).transaction(function(cur){
+      if(cur && (cur.score||0)>=score){ cur.name=name; return cur; }   // 今回が自己ベスト未満→ベスト維持（名前だけ更新）
+      return { name:name, score:score, rescued:rescued, ts:now };
+    }).then(function(res){
+      var kept = res && res.snapshot && (res.snapshot.val()||{}).score>score;
+      if(msg){ msg.textContent = kept ? '自己ベスト('+Number((res.snapshot.val()||{}).score).toLocaleString()+')を表示中🏆' : '登録しました！🏆'; }
+      pending=null; loadTop(['rankList']);
+    }).catch(function(e){ if(msg){ msg.textContent='登録に失敗しました（接続を確認）'; } if(btn) btn.disabled=false; });
   }
   function onGameOver(score, rescued){
     pending={score:score, rescued:rescued};
