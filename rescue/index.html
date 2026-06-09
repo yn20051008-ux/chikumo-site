@@ -942,11 +942,11 @@ function render(){
 function drawAim(){
   const d=aimDir(); let x=G.launchX,y=launchY-R, vx=d.x,vy=d.y;
   ctx.fillStyle='rgba(255,255,255,.5)';
-  let bounced=false;
-  for(let i=0;i<90;i++){
+  let bounces=0;                                  // 壁の反射を3回まで予測表示
+  for(let i=0;i<140;i++){
     x+=vx*cell*0.4; y+=vy*cell*0.4;
-    if(x<gx+R){ x=gx+R; vx=Math.abs(vx); if(bounced)break; bounced=true; }
-    if(x>gx+COLS*cell-R){ x=gx+COLS*cell-R; vx=-Math.abs(vx); if(bounced)break; bounced=true; }
+    if(x<gx+R){ x=gx+R; vx=Math.abs(vx); if(++bounces>=3)break; }
+    if(x>gx+COLS*cell-R){ x=gx+COLS*cell-R; vx=-Math.abs(vx); if(++bounces>=3)break; }
     if(y<gridTop+R) break;
     // stop at first block
     let hit=false; const half=cell*0.46;
