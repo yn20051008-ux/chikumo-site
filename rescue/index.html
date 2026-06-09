@@ -397,7 +397,11 @@ function spawnRow(first){
     const c = empt.length?empt[Math.floor(rnd(0,empt.length))]:Math.floor(rnd(0,COLS));
     // remove any block at that col row0
     blocks=blocks.filter(b=>!(b.row===0&&b.col===c));
-    blocks.push({col:c,row:0,hp:hp*2+4,maxhp:hp*2+4,type:'cocco',pop:0});
+    // 檻のグレード: 鉄=2倍, 銀=3倍(中盤〜), 金=4倍(後半・レア)
+    let cage=2; const rr=Math.random();
+    if(G.turn>=6 && rr<0.14) cage=4; else if(G.turn>=3 && rr<0.40) cage=3;
+    const chp=hp*cage+4;
+    blocks.push({col:c,row:0,hp:chp,maxhp:chp,type:'cocco',cage:cage,pop:0});
   }
 }
 
@@ -529,9 +533,12 @@ function breakBlock(bl,bx,by){
   bl.dead=true;
   const col = bl.type==='cocco'?'255,200,90':'255,150,90';
   for(let i=0;i<10;i++) particles.push(spark(bx,by,col));
-  if(bl.type==='cocco'){ G.rescued++; G.score+=200; Sound.rescue();
-    addText('RESCUE!', bx, by, '#ffd36b'); G.flash=0.5; G.shake=Math.min(G.shake+8,16);
-    for(let i=0;i<20;i++) particles.push(spark(bx,by,'255,225,120'));
+  if(bl.type==='cocco'){ const cg=bl.cage||2;
+    const sc=cg===4?500:cg===3?350:200; const cname=cg===4?'金のおり ':cg===3?'銀のおり ':'';
+    const ccol=cg===4?'#ffd24d':cg===3?'#e8eefc':'#ffd36b';
+    G.rescued++; G.score+=sc; Sound.rescue();
+    addText(cname+'RESCUE!', bx, by, ccol); G.flash=0.5; G.shake=Math.min(G.shake+(cg>=3?12:8),18);
+    for(let i=0;i<(cg>=3?28:20);i++) particles.push(spark(bx,by, cg===4?'255,215,90':cg===3?'235,240,255':'255,225,120'));
     // 10救出ごと：+1px成長。MAX到達後の節目は「火力Nボール！」へプレステージ
     if(G.rescued%10===0){ const cyc=ballCycle();
       if(cyc.step===0 && cyc.cycle>0){ addText('火力'+defaultBallPower()+'ボール！🔥', bx, by+cell*0.5, '#ff9a3c');
@@ -767,9 +774,13 @@ function render(){
     if(bl.type==='cocco'){
       ctx.save(); ctx.translate(x+s/2,y+s/2); ctx.scale(e,e);
       if(coccoReady){ const w=s*0.9,h=w/AR; ctx.shadowColor='#ffd98a'; ctx.shadowBlur=12; ctx.drawImage(cocco,-w/2,-h/2,w,h); ctx.shadowBlur=0; }
-      // cage bars
-      ctx.strokeStyle='rgba(210,220,255,.9)'; ctx.lineWidth=2;
+      // 檻（グレード色）: 鉄=灰, 銀=白銀, 金=金
+      const cg=bl.cage||2;
+      const cageCol=cg===4?'rgba(255,214,92,.96)':cg===3?'rgba(232,238,252,.96)':'rgba(176,188,205,.9)';
+      ctx.shadowColor=cg===4?'rgba(255,200,70,.7)':cg===3?'rgba(220,230,255,.5)':'transparent';
+      ctx.shadowBlur=cg>=3?8:0; ctx.strokeStyle=cageCol; ctx.lineWidth=cg>=3?2.6:2;
       for(let i=-1;i<=1;i++){ ctx.beginPath(); ctx.moveTo(i*s*0.3,-s/2); ctx.lineTo(i*s*0.3,s/2); ctx.stroke(); }
+      ctx.lineWidth=cg>=3?3:2; roundRect(-s/2,-s/2,s,s,cell*0.14); ctx.stroke(); ctx.shadowBlur=0;
       ctx.restore();
       // hp
       ctx.fillStyle='#fff'; ctx.font='900 '+(cell*0.3)+'px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
