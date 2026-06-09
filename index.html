@@ -373,6 +373,20 @@
       .meta { color: #ffffff; }
       .menu a { border-color: rgba(255,255,255,0.9); }
     }
+    /* ===== ホームに追加（スマホのみ） ===== */
+    .a2hs{position:fixed;left:max(12px,env(safe-area-inset-left));bottom:max(12px,env(safe-area-inset-bottom));
+      z-index:60;display:none;align-items:center;gap:6px;padding:9px 14px;border-radius:999px;cursor:pointer;
+      font:600 13px/1 'Helvetica Neue',Arial,sans-serif;color:#dff1ff;background:rgba(18,26,46,.82);
+      border:1px solid rgba(160,215,255,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+      box-shadow:0 6px 20px rgba(0,0,0,.45);}
+    .a2hs.show{display:inline-flex;} .a2hs:active{transform:scale(.96);}
+    .a2hs-hint{position:fixed;left:12px;right:12px;bottom:max(64px,calc(env(safe-area-inset-bottom) + 60px));
+      z-index:61;max-width:360px;margin:0 auto;padding:14px 16px;border-radius:14px;color:#eaf2ff;
+      background:rgba(14,20,38,.97);border:1px solid rgba(160,215,255,.4);box-shadow:0 12px 32px rgba(0,0,0,.55);
+      font:400 13px/1.75 'Helvetica Neue',Arial,sans-serif;}
+    .a2hs-hint.hidden{display:none;} .a2hs-hint b{color:#9fe8ff;}
+    .a2hs-hint .x{float:right;margin-left:10px;opacity:.6;cursor:pointer;font-weight:700;}
+    @media (min-width:861px){ .a2hs,.a2hs-hint{display:none !important;} }
   </style>
 </head>
 <body>
@@ -504,6 +518,13 @@
   </div>
 
   <footer class="footer" role="contentinfo">© 畜物語 / CHIKUMONOGATARI</footer>
+
+  <button type="button" id="a2hsBtn" class="a2hs" aria-label="ホーム画面に追加">📲&nbsp;ホームに追加</button>
+  <div id="a2hsHint" class="a2hs-hint hidden" role="dialog" aria-label="ホーム画面に追加する方法">
+    <span class="x" id="a2hsHintClose">✕</span>
+    <b>ホーム画面に追加するには</b><br>
+    画面下の <b>共有ボタン</b>（□から↑）をタップ → <b>「ホーム画面に追加」</b> を選んでください。
+  </div>
 
   <noscript>
     <div class="noscript-msg">
@@ -778,6 +799,31 @@
       navigator.serviceWorker.register('sw.js').catch(() => { /* silent */ });
     });
   }
+})();
+</script>
+
+<script>
+/* ホームに追加（スマホのみ）: Android はネイティブのインストール、iOS Safari は手順を案内 */
+(function(){
+  var btn=document.getElementById('a2hsBtn'), hint=document.getElementById('a2hsHint');
+  if(!btn) return;
+  function mql(q){ return window.matchMedia && window.matchMedia(q).matches; }
+  var standalone = mql('(display-mode: standalone)') || navigator.standalone===true;
+  var isMobile = mql('(max-width: 860px)') || mql('(pointer: coarse)');
+  if(standalone || !isMobile) return;                       // インストール済み or PC → 出さない
+  var ua=navigator.userAgent||'';
+  var isIOS=/iphone|ipad|ipod/i.test(ua) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  var iOSSafari=isIOS && /safari/i.test(ua) && !/crios|fxios|edgios|chrome|android/i.test(ua);
+  var deferred=null;
+  window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); deferred=e; btn.classList.add('show'); });
+  window.addEventListener('appinstalled', function(){ btn.classList.remove('show'); if(hint) hint.classList.add('hidden'); deferred=null; });
+  if(iOSSafari) btn.classList.add('show');                  // iOSはイベントが無いので案内用に表示
+  btn.addEventListener('click', function(){
+    if(deferred){ deferred.prompt(); var c=deferred.userChoice; deferred=null;
+      if(c&&c.then) c.then(function(){ btn.classList.remove('show'); }); return; }
+    if(hint) hint.classList.toggle('hidden');               // iOS等: 手順を表示
+  });
+  var x=document.getElementById('a2hsHintClose'); if(x) x.addEventListener('click', function(){ if(hint) hint.classList.add('hidden'); });
 })();
 </script>
 </body>
