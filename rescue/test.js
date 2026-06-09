@@ -143,6 +143,9 @@ ok(R.testBoostBudget()===8,'加速メテオ vanishes after a capped 8 reflection
 { const ob=R.testOnlyOneBoosted(); ok(ob.self&&!ob.other,'only the 50-reflection ball boosts; other balls stay normal'); }
 { const cf=R.testChainFreeze(); ok(cf[0]===0.3&&cf[1]===0.3&&cf[2]===0.7,'3連続加速は 0.3→0.3→0.7 で停止 ('+cf.join(',')+')'); }
 ok(R.testIsoFreeze()===0.7,'単発（バラバラ）加速は通常の0.7秒停止');
+{ const sk=R.testInstantSkip();
+  ok(sk.gained===3 && sk.balls===0 && sk.phase==='shift' && sk.frozen,
+     '全消しした瞬間にお祝いへスキップ（球即消去＋3羽＋停止） ('+JSON.stringify(sk)+')'); }
 
 // the freeze actually halts ball physics (movement is fixed-step, not dt-scaled)
 R.start(); frames(2);

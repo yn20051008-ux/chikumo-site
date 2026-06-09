@@ -464,18 +464,22 @@ function updateShoot(dt){
   }
   blocks=blocks.filter(b=>!b.dead);
   items=items.filter(i=>!i.dead);
+  // 全消しした瞬間に即お祝いへスキップ（残りボールが落ちきるのを待たない）
+  if(blocks.length===0 && G.phase==='shoot'){ G.toFire=0; endTurn(); return; }
   // anti-stuck: nudge near-horizontal balls
   for(const b of balls){ if(b.alive && Math.abs(b.vy)<(b.sp||SPEED)*0.18){ b.vy += (b.vy<0?-1:1)*(b.sp||SPEED)*0.05; renorm(b); } }
   // force end if too long
   if(G.shootClock>22){ for(const b of balls) b.alive=false; }   // ターン強制終了を延長（50反射を狙える猶予）
-  if(G.toFire<=0 && balls.every(b=>!b.alive)){
-    balls=[]; G.activeSpecial=null;
-    if(G.nextLaunchX!==null) G.launchX=G.nextLaunchX;
-    G.balls += G.pendingBalls; G.pendingBalls=0;
-    G.phase='shift';
-    if(blocks.length===0) perfectClearBonus();   // 全消し→0.8秒お祝い停止後に行生成（loop側で再開）
-    else startTurnShift();
-  }
+  if(G.toFire<=0 && balls.every(b=>!b.alive)) endTurn();
+}
+// ターン終了の後始末（全消しならお祝い、そうでなければ次の行）
+function endTurn(){
+  balls=[]; G.activeSpecial=null;
+  if(G.nextLaunchX!==null) G.launchX=G.nextLaunchX;
+  G.balls += G.pendingBalls; G.pendingBalls=0;
+  G.phase='shift';
+  if(blocks.length===0) perfectClearBonus();   // 全消し→0.8秒お祝い停止後に行生成（loop側で再開）
+  else startTurnShift();
 }
 // 全消し（パーフェクト）：0.8秒だけ時を止め、嬉しい「救出！」のお祝い演出。
 // 停止が明けてから次の行が出る（loop の freeze 解除で startTurnShift）。
@@ -890,6 +894,10 @@ window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G
   testIsoFreeze:()=>{ balls.length=0; G.boostBall=null; G.freezeT=0; G.boostPending=false;
     const a={x:W/2,y:H*0.5,vx:1,vy:-1,sp:SPEED,bounces:49,dmg:5,alive:true,r:R,trail:[]};
     balls.push(a); accel(a); return +G.freezeT.toFixed(2); },
+  testInstantSkip:()=>{ G.phase='shoot'; G.toFire=0; G.freezeT=0; G.perfectPending=false; blocks.length=0;
+    balls.length=0; balls.push({x:W/2,y:H*0.5,vx:1,vy:-1,sp:SPEED,dmg:1,alive:true,r:R,trail:[],bounces:0});
+    const r0=G.rescued; updateShoot(0.016);
+    return { phase:G.phase, balls:balls.length, gained:G.rescued-r0, frozen:G.freezeT>0 }; },
   accelTo50:()=>{ const b={x:W/2,y:H/2,vx:1,vy:-1,sp:SPEED,bounces:49,dmg:5,alive:true,r:R,trail:[]}; balls.push(b); accel(b); return b.dmg; }, };
 
 /* ===== Boot ===== */
