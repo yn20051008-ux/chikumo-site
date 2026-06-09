@@ -217,7 +217,7 @@
     <div class="nb" id="newBest">★ ベスト更新！ ★</div>
     <div class="score-final" style="font-size:11px;opacity:.7;margin-top:8px;">BEST <span id="bestLine" style="font-size:18px">0</span></div>
     <div class="rankbox">
-      <div class="rankentry">
+      <div class="rankentry" id="rankEntry">
         <button type="button" id="rankFlagBtn" class="rankflag" aria-label="国旗をえらぶ">🇯🇵</button>
         <input id="rankName" maxlength="10" placeholder="なまえ" autocomplete="off" spellcheck="false">
         <button class="btn small" id="rankSubmit">ランキング登録</button>
@@ -1148,6 +1148,16 @@ requestAnimationFrame(loop);
     var nm=$('rankName'); if(nm){ try{ nm.value=localStorage.getItem(NAME_KEY)||''; }catch(e){} }
     setFlag(selFlag);
     loadTop(['rankList']);
+    // 登録済みの自己ベストと比較：更新できない時は登録欄を隠す
+    var entry=$('rankEntry'); var sc=Math.max(0,Math.floor(score||0));
+    ref.child(uid()).once('value').then(function(snap){
+      var best = snap.exists() ? (+( (snap.val()||{}).score )||0) : -1;
+      var canReg = (best<0) || (sc>best);
+      if(entry) entry.style.display = canReg ? '' : 'none';
+      if(btn) btn.disabled = !canReg;
+      if(msg) msg.textContent = canReg ? (best<0?'初登録できます！🏆':'自己ベスト更新！登録できます🎉')
+                                       : '自己ベスト '+best.toLocaleString()+'（今回は更新ならず）';
+    }).catch(function(){ if(entry) entry.style.display=''; });   // 取得失敗時は安全側で表示
   }
   // 国旗ピッカー（主要＋「その他」で全国旗）
   function setFlag(f){ selFlag=f; var b=$('rankFlagBtn'); if(b) b.textContent=f; try{ localStorage.setItem(FLAG_KEY,f); }catch(e){} }
