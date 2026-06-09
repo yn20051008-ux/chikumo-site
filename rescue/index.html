@@ -152,13 +152,14 @@
   @keyframes rankinFlash{0%{opacity:.85}100%{opacity:0}}
   .rankin-sub{font-size:15px;letter-spacing:.5em;color:#ffd36b;font-weight:800;margin-bottom:4px;text-shadow:0 0 12px rgba(255,210,90,.7);}
   .rankin-ov.reveal .rankin-sub{animation:rankinShine 1.3s ease-in-out infinite;}
-  .rankin-rank{position:relative;display:flex;align-items:baseline;justify-content:center;gap:6px;line-height:.95;}
+  .rankin-rank{position:relative;display:flex;align-items:baseline;justify-content:center;gap:6px;line-height:1;max-width:96vw;}
   /* 確定時に広がる衝撃波リング */
   .rankin-ring{position:absolute;left:50%;top:50%;width:30px;height:30px;border-radius:50%;
     border:4px solid rgba(255,220,120,.9);transform:translate(-50%,-50%) scale(0);opacity:0;}
   .rankin-ov.reveal .rankin-ring{animation:rankinRing .7s ease-out forwards;}
   @keyframes rankinRing{0%{opacity:.9;transform:translate(-50%,-50%) scale(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(14)}}
-  .rankin-num{font-size:clamp(64px,32vw,190px);font-weight:900;font-style:italic;font-variant-numeric:tabular-nums;
+  .rankin-num{font-size:min(24vw,150px);font-weight:900;font-style:italic;font-variant-numeric:tabular-nums;
+    white-space:nowrap;padding:0 .06em;line-height:1;
     background:linear-gradient(180deg,#fff7cf 0%,#ffd24d 38%,#ff9a3c 72%,#ff5d6c 100%);
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 4px 18px rgba(255,160,60,.6));}
@@ -1156,7 +1157,10 @@ requestAnimationFrame(loop);
     var revealT;
     function doReveal(){
       if(revealed)return; revealed=true; clearInterval(roll); clearTimeout(revealT);
-      numEl.textContent=rank; ov.classList.add('reveal');
+      numEl.textContent=rank;
+      var dg=String(rank).length;                         // 桁数に応じて必ず画面内に収める
+      numEl.style.fontSize = dg<=1?'min(34vw,200px)' : dg===2?'min(26vw,156px)' : dg===3?'min(20vw,118px)' : 'min(15vw,92px)';
+      ov.classList.add('reveal');
       var champ=rank===1, top3=rank<=3;
       subEl.textContent = champ?'👑 CHAMPION 👑' : (top3?'★ おめでとう ★':'★ RESULT ★');
       msgEl.innerHTML = champ?'<b>優勝！</b>' : (top3?'<b>入賞！</b>ランクイン！':'ランクイン！');
