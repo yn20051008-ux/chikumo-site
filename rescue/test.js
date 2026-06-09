@@ -136,6 +136,7 @@ frames(60); ok(R.freezeT()===0,'freeze releases (~0.7s) then accelerates');
 ok(R.ballDmg()>=15,'after 加速 the ball becomes a piercing meteor (火力'+R.ballDmg()+')');
 ok(R.testPierceKill()===true,'加速メテオ destroys any block it pierces, ignoring HP');
 ok(R.testBoostBudget()===8,'加速メテオ vanishes after a capped 8 reflections ('+R.testBoostBudget()+')');
+{ const ob=R.testOnlyOneBoosted(); ok(ob.self&&!ob.other,'only the 50-reflection ball boosts; other balls stay normal'); }
 
 // the freeze actually halts ball physics (movement is fixed-step, not dt-scaled)
 R.start(); frames(2);
