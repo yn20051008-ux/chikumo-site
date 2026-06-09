@@ -823,7 +823,9 @@ function down(e){ if(G.phase!=='aim')return; e.preventDefault(); Sound.init();So
 function move(e){ if(!G.aiming)return; e.preventDefault(); const p=pos(e); G.aimX=p.x; G.aimY=p.y; }
 function up(e){ if(!G.aiming)return; G.aiming=false;
   const p=pos(e); G.aimX=p.x; G.aimY=p.y;
-  if(launchY-G.aimY>16) launch(); }
+  // ランチャーから十分離れていれば、赤点線より下（バンパー側）で離しても発射（向きは上にクランプ）。
+  // ランチャーのごく近く(16px以内)だけキャンセル。
+  if(Math.hypot(G.aimX-G.launchX, G.aimY-launchY)>16) launch(); }
 cv.addEventListener('mousedown',down); window.addEventListener('mousemove',move); window.addEventListener('mouseup',up);
 cv.addEventListener('touchstart',down,{passive:false}); cv.addEventListener('touchmove',move,{passive:false}); window.addEventListener('touchend',up,{passive:false});
 
