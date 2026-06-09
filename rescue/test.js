@@ -100,14 +100,16 @@ ok(R.tierFor(30)===4,'30 reflections -> power 4');
 ok(R.tierFor(40)===5,'40 reflections -> power 5');
 ok(R.tierFor(50)===6 && R.tierFor(99)===6,'50+ reflections -> power 6 (爆破波動)');
 
-// default ball grows +1px per 10 こっこ rescued, capped at でかボール (giant) size
+// default ball grows +1px per 10 rescued; at MAX it wraps to base size & power+1
 R.start(); frames(2);
-const base=R.baseR(), giant=R.giantR();
-R.setRescued(0);   ok(Math.abs(R.ballR()-base)<1e-9,'0 rescued -> base ball size');
-R.setRescued(10);  ok(Math.abs(R.ballR()-(base+1))<1e-9,'10 rescued -> base +1px');
-R.setRescued(40);  ok(Math.abs(R.ballR()-(base+4))<1e-9,'40 rescued -> base +4px');
-R.setRescued(Math.round((giant-base))*10); ok(Math.abs(R.ballR()-giant)<1e-9,'reaching the cap = でかボール size');
-R.setRescued(99999); ok(Math.abs(R.ballR()-giant)<1e-9,'never grows past でかボール size');
+const base=R.baseR(); const span=R.growSteps(); const per=(span+1)*10;
+R.setRescued(0);        ok(Math.abs(R.ballR()-base)<1e-9 && R.ballPower()===1,'0 rescued -> base size, power 1');
+R.setRescued(10);       ok(Math.abs(R.ballR()-(base+1))<1e-9,'10 rescued -> base +1px');
+R.setRescued(40);       ok(Math.abs(R.ballR()-(base+4))<1e-9,'40 rescued -> base +4px');
+R.setRescued(span*10);  ok(Math.abs(R.ballR()-(base+span))<1e-9 && R.ballPower()===1,'reaching MAX size, still power 1');
+R.setRescued(per);      ok(Math.abs(R.ballR()-base)<1e-9 && R.ballPower()===2,'past MAX wraps to base size & power 2');
+R.setRescued(per+span*10); ok(Math.abs(R.ballR()-(base+span))<1e-9 && R.ballPower()===2,'cycle 2 grows back to MAX, power 2');
+R.setRescued(per*2);    ok(Math.abs(R.ballR()-base)<1e-9 && R.ballPower()===3,'second wrap -> base size & power 3');
 
 // perfect clear: emptying the board pops a 3-こっこ bonus
 R.start(); frames(2);
