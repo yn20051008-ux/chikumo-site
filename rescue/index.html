@@ -105,6 +105,29 @@
   .ranklist .rn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff;}
   .ranklist .rs{flex:none;font-weight:800;color:#ffe07a;}
   .rankempty{justify-content:center;opacity:.6;}
+  /* ===== 結果発表「◯位にランクイン！」 ===== */
+  .rankin-ov{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(ellipse at 50% 44%,rgba(50,24,72,.62),rgba(0,0,0,.84));
+    -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);animation:rankinFade .25s ease;}
+  .rankin-ov.out{animation:rankinFadeOut .42s ease forwards;}
+  @keyframes rankinFade{from{opacity:0}to{opacity:1}}
+  @keyframes rankinFadeOut{to{opacity:0}}
+  .rankin-card{position:relative;text-align:center;animation:rankinPop .55s cubic-bezier(.2,1.5,.4,1);}
+  @keyframes rankinPop{0%{transform:scale(.3) rotate(-8deg);opacity:0}60%{transform:scale(1.12) rotate(2deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+  .rankin-sub{font-size:14px;letter-spacing:.5em;color:#ffd36b;font-weight:800;margin-bottom:2px;text-shadow:0 0 12px rgba(255,210,90,.7);}
+  .rankin-rank{display:flex;align-items:baseline;justify-content:center;gap:6px;line-height:.95;}
+  .rankin-num{font-size:clamp(64px,30vw,180px);font-weight:900;font-style:italic;
+    background:linear-gradient(180deg,#fff7cf 0%,#ffd24d 38%,#ff9a3c 72%,#ff5d6c 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 4px 18px rgba(255,160,60,.6));}
+  .rankin-pos{font-size:11vw;font-weight:900;color:#ffe07a;text-shadow:0 0 14px rgba(255,200,90,.8);}
+  .rankin-msg{margin-top:2px;font-size:7.5vw;font-weight:900;color:#fff;letter-spacing:.06em;
+    text-shadow:0 0 16px rgba(255,210,120,.9),0 2px 0 rgba(0,0,0,.35);animation:rankinShine 1.5s ease-in-out infinite;}
+  @keyframes rankinShine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.45)}}
+  .rankin-total{margin-top:12px;font-size:14px;color:#bfefff;opacity:.85;letter-spacing:.1em;}
+  .rankin-conf{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+  .rankin-conf i{position:absolute;top:-14px;width:10px;height:14px;border-radius:2px;opacity:.95;animation:rankinConf 2.6s linear forwards;}
+  @keyframes rankinConf{0%{top:-14px}100%{top:110%}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -247,7 +270,11 @@ const Sound=(function(){
     // 加速中、壁にぶつかるたびのドカン（短く重いインパクト）
     boostWall(){ tone(110,0.16,'square',0.52,40); tone(1800,0.10,'sawtooth',0.30,520);
       noise(.14,.34,3600); tone(740,0.12,'triangle',0.16); },
-    ui(){ tone(700,0.04,'triangle',0.14); } };
+    ui(){ tone(700,0.04,'triangle',0.14); },
+    // 結果発表ファンファーレ（ランクイン演出用）
+    fanfare(){ var n=[[523,0],[659,80],[784,160],[1047,260],[1319,360]];
+      n.forEach(function(p){ setTimeout(function(){ tone(p[0],0.22,'triangle',0.30,p[0]*1.004); tone(p[0]*2,0.10,'sine',0.10); }, p[1]); });
+      setTimeout(function(){ tone(1568,0.55,'triangle',0.26); tone(2093,0.55,'sine',0.16); tone(98,0.45,'sine',0.40,60); noise(.32,.14,7000); }, 470); } };
 })();
 
 /* ===== Mascot ===== */
@@ -895,6 +922,9 @@ document.getElementById('shareBtn').onclick=async()=>{ Sound.init();Sound.resume
 
 /* sound + fullscreen */
 let audioOn=true;
+// ランキング側から鳴らす効果音フック（ミュート設定を尊重）
+window.CoccoRescueSfx=function(id){ try{ if(!audioOn)return; Sound.init(); Sound.resume();
+  if(id==='rankin') Sound.fanfare(); }catch(e){} };
 (function(){ const mb=document.getElementById('muteBtn'); if(!mb)return;
   mb.onclick=()=>{ Sound.init(); audioOn=!audioOn; Sound.setMuted(!audioOn);
     mb.textContent=audioOn?'🔊':'🔇'; mb.classList.toggle('off',!audioOn);
@@ -986,12 +1016,34 @@ requestAnimationFrame(loop);
       return '<li><span class="rk">'+medal+'</span><span class="rn">'+fl+esc(r.name)+'</span><span class="rs">'+Number(r.score).toLocaleString()+'</span></li>';
     }).join('');
   }
-  function loadTop(targets){
+  function loadTop(targets, after){
     ref.orderByChild('score').limitToLast(10000).once('value').then(function(snap){
-      var rows=[]; snap.forEach(function(c){ var v=c.val()||{}; rows.push({name:v.name,flag:v.flag,score:+v.score||0}); });
+      var rows=[]; snap.forEach(function(c){ var v=c.val()||{}; rows.push({uid:c.key,name:v.name,flag:v.flag,score:+v.score||0}); });
       rows.sort(function(a,b){return b.score-a.score;});
       targets.forEach(function(t){ renderInto(t,rows); });
+      if(after) after(rows);
     }).catch(function(e){ targets.forEach(function(t){ var el=$(t); if(el) el.innerHTML='<li class="rankempty">読み込めませんでした</li>'; }); });
+  }
+  // 結果発表「◯位にランクイン！」演出
+  function celebrate(rank, total){
+    var old=document.getElementById('rankinOv'); if(old&&old.parentNode) old.parentNode.removeChild(old);
+    var ov=document.createElement('div'); ov.id='rankinOv'; ov.className='rankin-ov';
+    var conf=''; var pal=['#ffd24d','#ff5d6c','#7ce0ff','#b15bff','#9affc0','#ff9a3c'];
+    for(var i=0;i<28;i++){ conf+='<i style="left:'+(Math.random()*100)+'%;background:'+pal[i%pal.length]+';animation-delay:'+(Math.random()*0.5)+'s;transform:rotate('+(Math.random()*360)+'deg)"></i>'; }
+    ov.innerHTML='<div class="rankin-conf">'+conf+'</div>'
+      +'<div class="rankin-card">'
+      +'<div class="rankin-sub">★ RESULT ★</div>'
+      +'<div class="rankin-rank"><span class="rankin-num">'+rank+'</span><span class="rankin-pos">位</span></div>'
+      +'<div class="rankin-msg">ランクイン！</div>'
+      +(total?'<div class="rankin-total">全 '+total+' 人中</div>':'')+'</div>';
+    document.body.appendChild(ov);
+    if(window.CoccoRescueSfx) window.CoccoRescueSfx('rankin');
+    var kill=function(){ ov.classList.add('out'); setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },420); };
+    ov.addEventListener('click', kill); setTimeout(kill, 3200);
+  }
+  function celebrateMine(rows){
+    var my=uid(), idx=-1; for(var i=0;i<rows.length;i++){ if(rows[i].uid===my){ idx=i; break; } }
+    if(idx>=0) celebrate(idx+1, rows.length);
   }
   function submit(){
     if(!pending) return;
@@ -1009,7 +1061,7 @@ requestAnimationFrame(loop);
     }).then(function(res){
       var kept = res && res.snapshot && (res.snapshot.val()||{}).score>score;
       if(msg){ msg.textContent = kept ? '自己ベスト('+Number((res.snapshot.val()||{}).score).toLocaleString()+')を表示中🏆' : '登録しました！🏆'; }
-      pending=null; loadTop(['rankList']);
+      pending=null; loadTop(['rankList'], celebrateMine);
     }).catch(function(e){ if(msg){ msg.textContent='登録に失敗しました（接続を確認）'; } if(btn) btn.disabled=false; });
   }
   function onGameOver(score, rescued){
