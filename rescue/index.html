@@ -123,22 +123,47 @@
   .rankin-ov.out{animation:rankinFadeOut .42s ease forwards;}
   @keyframes rankinFade{from{opacity:0}to{opacity:1}}
   @keyframes rankinFadeOut{to{opacity:0}}
-  .rankin-card{position:relative;text-align:center;animation:rankinPop .55s cubic-bezier(.2,1.5,.4,1);}
-  @keyframes rankinPop{0%{transform:scale(.3) rotate(-8deg);opacity:0}60%{transform:scale(1.12) rotate(2deg);opacity:1}100%{transform:scale(1) rotate(0)}}
-  .rankin-sub{font-size:14px;letter-spacing:.5em;color:#ffd36b;font-weight:800;margin-bottom:2px;text-shadow:0 0 12px rgba(255,210,90,.7);}
-  .rankin-rank{display:flex;align-items:baseline;justify-content:center;gap:6px;line-height:.95;}
-  .rankin-num{font-size:clamp(64px,30vw,180px);font-weight:900;font-style:italic;
+  .rankin-card{position:relative;text-align:center;animation:rankinPop .5s cubic-bezier(.2,1.4,.4,1);}
+  @keyframes rankinPop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+  /* 背景の光線（確定時に出現してゆっくり回転） */
+  .rankin-rays{position:absolute;left:50%;top:46%;width:200vmax;height:200vmax;transform:translate(-50%,-50%) scale(.2);
+    opacity:0;pointer-events:none;
+    background:repeating-conic-gradient(from 0deg,rgba(255,225,140,.16) 0deg 7deg,rgba(255,225,140,0) 7deg 14deg);}
+  .rankin-ov.reveal .rankin-rays{animation:rankinRays .6s ease-out forwards,rankinSpin 14s linear infinite .6s;}
+  @keyframes rankinRays{to{opacity:.9;transform:translate(-50%,-50%) scale(1)}}
+  @keyframes rankinSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+  /* 確定の瞬間のフラッシュ */
+  .rankin-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;}
+  .rankin-ov.reveal .rankin-flash{animation:rankinFlash .5s ease-out;}
+  @keyframes rankinFlash{0%{opacity:.85}100%{opacity:0}}
+  .rankin-sub{font-size:15px;letter-spacing:.5em;color:#ffd36b;font-weight:800;margin-bottom:4px;text-shadow:0 0 12px rgba(255,210,90,.7);}
+  .rankin-ov.reveal .rankin-sub{animation:rankinShine 1.3s ease-in-out infinite;}
+  .rankin-rank{position:relative;display:flex;align-items:baseline;justify-content:center;gap:6px;line-height:.95;}
+  /* 確定時に広がる衝撃波リング */
+  .rankin-ring{position:absolute;left:50%;top:50%;width:30px;height:30px;border-radius:50%;
+    border:4px solid rgba(255,220,120,.9);transform:translate(-50%,-50%) scale(0);opacity:0;}
+  .rankin-ov.reveal .rankin-ring{animation:rankinRing .7s ease-out forwards;}
+  @keyframes rankinRing{0%{opacity:.9;transform:translate(-50%,-50%) scale(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(14)}}
+  .rankin-num{font-size:clamp(64px,32vw,190px);font-weight:900;font-style:italic;font-variant-numeric:tabular-nums;
     background:linear-gradient(180deg,#fff7cf 0%,#ffd24d 38%,#ff9a3c 72%,#ff5d6c 100%);
     -webkit-background-clip:text;background-clip:text;color:transparent;
     filter:drop-shadow(0 4px 18px rgba(255,160,60,.6));}
+  .rankin-ov.rolling .rankin-num{animation:rankinThrob .25s ease-in-out infinite;}
+  @keyframes rankinThrob{0%,100%{transform:scale(.94)}50%{transform:scale(1.04)}}
+  .rankin-ov.reveal .rankin-num{animation:rankinSlam .55s cubic-bezier(.18,1.6,.4,1) both;}
+  @keyframes rankinSlam{0%{transform:scale(2.4);opacity:0;filter:blur(6px) drop-shadow(0 4px 18px rgba(255,160,60,.6))}55%{transform:scale(.86);opacity:1;filter:blur(0) drop-shadow(0 4px 18px rgba(255,160,60,.6))}100%{transform:scale(1)}}
   .rankin-pos{font-size:11vw;font-weight:900;color:#ffe07a;text-shadow:0 0 14px rgba(255,200,90,.8);}
-  .rankin-msg{margin-top:2px;font-size:7.5vw;font-weight:900;color:#fff;letter-spacing:.06em;
-    text-shadow:0 0 16px rgba(255,210,120,.9),0 2px 0 rgba(0,0,0,.35);animation:rankinShine 1.5s ease-in-out infinite;}
-  @keyframes rankinShine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.45)}}
-  .rankin-total{margin-top:12px;font-size:14px;color:#bfefff;opacity:.85;letter-spacing:.1em;}
+  .rankin-msg{margin-top:2px;font-size:8vw;font-weight:900;color:#fff;letter-spacing:.06em;opacity:0;
+    text-shadow:0 0 16px rgba(255,210,120,.9),0 2px 0 rgba(0,0,0,.35);}
+  .rankin-msg b{color:#ffd24d;}
+  .rankin-ov.reveal .rankin-msg{animation:rankinMsgIn .4s ease-out .25s forwards,rankinShine 1.4s ease-in-out infinite .65s;}
+  @keyframes rankinMsgIn{from{opacity:0;transform:translateY(10px) scale(.9)}to{opacity:1;transform:none}}
+  @keyframes rankinShine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.5)}}
+  .rankin-total{margin-top:12px;font-size:14px;color:#bfefff;opacity:0;letter-spacing:.1em;}
+  .rankin-ov.reveal .rankin-total{animation:rankinMsgIn .4s ease-out .45s forwards;}
   .rankin-conf{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
-  .rankin-conf i{position:absolute;top:-14px;width:10px;height:14px;border-radius:2px;opacity:.95;animation:rankinConf 2.6s linear forwards;}
-  @keyframes rankinConf{0%{top:-14px}100%{top:110%}}
+  .rankin-conf i{position:absolute;top:-16px;width:10px;height:15px;border-radius:2px;opacity:.96;animation:rankinConf 2.6s linear forwards;}
+  @keyframes rankinConf{0%{top:-16px}100%{top:112%}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -283,9 +308,12 @@ const Sound=(function(){
       noise(.14,.34,3600); tone(740,0.12,'triangle',0.16); },
     ui(){ tone(700,0.04,'triangle',0.14); },
     // 結果発表ファンファーレ（ランクイン演出用）
-    fanfare(){ var n=[[523,0],[659,80],[784,160],[1047,260],[1319,360]];
-      n.forEach(function(p){ setTimeout(function(){ tone(p[0],0.22,'triangle',0.30,p[0]*1.004); tone(p[0]*2,0.10,'sine',0.10); }, p[1]); });
-      setTimeout(function(){ tone(1568,0.55,'triangle',0.26); tone(2093,0.55,'sine',0.16); tone(98,0.45,'sine',0.40,60); noise(.32,.14,7000); }, 470); } };
+    drumroll(){ for(var i=0;i<20;i++){ (function(t){ setTimeout(function(){ noise(.05,.16,2800); }, t*42); })(i); }
+      swell(180,1000,0.9,0.12,'sawtooth'); },
+    fanfare(){ noise(.55,.32,9000); tone(80,0.5,'sine',0.45,46);                 // シンバル＋低音ドン
+      var n=[[523,40],[659,120],[784,200],[1047,300],[1319,400]];
+      n.forEach(function(p){ setTimeout(function(){ tone(p[0],0.24,'triangle',0.32,p[0]*1.004); tone(p[0]*2,0.12,'sine',0.12); tone(p[0]*1.5,0.16,'square',0.07); }, p[1]); });
+      setTimeout(function(){ tone(1568,0.6,'triangle',0.30); tone(2093,0.6,'sine',0.18); tone(1319,0.6,'triangle',0.16); tone(98,0.5,'sine',0.42,60); noise(.36,.16,8000); }, 520); } };
 })();
 
 /* ===== Mascot ===== */
@@ -935,7 +963,7 @@ document.getElementById('shareBtn').onclick=async()=>{ Sound.init();Sound.resume
 let audioOn=true;
 // ランキング側から鳴らす効果音フック（ミュート設定を尊重）
 window.CoccoRescueSfx=function(id){ try{ if(!audioOn)return; Sound.init(); Sound.resume();
-  if(id==='rankin') Sound.fanfare(); }catch(e){} };
+  if(id==='rankin') Sound.fanfare(); else if(id==='roll') Sound.drumroll(); }catch(e){} };
 (function(){ const mb=document.getElementById('muteBtn'); if(!mb)return;
   mb.onclick=()=>{ Sound.init(); audioOn=!audioOn; Sound.setMuted(!audioOn);
     mb.textContent=audioOn?'🔊':'🔇'; mb.classList.toggle('off',!audioOn);
@@ -1050,22 +1078,45 @@ requestAnimationFrame(loop);
       if(after) after(rows);
     }).catch(function(e){ targets.forEach(function(t){ var el=$(t); if(el) el.innerHTML='<li class="rankempty">読み込めませんでした</li>'; }); });
   }
-  // 結果発表「◯位にランクイン！」演出
+  // 結果発表「◯位にランクイン！」演出（ドラムロール → スロット回転 → ドーン確定）
+  function vib(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
   function celebrate(rank, total){
     var old=document.getElementById('rankinOv'); if(old&&old.parentNode) old.parentNode.removeChild(old);
     var ov=document.createElement('div'); ov.id='rankinOv'; ov.className='rankin-ov';
-    var conf=''; var pal=['#ffd24d','#ff5d6c','#7ce0ff','#b15bff','#9affc0','#ff9a3c'];
-    for(var i=0;i<28;i++){ conf+='<i style="left:'+(Math.random()*100)+'%;background:'+pal[i%pal.length]+';animation-delay:'+(Math.random()*0.5)+'s;transform:rotate('+(Math.random()*360)+'deg)"></i>'; }
-    ov.innerHTML='<div class="rankin-conf">'+conf+'</div>'
+    ov.innerHTML='<div class="rankin-flash"></div><div class="rankin-rays"></div><div class="rankin-conf"></div>'
       +'<div class="rankin-card">'
-      +'<div class="rankin-sub">★ RESULT ★</div>'
-      +'<div class="rankin-rank"><span class="rankin-num">'+rank+'</span><span class="rankin-pos">位</span></div>'
-      +'<div class="rankin-msg">ランクイン！</div>'
-      +(total?'<div class="rankin-total">全 '+total+' 人中</div>':'')+'</div>';
+      +'<div class="rankin-sub" id="riSub">結果発表</div>'
+      +'<div class="rankin-rank"><span class="rankin-ring"></span><span class="rankin-num" id="riNum">?</span><span class="rankin-pos">位</span></div>'
+      +'<div class="rankin-msg" id="riMsg">…</div>'
+      +'<div class="rankin-total" id="riTot"></div></div>';
     document.body.appendChild(ov);
-    if(window.CoccoRescueSfx) window.CoccoRescueSfx('rankin');
-    var kill=function(){ ov.classList.add('out'); setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },420); };
-    ov.addEventListener('click', kill); setTimeout(kill, 3200);
+    var numEl=ov.querySelector('#riNum'), subEl=ov.querySelector('#riSub'),
+        msgEl=ov.querySelector('#riMsg'), totEl=ov.querySelector('#riTot'), confEl=ov.querySelector('.rankin-conf');
+    var killed=false, revealed=false;
+    var kill=function(){ if(killed)return; killed=true; ov.classList.add('out'); setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },420); };
+    var roll=setInterval(function(){ numEl.textContent=Math.floor(Math.random()*Math.max(total,9))+1; }, 68);
+    var revealT;
+    function doReveal(){
+      if(revealed)return; revealed=true; clearInterval(roll); clearTimeout(revealT);
+      numEl.textContent=rank; ov.classList.add('reveal');
+      var champ=rank===1, top3=rank<=3;
+      subEl.textContent = champ?'👑 CHAMPION 👑' : (top3?'★ おめでとう ★':'★ RESULT ★');
+      msgEl.innerHTML = champ?'<b>優勝！</b>' : (top3?'<b>入賞！</b>ランクイン！':'ランクイン！');
+      if(total) totEl.textContent='全 '+total+' 人中';
+      var pal=['#ffd24d','#ff5d6c','#7ce0ff','#b15bff','#9affc0','#ff9a3c','#fff7cf'];
+      var html=''; var N=champ?64:44;
+      for(var i=0;i<N;i++){ html+='<i style="left:'+(Math.random()*100)+'%;background:'+pal[i%pal.length]
+        +';animation-delay:'+(Math.random()*0.35).toFixed(2)+'s;animation-duration:'+(2.0+Math.random()*1.6).toFixed(2)
+        +'s;transform:rotate('+Math.floor(Math.random()*360)+'deg)"></i>'; }
+      confEl.innerHTML=html;
+      if(window.CoccoRescueSfx) window.CoccoRescueSfx('rankin'); vib([0,40,40,90]);
+      setTimeout(kill, champ?5200:4200);
+    }
+    // Phase 1: ドラムロール＋数字スロット回転 → Phase 2: ドーン確定
+    if(window.CoccoRescueSfx) window.CoccoRescueSfx('roll'); vib(30);
+    ov.classList.add('rolling');
+    revealT=setTimeout(doReveal, 1050);
+    ov.addEventListener('click', function(){ if(!revealed) doReveal(); else kill(); });   // タップでスキップ→確定、確定後は閉じる
   }
   function celebrateMine(rows){
     var my=uid(), idx=-1; for(var i=0;i<rows.length;i++){ if(rows[i].uid===my){ idx=i; break; } }
