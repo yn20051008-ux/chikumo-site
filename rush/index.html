@@ -126,6 +126,7 @@ const rnd=(a,b)=>a+Math.random()*(b-a);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const TAU=Math.PI*2;
 const mf=m=>440*Math.pow(2,(m-69)/12);
+const buzz=p=>{ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} };
 
 /* ===== Audio ===== */
 const Sound=(function(){
@@ -141,14 +142,17 @@ const Sound=(function(){
     const s=ac.createBufferSource(); s.buffer=b; const fl=ac.createBiquadFilter(); fl.type='lowpass'; fl.frequency.value=f||1800;
     const g=ac.createGain(); g.gain.value=v||.3; s.connect(fl); fl.connect(g); g.connect(master); s.start(n); }
 
-  /* ── 中毒チップチューンBGM ── 138BPM「王道進行」C→G→Am→F、口ずさめるリードつき */
+  /* ── 中毒チップチューンBGM ── 138BPM、Aメロ「王道進行」＋Bメロ「4536」で8小節ループ */
   let bg=null,bt=null,bs=0,bn=0,bon=false,fever=false;
   const BPM=138, SD8=60/BPM/2;
-  // 4小節×8分音符=32step。0=休符
+  // 8小節×8分音符=64step。0=休符。前半A（C→G→Am→F）後半B（F→G→Em→Am、サビ上げ→解決）
   const MEL=[76,79,76,72, 0,67,72,76,  74,79,74,71, 0,67,71,74,
-             72,76,72,69, 0,69,72,76,  77,76,74,72, 74,76,79, 0];
-  const BASS=[48,43,45,41];                    // C3 G2 A2 F2（小節ごと）
-  const ARP=[[60,64,67],[59,62,67],[57,60,64],[57,60,65]];
+             72,76,72,69, 0,69,72,76,  77,76,74,72, 74,76,79, 0,
+             81,84,81,77, 0,79,81,84,  83,86,83,79, 0,81,83,86,
+             79,83,79,76, 0,76,79,83,  81,79,76,74, 72,74,76, 0];
+  const BASS=[48,43,45,41, 41,43,40,45];       // C3 G2 A2 F2 ｜ F2 G2 E2 A2（小節ごと）
+  const ARP=[[60,64,67],[59,62,67],[57,60,64],[57,60,65],
+             [57,60,65],[59,62,67],[55,59,64],[57,60,64]];
   function bnote(f,t,d,ty,v){ const o=ac.createOscillator(),g=ac.createGain(); o.type=ty; o.frequency.setValueAtTime(f,t);
     g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(v,t+.015); g.gain.exponentialRampToValueAtTime(.0001,t+d);
     o.connect(g); g.connect(bg); o.start(t); o.stop(t+d+.02); }
@@ -156,8 +160,8 @@ const Sound=(function(){
     for(let i=0;i<len;i++)dd[i]=(Math.random()*2-1)*(1-i/len);
     const s=ac.createBufferSource(); s.buffer=b; const fl=ac.createBiquadFilter(); fl.type='highpass'; fl.frequency.value=f||6000;
     const g=ac.createGain(); g.gain.value=v; s.connect(fl); fl.connect(g); g.connect(bg); s.start(t); }
-  function bstep(i,t,sd){ const bar=Math.floor(i/8)%4, k=i%8;
-    const m=MEL[i%32];
+  function bstep(i,t,sd){ const bar=Math.floor(i/8)%8, k=i%8;
+    const m=MEL[i%64];
     if(m){ bnote(mf(m),t,sd*0.92,'square',.11); if(fever) bnote(mf(m+12),t,sd*0.8,'square',.05); }
     bnote(mf(BASS[bar]+(k%2?12:0)),t,sd*0.85,'sawtooth',.13);
     bnote(mf(ARP[bar][k%3]+12),t,sd*0.6,'triangle',.05);
@@ -169,7 +173,7 @@ const Sound=(function(){
     bnoise(t,.03,(k%2?.05:.08),8000); if(fever&&k%2) bnoise(t+sd/2,.025,.05,9000);            // hihat
   }
   function sd(){ return fever?SD8/1.12:SD8; }
-  function bsched(){ if(!ac||!bon)return; while(bn<ac.currentTime+0.22){ bstep(bs,bn,sd()); bn+=sd(); bs=(bs+1)%32; } }
+  function bsched(){ if(!ac||!bon)return; while(bn<ac.currentTime+0.22){ bstep(bs,bn,sd()); bn+=sd(); bs=(bs+1)%64; } }
   function startBGM(){ if(!ac||muted)return; if(!bg){bg=ac.createGain(); bg.gain.value=.0001; bg.connect(master);}
     if(bon)return; bon=true; bs=0; bn=ac.currentTime+0.08;
     try{ bg.gain.cancelScheduledValues(ac.currentTime); bg.gain.setValueAtTime(.0001,ac.currentTime); bg.gain.linearRampToValueAtTime(.16,ac.currentTime+0.7);}catch(e){}
@@ -202,7 +206,7 @@ const G={ state:'title', score:0, best:0, dist:0, eggs:0, combo:0, comboT:0, max
   slow:1, newBest:false, deadT:0, runPhase:0, debugAuto:false };
 const PX=()=>W*0.30;           // 画面上の自機x
 const HW=15, HH=24;            // 当たり判定半身
-let segs=[], obst=[], eggsA=[], parts=[], floats=[], trail=[], clouds=[], poles=[], cityA=[], cityB=[];
+let segs=[], obst=[], eggsA=[], parts=[], floats=[], trail=[], clouds=[], poles=[], cityA=[], cityB=[], flock=[];
 let camX=0, genX=0, baseY=0;
 
 /* ===== World gen ===== */
@@ -242,7 +246,7 @@ function initSky(){
 function newGame(){
   Sound.init(); Sound.resume(); Sound.setFever(false); if(audioOn) Sound.startBGM();
   baseY=H*0.66;
-  segs=[]; obst=[]; eggsA=[]; parts=[]; floats=[]; trail=[];
+  segs=[]; obst=[]; eggsA=[]; parts=[]; floats=[]; trail=[]; flock=[];
   camX=0; genX=-300;
   Object.assign(G,{state:'play',score:0,dist:0,eggs:0,combo:0,comboT:0,maxCombo:0,
     spd:300,time:0,vy:0,grounded:true,airJumps:0,coyote:0,buffer:0,holding:false,deathBy:'',
@@ -268,11 +272,17 @@ function dust(n){ for(let i=0;i<n;i++) parts.push({x:PX()+rnd(-12,8),y:G.py,vx:r
 
 /* ===== Fever ===== */
 function startFever(){
-  G.fever=7.5; G.gauge=1; G.feverCount++; Sound.setFever(true); Sound.feverGo();
+  G.fever=7.5; G.gauge=1; G.feverCount++; Sound.setFever(true); Sound.feverGo(); buzz([30,40,30,40,70]);
   G.flash=0.32; G.flashCol='255,220,120'; G.shake=Math.min(G.shake+10,18);
   floats.push({t:'FEVER!!',x:W/2,y:H*0.36,col:'#ffe14d',life:1.4,max:1.4,size:Math.min(W*0.16,64),praise:1});
   fireworks(3);
   confetti(46);
+  spawnFlock();
+}
+/* ミニこっこちゃんの群れが画面を横切る（公式SVG・子供大歓喜パレード） */
+function spawnFlock(){
+  for(let i=0;i<7;i++) flock.push({x:-70-i*rnd(60,110), y:rnd(H*0.12,H*0.52),
+    vx:rnd(260,420), amp:rnd(8,22), ph:rnd(0,TAU), s:rnd(20,34)});
 }
 function fireworks(k){
   for(let j=0;j<k;j++){ const fx=rnd(W*0.2,W*0.8), fy=rnd(H*0.14,H*0.42), col=CONFCOL[Math.floor(rnd(0,CONFCOL.length))];
@@ -414,14 +424,14 @@ function collectEgg(e){
   const fv=G.fever>0;
   const gain=50*(fv?2:1); G.score+=gain;
   if(G.fever<=0){ G.gauge=Math.min(1,G.gauge+0.08); if(G.gauge>=1) startFever(); }
-  Sound.egg(Math.min(G.combo,10));
+  Sound.egg(Math.min(G.combo,10)); buzz(8);
   const ex=e.x-camX;
   floats.push({t:'+'+gain,x:ex,y:e.y-18,col:fv?'#ff7be0':'#ffe14d',life:.6,max:.6,size:15});
   for(let i=0;i<7;i++){ const a=rnd(0,TAU),s=rnd(1,3.5); parts.push({x:ex,y:e.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,life:rnd(.3,.6),max:.6,r:rnd(1.8,3.4),col:'255,215,90'}); }
   if(G.combo>0&&G.combo%10===0) celebrate(G.combo);
 }
 function smash(o){
-  G.score+=300; Sound.smash(); G.shake=Math.min(G.shake+8,18);
+  G.score+=300; Sound.smash(); buzz(25); G.shake=Math.min(G.shake+8,18);
   const sx=o.x-camX+o.w/2, sy=o.y-o.h/2;
   floats.push({t:'+300 粉砕！',x:sx,y:sy-26,col:'#ff9d3d',life:.8,max:.8,size:18});
   for(let i=0;i<22;i++){ const a=rnd(0,TAU),s=rnd(2,8); parts.push({x:sx,y:sy,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.4,.9),max:.9,r:rnd(2,5),col:'255,160,80'}); }
@@ -431,7 +441,7 @@ function crash(){ if(G.state!=='play')return; G.deathBy='crash';
   for(let i=0;i<14;i++) parts.push({x:PX(),y:G.py-HH,vx:rnd(-7,-2),vy:rnd(-5,2),life:rnd(.3,.8),max:.8,r:rnd(2,5),col:'255,120,90'});
   die();
 }
-function die(){ if(G.state!=='play')return; if(!G.deathBy)G.deathBy='fall'; G.state='over'; Sound.stopBGM(); Sound.setFever(false); Sound.die();
+function die(){ if(G.state!=='play')return; if(!G.deathBy)G.deathBy='fall'; G.state='over'; Sound.stopBGM(); Sound.setFever(false); Sound.die(); buzz([60,40,90]);
   G.flash=0.7; G.flashCol='255,90,140'; G.shake=24; G.slow=0.25;
   for(let i=0;i<40;i++){ const a=rnd(0,TAU),s=rnd(2,9); parts.push({x:PX(),y:G.py-HH,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.4,1),max:1,r:rnd(2,6),col:'255,200,90'}); }
   if(Math.floor(G.score)>G.best){ G.best=Math.floor(G.score); G.newBest=true; saveBest(); setTimeout(()=>Sound.best(),500); }
@@ -439,14 +449,21 @@ function die(){ if(G.state!=='play')return; if(!G.deathBy)G.deathBy='fall'; G.st
   document.getElementById('statLine').textContent='走破 '+Math.floor(G.dist/50)+'m ／ たまご '+G.eggs+'個 ／ 最大コンボ '+G.maxCombo;
   document.getElementById('bestLine').textContent=G.best.toLocaleString();
   document.getElementById('newBest').style.opacity=G.newBest?'1':'0';
-  setTimeout(()=>show('overScreen'),700);
+  setTimeout(()=>{ show('overScreen'); overAt=Date.now(); },700);
 }
+let overAt=0;
 function updateFX(dt){
   for(const p of parts){ if(p.ring){ p.life-=dt; continue; } p.x+=p.vx; p.y+=p.vy; p.vy+=(p.g!==undefined?p.g:0.12); p.life-=dt;
     if(G.state==='play'&&!p.conf)p.x-=G.spd*dt*0.4; }
   parts=parts.filter(p=>p.life>0);
   for(const f of floats){ f.y-=24*dt; f.life-=dt; } floats=floats.filter(f=>f.life>0);
   for(const c of clouds){ c.x-=c.s*dt*0.02; if(c.x<-0.2)c.x+=1.4; }
+  // ミニこっこ群れ：横切りながらキラキラを撒く。フィーバー中は途切れたら次の波
+  for(const b of flock){ b.x+=b.vx*dt; b.ph+=dt*9;
+    if(Math.random()<dt*14) parts.push({x:b.x-b.s*0.5,y:b.y+Math.sin(b.ph)*b.amp,vx:rnd(-1.5,-0.5),vy:rnd(-0.8,0.8),
+      life:rnd(.3,.6),max:.6,r:rnd(1.5,3),col:CONFCOL[Math.floor(rnd(0,CONFCOL.length))]}); }
+  flock=flock.filter(b=>b.x<W+90);
+  if(G.fever>2 && flock.length===0) spawnFlock();
 }
 
 /* ===== Render ===== */
@@ -507,6 +524,13 @@ function render(){
     ctx.globalAlpha=a*0.55; ctx.fillStyle='hsl('+((G.time*240+i*24)%360)+',95%,62%)';
     ctx.beginPath(); ctx.arc(p.x-(trail.length-1-i)*7,p.y,4+a*14,0,TAU); ctx.fill(); }
     ctx.globalAlpha=1; }
+
+  // ミニこっこ群れ（公式SVG）
+  if(coccoReady){ for(const b of flock){ const bw=b.s, bh=bw/AR;
+    ctx.save(); ctx.translate(b.x,b.y+Math.sin(b.ph)*b.amp);
+    ctx.rotate(Math.sin(b.ph*1.3)*0.18);
+    ctx.shadowColor='hsl('+((G.time*240+b.x)%360)+',95%,65%)'; ctx.shadowBlur=14;
+    ctx.drawImage(cocco,-bw/2,-bh/2,bw,bh); ctx.restore(); } }
 
   // リング系パーティクル
   for(const p of parts){ if(!p.ring)continue; const a=clamp(p.life/p.max,0,1);
@@ -649,6 +673,12 @@ function hideScreens(){ ['titleScreen','howScreen','overScreen'].forEach(s=>docu
 function uiBtn(id,fn){ const e=document.getElementById(id); if(e) e.onclick=()=>{ Sound.init();Sound.resume();Sound.ui(); fn(); }; }
 uiBtn('startBtn',newGame); uiBtn('retryBtn',newGame);
 uiBtn('howBtn',()=>show('howScreen')); uiBtn('howBack',()=>show('titleScreen'));
+// 「タップですぐ再挑戦」：オーバー画面の余白タップで即リトライ（誤タップ防止に表示後450ms待つ）
+document.getElementById('overScreen').addEventListener('pointerdown',e=>{
+  if(e.target&&e.target.closest&&e.target.closest('button,a'))return;
+  if(Date.now()-overAt<450)return;
+  Sound.init();Sound.resume();Sound.ui(); newGame();
+});
 document.getElementById('shareBtn').onclick=async()=>{ Sound.init();Sound.resume();
   const txt=`コッコラッシュで ${Math.floor(G.score).toLocaleString()}点（${Math.floor(G.dist/50)}m走破・たまご${G.eggs}個）！通勤特急ワンタップラン🚃🐔 #コッコラッシュ #畜物語`;
   const url='https://chikumo.jp/rush/';
@@ -671,7 +701,7 @@ let audioOn=true;
 window.__rush={ get state(){return G.state;},
   info:()=>({state:G.state,score:Math.floor(G.score),dist:Math.floor(G.dist/50),eggs:G.eggs,combo:G.combo,
     gauge:+G.gauge.toFixed(2),fever:+G.fever.toFixed(2),best:G.best,grounded:G.grounded,py:Math.floor(G.py),
-    spd:Math.floor(G.spd),segs:segs.length,obst:obst.length,eggsLeft:eggsA.length,deathBy:G.deathBy,
+    spd:Math.floor(G.spd),segs:segs.length,obst:obst.length,eggsLeft:eggsA.length,deathBy:G.deathBy,flock:flock.length,
     camX:Math.floor(camX),vy:Math.floor(G.vy),world:segs.map(s=>({x:Math.floor(s.x),w:Math.floor(s.w),y:Math.floor(s.y)}))}),
   start:newGame, jump:tryJump, hold:b=>{G.holding=!!b;},
   auto:b=>{G.debugAuto=!!b;}, fever:()=>{G.gauge=1;startFever();}, kill:die,

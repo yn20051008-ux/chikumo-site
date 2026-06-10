@@ -58,11 +58,13 @@ ok(i1.spd>300,'speed ramps up ('+i1.spd+')');
 ok(i1.eggs>0,'eggs collected ('+i1.eggs+')');
 
 /* --- fever: force-trigger and verify effects --- */
+if(R.state!=='play'){ R.start(); frames(2); R.auto(true); frames(60); }
 if(R.state==='play'){
   R.fever(); frames(2);
   const f=R.info();
   ok(f.fever>6,'fever triggers ('+f.fever+'s left)');
   ok(R.praised(),'fever shows praise text');
+  ok(f.flock>0,'fever spawns cocco flock ('+f.flock+')');
   frames(560);                                  // fever should run out (~9s)
   ok(R.info().fever===0,'fever ends');
 }
@@ -71,18 +73,18 @@ if(R.state==='play'){
 R.auto(false); R.hold(false);
 let guard=0; while(R.state==='play'&&guard++<4000) frames(1);
 ok(R.state==='over','game ends after falling ('+guard+' frames)');
-const s1=R.info().score;
+const s1=R.info().score, b1=R.info().best;
 ok(s1>0,'final score recorded ('+s1+')');
-ok(R.info().best===s1,'best saved on first run');
+ok(b1>=s1&&b1>0,'best saved ('+b1+')');
 ok(els['finalScore'].textContent!=='','final score rendered to UI');
-ok(localStorage.getItem('coccoRushBest')===String(s1),'best persists to localStorage');
+ok(localStorage.getItem('coccoRushBest')===String(b1),'best persists to localStorage');
 
 /* --- run 2: best survives restart; immediate death keeps best --- */
 R.start(); frames(2);
 ok(R.state==='play','restart works');
 R.kill(); frames(5);
 ok(R.state==='over','kill ends run 2');
-ok(R.info().best===s1,'best kept after worse run');
+ok(R.info().best===b1,'best kept after worse run');
 
 /* --- jump mechanics: buffered/double jump should not throw --- */
 R.start(); frames(2); R.jump(); frames(3); R.jump(); frames(30); R.jump(); frames(60);
