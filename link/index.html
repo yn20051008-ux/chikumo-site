@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>コッコリンク ─ COCCO LINK｜なぞって消す60秒パズル</title>
+<meta name="description" content="同じ色のこっこちゃんをなぞってつなげてポン！60秒で何点取れる？フィーバーで大爆発する中毒パズル。無料ブラウザゲーム。">
+<meta name="author" content="畜物語">
+<meta name="robots" content="index, follow">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0d0a18">
+<meta name="format-detection" content="telephone=no">
+<link rel="canonical" href="https://chikumo.jp/link/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chikumo.jp/link/">
+<meta property="og:title" content="コッコリンク ─ COCCO LINK">
+<meta property="og:description" content="同じ色のこっこをなぞってつなげてポン！60秒スコアアタック。">
+<meta property="og:image" content="https://chikumo.jp/ogp.png">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="畜物語">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="コッコリンク ─ COCCO LINK">
+<meta name="twitter:description" content="なぞってつなげてポン！60秒スコアアタックパズル。">
+<meta name="twitter:image" content="https://chikumo.jp/ogp.png">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="コッコリンク">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0d0a18;
+    font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
+    user-select:none;-webkit-user-select:none;color:#f4f0ff;touch-action:none;}
+  #wrap{position:fixed;inset:0;}
+  canvas{display:block;width:100%;height:100%;}
+  .ctrlbtn{position:absolute;z-index:12;pointer-events:auto;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    border:2px solid rgba(255,255,255,.25);background:rgba(45,30,70,.5);color:#fff;cursor:pointer;width:38px;height:38px;font-size:16px;}
+  .ctrlbtn:active{transform:scale(.92);} .ctrlbtn.off{opacity:.5;}
+  #muteBtn{top:calc(10px + env(safe-area-inset-top));right:calc(54px + env(safe-area-inset-right));}
+  #fsBtn{top:calc(10px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));}
+  .screen{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:24px;overflow-y:auto;
+    background:radial-gradient(ellipse at 50% 36%,rgba(90,50,130,.68),rgba(9,6,20,.96));
+    -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
+  .screen.hidden{display:none;}
+  .hero{width:min(32vw,130px);height:auto;margin-bottom:8px;filter:drop-shadow(0 8px 22px rgba(255,160,210,.55));animation:fl 2.6s ease-in-out infinite;}
+  @keyframes fl{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-9px) rotate(3deg)}}
+  .logo{font-size:13vw;line-height:.9;font-weight:900;font-style:italic;letter-spacing:.01em;
+    background:linear-gradient(180deg,#fff 0%,#ffb8e0 50%,#a08bff 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 0 18px rgba(255,140,210,.5));max-width:10ch;}
+  .logo.small{font-size:9vw;max-width:none;}
+  .sub{margin-top:4px;font-size:13px;letter-spacing:.4em;color:#ffb8e0;opacity:.9;}
+  .desc{margin-top:16px;font-size:13px;line-height:1.9;opacity:.85;max-width:340px;}
+  .desc b{color:#ffd24d;}
+  .btn{pointer-events:auto;margin-top:20px;padding:15px 44px;font-size:18px;font-weight:900;letter-spacing:.16em;border:none;border-radius:40px;cursor:pointer;
+    color:#2a0a28;background:linear-gradient(180deg,#ffc8e8,#c89bff);box-shadow:0 8px 26px rgba(200,120,255,.45),inset 0 1px 0 rgba(255,255,255,.6);transition:transform .08s;}
+  .btn:active{transform:translateY(2px) scale(.98);}
+  .btn.ghost{background:rgba(255,255,255,.08);color:#f4f0ff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);font-size:14px;padding:12px 26px;margin-top:12px;}
+  .btn-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:12px;}
+  .score-final{margin-top:14px;font-size:13px;letter-spacing:.2em;opacity:.8;}
+  .score-final .v{font-size:54px;font-weight:900;color:#fff;display:block;font-variant-numeric:tabular-nums;text-shadow:0 0 22px rgba(255,160,210,.7);}
+  .nb{margin-top:8px;font-size:12px;color:#ffd24d;letter-spacing:.2em;opacity:0;}
+  .hint{margin-top:20px;font-size:11px;opacity:.5;letter-spacing:.08em;line-height:1.8;}
+  .credit{margin-top:16px;font-size:10px;letter-spacing:.2em;opacity:.4;}
+  .credit a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3);}
+  a{pointer-events:auto;}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game"></canvas>
+  <div class="ctrlbtn" id="muteBtn">🔊</div>
+  <div class="ctrlbtn" id="fsBtn">⛶</div>
+
+  <div class="screen" id="titleScreen">
+    <img class="hero" src="/chikumo.svg" alt="こっこちゃん">
+    <div class="logo">COCCO LINK</div>
+    <div class="sub">コッコリンク</div>
+    <div class="desc">同じ色のこっこを <b>なぞってつなげて</b> ポン！<br><b>60秒</b>で何点取れる？ながくつなぐほど高得点。</div>
+    <button class="btn" id="startBtn">あそぶ</button>
+    <button class="btn ghost" id="howBtn">あそびかた</button>
+    <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+  </div>
+
+  <div class="screen hidden" id="howScreen">
+    <div class="logo small">あそびかた</div>
+    <div class="desc" style="max-width:380px;text-align:left;">
+      ◆ <b>同じ色</b>のこっこを、指で <b>なぞってつなげる</b>（ななめOK）。<br><br>
+      ◆ <b>3こ以上</b>つないで指をはなすと、ポン！と消えてスコア。<br><br>
+      ◆ ながくつなぐほど音が上がって、点数もどんどんアップ♪<br><br>
+      ◆ ゲージがたまると <b>フィーバー</b>！どの色でもつながる＆スコア2倍のお祭りタイム。<br><br>
+      ◆ せいげん時間は <b>60秒</b>。ベストスコアを更新しよう！
+    </div>
+    <button class="btn" id="howBack">もどる</button>
+  </div>
+
+  <div class="screen hidden" id="overScreen">
+    <div class="logo small">TIME UP!</div>
+    <div class="score-final">SCORE<span class="v" id="finalScore">0</span></div>
+    <div class="hint" id="statLine" style="opacity:.8">さいだいチェーン 0 ／ フィーバー 0回</div>
+    <div class="nb" id="newBest">★ ベスト更新！ ★</div>
+    <div class="score-final" style="font-size:11px;opacity:.7;margin-top:8px;">BEST <span id="bestLine" style="font-size:18px">0</span></div>
+    <div class="btn-row">
+      <button class="btn" id="retryBtn">もう一回</button>
+      <button class="btn ghost" id="shareBtn">スコアを共有</button>
+    </div>
+    <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+(function(){
+const cv=document.getElementById('game'), ctx=cv.getContext('2d');
+let W=0,H=0,DPR=1;
+function resize(){ DPR=Math.min(window.devicePixelRatio||1,2); W=window.innerWidth; H=window.innerHeight;
+  cv.width=Math.floor(W*DPR); cv.height=Math.floor(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0); layout(); }
+window.addEventListener('resize',resize);
+
+/* ===== Audio (all original synthesized) ===== */
+const Sound=(function(){
+  let ac=null,master=null,muted=false;
+  function init(){ if(ac)return; try{ ac=new (window.AudioContext||window.webkitAudioContext)();
+    master=ac.createGain(); master.gain.value=0.5; master.connect(ac.destination);}catch(e){ac=null;} }
+  function tone(f,d,t,v,sl){ if(!ac||muted)return; const n=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();
+    o.type=t||'sine'; o.frequency.setValueAtTime(f,n); if(sl)o.frequency.exponentialRampToValueAtTime(Math.max(40,sl),n+d);
+    g.gain.setValueAtTime(.0001,n); g.gain.exponentialRampToValueAtTime(v||.3,n+.006); g.gain.exponentialRampToValueAtTime(.0001,n+d);
+    o.connect(g); g.connect(master); o.start(n); o.stop(n+d+.02); }
+  function noise(d,v,f){ if(!ac||muted)return; const n=ac.currentTime,len=Math.floor(ac.sampleRate*d),b=ac.createBuffer(1,len,ac.sampleRate),dt=b.getChannelData(0);
+    for(let i=0;i<len;i++)dt[i]=(Math.random()*2-1)*(1-i/len);
+    const s=ac.createBufferSource(); s.buffer=b; const fl=ac.createBiquadFilter(); fl.type='lowpass'; fl.frequency.value=f||1800;
+    const g=ac.createGain(); g.gain.value=v||.3; s.connect(fl); fl.connect(g); g.connect(master); s.start(n); }
+  /* --- earworm BGM: original catchy 8-bar chiptune loop, speeds up in fever --- */
+  let bg=null,bt=null,bs=0,bn=0,bon=false,fast=false;
+  const MEL=[ // 32 eighth-notes (8 bars of melody), simple & singable (original)
+    523,659,784,659, 880,784,659,523,  587,659,587,494, 523,587,659,523,
+    523,659,784,880, 1047,880,784,659, 587,740,880,740, 659,587,523,392];
+  const BAS=[262,262,196,196, 220,220,175,175, 196,196,147,147, 165,165,196,196,
+             262,262,196,196, 220,220,175,175, 196,196,147,147, 131,131,196,196];
+  function SD(){ return (60/(fast?152:122))/2; }
+  function bnote(f,t,d,ty,v){ const o=ac.createOscillator(),g=ac.createGain(); o.type=ty; o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(v,t+.015); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g); g.connect(bg); o.start(t); o.stop(t+d+.02); }
+  function bhat(t){ if(!ac)return; const len=Math.floor(ac.sampleRate*0.02),b=ac.createBuffer(1,len,ac.sampleRate),d=b.getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len);
+    const s=ac.createBufferSource(); s.buffer=b; const f=ac.createBiquadFilter(); f.type='highpass'; f.frequency.value=8000;
+    const g=ac.createGain(); g.gain.value=.04; s.connect(f); f.connect(g); g.connect(bg); s.start(t); }
+  function bstep(i,t){ const sd=SD();
+    bnote(MEL[i%32], t, sd*0.92, 'square', .12);
+    if(i%2===0) bnote(BAS[i%32], t, sd*1.6, 'triangle', .26);
+    bhat(t+sd*0.5); }
+  function bsched(){ if(!ac||!bon)return; while(bn<ac.currentTime+0.2){ bstep(bs,bn); bn+=SD(); bs=(bs+1)%32; } }
+  function startBGM(){ if(!ac||muted)return; if(!bg){bg=ac.createGain(); bg.gain.value=.0001; bg.connect(master);}
+    if(bon)return; bon=true; bs=0; bn=ac.currentTime+0.1;
+    try{ bg.gain.cancelScheduledValues(ac.currentTime); bg.gain.setValueAtTime(.0001,ac.currentTime); bg.gain.linearRampToValueAtTime(.13,ac.currentTime+0.9);}catch(e){}
+    bt=setInterval(bsched,50); }
+  function stopBGM(){ bon=false; fast=false; if(bt){clearInterval(bt);bt=null;}
+    if(bg){try{bg.gain.cancelScheduledValues(ac.currentTime); bg.gain.linearRampToValueAtTime(.0001,ac.currentTime+0.4);}catch(e){}} }
+  const PENTA=[0,2,4,7,9,12,14,16,19,21,24,26,28,31,33,36];
+  return { init, resume(){ if(ac&&ac.state==='suspended')ac.resume(); }, setMuted(b){muted=b; if(b)stopBGM();},
+    startBGM, stopBGM, setFast(b){fast=b;},
+    link(n){ const st=PENTA[Math.min(n-1,PENTA.length-1)]; tone(523*Math.pow(2,st/12),0.09,'square',0.16); },  // rising do-re-mi as you link
+    unlink(){ tone(380,0.05,'sine',0.08,300); },
+    pop(n){ noise(.07,.22,3000); tone(600+Math.min(n,12)*40,0.12,'sine',0.22,900+Math.min(n,12)*60); },
+    bigpop(){ noise(.2,.4,2200); [784,988,1175,1568].forEach((f,i)=>setTimeout(()=>tone(f,0.13,'sine',0.26),i*55)); },
+    fever(){ [523,659,784,1047,1319,1568].forEach((f,i)=>setTimeout(()=>tone(f,0.14,'square',0.22),i*70)); noise(.25,.25,5000); },
+    tick(){ tone(880,0.05,'square',0.18); },
+    over(){ [784,659,523,392].forEach((f,i)=>setTimeout(()=>tone(f,0.18,'sine',0.26),i*140)); },
+    best(){ [523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>tone(f,0.15,'sine',0.3),i*90)); },
+    ui(){ tone(700,0.04,'triangle',0.14); } };
+})();
+
+/* ===== Official mascot ===== */
+const cocco=new Image(); let coccoReady=false; cocco.onload=()=>coccoReady=true; cocco.src='/chikumo.svg';
+const AR=298/390;
+
+/* ===== Helpers ===== */
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const TAU=Math.PI*2;
+
+/* ===== Layout / grid ===== */
+const COLS=6, ROWS=8, NCOL=5;
+const CCOL=['#ff8fb0','#ffd24d','#7fd97f','#6fc8ff','#c89bff'];
+let cell=50, gx=0, gridBot=0, gridTop=0;
+function layout(){
+  const st=window.__safeTop||0;
+  const topUI=st+96, botUI=Math.max(14,H*0.02);
+  cell=Math.floor(Math.min(W/COLS, (H-topUI-botUI)/ROWS));
+  gx=Math.floor((W-cell*COLS)/2);
+  gridBot=H-botUI; gridTop=gridBot-cell*ROWS;
+}
+function cx(c){ return gx+(c+0.5)*cell; }
+function ry(r){ return gridBot-(r+0.5)*cell; }   // r=0 bottom
+
+/* ===== State ===== */
+const TLIMIT=60;
+const G={ state:'title', score:0, best:0, time:TLIMIT, chain:[], chainCol:-1, maxChain:0,
+  fever:0, feverT:0, feverCount:0, shake:0, flash:0, flashCol:'255,255,255', newBest:false, rainbow:0 };
+let grid=[];           // grid[c] = array bottom->top of {col,y,vy,pop}
+let parts=[], pops=[], texts=[];
+
+function newCell(c,above){ return {col:Math.floor(rnd(0,NCOL)), y:above!=null?above:ry(ROWS)+ -cell, vy:0}; }
+function fillGrid(){
+  grid=[]; for(let c=0;c<COLS;c++){ grid[c]=[]; for(let r=0;r<ROWS;r++) grid[c].push({col:Math.floor(rnd(0,NCOL)), y:ry(r), vy:0}); }
+}
+function newGame(){
+  Sound.init(); Sound.resume(); if(audioOn) Sound.startBGM(); Sound.setFast(false);
+  parts=[]; pops=[]; texts=[];
+  Object.assign(G,{state:'play',score:0,time:TLIMIT,chain:[],chainCol:-1,maxChain:0,
+    fever:0,feverT:0,feverCount:0,shake:0,flash:0,newBest:false,rainbow:0,lastTick:99});
+  fillGrid();
+  hideScreens();
+}
+
+/* ===== Chain logic ===== */
+function cellAt(x,y){ // pixel -> {c,r} if within bubble radius
+  const c=Math.floor((x-gx)/cell); if(c<0||c>=COLS)return null;
+  for(let r=0;r<grid[c].length;r++){ const b=grid[c][r];
+    const dx=x-cx(c), dy=y-b.y; if(dx*dx+dy*dy < (cell*0.46)*(cell*0.46)) return {c,r}; }
+  return null;
+}
+function inChain(c,r){ return G.chain.some(n=>n.c===c&&n.r===r); }
+function adjacent(a,b){ return Math.abs(a.c-b.c)<=1 && Math.abs(grid[a.c][a.r].y-grid[b.c][b.r].y)<cell*1.5 && !(a.c===b.c&&a.r===b.r); }
+function chainStart(c,r){ if(!grid[c]||!grid[c][r])return;
+  G.chain=[{c,r}]; G.chainCol=grid[c][r].col; Sound.link(1); }
+function chainTry(c,r){
+  if(!G.chain.length||!grid[c]||!grid[c][r])return;
+  const last=G.chain[G.chain.length-1];
+  if(G.chain.length>=2){ const prev=G.chain[G.chain.length-2];
+    if(prev.c===c&&prev.r===r){ G.chain.pop(); Sound.unlink(); return; } }   // backtrack
+  if(inChain(c,r))return;
+  const col=grid[c][r].col;
+  if(!(G.feverT>0) && col!==G.chainCol)return;
+  if(!adjacent(last,{c,r}))return;
+  G.chain.push({c,r}); Sound.link(G.chain.length);
+}
+function chainRelease(){
+  const n=G.chain.length;
+  if(n>=3) popChain();
+  G.chain=[]; G.chainCol=-1;
+}
+function popChain(){
+  const n=G.chain.length;
+  const mult=G.feverT>0?2:1;
+  const pts=n*(n+5)*mult; G.score+=pts;
+  G.maxChain=Math.max(G.maxChain,n);
+  let px=0,py=0;
+  // remove (collect positions first)
+  const byCol={};
+  for(const node of G.chain){ const b=grid[node.c][node.r]; px+=cx(node.c); py+=b.y;
+    popFX(cx(node.c),b.y,b.col,n); (byCol[node.c]=byCol[node.c]||[]).push(node.r); }
+  px/=n; py/=n;
+  for(const c in byCol){ byCol[c].sort((a,b)=>b-a); for(const r of byCol[c]) grid[+c].splice(r,1); }
+  refill();
+  texts.push({t:'+'+pts,x:px,y:py,col:G.feverT>0?'#ffd24d':'#fff',life:.8,max:.8,size:16+Math.min(n,12)});
+  Sound.pop(n);
+  if(n>=6){ Sound.bigpop(); G.shake=Math.min(G.shake+n*0.7,18); praise(n,px,py); }
+  if(n>=8) fireworks(px,py);
+  // fever gauge
+  if(G.feverT<=0){ G.fever+=n; if(G.fever>=42) startFever(); }
+}
+function refill(){
+  for(let c=0;c<COLS;c++){ let top=gridTop-cell*0.5;
+    while(grid[c].length<ROWS){ const spawnY=Math.min(top, (grid[c].length?grid[c][grid[c].length-1].y:gridBot)-cell)-cell;
+      grid[c].push({col:Math.floor(rnd(0,NCOL)), y:spawnY, vy:0}); top=spawnY; } }
+}
+function startFever(){ G.feverT=8; G.fever=0; G.feverCount++; G.flash=0.5; G.flashCol='255,220,120';
+  Sound.fever(); Sound.setFast(true); confetti(60);
+  texts.push({t:'FEVER!!',x:W/2,y:H*0.4,col:'#ffd24d',life:1.3,max:1.3,size:Math.min(W*0.15,64),big:1}); }
+function praise(n,x,y){ const ws=n>=12?['神ワザ！','伝説のチェーン！']:n>=9?['すごい！','天才！','最高！']:['いいね！','ナイス！','うまい！'];
+  texts.push({t:ws[Math.floor(rnd(0,ws.length))],x,y:y-30,col:'#ffb8e0',life:1,max:1,size:24,big:1}); }
+
+/* ===== FX ===== */
+function popFX(x,y,colIdx,n){ const col=CCOL[colIdx];
+  pops.push({x,y,r:cell*0.5,life:.3,max:.3});
+  const cnt=6+Math.min(n,10);
+  for(let i=0;i<cnt;i++){ const a=rnd(0,TAU),s=rnd(1.5,4.5+n*0.3);
+    parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,life:rnd(.3,.7),max:.7,r:rnd(2,4.5),col:hexRgb(col)}); } }
+function confetti(n){ for(let i=0;i<n;i++) parts.push({x:rnd(0,W),y:rnd(-40,H*0.25),vx:rnd(-1.5,1.5),vy:rnd(1.5,4.5),
+  life:rnd(1.2,2),max:2,r:rnd(2.5,5),col:hexRgb(CCOL[Math.floor(rnd(0,NCOL))]),g:0.05}); }
+function fireworks(x,y){ for(let k=0;k<3;k++){ const fx=clamp(x+rnd(-90,90),30,W-30), fy=clamp(y+rnd(-110,-30),60,H-60);
+  const col=CCOL[Math.floor(rnd(0,NCOL))];
+  pops.push({x:fx,y:fy,r:70,life:.55,max:.55});
+  for(let i=0;i<18;i++){ const a=i/18*TAU,s=rnd(2,6); parts.push({x:fx,y:fy,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.4,.9),max:.9,r:rnd(2,4),col:hexRgb(col)}); } } }
+function hexRgb(h){ h=h.replace('#',''); const v=parseInt(h,16); return ((v>>16)&255)+','+((v>>8)&255)+','+(v&255); }
+
+/* ===== Update ===== */
+function update(dt){
+  // timer
+  G.time-=dt;
+  if(G.time<=5.5 && Math.ceil(G.time)!==G.lastTick && G.time>0){ G.lastTick=Math.ceil(G.time); Sound.tick(); }
+  if(G.time<=0){ G.time=0; timeUp(); return; }
+  // fever
+  if(G.feverT>0){ G.feverT-=dt; G.rainbow+=dt*3;
+    if(G.feverT<=0){ Sound.setFast(false); G.chainCol = G.chain.length?grid[G.chain[0].c][G.chain[0].r].col:-1; } }
+  // gravity settle
+  for(let c=0;c<COLS;c++){ for(let r=0;r<grid[c].length;r++){ const b=grid[c][r]; const ty=ry(r);
+    if(b.y<ty){ b.vy+=cell*0.012; b.y=Math.min(ty,b.y+b.vy); if(b.y===ty)b.vy=0; }
+    else if(b.y>ty){ b.y=ty; b.vy=0; } } }
+  // fx
+  for(const p of parts){ p.x+=p.vx; p.y+=p.vy; p.vy+=(p.g!=null?p.g:0.1); p.life-=dt; } parts=parts.filter(p=>p.life>0);
+  for(const p of pops){ p.life-=dt; } pops=pops.filter(p=>p.life>0);
+  for(const t of texts){ t.y-=18*dt; t.life-=dt; } texts=texts.filter(t=>t.life>0);
+  if(G.shake>0.3)G.shake*=0.86; if(G.flash>0)G.flash-=dt*1.3;
+}
+function timeUp(){ if(G.state!=='play')return; G.state='over'; G.chain=[]; Sound.stopBGM(); Sound.over();
+  G.newBest=false; if(G.score>G.best){ G.best=G.score; G.newBest=true; saveBest(); setTimeout(()=>Sound.best(),500); }
+  document.getElementById('finalScore').textContent=G.score.toLocaleString();
+  document.getElementById('statLine').textContent='さいだいチェーン '+G.maxChain+' ／ フィーバー '+G.feverCount+'回';
+  document.getElementById('bestLine').textContent=G.best.toLocaleString();
+  document.getElementById('newBest').style.opacity=G.newBest?'1':'0';
+  setTimeout(()=>show('overScreen'),600);
+}
+
+/* ===== Render ===== */
+function drawBubble(x,y,colIdx,sel,feverAll){
+  const col=feverAll? 'hsl('+((G.rainbow*120)%360)+',90%,70%)' : CCOL[colIdx];
+  const r=cell*0.46*(sel?1.12:1);
+  ctx.save(); ctx.translate(x,y);
+  ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=sel?16:7;
+  ctx.beginPath(); ctx.arc(0,0,r,0,TAU); ctx.fill(); ctx.shadowBlur=0;
+  ctx.fillStyle='rgba(255,255,255,.25)'; ctx.beginPath(); ctx.arc(-r*0.3,-r*0.32,r*0.46,0,TAU); ctx.fill();
+  if(coccoReady){ const w=r*1.55,h=w/AR; ctx.drawImage(cocco,-w/2,-h/2+r*0.05,w,h); }
+  if(sel){ ctx.strokeStyle='#fff'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(0,0,r,0,TAU); ctx.stroke(); }
+  ctx.restore();
+}
+function render(){
+  ctx.clearRect(0,0,W,H);
+  const fever=G.feverT>0;
+  const bg=ctx.createLinearGradient(0,0,0,H);
+  if(fever){ const h=(G.rainbow*60)%360;
+    bg.addColorStop(0,'hsl('+h+',45%,16%)'); bg.addColorStop(1,'hsl('+((h+80)%360)+',45%,9%)'); }
+  else { bg.addColorStop(0,'#1c1230'); bg.addColorStop(.6,'#0f0a1e'); bg.addColorStop(1,'#0a0714'); }
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+  ctx.save(); if(G.shake>0.3) ctx.translate(rnd(-G.shake,G.shake),rnd(-G.shake,G.shake));
+  if(G.state==='play'||G.state==='over'){
+    // chain line
+    if(G.chain.length){ ctx.strokeStyle='rgba(255,255,255,.8)'; ctx.lineWidth=5; ctx.lineCap='round'; ctx.lineJoin='round';
+      ctx.shadowColor='#fff'; ctx.shadowBlur=10; ctx.beginPath();
+      G.chain.forEach((n,i)=>{ const b=grid[n.c][n.r]; i?ctx.lineTo(cx(n.c),b.y):ctx.moveTo(cx(n.c),b.y); }); ctx.stroke(); ctx.shadowBlur=0; }
+    // bubbles
+    for(let c=0;c<COLS;c++) for(let r=0;r<grid[c].length;r++){ const b=grid[c][r];
+      drawBubble(cx(c),b.y,b.col,inChain(c,r),fever); }
+    // chain count near last node
+    if(G.chain.length>=2){ const lastN=G.chain[G.chain.length-1], lb=grid[lastN.c][lastN.r];
+      ctx.fillStyle='#fff'; ctx.font='900 italic '+(16+Math.min(G.chain.length*1.5,22))+'px sans-serif';
+      ctx.textAlign='center'; ctx.shadowColor='#000'; ctx.shadowBlur=6;
+      ctx.fillText(G.chain.length, cx(lastN.c), lb.y-cell*0.62); ctx.shadowBlur=0; }
+    // pops & parts & texts
+    for(const p of pops){ const a=clamp(p.life/p.max,0,1); ctx.globalAlpha=a*0.8; ctx.strokeStyle='#fff'; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r*(1.6-a*0.6),0,TAU); ctx.stroke(); } ctx.globalAlpha=1;
+    for(const p of parts){ const a=clamp(p.life/p.max,0,1); ctx.globalAlpha=a; ctx.fillStyle='rgb('+p.col+')';
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,TAU); ctx.fill(); } ctx.globalAlpha=1;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    for(const t of texts){ const a=clamp(t.life/t.max,0,1); ctx.save(); ctx.globalAlpha=a;
+      ctx.translate(t.x,t.y); const sc=t.big?(1.25-0.25*a):1; ctx.scale(sc,sc);
+      ctx.fillStyle=t.col; ctx.shadowColor=t.col; ctx.shadowBlur=t.big?20:6;
+      ctx.font='900 italic '+t.size+'px sans-serif';
+      if(t.big){ ctx.strokeStyle='rgba(255,255,255,.9)'; ctx.lineWidth=2.5; ctx.strokeText(t.t,0,0); }
+      ctx.fillText(t.t,0,0); ctx.restore(); }
+  }
+  ctx.restore();
+  // HUD
+  if(G.state==='play'){
+    const st=window.__safeTop||0;
+    ctx.fillStyle='#fff'; ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.font='900 28px sans-serif'; ctx.fillText(G.score.toLocaleString(),14,22+st);
+    ctx.font='700 10px sans-serif'; ctx.fillStyle='rgba(255,255,255,.6)'; ctx.fillText('SCORE',14,14+st);
+    // timer
+    const tw=Math.ceil(G.time);
+    ctx.textAlign='center'; ctx.fillStyle=G.time<=10?'#ff5a7a':'#fff';
+    ctx.font='900 '+(G.time<=10?34:28)+'px sans-serif'; ctx.fillText(tw, W/2, 18+st);
+    // fever gauge
+    const gw=Math.min(W*0.5,230), gxp=(W-gw)/2, gy=56+st;
+    ctx.fillStyle='rgba(255,255,255,.13)'; ctx.fillRect(gxp,gy,gw,7);
+    const fr=G.feverT>0? G.feverT/8 : clamp(G.fever/42,0,1);
+    ctx.fillStyle=G.feverT>0?'hsl('+((G.rainbow*120)%360)+',95%,65%)':'#ffd24d';
+    ctx.fillRect(gxp,gy,gw*fr,7);
+    ctx.fillStyle='rgba(255,255,255,.55)'; ctx.font='700 9px sans-serif'; ctx.fillText(G.feverT>0?'FEVER!!':'FEVER',W/2,gy+10);
+  }
+  if(G.flash>0){ ctx.fillStyle='rgba('+G.flashCol+','+clamp(G.flash,0,0.55)+')'; ctx.fillRect(0,0,W,H); }
+}
+
+/* ===== Loop ===== */
+let last=0;
+function loop(ts){ requestAnimationFrame(loop);
+  let dt=(ts-last)/1000; last=ts; if(dt>0.05)dt=0.05; if(!dt)dt=1/60;
+  if(G.state==='play') update(dt);
+  else { for(const p of parts){ p.x+=p.vx; p.y+=p.vy; p.life-=dt; } parts=parts.filter(p=>p.life>0); }
+  render();
+}
+
+/* ===== Input ===== */
+function pos(e){ const t=(e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0]); return t?{x:t.clientX,y:t.clientY}:{x:e.clientX,y:e.clientY}; }
+let pressing=false;
+function down(e){ if(G.state!=='play')return; e.preventDefault(); Sound.init();Sound.resume(); pressing=true;
+  const p=pos(e), n=cellAt(p.x,p.y); if(n) chainStart(n.c,n.r); }
+function move(e){ if(!pressing||G.state!=='play')return; e.preventDefault();
+  const p=pos(e), n=cellAt(p.x,p.y); if(n){ if(!G.chain.length) chainStart(n.c,n.r); else chainTry(n.c,n.r); } }
+function up(){ if(!pressing)return; pressing=false; if(G.state==='play') chainRelease(); }
+cv.addEventListener('mousedown',down); window.addEventListener('mousemove',move); window.addEventListener('mouseup',up);
+cv.addEventListener('touchstart',down,{passive:false}); cv.addEventListener('touchmove',move,{passive:false}); window.addEventListener('touchend',up,{passive:false});
+
+/* ===== Best ===== */
+function loadBest(){ try{ G.best=parseInt(localStorage.getItem('coccoLinkBest')||'0',10)||0; }catch(e){G.best=0;} }
+function saveBest(){ try{ localStorage.setItem('coccoLinkBest',String(G.best)); }catch(e){} }
+
+/* ===== Screens ===== */
+function show(id){ ['titleScreen','howScreen','overScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id)); }
+function hideScreens(){ ['titleScreen','howScreen','overScreen'].forEach(s=>document.getElementById(s).classList.add('hidden')); }
+function uiBtn(id,fn){ const e=document.getElementById(id); if(e) e.onclick=()=>{ Sound.init();Sound.resume();Sound.ui(); fn(); }; }
+uiBtn('startBtn',newGame); uiBtn('retryBtn',newGame);
+uiBtn('howBtn',()=>show('howScreen')); uiBtn('howBack',()=>show('titleScreen'));
+document.getElementById('shareBtn').onclick=async()=>{ Sound.init();Sound.resume();
+  const txt=`コッコリンクで ${G.score.toLocaleString()}点（最大チェーン${G.maxChain}）！なぞって消す60秒パズル🐤 #コッコリンク #畜物語`;
+  const url='https://chikumo.jp/link/';
+  if(navigator.share){ try{ await navigator.share({title:'COCCO LINK',text:txt,url}); return; }catch(e){} }
+  window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(txt)+'&url='+encodeURIComponent(url),'_blank','noopener'); };
+
+let audioOn=true;
+(function(){ const mb=document.getElementById('muteBtn'); if(!mb)return;
+  mb.onclick=()=>{ Sound.init(); audioOn=!audioOn; Sound.setMuted(!audioOn); mb.textContent=audioOn?'🔊':'🔇'; mb.classList.toggle('off',!audioOn);
+    if(audioOn){ Sound.resume(); if(G.state==='play') Sound.startBGM(); } }; })();
+(function(){ const fb=document.getElementById('fsBtn'); if(!fb)return;
+  const de=document.documentElement||{}; const req=de.requestFullscreen||de.webkitRequestFullscreen;
+  const sa=(navigator.standalone)||(window.matchMedia&&window.matchMedia('(display-mode:standalone)').matches); if(sa)fb.style.display='none';
+  fb.onclick=()=>{ Sound.init();Sound.resume(); const fe=document.fullscreenElement||document.webkitFullscreenElement;
+    if(req){ try{ if(!fe){ const p=req.call(de); if(p&&p.catch)p.catch(()=>{}); } else (document.exitFullscreen||document.webkitExitFullscreen).call(document);}catch(e){} }
+    else alert('iPhoneは「共有」→「ホーム画面に追加」で全画面で遊べます'); };
+  document.addEventListener('fullscreenchange',()=>setTimeout(resize,80)); })();
+
+/* ===== Debug hook ===== */
+window.__link={ get state(){return G.state;}, info:()=>({state:G.state,score:G.score,time:+G.time.toFixed(1),
+    chain:G.chain.length,maxChain:G.maxChain,fever:G.fever,feverT:+G.feverT.toFixed(1),feverCount:G.feverCount,best:G.best}),
+  start:newGame, colorAt:(c,r)=>grid[c]&&grid[c][r]?grid[c][r].col:-1, setColor:(c,r,v)=>{ if(grid[c]&&grid[c][r])grid[c][r].col=v; },
+  colCount:(c)=>grid[c]?grid[c].length:0,
+  chainStart:(c,r)=>chainStart(c,r), chainTry:(c,r)=>chainTry(c,r), release:()=>chainRelease(),
+  setFeverGauge:(v)=>{G.fever=v;}, setTime:(v)=>{G.time=v;}, endNow:()=>timeUp() };
+
+/* ===== Boot ===== */
+try{ window.__safeTop=0; }catch(e){ window.__safeTop=0; }
+resize(); loadBest(); show('titleScreen');
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
