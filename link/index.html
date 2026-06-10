@@ -544,14 +544,22 @@ function loop(ts){ requestAnimationFrame(loop);
 
 /* ===== Input ===== */
 function pos(e){ const t=(e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0]); return t?{x:t.clientX,y:t.clientY}:{x:e.clientX,y:e.clientY}; }
-let pressing=false;
+let pressing=false, lastX=0, lastY=0;
+function regAt(x,y){ const n=cellAt(x,y); if(n){ if(!G.chain.length) chainStart(n.c,n.r); else chainTry(n.c,n.r); } }
+function sampleTo(x,y){   // interpolate from last point so fast / off-screen-and-back drags don't skip bubbles
+  const dx=x-lastX, dy=y-lastY, dist=Math.hypot(dx,dy);
+  const steps=Math.max(1, Math.ceil(dist/(cell*0.30)));
+  for(let i=1;i<=steps;i++) regAt(lastX+dx*i/steps, lastY+dy*i/steps);
+  lastX=x; lastY=y;
+}
 function down(e){ if(G.state!=='play')return; e.preventDefault(); Sound.init();Sound.resume(); pressing=true;
-  const p=pos(e), n=cellAt(p.x,p.y); if(n) chainStart(n.c,n.r); }
-function move(e){ if(!pressing||G.state!=='play')return; e.preventDefault();
-  const p=pos(e), n=cellAt(p.x,p.y); if(n){ if(!G.chain.length) chainStart(n.c,n.r); else chainTry(n.c,n.r); } }
+  const p=pos(e); lastX=p.x; lastY=p.y; regAt(p.x,p.y); }
+function move(e){ if(!pressing||G.state!=='play')return; e.preventDefault(); const p=pos(e); sampleTo(p.x,p.y); }
 function up(){ if(!pressing)return; pressing=false; if(G.state==='play') chainRelease(); }
 cv.addEventListener('mousedown',down); window.addEventListener('mousemove',move); window.addEventListener('mouseup',up);
-cv.addEventListener('touchstart',down,{passive:false}); cv.addEventListener('touchmove',move,{passive:false}); window.addEventListener('touchend',up,{passive:false});
+cv.addEventListener('touchstart',down,{passive:false}); cv.addEventListener('touchmove',move,{passive:false});
+window.addEventListener('touchmove',move,{passive:false});   // also catch moves once finger leaves the canvas/edge
+window.addEventListener('touchend',up,{passive:false});
 
 /* ===== Best ===== */
 function loadBest(){ try{ G.best=parseInt(localStorage.getItem('coccoLinkBest')||'0',10)||0; }catch(e){G.best=0;} }
@@ -595,6 +603,10 @@ window.__link={ get state(){return G.state;}, info:()=>({state:G.state,score:G.s
   start:newGame, colorAt:(c,r)=>grid[c]&&grid[c][r]?grid[c][r].col:-1, setColor:(c,r,v)=>{ if(grid[c]&&grid[c][r])grid[c][r].col=v; },
   colCount:(c)=>grid[c]?grid[c].length:0,
   chainStart:(c,r)=>chainStart(c,r), chainTry:(c,r)=>chainTry(c,r), release:()=>chainRelease(),
+  cellXY:(c,r)=>[cx(c),ry(r)],
+  pdown:(x,y)=>down({clientX:x,clientY:y,preventDefault:function(){}}),
+  pmove:(x,y)=>move({clientX:x,clientY:y,preventDefault:function(){}}),
+  pup:()=>up(),
   setFeverGauge:(v)=>{G.fever=v;}, setTime:(v)=>{G.time=v;}, endNow:()=>timeUp() };
 
 /* ===== Boot ===== */

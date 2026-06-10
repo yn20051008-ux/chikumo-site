@@ -80,5 +80,25 @@ ok(global.localStorage.getItem('coccoLinkBest')!==null,'best score saved ('+glob
 R.start(); frames(2);
 ok(R.state==='play' && R.info().score===0,'retry restarts fresh');
 
+// fast drag must not skip bubbles: one big jump from cell0 to cell2 still links 0,1,2
+R.start(); frames(2);
+R.setColor(0,0,2); R.setColor(1,0,2); R.setColor(2,0,2);
+var p0=R.cellXY(0,0), p2=R.cellXY(2,0);
+R.pdown(p0[0],p0[1]);
+R.pmove(p2[0],p2[1]);          // single fast move skipping cell (1,0)
+ok(R.info().chain===3,'fast drag interpolates over skipped bubbles (chain '+R.info().chain+')');
+R.pup();
+
+// drag that leaves the screen and returns still continues the chain
+R.start(); frames(2);
+R.setColor(0,0,3); R.setColor(1,0,3); R.setColor(2,0,3);
+var q0=R.cellXY(0,0), q1=R.cellXY(1,0), q2=R.cellXY(2,0);
+R.pdown(q0[0],q0[1]);
+R.pmove(q1[0],q1[1]);
+R.pmove(-9999,-9999);          // finger slips off-screen
+R.pmove(q2[0],q2[1]);          // and comes back onto cell 2
+ok(R.info().chain===3,'off-screen-and-back keeps linking (chain '+R.info().chain+')');
+R.pup();
+
 console.log('\n'+(fail?(fail+' CHECK(S) FAILED'):'ALL CHECKS PASSED'));
 process.exit(fail?1:0);
