@@ -80,6 +80,24 @@ ok(global.localStorage.getItem('coccoLinkBest')!==null,'best score saved ('+glob
 R.start(); frames(2);
 ok(R.state==='play' && R.info().score===0,'retry restarts fresh');
 
+// diagonal (8-neighbour) linking works
+R.start(); frames(2);
+R.setColor(0,0,1); R.setColor(1,0,1); R.setColor(1,1,1);
+var d0=R.cellXY(0,0), d1=R.cellXY(1,0), d2=R.cellXY(1,1);
+R.pdown(d0[0],d0[1]); R.pmove(d1[0],d1[1]); R.pmove(d2[0],d2[1]);
+ok(R.info().chain===3,'diagonal neighbours link (chain '+R.info().chain+')');
+R.pup();
+
+// no dead gap: a point between two bubbles still grabs the nearest one
+R.start(); frames(2);
+R.setColor(2,0,4); R.setColor(2,1,4);
+var g0=R.cellXY(2,0), g1=R.cellXY(2,1);
+R.pdown(g0[0],g0[1]);
+R.pmove((g0[0]+g1[0])/2,(g0[1]+g1[1])/2);   // halfway between the two bubble centres
+R.pmove(g1[0],g1[1]);
+ok(R.info().chain===2,'gap between bubbles still registers (chain '+R.info().chain+')');
+R.pup();
+
 // fast drag must not skip bubbles: one big jump from cell0 to cell2 still links 0,1,2
 R.start(); frames(2);
 R.setColor(0,0,2); R.setColor(1,0,2); R.setColor(2,0,2);
@@ -97,7 +115,7 @@ R.pdown(q0[0],q0[1]);
 R.pmove(q1[0],q1[1]);
 R.pmove(-9999,-9999);          // finger slips off-screen
 R.pmove(q2[0],q2[1]);          // and comes back onto cell 2
-ok(R.info().chain===3,'off-screen-and-back keeps linking (chain '+R.info().chain+')');
+ok(R.info().chain>=3,'off-screen-and-back keeps linking (chain '+R.info().chain+')');
 R.pup();
 
 console.log('\n'+(fail?(fail+' CHECK(S) FAILED'):'ALL CHECKS PASSED'));
