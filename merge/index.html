@@ -209,20 +209,29 @@ function mergePass(){
   let any=false;
   for(let i=0;i<balls.length;i++){ const a=balls[i]; if(a.dead)continue;
     for(let j=i+1;j<balls.length;j++){ const c=balls[j]; if(c.dead)continue;
-      if(a.lv!==c.lv||a.lv>=NLV-1)continue;
+      if(a.lv!==c.lv)continue;
       const dx=c.x-a.x,dy=c.y-a.y,d=Math.hypot(dx,dy);
-      if(d < (a.r+c.r)+1.5){           // merge on contact (touching) or overlap
-        a.dead=c.dead=true; any=true;
-        const nx=(a.x+c.x)/2, ny=(a.y+c.y)/2, nl=a.lv+1;
-        addBall(nx,ny,nl,(a.vx+c.vx)/2,(a.vy+c.vy)/2-1);
-        const pt=(nl)*(nl+1)*5; G.score+=pt;
-        mergeFX(nx,ny,nl); Sound.merge(nl);
-        if(nl>=NLV-1){ G.score+=2000; Sound.big(); G.flash=0.4; }
-        break;
+      if(d >= (a.r+c.r)+1.5) continue;       // need contact
+      a.dead=c.dead=true; any=true;
+      const nx=(a.x+c.x)/2, ny=(a.y+c.y)/2;
+      if(a.lv>=NLV-1){                        // two biggest -> FIREWORK pop, both vanish
+        G.score+=5000; G.flash=0.6; G.shake=Math.min(G.shake+18,26);
+        fireworkBurst(nx,ny); Sound.big(); setTimeout(()=>Sound.best(),120);
+      } else {
+        const nl=a.lv+1; addBall(nx,ny,nl,(a.vx+c.vx)/2,(a.vy+c.vy)/2-1);
+        G.score+=(nl)*(nl+1)*5; mergeFX(nx,ny,nl); Sound.merge(nl);
+        if(nl>=NLV-1){ G.flash=0.4; Sound.big(); }   // reached the biggest コッコ
       }
+      break;
     }
   }
   if(any) balls=balls.filter(b=>!b.dead);
+}
+function fireworkBurst(x,y){
+  for(let k=0;k<5;k++){ const fx=x+rnd(-cw*0.22,cw*0.22), fy=y+rnd(-cw*0.18,cw*0.18), col=LCOL[Math.floor(rnd(0,LCOL.length))];
+    pops.push({x:fx,y:fy,r:LR[NLV-1]*0.8,life:.6,max:.6});
+    for(let i=0;i<24;i++){ const a=i/24*TAU,s=rnd(2.5,7.5); parts.push({x:fx,y:fy,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.5,1.2),max:1.2,r:rnd(2,5),col:hexRgb(col)}); } }
+  pops.push({t:'+5000 🎆',x,y:y-30,life:1.1,max:1.1,col:'#ffd24d'});
 }
 function physics(dt){
   const steps=2;

@@ -57,6 +57,14 @@ R.forceOver();
 ok(R.state==='over','game over works');
 ok(global.localStorage.getItem('coccoMergeBest')!==null,'best score saved ('+global.localStorage.getItem('coccoMergeBest')+')');
 
+// two max-level coccos pop in fireworks (both vanish, big bonus)
+R.start();
+R.dropAt(R.cx()-2,8); R.dropAt(R.cx()+2,8);
+const sBefore=R.info().score;
+R.step(20);
+ok(R.ballCount()===0,'two max coccos vanish in fireworks ('+R.ballCount()+' left)');
+ok(R.info().score>=sBefore+5000,'firework pop grants big bonus (+'+(R.info().score-sBefore)+')');
+
 R.start();
 ok(R.state==='play','retry restarts');
 
