@@ -108,6 +108,9 @@
   #overScreen .rankbox{display:flex;flex-direction:column;flex:1 1 auto;min-height:0;width:min(94vw,380px);margin-top:8px;}
   #overScreen .ranklist{flex:1 1 auto;min-height:0;max-height:none;width:min(94vw,380px);}
   #overScreen .btn-row{flex:none;margin-top:10px;}
+  #rankScreen{justify-content:flex-start;overflow:hidden;padding-top:calc(env(safe-area-inset-top) + 16px);padding-bottom:calc(env(safe-area-inset-bottom) + 14px);}
+  #rankScreen .ranklist{flex:1 1 auto;min-height:0;max-height:none;width:min(94vw,380px);}
+  #rankScreen .ranktitle.big,#rankScreen #rankBack{flex:none;}
   /* ===== 結果発表「◯位にランクイン！」 ===== */
   .rankin-ov{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;
     background:radial-gradient(ellipse at 50% 44%,rgba(50,24,72,.62),rgba(0,0,0,.84));
@@ -175,8 +178,16 @@
     <div class="sub">コッコリンク</div>
     <div class="desc">同じ色のこっこを <b>なぞってつなげて</b> ポン！<br><b>60秒</b>で何点取れる？ながくつなぐほど高得点。</div>
     <button class="btn" id="startBtn">あそぶ</button>
+    <button class="btn ghost" id="rankBtn">🏆 ランキング</button>
     <button class="btn ghost" id="howBtn">あそびかた</button>
     <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+  </div>
+
+  <!-- RANKING -->
+  <div class="screen hidden" id="rankScreen">
+    <div class="ranktitle big">🏆 ランキング</div>
+    <ol class="ranklist" id="rankListTitle"><li class="rankempty">読み込み中…</li></ol>
+    <button class="btn" id="rankBack">もどる</button>
   </div>
 
   <div class="screen hidden" id="howScreen">
@@ -528,11 +539,13 @@ function loadBest(){ try{ G.best=parseInt(localStorage.getItem('coccoLinkBest')|
 function saveBest(){ try{ localStorage.setItem('coccoLinkBest',String(G.best)); }catch(e){} }
 
 /* ===== Screens ===== */
-function show(id){ ['titleScreen','howScreen','overScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id)); }
-function hideScreens(){ ['titleScreen','howScreen','overScreen'].forEach(s=>document.getElementById(s).classList.add('hidden')); }
+function show(id){ ['titleScreen','howScreen','overScreen','rankScreen'].forEach(s=>document.getElementById(s).classList.toggle('hidden',s!==id)); }
+function hideScreens(){ ['titleScreen','howScreen','overScreen','rankScreen'].forEach(s=>document.getElementById(s).classList.add('hidden')); }
 function uiBtn(id,fn){ const e=document.getElementById(id); if(e) e.onclick=()=>{ Sound.init();Sound.resume();Sound.ui(); fn(); }; }
 uiBtn('startBtn',newGame); uiBtn('retryBtn',newGame);
 uiBtn('howBtn',()=>show('howScreen')); uiBtn('howBack',()=>show('titleScreen'));
+uiBtn('rankBtn',()=>{ show('rankScreen'); if(window.CoccoRank&&window.CoccoRank.onShowRanking) window.CoccoRank.onShowRanking(); });
+uiBtn('rankBack',()=>show('titleScreen'));
 document.getElementById('shareBtn').onclick=async()=>{ Sound.init();Sound.resume();
   const txt=`コッコリンクで ${G.score.toLocaleString()}点（最大チェーン${G.maxChain}）！なぞって消す60秒パズル🐤 #コッコリンク #畜物語`;
   const url='https://chikumo.jp/link/';
@@ -702,7 +715,7 @@ requestAnimationFrame(loop);
   })();
   var sb=$('rankSubmit'); if(sb) sb.addEventListener('click', submit);
   var ni=$('rankName'); if(ni) ni.addEventListener('keydown', function(e){ if(e.key==='Enter') submit(); });
-  window.CoccoRank={ onGameOver:onGameOver, submit:submit };
+  window.CoccoRank={ onGameOver:onGameOver, onShowRanking:function(){ loadTop(['rankListTitle']); }, submit:submit };
 })();
 </script>
 </body>
