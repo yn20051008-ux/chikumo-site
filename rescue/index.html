@@ -194,6 +194,7 @@
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 <div id="wrap">
@@ -1099,6 +1100,7 @@ requestAnimationFrame(loop);
   }); }catch(e){}
   var db; try{ db=firebase.database(); }catch(e){ return; }
   var ref=db.ref('rankings/rescue');
+  var SCORE_CAP=9999999;   // 現実的上限（異常値登録を弾く・ルールでも同値を強制）
   var NAME_KEY='coccoRescueName', UID_KEY='coccoRescueUid', FLAG_KEY='coccoRescueFlag';
   var selFlag='🇯🇵';
   function flagOf(cc){ return cc.replace(/./g,function(c){ return String.fromCodePoint(0x1F1E6+c.charCodeAt(0)-65); }); }
@@ -1107,9 +1109,13 @@ requestAnimationFrame(loop);
   var ALL=['🏳️','🏴','🏁','🇺🇳','🇪🇺'].concat(ALL_CC.map(flagOf));
   var $=function(id){return document.getElementById(id);};
   var pending=null, lastSubmitTs=0;
-  function uid(){ var u; try{ u=localStorage.getItem(UID_KEY); }catch(e){}
-    if(!u){ u='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); try{ localStorage.setItem(UID_KEY,u); }catch(e){} }
-    return u; }
+  // 匿名認証で本物の uid を発行 → ルールで「自分の枠だけ書込可」を強制し、他人の改ざんを防ぐ
+  var myUid=null, authReady=false;
+  function ensureAuth(){ if(!firebase.auth) return; var a; try{ a=firebase.auth(); }catch(e){ return; }
+    a.onAuthStateChanged(function(u){ if(u){ myUid=u.uid; authReady=true; } });
+    if(!a.currentUser){ a.signInAnonymously().catch(function(){}); } }
+  ensureAuth();
+  function uid(){ return myUid; }   // 認証完了まで null
   function esc(s){ return String(s).replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; }); }
   function fmtName(s){ s=(s||'').replace(/\s+/g,' ').trim().slice(0,10); return s||'ななし'; }
   function renderInto(elId, rows){
@@ -1187,13 +1193,15 @@ requestAnimationFrame(loop);
   }
   function submit(){
     if(!pending) return;
+    var msg=$('rankMsg'), btn=$('rankSubmit');
+    if(!uid()){ if(msg) msg.textContent='接続中…数秒後にもう一度押してね'; ensureAuth(); return; }
     var now=Date.now(); if(now-lastSubmitTs<1500) return; lastSubmitTs=now;
     var name=fmtName($('rankName')&&$('rankName').value);
     var flag=selFlag||'🇯🇵';
     try{ localStorage.setItem(NAME_KEY,name); localStorage.setItem(FLAG_KEY,flag); }catch(e){}
-    var score=Math.max(0,Math.min(99999999,Math.floor(pending.score||0)));
-    var rescued=Math.max(0,Math.floor(pending.rescued||0));
-    var msg=$('rankMsg'); var btn=$('rankSubmit'); if(btn) btn.disabled=true;
+    var score=Math.max(0,Math.min(SCORE_CAP,Math.floor(pending.score||0)));
+    var rescued=Math.max(0,Math.min(99999,Math.floor(pending.rescued||0)));
+    if(btn) btn.disabled=true;
     // 1端末1枠・自己ベストのみ保持（同じ端末からの登録は最高スコアだけ更新）
     ref.child(uid()).transaction(function(cur){
       if(cur && (cur.score||0)>=score){ cur.name=name; cur.flag=flag; return cur; }   // 今回が自己ベスト未満→ベスト維持（名前・国旗だけ更新）
@@ -1213,6 +1221,7 @@ requestAnimationFrame(loop);
     loadTop(['rankList']);
     // 登録済みの自己ベストと比較：更新できない時は登録欄を隠す
     var entry=$('rankEntry'); var sc=Math.max(0,Math.floor(score||0));
+    if(!uid()){ if(entry) entry.style.display=''; if(msg) msg.textContent='なまえを入れて登録できます🏆'; return; }
     ref.child(uid()).once('value').then(function(snap){
       var best = snap.exists() ? (+( (snap.val()||{}).score )||0) : -1;
       var canReg = (best<0) || (sc>best);

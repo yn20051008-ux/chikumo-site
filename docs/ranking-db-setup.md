@@ -1,50 +1,62 @@
-# コッコリンク ランキング DB セットアップ手順
+# ランキング（結果発表）DB セットアップ & セキュリティ手順
 
-## 結論：新規データベースは不要です
-コッコリンク（/link/）のオンラインランキング「結果発表」は、**救出ゲーム（/rescue/）と同じ Firebase プロジェクト
-`chikumonogatarikiroku` の Realtime Database をそのまま再利用**します。
-データの保存先だけ分けてあります：
-
-| ゲーム | 保存ノード |
-|---|---|
-| コッコ救出 | `rankings/rescue` |
-| コッコリンク | `rankings/link` |
-
-新しいプロジェクト作成・課金設定・APIキー発行などは**一切不要**です。
-唯一必要なのは「`rankings/link` ノードへの読み書きを許可するセキュリティルールになっているか」の確認だけです。
+対象ゲーム：コッコリンク（/link/）・コッコ救出（/rescue/）
+保存先：既存 Firebase プロジェクト `chikumonogatarikiroku` の Realtime Database
+ノード：リンク=`rankings/link` ／ 救出=`rankings/rescue`（**新規DBは不要**）
 
 ---
 
-## 確認・設定手順（Firebase コンソール）
+## ⚠️ 重要：脆弱性対策のため、下の 2 ステップを必ず実施してください
 
-1. https://console.firebase.google.com/ を開く
-2. プロジェクト **chikumonogatarikiroku** を選択
-3. 左メニュー **構築 → Realtime Database** を開く
-4. 上部タブ **ルール（Rules）** を開く
-5. すでに `rankings` 配下が読み書き許可になっていれば**そのままでOK**（救出が動いているなら大抵このケース）。
-   不安な場合や、救出専用ルールになっている場合は、下の「推奨ルール」を貼り付けて **公開（Publish）** を押す
+旧版は「誰でも直接書き込み可能」で、コンソール/REST から **他人の記録の上書き・削除・任意スコア登録** ができる状態でした。
+新版クライアントは **匿名認証(Anonymous Auth)** で本物の `uid` を取得して送信するように変更済みです。
+これを活かすため、Firebase 側で以下を設定してください。**未設定だと新版では登録ができません**（閲覧は可能）。
+
+### ステップ1：匿名認証を有効化（必須）
+1. https://console.firebase.google.com/ → プロジェクト **chikumonogatarikiroku**
+2. 左メニュー **構築 → Authentication** → **ログイン方法（Sign-in method）**
+3. **匿名（Anonymous）** を選び **有効にする → 保存**
+
+### ステップ2：セキュリティルールを公開（必須）
+1. 左メニュー **構築 → Realtime Database → ルール（Rules）**
+2. 下の「強化ルール」を貼り付けて **公開（Publish）**
 
 ---
 
-## 推奨ルール（救出・リンク 両対応・コピペ用）
+## 強化ルール（コピペ用）
 
-`rankings/<ゲーム名>/<端末ID>` 単位で、1端末1枠・自己ベストのみ更新できる安全なルールです。
-（救出ぶんの `rankings/rescue` もそのまま動きます）
+これにより防げること：
+- ✅ **他人の枠の書き換え・なりすまし**（`auth.uid === $uid` の自分の枠だけ書込可）
+- ✅ **ランキングノードごと削除・破壊**（`rankings` / 各ゲーム直下に書込権限なし）
+- ✅ **自分のスコアを下げる改ざん**（`newData.score >= data.score` の単調増加のみ）
+- ✅ **異常値・不正な型・余計なフィールド**（型・範囲・上限チェック、未知キー拒否）
+- ✅ link/rescue 以外の勝手なノード作成（明示ノードのみ許可）
 
 ```json
 {
   "rules": {
     "rankings": {
       ".read": true,
-      "$game": {
+      "link": {
         "$uid": {
-          ".write": true,
+          ".write": "auth != null && auth.uid === $uid && (!data.exists() || newData.child('score').val() >= data.child('score').val())",
           ".validate": "newData.hasChildren(['name','score'])",
           "name":  { ".validate": "newData.isString() && newData.val().length <= 16" },
           "flag":  { ".validate": "newData.isString() && newData.val().length <= 16" },
-          "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99999999" },
-          "chain": { ".validate": "newData.isNumber() && newData.val() >= 0" },
-          "rescued": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 200000" },
+          "chain": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999" },
+          "ts":    { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        }
+      },
+      "rescue": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && (!data.exists() || newData.child('score').val() >= data.child('score').val())",
+          ".validate": "newData.hasChildren(['name','score'])",
+          "name":  { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "flag":  { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999999" },
+          "rescued": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99999" },
           "ts":    { ".validate": "newData.isNumber()" },
           "$other": { ".validate": false }
         }
@@ -54,23 +66,35 @@
 }
 ```
 
-※既存のルールに他の項目（別機能）がある場合は、上記の `"rankings": { ... }` ブロックだけを既存ルールにマージしてください（丸ごと置き換えると他機能が消えます）。
+※他機能のルールが既存にある場合は、`"rankings"` ブロックだけをマージしてください（丸ごと置換しない）。
+
+---
+
+## 正直な限界と、さらに強くする手段
+
+上記で「他人の妨害・破壊・異常値」はほぼ防げますが、
+**「自分の枠に、許容範囲内の偽スコアを書く（自己水増し）」は静的サイト単独では完全には防げません**
+（ゲームがブラウザ＝クライアントだけで完結しているため、改造クライアントは作れてしまう）。
+
+完全防止が必要な場合は、以下のいずれかをご検討ください（必要なら実装します）。
+
+### A. App Check（reCAPTCHA）で「正規サイト以外からの書き込み」を遮断（中コスト・効果大）
+1. Firebase コンソール → **App Check** → ウェブアプリに **reCAPTCHA v3** を登録（サイトキー取得）
+2. Realtime Database を **App Check 必須(enforce)** に設定
+3. 各ゲームの `<head>` に App Check 初期化を追加（サイトキーをいただければ組み込みます）
+→ ブラウザのコンソールや bot からの直書きを大幅に抑止できます。
+
+### B. Cloud Functions でサーバー検証（高コスト・最も堅牢）
+- スコア送信を Functions 経由にし、サーバー側で妥当性（プレイ時間・リプレイ署名・上限）を検証してから書き込む。
+- Realtime DB の直書きは全面禁止にし、Functions(管理者権限)だけが書ける構成。
+- Firebase の従量課金(Blaze)プランが必要。要望があれば関数のひな型と手順を用意します。
 
 ---
 
 ## 動作テスト
-1. https://chikumo.jp/link/ を開いてプレイ → タイムアップ後の画面で「なまえ」を入れて **ランキング登録**
-2. 「登録しました！🏆」と表示され、「◯位にランクイン！」の結果発表演出が出れば成功
-3. 別端末／別ブラウザで開くと、同じランキングが共有表示される
+1. （上記2ステップ実施後）https://chikumo.jp/link/ または /rescue/ をプレイ → 結果画面で名前を入れて「ランキング登録」
+2. 「登録しました！🏆」＋「◯位にランクイン！」が出れば成功
+3. 別端末でも同じランキングが見える
+4. 検証：ブラウザのコンソールから他人の枠へ `set()` を試す → `permission_denied` で**拒否される**ことを確認
 
-うまくいかない時は、ブラウザのコンソール（F12）に Firebase の `permission_denied` が出ていないか確認 → 出ていれば上記ルールを公開してください。
-
----
-
-## 補足：別プロジェクトで運用したい場合（任意）
-ランキングを救出と完全に分離したい等で**新しい Firebase プロジェクト**を使う場合のみ、以下が必要です：
-1. Firebase コンソールで新規プロジェクト作成 → Realtime Database を作成（ロケーションは asia-southeast1 等）
-2. プロジェクト設定 → 「ウェブアプリを追加」で `firebaseConfig`（apiKey/databaseURL など）を取得
-3. `link/index.html` 内の `firebase.initializeApp({...})` の値を新しい config に差し替え
-4. 上記「推奨ルール」を公開
-※基本は不要です。既存プロジェクト再利用を推奨します。
+うまく登録できない場合：コンソール(F12)に `permission_denied` が出ていれば、上の2ステップ（特に匿名認証の有効化）が未完了です。
