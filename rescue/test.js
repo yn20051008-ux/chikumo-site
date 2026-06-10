@@ -52,6 +52,7 @@ for(let shot=0; shot<80 && R.phase!=='over'; shot++){
   // resolve this shot: run frames until back to aim or over (cap), settle if stuck
   let guard=0;
   while(R.phase==='shoot' && guard++<200){ frames(1); if(guard===180) R.settle(); }
+  { let s=0; while((R.phase==='shift'||R.freezeT()>0) && s++<120) frames(1); }  // ride out any 全消し celebration freeze
   frames(2);
   const inf=R.info();
   if(inf.score>0) sawScore=true;
@@ -74,6 +75,8 @@ for(const id of ['fire','thunder','split','pierce','giant']){
   R.fire(-Math.PI/2 + (Math.random()*0.6-0.3));
   ok(R.getSpecial()===null,'special "'+id+'" consumed on launch');
   let g=0; while(R.phase==='shoot' && g++<240){ frames(1); if(g===200) R.settle(); }
+  // a board clear adds a ~0.8s celebration freeze (phase stays 'shift') — wait it out
+  let s=0; while((R.phase==='shift'||R.freezeT()>0) && s++<120) frames(1);
   frames(2);
   ok(R.phase==='aim'||R.phase==='over','special "'+id+'" resolves the turn cleanly');
 }
@@ -84,9 +87,77 @@ R.setSpecial('fire'); R.setSpecial('giant');
 ok(R.queue()===2,'two rescues queue two special charges');
 R.fire(-Math.PI/2);
 ok(R.queue()===1,'first shot consumes one charge (one left)');
-let q=0; while(R.phase==='shoot' && q++<240){ frames(1); if(q===200) R.settle(); } frames(2);
+let q=0; while(R.phase==='shoot' && q++<240){ frames(1); if(q===200) R.settle(); }
+{ let s=0; while((R.phase==='shift'||R.freezeT()>0) && s++<120) frames(1); } frames(2);
 if(R.phase==='aim'){ R.fire(-Math.PI/2); ok(R.queue()===0,'second shot consumes the remaining charge'); }
 else ok(true,'second charge retained until next shot');
+
+// power tiers ramp by reflection count: 10->2, 20->3, 30->4, 40->5, 50->6 (爆破波動)
+ok(R.tierFor(0)===1 && R.tierFor(9)===1,'below 10 reflections stays power 1');
+ok(R.tierFor(10)===2,'10 reflections -> power 2');
+ok(R.tierFor(20)===3,'20 reflections -> power 3');
+ok(R.tierFor(30)===4,'30 reflections -> power 4');
+ok(R.tierFor(40)===5,'40 reflections -> power 5');
+ok(R.tierFor(50)===6 && R.tierFor(99)===6,'50+ reflections -> power 6 (爆破波動)');
+
+// default ball grows +1px per 10 rescued; at MAX it wraps to base size & power+1
+R.start(); frames(2);
+const base=R.baseR(); const span=R.growSteps(); const per=(span+1)*10;
+R.setRescued(0);        ok(Math.abs(R.ballR()-base)<1e-9 && R.ballPower()===1,'0 rescued -> base size, power 1');
+R.setRescued(10);       ok(Math.abs(R.ballR()-(base+1))<1e-9,'10 rescued -> base +1px');
+R.setRescued(40);       ok(Math.abs(R.ballR()-(base+4))<1e-9,'40 rescued -> base +4px');
+R.setRescued(span*10);  ok(Math.abs(R.ballR()-(base+span))<1e-9 && R.ballPower()===1,'reaching MAX size, still power 1');
+R.setRescued(per);      ok(Math.abs(R.ballR()-base)<1e-9 && R.ballPower()===2,'past MAX wraps to base size & power 2');
+R.setRescued(per+span*10); ok(Math.abs(R.ballR()-(base+span))<1e-9 && R.ballPower()===2,'cycle 2 grows back to MAX, power 2');
+R.setRescued(per*2);    ok(Math.abs(R.ballR()-base)<1e-9 && R.ballPower()===3,'second wrap -> base size & power 3');
+
+// perfect clear: emptying the board pops a 3-こっこ bonus
+R.start(); frames(2);
+let pr0=R.info().rescued, ps0=R.info().score;
+R.perfectClear();
+ok(R.info().rescued===pr0+3,'perfect-clear bonus rescues 3 こっこ');
+ok(R.info().score>ps0+500,'perfect-clear bonus adds score');
+ok(R.bonusCount()===3,'3 bonus こっこ fly out');
+
+// integration: clearing every block at turn end triggers the bonus
+R.start(); frames(2);
+R.clearBlocks();
+const ir=R.info().rescued;
+R.fire(-Math.PI/2);
+let pg=0; while(R.phase==='shoot' && pg++<420){ frames(1); if(pg===400) R.settle(); }
+frames(3);
+ok(R.info().rescued>=ir+3,'clearing the whole board grants the perfect bonus on turn end');
+ok(R.freezeT()>0.5,'全消しで約0.8秒のお祝い停止に入る');
+let pf=0; while(R.freezeT()>0 && pf++<90) frames(1); frames(3);
+ok(R.info().blocks>0,'お祝い停止のあと新しい行が出る');
+
+// 50th reflection (火力6) cinematic: freeze ~1s, show 「加速」, then accelerate
+R.start(); frames(2);
+const d50=R.accelTo50();
+ok(d50===6,'50th reflection reaches 火力6');
+ok(R.freezeT()>0.55,'50th reflection freezes time (~0.7s)');
+ok(R.bigName()==='加速','「加速」 cinematic text appears');
+frames(30); ok(R.freezeT()>0,'still frozen mid-cinematic');
+frames(60); ok(R.freezeT()===0,'freeze releases (~0.7s) then accelerates');
+ok(R.ballDmg()>=15,'after 加速 the ball becomes a piercing meteor (火力'+R.ballDmg()+')');
+ok(R.testPierceKill()===true,'加速メテオ destroys any block it pierces, ignoring HP');
+ok(R.testBoostBudget()===8,'加速メテオ vanishes after a capped 8 reflections ('+R.testBoostBudget()+')');
+{ const ob=R.testOnlyOneBoosted(); ok(ob.self&&!ob.other,'only the 50-reflection ball boosts; other balls stay normal'); }
+{ const cf=R.testChainFreeze(); ok(cf[0]===0.3&&cf[1]===0.3&&cf[2]===0.7,'3連続加速は 0.3→0.3→0.7 で停止 ('+cf.join(',')+')'); }
+ok(R.testIsoFreeze()===0.7,'単発（バラバラ）加速は通常の0.7秒停止');
+{ const sk=R.testInstantSkip();
+  ok(sk.gained===3 && sk.balls===0 && sk.phase==='shift' && sk.frozen,
+     '全消しした瞬間にお祝いへスキップ（球即消去＋3羽＋停止） ('+JSON.stringify(sk)+')'); }
+
+// the freeze actually halts ball physics (movement is fixed-step, not dt-scaled)
+R.start(); frames(2);
+R.fire(-Math.PI/2);
+let gg=0; while(R.phase==='shoot' && !R.ballPos() && gg++<30) frames(1);
+const bp1=R.ballPos();
+if(bp1 && R.phase==='shoot'){
+  R.setFreeze(1.0); frames(12); const bp2=R.ballPos();
+  ok(bp2 && Math.abs(bp1.x-bp2.x)<1e-6 && Math.abs(bp1.y-bp2.y)<1e-6,'ball is frozen in place during the 1s stop');
+} else ok(true,'(ball not in play to sample freeze — skipped)');
 
 console.log('\nframes run: '+frame+'   '+(fail?(fail+' CHECK(S) FAILED'):'ALL CHECKS PASSED'));
 process.exit(fail?1:0);

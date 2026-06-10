@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>コッコ・インベーダー ─ COCCO INVADERS｜懐かしの固定画面シューティング</title>
+<meta name="description" content="あの頃のゲームセンターがポケットに。隊列で迫る侵略者を撃ち落とせ。こっこちゃんを操作する無料レトロ・インベーダーゲーム。通勤電車のヒマつぶしに。">
+<meta name="author" content="畜物語">
+<meta name="robots" content="index, follow">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#000000">
+<meta name="format-detection" content="telephone=no">
+<link rel="canonical" href="https://chikumo.jp/invaders/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chikumo.jp/invaders/">
+<meta property="og:title" content="コッコ・インベーダー ─ COCCO INVADERS">
+<meta property="og:description" content="隊列で迫る侵略者を撃ち落とせ。懐かしの固定画面シューティング。">
+<meta property="og:image" content="https://chikumo.jp/ogp.png">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="畜物語">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="コッコ・インベーダー ─ COCCO INVADERS">
+<meta name="twitter:description" content="隊列で迫る侵略者を撃ち落とせ。懐かしの固定画面シューティング。">
+<meta name="twitter:image" content="https://chikumo.jp/ogp.png">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="コッコ・インベーダー">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#000;
+    font-family:'Courier New',ui-monospace,Menlo,Consolas,monospace;
+    user-select:none;-webkit-user-select:none;color:#7CFFB0;touch-action:none;}
+  #wrap{position:fixed;inset:0;background:#000;}
+  canvas{display:block;width:100%;height:100%;}
+  /* CRT scanlines + vignette overlay */
+  #crt{position:fixed;inset:0;z-index:5;pointer-events:none;
+    background:
+      repeating-linear-gradient(0deg,rgba(0,0,0,0) 0 2px,rgba(0,0,0,.28) 2px 3px),
+      radial-gradient(ellipse at 50% 50%,rgba(0,0,0,0) 56%,rgba(0,0,0,.55) 100%);
+    mix-blend-mode:multiply;animation:flick 5.5s steps(60) infinite;}
+  @keyframes flick{0%,97%,100%{opacity:1}98%{opacity:.86}99%{opacity:.95}}
+  .ctrlbtn{position:absolute;z-index:12;pointer-events:auto;border-radius:6px;display:flex;align-items:center;justify-content:center;
+    border:2px solid rgba(124,255,176,.4);background:rgba(8,28,16,.6);color:#7CFFB0;cursor:pointer;width:40px;height:40px;font-size:17px;}
+  .ctrlbtn:active{transform:scale(.92);} .ctrlbtn.off{opacity:.45;}
+  #muteBtn{top:calc(10px + env(safe-area-inset-top));right:calc(58px + env(safe-area-inset-right));}
+  #fsBtn{top:calc(10px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));}
+  .screen{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:24px;overflow-y:auto;
+    background:radial-gradient(ellipse at 50% 42%,rgba(6,30,16,.82),rgba(0,0,0,.96));}
+  .screen.hidden{display:none;}
+  .hero{width:min(30vw,128px);height:auto;margin-bottom:10px;filter:drop-shadow(0 0 18px rgba(124,255,176,.55));
+    animation:fl 2.8s ease-in-out infinite;image-rendering:auto;}
+  @keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
+  .logo{font-size:11.5vw;line-height:.96;font-weight:900;letter-spacing:.04em;color:#8CFFC0;
+    text-shadow:0 0 8px rgba(124,255,176,.9),0 0 22px rgba(60,255,140,.5);max-width:12ch;}
+  .logo.small{font-size:7.5vw;max-width:none;}
+  .sub{margin-top:8px;font-size:13px;letter-spacing:.5em;color:#7CFFB0;opacity:.85;}
+  .desc{margin-top:18px;font-size:13px;line-height:1.95;opacity:.9;max-width:340px;}
+  .desc b{color:#FFE14D;text-shadow:0 0 8px rgba(255,225,77,.6);}
+  .row-icons{display:flex;gap:18px;align-items:flex-end;justify-content:center;margin-top:16px;opacity:.95;}
+  .row-icons figure{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:11px;color:#7CFFB0;letter-spacing:.1em;}
+  .row-icons canvas{width:42px;height:32px;}
+  .btn{pointer-events:auto;margin-top:22px;padding:15px 46px;font-size:18px;font-weight:900;letter-spacing:.18em;border:2px solid #7CFFB0;border-radius:8px;cursor:pointer;
+    color:#001a0c;background:linear-gradient(180deg,#9affc4,#3ff58a);
+    box-shadow:0 0 22px rgba(80,255,150,.45),inset 0 1px 0 rgba(255,255,255,.5);transition:transform .08s;}
+  .btn:active{transform:translateY(2px) scale(.98);}
+  .btn.ghost{background:rgba(124,255,176,.06);color:#bfffd9;border-color:rgba(124,255,176,.45);box-shadow:none;font-size:14px;padding:12px 26px;margin-top:12px;}
+  .btn-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:14px;}
+  .score-final{margin-top:16px;font-size:13px;letter-spacing:.22em;opacity:.85;}
+  .score-final .v{font-size:54px;font-weight:900;color:#fff;display:block;font-variant-numeric:tabular-nums;text-shadow:0 0 20px rgba(124,255,176,.85);}
+  .nb{margin-top:8px;font-size:12px;color:#FFE14D;letter-spacing:.2em;opacity:0;text-shadow:0 0 8px rgba(255,225,77,.6);}
+  .stat2{margin-top:10px;font-size:12px;opacity:.75;letter-spacing:.14em;}
+  .hint{margin-top:22px;font-size:12px;opacity:.66;letter-spacing:.08em;line-height:1.9;}
+  .credit{margin-top:18px;font-size:11px;letter-spacing:.22em;opacity:.55;}
+  .credit a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(124,255,176,.3);}
+  a{pointer-events:auto;}
+  .blink{animation:bl 1s steps(2) infinite;}
+  @keyframes bl{0%,50%{opacity:1}51%,100%{opacity:.15}}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game"></canvas>
+  <div class="ctrlbtn" id="muteBtn">🔊</div>
+  <div class="ctrlbtn" id="fsBtn">⛶</div>
+
+  <div class="screen" id="titleScreen">
+    <img class="hero" src="/chikumo.svg" alt="こっこちゃん">
+    <div class="logo">COCCO<br>INVADERS</div>
+    <div class="sub">コッコ・インベーダー</div>
+    <div class="desc">隊列で迫る <b>侵略者</b> を撃ち落とせ。<br>こっこちゃんが地上の最後の砲台だ。</div>
+    <button class="btn" id="startBtn">あそぶ</button>
+    <button class="btn ghost" id="howBtn">あそびかた</button>
+    <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+  </div>
+
+  <div class="screen hidden" id="howScreen">
+    <div class="logo small">あそびかた</div>
+    <div class="desc" style="max-width:380px;text-align:left;">
+      ◆ 画面を <b>左右にドラッグ</b> してこっこ砲台を動かす。<br><br>
+      ◆ 弾は <b>自動連射</b>。狙いを定めて避けながら撃つだけ。<br><br>
+      ◆ 上段の侵略者ほど <b>高得点</b>。たまに横切る <b>UFO</b> はボーナス。<br><br>
+      ◆ 全滅させると次のウェーブ。隊列は減るほど <b>速く</b> なる。<br><br>
+      ◆ トーチカ（バリア）に隠れて敵弾をしのげ。ミス3回で終了。
+    </div>
+    <div class="hint" style="opacity:.7">PCは ← → で移動、スペースで発射</div>
+    <button class="btn" id="howBack">もどる</button>
+  </div>
+
+  <div class="screen hidden" id="overScreen">
+    <div class="logo small" id="overTitle">GAME OVER</div>
+    <div class="score-final">SCORE<span class="v" id="finalScore">0</span></div>
+    <div class="stat2" id="statLine">ウェーブ 1 ／ 撃墜 0</div>
+    <div class="nb" id="newBest">★ ハイスコア更新！ ★</div>
+    <div class="score-final" style="font-size:11px;opacity:.75;margin-top:8px;">HI-SCORE <span id="bestLine" style="font-size:18px">0</span></div>
+    <div class="btn-row">
+      <button class="btn" id="retryBtn">もう一度</button>
+      <button class="btn ghost" id="shareBtn">スコアを共有</button>
+    </div>
+    <div class="hint">タップですぐ再挑戦</div>
+    <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+  </div>
+</div>
+<div id="crt"></div>
+
+<script>
+"use strict";
+(function(){
+const cv=document.getElementById('game'), ctx=cv.getContext('2d');
+const BEST_KEY='coccoInvadersBest';
+let W=0,H=0,DPR=1;
+
+// ---- layout (recomputed on resize) ----
+const COLS=11, ROWS=5, TOTAL=COLS*ROWS;
+let SM=16, topHUD=64, gridW=0, cellW=40, cellH=44, invBox=30;
+let playerW=46, playerH=58, playerY=0, bunkerY=0, invasionY=0, safeTop=0, safeBottom=0;
+function resize(){
+  DPR=Math.min(window.devicePixelRatio||1,2);
+  W=window.innerWidth; H=window.innerHeight;
+  cv.width=Math.floor(W*DPR); cv.height=Math.floor(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  safeTop=0; safeBottom=0;
+  topHUD=Math.max(54, Math.min(74, H*0.085));
+  SM=Math.max(12, W*0.05);
+  gridW=W-2*SM;
+  cellW=gridW/COLS;
+  invBox=cellW*0.78;
+  cellH=invBox*1.18;
+  playerH=Math.max(40, Math.min(64, W*0.13));
+  const ratio=(cocco.naturalWidth&&cocco.naturalHeight)?(cocco.naturalWidth/cocco.naturalHeight):0.764;
+  playerW=playerH*ratio;
+  playerY=H - safeBottom - 26 - playerH;
+  bunkerY=playerY - Math.max(78, H*0.12);
+  invasionY=playerY - 4;
+  if(player.x===0) player.x=W/2;
+  player.x=clampPlayer(player.x);
+  layoutBunkers();
+  clampFormation();
+}
+// Keep the live formation on-screen and above the invasion line after a resize
+// or orientation change, so the new geometry can't teleport invaders off the
+// edge or past the cannon and trigger an instant game over.
+function clampFormation(){
+  if(!invaders.length) return;
+  let minC=COLS, maxC=-1, maxR=-1;
+  for(let i=0;i<invaders.length;i++){ const a=invaders[i]; if(!a.alive) continue;
+    if(a.col<minC)minC=a.col; if(a.col>maxC)maxC=a.col; if(a.row>maxR)maxR=a.row; }
+  if(maxC<0) return;
+  const minX=SM - minC*cellW, maxX=(W-SM) - (maxC*cellW+invBox);
+  if(maxX>=minX) form.x=Math.max(minX, Math.min(maxX, form.x));
+  const maxY=invasionY - (maxR+1)*cellH - 6;
+  if(form.y>maxY) form.y=maxY;
+}
+
+// ---- classic invader bitmaps (two animation frames each) ----
+const SQUID=[[ // 30 pts (top row)
+  "..X..X..",
+  "...XX...",
+  "..XXXX..",
+  ".XX..XX.",
+  "XXXXXXXX",
+  "X.XXXX.X",
+  "X.X..X.X",
+  "..X..X.."],[
+  "..X..X..",
+  "X..XX..X",
+  "X.XXXX.X",
+  "XXX..XXX",
+  "XXXXXXXX",
+  ".XXXXXX.",
+  "..X..X..",
+  ".X.XX.X."]];
+const CRAB=[[ // 20 pts (middle rows)
+  "..X.....X..",
+  "...X...X...",
+  "..XXXXXXX..",
+  ".XX.XXX.XX.",
+  "XXXXXXXXXXX",
+  "X.XXXXXXX.X",
+  "X.X.....X.X",
+  "...XX.XX..."],[
+  "..X.....X..",
+  "X..X...X..X",
+  "X.XXXXXXX.X",
+  "XXX.XXX.XXX",
+  "XXXXXXXXXXX",
+  ".XXXXXXXXX.",
+  "..X.....X..",
+  ".X.......X."]];
+const OCTO=[[ // 10 pts (bottom rows)
+  "....XXXX....",
+  ".XXXXXXXXXX.",
+  "XXXXXXXXXXXX",
+  "XXX..XX..XXX",
+  "XXXXXXXXXXXX",
+  "...XX..XX...",
+  "..XX.XX.XX..",
+  "XX........XX"],[
+  "....XXXX....",
+  ".XXXXXXXXXX.",
+  "XXXXXXXXXXXX",
+  "XXX..XX..XXX",
+  "XXXXXXXXXXXX",
+  "..XXX..XXX..",
+  ".XX..XX..XX.",
+  "..X......X.."]];
+const KIND=[ {bmp:SQUID,pts:30,col:'#8CFFC0'},
+             {bmp:CRAB ,pts:20,col:'#7CE0FF'},
+             {bmp:OCTO ,pts:10,col:'#C8A6FF'} ];
+function rowKind(r){ return r===0?0 : (r<=2?1:2); }
+
+// ---- state ----
+const G={ state:'title', score:0, best:+(safeGet(BEST_KEY)||0), lives:3, wave:1, kills:0, animFrame:0, newBest:false };
+let invaders=[], pBullets=[], eBullets=[], particles=[], bunkers=[], ufo=null;
+const player={ x:0, vx:0, invul:0, dead:0 };
+let form={ x:0, y:0, dir:1, beat:0, beatMax:0.6 };
+let bombTimer=1.2, ufoTimer=12, clearTimer=0, fireCooldown=0;
+let stars=[];
+
+function safeGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function safeSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+function clampPlayer(x){ const min=SM+playerW/2, max=W-SM-playerW/2; return Math.max(min,Math.min(max,x)); }
+function aliveCount(){ let n=0; for(let i=0;i<invaders.length;i++) if(invaders[i].alive) n++; return n; }
+
+// ---- audio (retro bleeps) ----
+let AC=null, audioOn=true, master=null;
+function initAudio(){ if(AC) return; try{ AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain(); master.gain.value=0.5; master.connect(AC.destination); }catch(e){ AC=null; } }
+function beep(freq,dur,type,vol){ if(!audioOn||!AC) return; try{
+  const o=AC.createOscillator(), g=AC.createGain(); o.type=type||'square';
+  o.frequency.setValueAtTime(freq,AC.currentTime);
+  g.gain.setValueAtTime(0,AC.currentTime);
+  g.gain.linearRampToValueAtTime(vol||0.25,AC.currentTime+0.005);
+  g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+(dur||0.12));
+  o.connect(g); g.connect(master); o.start(); o.stop(AC.currentTime+(dur||0.12)+0.02);
+}catch(e){} }
+function sweep(f0,f1,dur,type,vol){ if(!audioOn||!AC) return; try{
+  const o=AC.createOscillator(), g=AC.createGain(); o.type=type||'sawtooth';
+  o.frequency.setValueAtTime(f0,AC.currentTime);
+  o.frequency.exponentialRampToValueAtTime(Math.max(40,f1),AC.currentTime+dur);
+  g.gain.setValueAtTime(vol||0.22,AC.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+dur);
+  o.connect(g); g.connect(master); o.start(); o.stop(AC.currentTime+dur+0.02);
+}catch(e){} }
+const STEP_NOTES=[110,98,87,82]; let stepIdx=0;
+function sndStep(){ beep(STEP_NOTES[stepIdx%4],0.08,'square',0.16); stepIdx++; }
+function sndShoot(){ sweep(880,1600,0.10,'square',0.14); }
+function sndKill(){ sweep(420,90,0.20,'sawtooth',0.22); }
+function sndHit(){ sweep(300,40,0.5,'sawtooth',0.30); }
+function sndUfo(){ beep(1200,0.05,'square',0.10); }
+
+// ---- cocco sprite ----
+const cocco=new Image(); let coccoReady=false; cocco.onload=()=>{ coccoReady=true; resize(); }; cocco.src='/chikumo.svg';
+
+// ---- build ----
+function buildInvaders(){
+  invaders=[];
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    invaders.push({ col:c, row:r, kind:rowKind(r), pts:KIND[rowKind(r)].pts, alive:true });
+  }
+}
+function newWave(w){
+  G.wave=w;
+  buildInvaders();
+  form.dir=1; form.beat=0;
+  form.x=SM + cellW*0.10;
+  form.y=topHUD + safeTop + 18 + Math.min(w-1,7)*cellH*0.5;
+  bombTimer=Math.max(0.5, 1.4-w*0.08);
+  ufoTimer=8+Math.random()*10;   // fresh mystery-ship delay each wave
+  ufo=null;
+  layoutBunkers(); // refresh barriers each wave for fairness
+}
+function reset(){
+  G.score=0; G.lives=3; G.kills=0; G.newBest=false; G.wave=1;
+  pBullets=[]; eBullets=[]; particles=[]; ufo=null;
+  player.x=W/2; player.invul=1.0; player.dead=0;
+  fireCooldown=0; ufoTimer=10+Math.random()*8; clearTimer=0;
+  newWave(1);
+}
+function start(){
+  initAudio(); if(AC&&AC.state==='suspended'){ try{AC.resume();}catch(e){} }
+  reset(); G.state='play';
+  showScreen(null);
+}
+
+// ---- bunkers (destructible barriers) ----
+function layoutBunkers(){
+  bunkers=[];
+  const n=4;
+  const bc=Math.max(4, Math.round(invBox/7));   // block cell size
+  const bw=bc*14, bh=bc*10;
+  const span=gridW - bw;
+  for(let i=0;i<n;i++){
+    const bx=SM + (n===1?span/2:(span*i/(n-1)));
+    const by=bunkerY;
+    const cols=Math.round(bw/bc), rows=Math.round(bh/bc);
+    const cells=new Uint8Array(cols*rows);
+    for(let ry=0;ry<rows;ry++) for(let rx=0;rx<cols;rx++){
+      let on=1;
+      // round top corners
+      if(ry<rows*0.28 && (rx<rows*0.28-ry || rx>cols-1-(rows*0.28-ry))) on=0;
+      // bottom-center arch (doorway)
+      const archW=cols*0.34, archH=rows*0.42;
+      if(ry>rows-archH && Math.abs(rx-(cols-1)/2)<archW/2*((ry-(rows-archH))/archH)) on=0;
+      cells[ry*cols+rx]=on;
+    }
+    bunkers.push({x:bx,y:by,cols:cols,rows:rows,bc:bc,cells:cells});
+  }
+}
+function erodeBunker(b,px,py,rad){
+  const cx=Math.floor((px-b.x)/b.bc), cy=Math.floor((py-b.y)/b.bc);
+  let hitAny=false;
+  for(let dy=-rad;dy<=rad;dy++) for(let dx=-rad;dx<=rad;dx++){
+    const x=cx+dx, y=cy+dy;
+    if(x<0||y<0||x>=b.cols||y>=b.rows) continue;
+    if(dx*dx+dy*dy>rad*rad+1) continue;
+    if(b.cells[y*b.cols+x]){ b.cells[y*b.cols+x]=0; hitAny=true; }
+  }
+  return hitAny;
+}
+function bunkerHit(px,py,rad){
+  for(let i=0;i<bunkers.length;i++){
+    const b=bunkers[i];
+    if(px<b.x-2||px>b.x+b.cols*b.bc+2||py<b.y-2||py>b.y+b.rows*b.bc+2) continue;
+    const cx=Math.floor((px-b.x)/b.bc), cy=Math.floor((py-b.y)/b.bc);
+    if(cx<0||cy<0||cx>=b.cols||cy>=b.rows) continue;
+    if(b.cells[cy*b.cols+cx]){ erodeBunker(b,px,py,rad); return true; }
+  }
+  return false;
+}
+
+// ---- invader geometry ----
+function invX(a){ return form.x + a.col*cellW; }
+function invY(a){ return form.y + a.row*cellH; }
+
+// ---- player firing ----
+function firePlayer(force){
+  if(!force){
+    if(fireCooldown>0) return;
+    if(pBullets.length>=2) return;
+  }
+  pBullets.push({ x:player.x, y:playerY-2, vy:-Math.max(620, H*0.95) });
+  fireCooldown=0.28; sndShoot();
+}
+function dropBomb(a, x, y){
+  const speed=Math.max(170, H*0.26)*(1+G.wave*0.03);
+  const zig = Math.random()<0.5;
+  eBullets.push({ x:x, y:y, vy:speed, zig:zig, t:0 });
+}
+function enemyFire(){
+  // cap simultaneous bombs like the original cabinet, so the late game stays
+  // dodge-able with one thumb instead of becoming an unavoidable barrage.
+  const maxBombs = G.wave<=1 ? 1 : Math.min(3, Math.ceil(G.wave/2)+1);
+  if(eBullets.length>=maxBombs) return;
+  // pick a random column, fire from its lowest alive invader
+  const colOrder=[]; for(let c=0;c<COLS;c++) colOrder.push(c);
+  for(let tries=0;tries<COLS;tries++){
+    const c=colOrder[Math.floor(Math.random()*colOrder.length)];
+    let low=null;
+    for(let i=0;i<invaders.length;i++){ const a=invaders[i];
+      if(a.alive&&a.col===c&&(!low||a.row>low.row)) low=a; }
+    if(low){ dropBomb(low, invX(low)+invBox/2, invY(low)+invBox); return; }
+  }
+}
+
+// ---- destruction ----
+function destroyInvader(a){
+  if(!a.alive) return;
+  a.alive=false; G.score+=a.pts; G.kills++;
+  spawnBurst(invX(a)+invBox/2, invY(a)+invBox/2, KIND[a.kind].col);
+  sndKill();
+}
+function hitPlayer(force){
+  if(!force && (player.invul>0 || G.state!=='play')) return;
+  G.lives--; sndHit();
+  spawnBurst(player.x, playerY+playerH/2, '#FFC65A');
+  if(G.lives<=0){ gameOver(); }
+  else { player.invul=1.6; }
+}
+function invade(){
+  // formation touched the ground: lose a life, clear bombs, push the column
+  // back up several rows and grant a breather instead of an instant loss.
+  G.lives--; sndHit();
+  spawnBurst(player.x, playerY+playerH/2, '#FF5A5A');
+  eBullets=[];
+  if(G.lives<=0){ gameOver(); return; }
+  form.y -= cellH*3.4;
+  const topLimit=topHUD+safeTop+18;
+  if(form.y<topLimit) form.y=topLimit;
+  form.dir=1; form.beat=form.beatMax;
+  player.invul=2.2;
+}
+function gameOver(){
+  G.state='over';
+  if(G.score>G.best){ G.best=G.score; G.newBest=true; safeSet(BEST_KEY,String(G.best)); }
+  sweep(220,30,0.8,'sawtooth',0.3);
+  showOver();
+}
+function spawnBurst(x,y,col){
+  for(let i=0;i<10;i++){ const a=Math.random()*6.283, s=40+Math.random()*120;
+    particles.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:0.4+Math.random()*0.3,col:col}); }
+}
+
+// ---- UFO ----
+function spawnUfo(){
+  const fromLeft=Math.random()<0.5;
+  ufo={ x: fromLeft? -30 : W+30, y: topHUD+safeTop+8, dir: fromLeft?1:-1,
+        w: invBox*1.4, h: invBox*0.7, pts:[50,100,150,300][Math.floor(Math.random()*4)] };
+}
+
+// ---- update ----
+function update(dt){
+  G.animFrame=(G.animFrame||0);
+  // particles always animate
+  for(let i=particles.length-1;i>=0;i--){ const p=particles[i];
+    p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=300*dt; p.life-=dt; if(p.life<=0) particles.splice(i,1); }
+
+  if(G.state==='clear'){
+    clearTimer-=dt;
+    if(clearTimer<=0){ newWave(G.wave+1); G.state='play'; player.invul=0.8; }
+    stepBullets(dt);
+    return;
+  }
+  if(G.state!=='play') return;
+
+  fireCooldown-=dt; if(fireCooldown<0) fireCooldown=0;
+  if(player.invul>0) player.invul-=dt;
+
+  // player movement
+  player.x += player.vx*dt;
+  player.x = clampPlayer(player.x);
+
+  // auto-fire
+  firePlayer(false);
+
+  // formation beat / movement
+  const alive=aliveCount();
+  if(alive===0){ // wave cleared
+    G.state='clear'; clearTimer=1.3; eBullets=[]; return;
+  }
+  const frac=alive/TOTAL;
+  form.beatMax=Math.max(0.07, (0.62*frac+0.05) - G.wave*0.010);
+  form.beat-=dt;
+  if(form.beat<=0){
+    form.beat=form.beatMax;
+    G.animFrame^=1;
+    sndStep();
+    // bounds of alive cols
+    let minC=COLS, maxC=-1;
+    for(let i=0;i<invaders.length;i++){ const a=invaders[i]; if(a.alive){ if(a.col<minC)minC=a.col; if(a.col>maxC)maxC=a.col; } }
+    const stepX=Math.max(4, cellW*0.16);
+    const leftPx=form.x+minC*cellW, rightPx=form.x+maxC*cellW+invBox;
+    let drop=false;
+    if(form.dir>0 && rightPx+stepX > W-SM) drop=true;
+    else if(form.dir<0 && leftPx-stepX < SM) drop=true;
+    if(drop){ form.y+=cellH*0.42; form.dir*=-1; }
+    else { form.x+=stepX*form.dir; }
+    // invasion: reaching the ground costs ONE life and shoves the formation
+    // back up — no more "they touched down, instant game over" sudden death.
+    for(let i=0;i<invaders.length;i++){ const a=invaders[i];
+      if(a.alive && invY(a)+invBox>=invasionY){ invade(); return; } }
+  }
+
+  // enemy bombs
+  bombTimer-=dt;
+  if(bombTimer<=0){ enemyFire();
+    bombTimer=Math.max(0.55, (1.45 - G.wave*0.05)*(0.5+0.8*frac)) * (0.7+Math.random()*0.7); }
+
+  // ufo — the cabinet suppresses the mystery ship once the formation is tiny;
+  // pause the timer there too so it doesn't bank up and fire instantly later.
+  if(!ufo){ if(alive>3){ ufoTimer-=dt; if(ufoTimer<=0){ spawnUfo(); ufoTimer=14+Math.random()*12; } } }
+  else {
+    ufo.x += ufo.dir*Math.max(80,W*0.16)*dt;
+    if(Math.random()<0.5) sndUfo();
+    if((ufo.dir>0&&ufo.x>W+40)||(ufo.dir<0&&ufo.x<-40)) ufo=null;
+  }
+
+  stepBullets(dt);
+}
+
+function stepBullets(dt){
+  // player bullets
+  for(let i=pBullets.length-1;i>=0;i--){ const b=pBullets[i];
+    const py0=b.y;            // sweep from old to new y so a fast bullet can't
+    b.y+=b.vy*dt;             // tunnel through a thin invader on a long frame
+    if(b.y<topHUD-10){ pBullets.splice(i,1); continue; }
+    let gone=false;
+    // ufo (swept along the bullet's travel band)
+    if(ufo && b.x>ufo.x-ufo.w/2 && b.x<ufo.x+ufo.w/2 && b.y<=ufo.y+ufo.h/2 && py0>=ufo.y-ufo.h/2){
+      G.score+=ufo.pts; spawnBurst(ufo.x,ufo.y,'#FF5AA0'); sweep(1600,400,0.3,'square',0.2); ufo=null; pBullets.splice(i,1); continue;
+    }
+    // invaders (swept)
+    for(let j=0;j<invaders.length;j++){ const a=invaders[j]; if(!a.alive) continue;
+      const ax=invX(a), ay=invY(a);
+      if(b.x>=ax && b.x<=ax+invBox && b.y<=ay+invBox && py0>=ay){
+        destroyInvader(a); gone=true; break; } }
+    if(gone){ pBullets.splice(i,1); continue; }
+    if(bunkerHit(b.x,b.y,2)){ pBullets.splice(i,1); continue; }
+  }
+  // enemy bombs
+  for(let i=eBullets.length-1;i>=0;i--){ const e=eBullets[i];
+    e.t=(e.t||0)+dt; e.y+=e.vy*dt;
+    e.x += e.zig? Math.sin(e.t*16)*40*dt : 0;
+    if(e.y>H+10){ eBullets.splice(i,1); continue; }
+    if(bunkerHit(e.x,e.y,2)){ eBullets.splice(i,1); continue; }
+    // hit player
+    if(player.invul<=0 && e.y>=playerY && e.y<=playerY+playerH &&
+       e.x>=player.x-playerW*0.42 && e.x<=player.x+playerW*0.42){
+      eBullets.splice(i,1); hitPlayer(false); continue; }
+  }
+}
+
+// ---- draw ----
+function drawSprite(bmp, x, y, boxW){
+  const rows=bmp.length, cols=bmp[0].length;
+  const px=boxW/cols;
+  for(let r=0;r<rows;r++){ const line=bmp[r];
+    for(let c=0;c<cols;c++){ if(line[c]==='X'){ ctx.fillRect(x+c*px, y+r*px, px+0.5, px+0.5); } } }
+}
+function draw(){
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#000'; ctx.fillRect(0,0,W,H);
+  // faint stars
+  ctx.fillStyle='rgba(124,255,176,0.10)';
+  for(let i=0;i<stars.length;i++){ const s=stars[i]; ctx.fillRect(s.x,s.y,s.r,s.r); }
+
+  // HUD
+  ctx.textBaseline='top'; ctx.textAlign='left';
+  ctx.fillStyle='#7CFFB0'; ctx.font='700 13px "Courier New",monospace';
+  ctx.fillText('SCORE',SM,8); ctx.fillText('HI',W*0.42,8); ctx.fillText('WAVE',W-SM-86,8);
+  ctx.fillStyle='#fff'; ctx.font='900 20px "Courier New",monospace';
+  ctx.fillText(String(G.score).padStart(5,'0'),SM,22);
+  ctx.fillStyle='#FFE14D';
+  ctx.fillText(String(Math.max(G.best,G.score)).padStart(5,'0'),W*0.42,22);
+  ctx.fillStyle='#fff'; ctx.textAlign='right';
+  ctx.fillText('W-'+G.wave,W-SM,22); ctx.textAlign='left';
+  // lives (mini cocco icons)
+  if(coccoReady){ for(let i=0;i<G.lives;i++){
+    const lw=20, lh=lw/((cocco.naturalWidth/cocco.naturalHeight)||0.764);
+    ctx.drawImage(cocco, W-SM-24 - i*26, 40, lw, lh); } }
+
+  // HUD baseline
+  ctx.strokeStyle='rgba(124,255,176,0.25)'; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(SM, topHUD); ctx.lineTo(W-SM, topHUD); ctx.stroke();
+
+  // invaders
+  for(let i=0;i<invaders.length;i++){ const a=invaders[i]; if(!a.alive) continue;
+    const k=KIND[a.kind]; ctx.fillStyle=k.col;
+    drawSprite(k.bmp[G.animFrame||0], invX(a), invY(a)+invBox*0.06, invBox); }
+
+  // ufo
+  if(ufo){ ctx.fillStyle='#FF5AA0';
+    ctx.beginPath(); ctx.ellipse(ufo.x,ufo.y,ufo.w/2,ufo.h/2,0,0,6.283); ctx.fill();
+    ctx.fillStyle='#FFD2E6'; ctx.beginPath(); ctx.ellipse(ufo.x,ufo.y-ufo.h*0.18,ufo.w*0.22,ufo.h*0.42,0,0,6.283); ctx.fill(); }
+
+  // bunkers
+  ctx.fillStyle='#5BE08A';
+  for(let i=0;i<bunkers.length;i++){ const b=bunkers[i];
+    for(let ry=0;ry<b.rows;ry++) for(let rx=0;rx<b.cols;rx++){
+      if(b.cells[ry*b.cols+rx]) ctx.fillRect(b.x+rx*b.bc, b.y+ry*b.bc, b.bc+0.5, b.bc+0.5); } }
+
+  // player bullets
+  ctx.fillStyle='#FFFFFF';
+  for(let i=0;i<pBullets.length;i++){ const b=pBullets[i]; ctx.fillRect(b.x-1.5, b.y-10, 3, 12); }
+  // enemy bombs
+  ctx.fillStyle='#FF7A7A';
+  for(let i=0;i<eBullets.length;i++){ const e=eBullets[i]; ctx.fillRect(e.x-2, e.y-6, 4, 12); }
+
+  // player (cocco cannon)
+  if(coccoReady){
+    const blink = player.invul>0 && (Math.floor(nowMs/90)%2===0);
+    if(!blink){
+      ctx.save();
+      ctx.shadowColor='rgba(124,255,176,0.7)'; ctx.shadowBlur=14;
+      ctx.drawImage(cocco, player.x-playerW/2, playerY, playerW, playerH);
+      ctx.restore();
+      // cannon base
+      ctx.fillStyle='#5BE08A';
+      ctx.fillRect(player.x-playerW*0.55, playerY+playerH-6, playerW*1.1, 6);
+    }
+  }
+
+  // particles
+  for(let i=0;i<particles.length;i++){ const p=particles[i];
+    ctx.globalAlpha=Math.max(0,p.life*2.2); ctx.fillStyle=p.col; ctx.fillRect(p.x-2,p.y-2,4,4); }
+  ctx.globalAlpha=1;
+
+  // ground line
+  ctx.strokeStyle='rgba(124,255,176,0.5)'; ctx.beginPath();
+  ctx.moveTo(SM, playerY+playerH+4); ctx.lineTo(W-SM, playerY+playerH+4); ctx.stroke();
+
+  // clear banner
+  if(G.state==='clear'){
+    ctx.textAlign='center'; ctx.fillStyle='#8CFFC0'; ctx.font='900 26px "Courier New",monospace';
+    ctx.fillText('WAVE '+(G.wave)+' CLEAR', W/2, H*0.42);
+    ctx.font='700 14px "Courier New",monospace'; ctx.fillStyle='#7CFFB0';
+    ctx.fillText('つぎは ウェーブ '+(G.wave+1), W/2, H*0.42+34);
+    ctx.textAlign='left';
+  }
+}
+
+// ---- loop ----
+let last=0, nowMs=0;
+function frame(t){
+  nowMs=t;
+  if(!last) last=t;
+  let dt=(t-last)/1000; last=t;
+  if(dt>0.05) dt=0.05; if(dt<0) dt=0;
+  // drift stars
+  for(let i=0;i<stars.length;i++){ stars[i].y+=stars[i].s*dt; if(stars[i].y>H){ stars[i].y=0; stars[i].x=Math.random()*W; } }
+  update(dt);
+  draw();
+  requestAnimationFrame(frame);
+}
+
+function initStars(){ stars=[]; for(let i=0;i<46;i++) stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()<0.3?2:1,s:6+Math.random()*16}); }
+
+// ---- input ----
+// Relative drag: the cannon moves by the finger's delta, so you can rest your
+// thumb anywhere (e.g. a bottom corner) and never cover Kokko-chan or the bombs.
+let dragging=false, dragFinger0=0, dragPlayer0=0, activePointer=null;
+const DRAG_GAIN=1.35;
+function dragMove(clientX){ if(!dragging) return; if(G.state!=='play'&&G.state!=='clear') return;
+  player.x=clampPlayer(dragPlayer0 + (clientX-dragFinger0)*DRAG_GAIN); }
+window.addEventListener('pointerdown',e=>{ if(e.target.closest&&e.target.closest('.btn,.ctrlbtn,a')) return;
+  initAudio(); if(AC&&AC.state==='suspended'){try{AC.resume();}catch(_){}}
+  // lock to the first pointer so a second finger (e.g. tapping mute) can't yank the cannon
+  if(dragging) return;
+  dragging=true; activePointer=e.pointerId; dragFinger0=e.clientX; dragPlayer0=player.x; },{passive:true});
+window.addEventListener('pointermove',e=>{ if(e.pointerId!==activePointer) return; dragMove(e.clientX); },{passive:true});
+function endDrag(e){ if(e&&e.pointerId!==activePointer) return; dragging=false; activePointer=null; }
+window.addEventListener('pointerup',endDrag,{passive:true});
+window.addEventListener('pointercancel',endDrag,{passive:true});
+window.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'){ player.vx=-Math.max(420,W*0.7); }
+  else if(e.key==='ArrowRight'){ player.vx=Math.max(420,W*0.7); }
+  else if(e.key===' '||e.key==='Spacebar'){ e.preventDefault(); if(G.state==='play') firePlayer(true); }
+});
+window.addEventListener('keyup',e=>{
+  if(e.key==='ArrowLeft'&&player.vx<0) player.vx=0;
+  if(e.key==='ArrowRight'&&player.vx>0) player.vx=0;
+});
+
+// ---- screens / buttons ----
+function $(id){ return document.getElementById(id); }
+function showScreen(id){
+  ['titleScreen','howScreen','overScreen'].forEach(s=>{ const el=$(s); if(el){ if(s===id) el.classList.remove('hidden'); else el.classList.add('hidden'); } });
+}
+function showOver(){
+  const fs=$('finalScore'); if(fs) fs.textContent=G.score;
+  const sl=$('statLine'); if(sl) sl.textContent='ウェーブ '+G.wave+' ／ 撃墜 '+G.kills;
+  const bl=$('bestLine'); if(bl) bl.textContent=Math.max(G.best,G.score);
+  const nb=$('newBest'); if(nb) nb.style.opacity=G.newBest?'1':'0';
+  const ot=$('overTitle'); if(ot) ot.textContent='GAME OVER';
+  showScreen('overScreen');
+}
+(function bindUI(){
+  const sb=$('startBtn'); if(sb) sb.onclick=()=>start();
+  const rb=$('retryBtn'); if(rb) rb.onclick=()=>start();
+  const hb=$('howBtn'); if(hb) hb.onclick=()=>showScreen('howScreen');
+  const hbk=$('howBack'); if(hbk) hbk.onclick=()=>showScreen('titleScreen');
+  const mb=$('muteBtn'); if(mb) mb.onclick=()=>{ audioOn=!audioOn; mb.textContent=audioOn?'🔊':'🔇'; mb.classList.toggle('off',!audioOn); };
+  const fb=$('fsBtn'); if(fb) fb.onclick=()=>{ try{ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }catch(e){} };
+  const shb=$('shareBtn'); if(shb) shb.onclick=()=>{
+    const url='https://chikumo.jp/invaders/';
+    const text='コッコ・インベーダーで '+G.score+'点（ウェーブ'+G.wave+'）！ #畜物語 #こっこちゃん';
+    try{ if(navigator.share){ navigator.share({title:'COCCO INVADERS',text:text,url:url}); return; } }catch(e){}
+    try{ window.open('https://twitter.com/intent/tweet?text='+encodeURIComponent(text)+'&url='+encodeURIComponent(url),'_blank'); }catch(e){}
+  };
+})();
+
+window.addEventListener('resize',resize);
+resize(); initStars();
+requestAnimationFrame(frame);
+
+// ---- test hook ----
+window.__invaders={
+  get state(){ return G.state; },
+  info:()=>({ state:G.state, score:G.score, lives:G.lives, wave:G.wave,
+    invaders:aliveCount(), pBullets:pBullets.length, eBullets:eBullets.length, ufo:ufo?1:0 }),
+  start:()=>start(),
+  setX:x=>{ player.x=clampPlayer(x); },
+  playerX:()=>player.x,
+  fire:()=>{ firePlayer(true); return pBullets.length; },
+  pbY:()=>pBullets.length?pBullets[0].y:null,
+  firstInvader:()=>{ const a=invaders.find(v=>v.alive); return a?{cx:invX(a)+invBox/2, top:invY(a), box:invBox}:null; },
+  killOne:()=>{ const a=invaders.find(v=>v.alive); if(a) destroyInvader(a); return aliveCount(); },
+  clearWave:()=>{ for(let i=0;i<invaders.length;i++){ if(invaders[i].alive) destroyInvader(invaders[i]); } },
+  dropBombAt:(x,y)=>{ dropBomb(null,x,y); },
+  loseLife:()=>{ hitPlayer(true); },
+  forceInvade:()=>{ invade(); },
+  best:()=>+(safeGet(BEST_KEY)||0),
+  playerY:()=>playerY, playerW:()=>playerW
+};
+})();
+</script>
+</body>
+</html>
