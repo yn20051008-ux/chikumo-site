@@ -55,6 +55,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://chikumo.jp/rush/</loc>
+    <lastmod>2026-06-10</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://chikumo.jp/story/01/</loc>
     <lastmod>2026-01-12</lastmod>
     <changefreq>monthly</changefreq>
