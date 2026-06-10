@@ -1110,12 +1110,14 @@ requestAnimationFrame(loop);
   var $=function(id){return document.getElementById(id);};
   var pending=null, lastSubmitTs=0;
   // 匿名認証で本物の uid を発行 → ルールで「自分の枠だけ書込可」を強制し、他人の改ざんを防ぐ
-  var myUid=null, authReady=false;
-  function ensureAuth(){ if(!firebase.auth) return; var a; try{ a=firebase.auth(); }catch(e){ return; }
-    a.onAuthStateChanged(function(u){ if(u){ myUid=u.uid; authReady=true; } });
-    if(!a.currentUser){ a.signInAnonymously().catch(function(){}); } }
+  var myUid=null, authReady=false, authDone=false;
+  function ensureAuth(){ if(!firebase.auth){ authDone=true; return; } var a; try{ a=firebase.auth(); }catch(e){ authDone=true; return; }
+    a.onAuthStateChanged(function(u){ if(u){ myUid=u.uid; authReady=true; authDone=true; } });
+    if(!a.currentUser){ a.signInAnonymously().catch(function(){ authDone=true; }); } }
   ensureAuth();
-  function uid(){ return myUid; }   // 認証完了まで null
+  function localUid(){ var u; try{ u=localStorage.getItem(UID_KEY); }catch(e){}
+    if(!u){ u='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); try{ localStorage.setItem(UID_KEY,u); }catch(e){} } return u; }
+  function uid(){ return myUid || localUid(); }   // 認証uid優先・無ければ端末ID（匿名認証OFFでも登録可）
   function esc(s){ return String(s).replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; }); }
   function fmtName(s){ s=(s||'').replace(/\s+/g,' ').trim().slice(0,10); return s||'ななし'; }
   function renderInto(elId, rows){
@@ -1194,7 +1196,7 @@ requestAnimationFrame(loop);
   function submit(){
     if(!pending) return;
     var msg=$('rankMsg'), btn=$('rankSubmit');
-    if(!uid()){ if(msg) msg.textContent='接続中…数秒後にもう一度押してね'; ensureAuth(); return; }
+    if(!myUid && !authDone){ if(msg) msg.textContent='接続中…数秒後にもう一度押してね'; ensureAuth(); return; }
     var now=Date.now(); if(now-lastSubmitTs<1500) return; lastSubmitTs=now;
     var name=fmtName($('rankName')&&$('rankName').value);
     var flag=selFlag||'🇯🇵';
