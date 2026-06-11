@@ -416,6 +416,7 @@ function update(dt){state.t+=dt;
         const[sx,sy]=toScreen(f.x,f.y,f.z);
         if(f.hp<=0){state.kills++;
           const v=(100+(b.just?60:0))*mult();state.score+=v;
+          if(b.just)state.slow=Math.max(state.slow,.08);
           sfxKill();vib(b.just?[10,10,14]:8);
           spawnBurst(sx,sy,26,b.just?45:300,4);spawnWave(sx,sy,b.just?45:300);
           spawnPop(sx,sy-60,(b.just?'JUST! ':'')+'+'+v,b.just?'#ffd76e':'#ff8ac2',b.just?24:20);
@@ -636,8 +637,9 @@ void main(){
   gl_Position=vec4(nd.x,-nd.y,0.0,1.0);
   vUV=vec2(mix(aUV.x,aUV.z,aQuad.x+0.5),mix(aUV.y,aUV.w,aQuad.y+0.5));
   vTint=vec4(aTint.rgb,aTint.a*clamp(p*2.4,0.0,1.0));}`;
+/* テクスチャはプリマルチプライド・アルファでアップロード — 縁の黒フリンジ防止 */
 const FS_SPR=`precision mediump float;varying vec2 vUV;varying vec4 vTint;uniform sampler2D uTex;
-void main(){vec4 t=texture2D(uTex,vUV);gl_FragColor=vec4(t.rgb*vTint.rgb,t.a*vTint.a);}`;
+void main(){vec4 t=texture2D(uTex,vUV);gl_FragColor=vec4(t.rgb*vTint.rgb*vTint.a,t.a*vTint.a);}`;
 /* トンネル: ジオメトリ・マージ(全リングを1本のVBO・1ドローコール)
    ＋頂点シェーダー・アニメーション(ビートで脈動・うねり) */
 const VS_TUN=`attribute vec2 aTun;
@@ -659,6 +661,7 @@ void main(){gl_FragColor=vCol;}`;
 let extInst=null;
 function uploadAtlas(){if(!gl||!atlasTex)return;
   gl.bindTexture(gl.TEXTURE_2D,atlasTex);
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,1);
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlasCv);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
@@ -803,11 +806,11 @@ function drawGL(){if(!glOk)return;
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlasTex);gl.uniform1i(lu.tex,0);
   if(sprN>0){bindSprAttribs(sprBufN);
     gl.bufferSubData(gl.ARRAY_BUFFER,0,sprData.subarray(0,sprN*STRIDE));
-    gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+    gl.blendFunc(gl.ONE,gl.ONE_MINUS_SRC_ALPHA);
     extInst.drawArraysInstancedANGLE(gl.TRIANGLE_STRIP,0,4,sprN);}
   if(addN>0){bindSprAttribs(sprBufA);
     gl.bufferSubData(gl.ARRAY_BUFFER,0,addData.subarray(0,addN*STRIDE));
-    gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
+    gl.blendFunc(gl.ONE,gl.ONE);
     extInst.drawArraysInstancedANGLE(gl.TRIANGLE_STRIP,0,4,addN);}}
 function beatPhase(){if(!AC||!bgmOn)return 0;
   const f=(AC.currentTime-JLAT-lastBeatT)/curBeatDur;return Math.min(1,Math.max(0,f-Math.floor(f)));}
