@@ -34,6 +34,7 @@ html,body{height:100%;overflow:hidden;background:#04040f;font-family:"Hiragino K
   background:linear-gradient(135deg,#7ad7ff,#b08bff);border:none;border-radius:999px;cursor:pointer;
   box-shadow:0 6px 26px rgba(140,160,255,.5);transition:transform .12s}
 .btn:active{transform:scale(.93)}
+.btn.sub{background:rgba(255,255,255,.12);color:#cdf;box-shadow:none;font-size:14px;padding:11px 22px}
 .score-row{font-size:14px;color:#7ad7ff;margin:6px 0 2px}
 .big-score{font-size:42px;font-weight:bold;color:#fff;text-shadow:0 0 24px rgba(140,180,255,.9)}
 .hidden{display:none!important}
@@ -70,6 +71,7 @@ html,body{height:100%;overflow:hidden;background:#04040f;font-family:"Hiragino K
     <div class="score-row" id="endCombo"></div>
     <div class="score-row" id="endDist"></div>
     <button class="btn" id="retryBtn">もう一回とぶ</button>
+    <button class="btn sub" id="shareBtn">Xに自慢する</button>
   </div>
 </div>
 <script>
@@ -88,13 +90,19 @@ addEventListener('resize',resize);resize();
 function vib(p){try{if(typeof navigator!=='undefined'&&navigator.vibrate)navigator.vibrate(p);}catch(e){}}
 
 /* ───────── サウンド (WebAudio chiptune) ───────── */
-let AC=null,muted=false;
+let AC=null,muted=false,ECHO=null;
 const MASTER=0.5;
-function audio(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();}if(AC.state==='suspended')AC.resume();return AC;}
-function tone(f,t0,dur,type,vol,slide){const a=audio();const o=a.createOscillator(),g=a.createGain();
+function audio(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();
+  ECHO=AC.createDelay(1);ECHO.delayTime.value=.27;
+  const fb=AC.createGain();fb.gain.value=.33;
+  const wet=AC.createGain();wet.gain.value=.45;
+  ECHO.connect(fb);fb.connect(ECHO);ECHO.connect(wet);wet.connect(AC.destination);}
+  if(AC.state==='suspended')AC.resume();return AC;}
+function tone(f,t0,dur,type,vol,slide,echo){const a=audio();const o=a.createOscillator(),g=a.createGain();
   o.type=type;o.frequency.setValueAtTime(f,t0);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t0+dur);
   g.gain.setValueAtTime(vol*MASTER,t0);g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
-  o.connect(g).connect(a.destination);o.start(t0);o.stop(t0+dur+.02);}
+  o.connect(g).connect(a.destination);if(echo&&ECHO)g.connect(ECHO);
+  o.start(t0);o.stop(t0+dur+.02);}
 function noise(t0,dur,vol){const a=audio();const n=a.createBufferSource(),buf=a.createBuffer(1,Math.max(1,(a.sampleRate*dur)|0),a.sampleRate);
   const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
   n.buffer=buf;const g=a.createGain();g.gain.value=vol*MASTER;n.connect(g).connect(a.destination);n.start(t0);}
@@ -110,17 +118,21 @@ function sfxHit(){if(muted)return;const t=audio().currentTime;
   tone(196,t,.3,'sawtooth',.16,65);tone(98,t,.35,'square',.12,49);noise(t,.25,.12);}
 function sfxSmash(){if(muted)return;const t=audio().currentTime;noise(t,.14,.1);tone(440,t,.12,'square',.1,880);}
 function sfxFever(){if(muted)return;const t=audio().currentTime;
-  [659,784,988,1318,1568,1976].forEach((f,i)=>{tone(f,t+i*.06,.3,'square',.14);tone(f/2,t+i*.06,.3,'triangle',.09);});
-  noise(t,.4,.1);}
+  tone(196,t,.5,'sawtooth',.1,1568);noise(t,.45,.12);
+  [659,784,988,1318,1568,1976].forEach((f,i)=>{tone(f,t+i*.06,.3,'square',.14,0,true);tone(f/2,t+i*.06,.3,'triangle',.09);});}
+function sfxTick(){if(muted)return;const t=audio().currentTime;tone(1568,t,.06,'square',.08);}
 function sfxMilestone(){if(muted)return;const t=audio().currentTime;
   [784,988,1175,1568].forEach((f,i)=>tone(f,t+i*.07,.2,'square',.12));}
 function sfxOver(){if(muted)return;const t=audio().currentTime;
   [523,494,440,392,330].forEach((f,i)=>tone(f,t+i*.16,.3,'triangle',.13));noise(t,.3,.06);}
 
-/* 中毒BGM: 32ステップ8bitループ — RAF駆動の先読みスケジューラ。fever中はテンポUP&短3度UP */
-const MEL=[659,0,659,784, 880,0,784,659, 587,659,587,523, 587,0,0,0,
-           659,0,659,784, 880,0,1047,988, 880,784,659,784, 880,0,0,0];
+/* 中毒BGM: A/B 2セクション64ステップ8bitループ＋エコー — RAF駆動の先読みスケジューラ。fever中はテンポUP&短3度UP */
+const MELA=[659,0,659,784, 880,0,784,659, 587,659,587,523, 587,0,0,0,
+            659,0,659,784, 880,0,1047,988, 880,784,659,784, 880,0,0,0];
+const MELB=[1047,0,988,880, 1047,0,880,0, 880,0,784,698, 784,880,1047,0,
+            988,0,880,784, 988,1175,988,880, 1319,0,988,0, 880,0,0,0];
 const BASS=[220,220,175,175,196,196,165,165];
+const CHORD=[[262,330],[220,262],[247,294],[196,247]];
 let bgmStep=0,bgmNext=0,bgmOn=false;
 function startBgm(){audio();bgmStep=0;bgmNext=AC.currentTime+.06;bgmOn=true;}
 function stopBgm(){bgmOn=false;}
@@ -128,9 +140,11 @@ function bgmPump(){if(!bgmOn||muted||!AC)return;const fever=state.fever>0;
   const sp=fever?.095:.125,k=fever?1.1892:1;
   if(bgmNext<AC.currentTime-.3)bgmNext=AC.currentTime+.06;
   let guard=0;
-  while(bgmNext<AC.currentTime+.12&&guard++<8){const t=bgmNext,i=bgmStep%32;
-    const m=MEL[i];if(m)tone(m*k,t,sp*.92,'square',fever?.085:.062);
+  while(bgmNext<AC.currentTime+.12&&guard++<8){const t=bgmNext,i64=bgmStep%64,i=i64%32;
+    const m=(i64<32?MELA:MELB)[i];
+    if(m)tone(m*k,t,sp*.92,'square',fever?.085:.06,0,true);
     if(i%4===0)tone(BASS[(i>>2)%8]*k,t,sp*2,'triangle',.095);
+    if(i%8===0){const ch=CHORD[(i>>3)%4];for(const f of ch)tone(f*k,t,sp*5,'triangle',.028);}
     if(i%2===0)noise(t,.03,.022);
     if(i%8===4)noise(t,.07,.04);
     if(fever&&m)tone(m*k*2,t+sp*.5,sp*.5,'square',.035);
@@ -143,13 +157,17 @@ const FOCAL=2.4,Z_FAR=26;
 const RING_R=.36,PERF_R=.17,PLAYER_R=.13;
 const state={mode:'title',score:0,combo:0,maxCombo:0,hearts:3,fever:0,
   speed:7.5,dist:0,nextSpawn:6,nextMile:500,px:0,py:0,tx:0,ty:0,
-  inv:0,spin:0,shake:0,flash:0,flashR:255,flashG:255,flashB:255,hue:210,t:0};
+  inv:0,spin:0,shake:0,flash:0,flashR:255,flashG:255,flashB:255,hue:210,t:0,slow:0};
 let best=+localStorage.getItem('warpBest')||0;
 
 const ents=[],parts=[],pops=[],waves=[],trail=[],stars=[],floaters=[];
 for(let i=0;i<110;i++)stars.push({x:(Math.random()*2-1)*1.7,y:(Math.random()*2-1)*1.7,z:Math.random()*Z_FAR+.3});
+// 星雲＆惑星: 遠景パララックスで宇宙のスケール感を出す
+const nebs=[];for(let i=0;i<3;i++)nebs.push({x:(Math.random()*2-1)*1.3,y:(Math.random()*2-1)*.9,
+  z:6+Math.random()*18,r:.9+Math.random()*.9,h:180+Math.random()*160});
+const planet={x:.9,y:-.55,z:20,r:.5};
 
-function persp(z){return FOCAL/(FOCAL+Math.max(z,0));}
+function persp(z){return FOCAL/(FOCAL+Math.max(z,-1.6));}
 function toScreen(x,y,z){const K=Math.min(W,H)*.55,p=persp(z);
   const sx=W/2+((x-state.px)*p+state.px*.35*p-state.px*.12*(1-p))*K;
   const sy=H*.45+((y-state.py)*p+state.py*.3*p-state.py*.1*(1-p))*K;
@@ -169,13 +187,15 @@ function spawnFloater(){const fromL=Math.random()<.5;
     vx:(fromL?1:-1)*(130+Math.random()*140),r:26+Math.random()*26,ph:Math.random()*7});}
 
 /* ───────── 出現パターン ───────── */
-function spawnRing(x,y,z){ents.push({type:'ring',x,y,z,rot:Math.random()*7,judged:false});}
+function spawnRing(x,y,z,mv){ents.push({type:'ring',x,y,mx:x,z,rot:Math.random()*7,mv:mv||null,judged:false});}
 function spawnRock(x,y,z){const vr=[];const n=8;for(let i=0;i<n;i++)vr.push(.7+Math.random()*.5);
   ents.push({type:'rock',x,y,z,r:.13+Math.random()*.09,rot:Math.random()*7,vrot:(Math.random()-.5)*3,vr,judged:false});}
 function spawnStar(x,y,z){ents.push({type:'star',x,y,z,rot:Math.random()*7,ph:Math.random()*7,judged:false});}
 function rnd(a,b){return a+Math.random()*(b-a);}
 function spawnPattern(z){const r=Math.random();
-  if(r<.42){spawnRing(rnd(-.5,.5),rnd(-.4,.4),z);}
+  if(r<.42){const mv=state.dist>380&&Math.random()<.4?
+      {amp:.22+Math.random()*.15,sp:1+Math.random()*1.4,ph:Math.random()*7}:null;
+    spawnRing(rnd(-.5,.5),rnd(-.4,.4),z,mv);}
   else if(r<.6){const x=rnd(-.45,.45),y=rnd(-.35,.35);spawnRing(x,y,z);
     for(let i=0;i<2;i++){const a=Math.random()*Math.PI*2,d=RING_R+.3+Math.random()*.3;
       spawnRock(Math.max(-.7,Math.min(.7,x+Math.cos(a)*d)),Math.max(-.55,Math.min(.55,y+Math.sin(a)*d)),z+i*.5);}}
@@ -194,12 +214,13 @@ function cross(o){const d=Math.hypot(state.px-o.x,state.py-o.y);
       const mult=Math.min(1+Math.floor(state.combo/5),9)*(state.fever>0?2:1);
       state.score+=150*mult;sfxPerfect(state.combo);vib(state.fever>0?[20,20,20]:15);
       state.shake=9;state.flash=.4;state.flashR=255;state.flashG=255;state.flashB=255;state.spin=.5;
+      state.slow=Math.max(state.slow,.09);
       spawnWave(sx,sy,state.hue);spawnBurst(sx,sy,36+Math.min(state.combo*2,40),state.hue,4.5);
       spawnConfetti(sx,sy,14+Math.min(state.combo,20));
       spawnPop(sx,sy-90,'PERFECT','#7ad7ff',34);
       spawnPop(sx,sy-128,'×'+mult,'#ff8ac2',22);
       if(state.combo%10===0&&state.fever<=0){state.fever=8;sfxFever();vib([30,30,30,30,60]);
-        state.flash=.7;state.flashR=255;state.flashG=215;state.flashB=110;
+        state.slow=.3;state.flash=.7;state.flashR=255;state.flashG=215;state.flashB=110;
         spawnPop(W/2,H*.25,'WARP FEVER!!','#ffd76e',44);
         for(let i=0;i<5;i++)spawnWave(W/2,H*.45,i*70);
         spawnConfetti(W/2,H*.4,60);
@@ -217,7 +238,7 @@ function cross(o){const d=Math.hypot(state.px-o.x,state.py-o.y);
       if(state.fever>0){state.score+=80;sfxSmash();state.shake=6;
         spawnBurst(sx,sy,30,30,5);spawnPop(sx,sy-70,'クラッシュ! +80','#ffd76e',22);vib(12);}
       else if(state.inv<=0){
-        state.hearts--;state.combo=0;state.inv=2;state.shake=20;
+        state.hearts--;state.combo=0;state.inv=2;state.shake=20;state.slow=.25;
         state.flash=.6;state.flashR=255;state.flashG=60;state.flashB=80;
         sfxHit();vib([60,40,80]);spawnBurst(sx,sy,40,0,5);
         spawnPop(W/2,H*.35,'いたい…','#ff6b7a',30);
@@ -238,6 +259,10 @@ function update(dt){state.t+=dt;
   // 星: 常時ワープ流し
   const sv=(state.mode==='play'||state.mode==='dying')?state.speed:3.5;
   for(const s of stars){s.z-=sv*dt*1.15;if(s.z<.15){s.z+=Z_FAR;s.x=(Math.random()*2-1)*1.7;s.y=(Math.random()*2-1)*1.7;}}
+  for(const nb of nebs){nb.z-=sv*dt*.22;if(nb.z<1){nb.z=Z_FAR+4;
+    nb.x=(Math.random()*2-1)*1.3;nb.y=(Math.random()*2-1)*.9;nb.h=180+Math.random()*160;}}
+  planet.z-=sv*dt*.1;if(planet.z<2){planet.z=Z_FAR+8;
+    planet.x=(Math.random()<.5?-1:1)*(.7+Math.random()*.5);planet.y=(Math.random()*2-1)*.5;}
   if(state.mode!=='play'&&state.mode!=='dying')return;
   // 操作: 指追従（しっとり吸い付くイージング）
   if(state.mode==='play'){
@@ -247,7 +272,8 @@ function update(dt){state.t+=dt;
     const e=1-Math.exp(-14*dt);
     state.px+=(state.tx-state.px)*e;state.py+=(state.ty-state.py)*e;}
   if(state.inv>0)state.inv-=dt;
-  if(state.fever>0){state.fever-=dt;
+  if(state.fever>0){const was=state.fever;state.fever-=dt;
+    if(state.fever>0&&was<=2&&Math.ceil(was*2)!==Math.ceil(state.fever*2))sfxTick();
     if(state.fever<=0){state.fever=0;spawnPop(W/2,H*.3,'フィーバー終了','#aab',20);}}
   // 速度＆距離
   const base=7.5+Math.min(state.dist/250,7);
@@ -268,6 +294,8 @@ function update(dt){state.t+=dt;
   for(let i=ents.length-1;i>=0;i--){const o=ents[i];
     o.z-=state.speed*dt;
     if(o.rot!==undefined)o.rot+=(o.vrot||1.2)*dt;
+    if(o.type==='ring'&&o.mv&&o.z>0)
+      o.x=Math.max(-.7,Math.min(.7,o.mx+Math.sin(state.t*o.mv.sp+o.mv.ph)*o.mv.amp));
     if(o.type==='star'&&state.fever>0&&o.z<4){const pull=Math.min(1,dt*5);
       o.x+=(state.px-o.x)*pull;o.y+=(state.py-o.y)*pull;}
     if(o.z<=0&&!o.judged){o.judged=true;if(state.mode==='play')cross(o);}
@@ -276,14 +304,17 @@ function update(dt){state.t+=dt;
 /* ───────── 開始/終了 ───────── */
 function startGame(){state.mode='play';state.score=0;state.combo=0;state.maxCombo=0;state.hearts=3;
   state.fever=0;state.dist=0;state.nextSpawn=6;state.nextMile=500;state.speed=7.5;
-  state.px=0;state.py=0;state.tx=0;state.ty=0;state.inv=0;state.spin=0;state.shake=0;state.flash=0;
+  state.px=0;state.py=0;state.tx=0;state.ty=0;state.inv=0;state.spin=0;state.shake=0;state.flash=0;state.slow=0;
   ents.length=0;parts.length=0;pops.length=0;waves.length=0;trail.length=0;floaters.length=0;
   document.getElementById('startOv').classList.add('hidden');
   document.getElementById('endOv').classList.add('hidden');
   audio();startBgm();}
 function endGame(){state.mode='over';stopBgm();
   if(state.score>best){best=state.score;localStorage.setItem('warpBest',best);}
-  document.getElementById('endScore').textContent=state.score;
+  const es=document.getElementById('endScore'),target=state.score,t0=performance.now();
+  (function cu(n){const k=Math.min(1,(n-t0)/900);
+    es.textContent=Math.round(target*(1-Math.pow(1-k,3)));
+    if(k<1&&state.mode==='over')requestAnimationFrame(cu);})(t0);
   document.getElementById('endBest').textContent='BEST '+best;
   document.getElementById('endCombo').textContent='MAX COMBO '+state.maxCombo;
   document.getElementById('endDist').textContent='とんだ距離 '+Math.floor(state.dist)+'ly';
@@ -316,7 +347,14 @@ addEventListener('keyup',e=>{
   if(e.code==='ArrowDown'||e.code==='KeyS')keys.d=false;});
 document.getElementById('startBtn').onclick=startGame;
 document.getElementById('retryBtn').onclick=startGame;
+document.getElementById('shareBtn').onclick=()=>{
+  const txt='こっこワープで '+state.score+'点・'+Math.floor(state.dist)+'ly 飛んだ！ #畜物語 #こっこワープ';
+  open('https://twitter.com/intent/tweet?text='+encodeURIComponent(txt)
+    +'&url='+encodeURIComponent('https://chikumo.jp/warp/'),'_blank');};
 document.getElementById('bestRow').textContent=best?('BEST '+best):'';
+document.addEventListener('visibilitychange',()=>{if(!AC)return;
+  if(document.hidden){if(AC.state==='running')AC.suspend();}
+  else{AC.resume();bgmNext=AC.currentTime+.1;}});
 
 /* ───────── 描画 ───────── */
 function drawStarShape(c,x,y,r,rot){c.beginPath();
@@ -338,6 +376,19 @@ function draw(dt){if(!W||!H)return;
   rg.addColorStop(.4,fever?`hsla(${(state.hue+60)%360},80%,50%,.12)`:'rgba(90,110,220,.07)');
   rg.addColorStop(1,'rgba(0,0,0,0)');
   cx.fillStyle=rg;cx.fillRect(0,0,W,H);
+  // 星雲＆惑星（遠景パララックス — 宇宙の壮大さ）
+  for(const nb of nebs){const p=persp(nb.z),x=vx+(nb.x-state.px*.4)*K*p,y=vy+(nb.y-state.py*.35)*K*p,r=nb.r*K*p*2.2;
+    const ng=cx.createRadialGradient(x,y,0,x,y,Math.max(r,1));
+    ng.addColorStop(0,`hsla(${(nb.h+(fever?state.hue:0))%360},80%,60%,${.16*Math.min(1,p*3)})`);
+    ng.addColorStop(1,'rgba(0,0,0,0)');
+    cx.fillStyle=ng;cx.fillRect(x-r,y-r,r*2,r*2);}
+  {const p=persp(planet.z),x=vx+(planet.x-state.px*.5)*K*p,y=vy+(planet.y-state.py*.4)*K*p,r=planet.r*K*p;
+   if(r>2){const pg=cx.createRadialGradient(x-r*.3,y-r*.3,r*.1,x,y,r);
+    pg.addColorStop(0,'#9fd8ff');pg.addColorStop(.6,'#4466bb');pg.addColorStop(1,'#1a2150');
+    cx.globalAlpha=Math.min(1,p*4);cx.fillStyle=pg;
+    cx.beginPath();cx.arc(x,y,r,0,7);cx.fill();
+    cx.strokeStyle='rgba(190,220,255,.5)';cx.lineWidth=Math.max(1,r*.08);
+    cx.beginPath();cx.ellipse(x,y,r*1.6,r*.4,-.5,0,7);cx.stroke();cx.globalAlpha=1;}}
   cx.save();
   if(state.shake>0)cx.translate((Math.random()-.5)*state.shake,(Math.random()-.5)*state.shake);
   // トンネルリング（Z軸の奥行きを刻む）
@@ -364,6 +415,14 @@ function draw(dt){if(!W||!H)return;
       cx.beginPath();cx.moveTo(vx+Math.cos(a)*K*.25,vy+Math.sin(a)*K*.25);
       cx.lineTo(vx+Math.cos(a)*K*1.6,vy+Math.sin(a)*K*1.6);cx.stroke();}
     cx.restore();}
+  // くぐったリングが頭上を流れ去る（フライパス — Z軸の臨場感）
+  for(const o of ents){if(o.type!=='ring'||o.z>0)continue;
+    const fa=Math.max(0,1+o.z/1.2);if(fa<=0)continue;
+    const [fsx,fsy,fp]=toScreen(o.x,o.y,o.z);
+    cx.globalAlpha=fa*.55;
+    cx.strokeStyle=fever?`hsl(${state.hue},100%,70%)`:'#ffd76e';
+    cx.lineWidth=12*fp*fa+2;
+    cx.beginPath();cx.arc(fsx,fsy,RING_R*K*fp,0,7);cx.stroke();cx.globalAlpha=1;}
   // エンティティ（奥→手前）
   const sorted=ents.slice().sort((a,b)=>b.z-a.z);
   for(const o of sorted){if(o.z<=0)continue;
@@ -377,9 +436,13 @@ function draw(dt){if(!W||!H)return;
       cx.fillStyle='#fff';
       for(let i=0;i<4;i++){const a=o.rot+i*Math.PI/2;
         cx.beginPath();cx.arc(sx+Math.cos(a)*r,sy+Math.sin(a)*r,Math.max(1.5,4*p),0,7);cx.fill();}
-      // 中心ガイド（PERFECTゾーン）
-      cx.strokeStyle=`rgba(255,255,255,${.35*p})`;cx.lineWidth=1.5;
+      // 中心ガイド（PERFECTゾーン）— 照準が合うと緑に光って教えてくれる
+      const aimed=o.z<6&&Math.hypot(state.px-o.x,state.py-o.y)<PERF_R;
+      cx.strokeStyle=aimed?`rgba(140,255,200,${Math.min(1,.9*p+.3)})`:`rgba(255,255,255,${.35*p})`;
+      cx.lineWidth=aimed?2.5:1.5;
       cx.beginPath();cx.arc(sx,sy,PERF_R*K*p,0,7);cx.stroke();
+      if(aimed){cx.fillStyle=`rgba(140,255,200,${.5*p})`;
+        cx.beginPath();cx.arc(sx,sy,Math.max(2,4*p),0,7);cx.fill();}
       cx.globalAlpha=1;
     }else if(o.type==='rock'){const r=o.r*K*p*2.2;
       cx.globalAlpha=Math.min(1,p*2.4);
@@ -467,7 +530,10 @@ function draw(dt){if(!W||!H)return;
 /* ───────── ループ ───────── */
 let last=performance.now();
 function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;
-  update(dt);bgmPump();draw(dt);requestAnimationFrame(frame);}
+  // ヒットストップ: PERFECT/被弾/フィーバー突入の瞬間だけ時間がトロける
+  let gdt=dt;
+  if(state.slow>0){state.slow=Math.max(0,state.slow-dt);gdt=dt*.22;}
+  update(gdt);bgmPump();draw(gdt);requestAnimationFrame(frame);}
 requestAnimationFrame(frame);
 window.__warp={state,ents,parts,pops,waves,floaters,startGame,endGame,update,
   spawnRing,spawnRock,spawnStar,spawnPattern,cross,getBest:()=>best};

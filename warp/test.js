@@ -13,17 +13,22 @@ function el(id){ if(els[id])return els[id]; const e={id,style:{},textContent:'',
   classList:{add(c){e._cls.add(c);},remove(c){e._cls.delete(c);},contains(c){return e._cls.has(c);}},
   addEventListener(){}, getContext:()=>ctxStub(), width:0, height:0};
   Object.defineProperty(e,'onclick',{set(){},get(){return null;},configurable:true}); els[id]=e; return e; }
+function audioNode(extra){const n={connect(){return n;},start(){},stop(){},
+  gain:{value:0,setValueAtTime(){},exponentialRampToValueAtTime(){}},
+  frequency:{setValueAtTime(){},exponentialRampToValueAtTime(){}},
+  delayTime:{value:0},type:'',buffer:null,...extra};return n;}
 global.window={innerWidth:430,innerHeight:880,devicePixelRatio:2,
-  AudioContext:function(){return{currentTime:0,state:'running',sampleRate:44100,destination:{},resume(){},
-    createGain:()=>({gain:{value:0,setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){return{connect(){}};}}),
-    createOscillator:()=>({type:'',frequency:{setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){return{connect(){}};},start(){},stop(){}}),
+  AudioContext:function(){return{currentTime:0,state:'running',sampleRate:44100,destination:{},resume(){},suspend(){},
+    createGain:()=>audioNode(),
+    createOscillator:()=>audioNode(),
+    createDelay:()=>audioNode(),
     createBuffer:(c,n)=>({getChannelData:()=>new Float32Array(n)}),
-    createBufferSource:()=>({buffer:null,connect(){return{connect(){}};},start(){}})};}};
+    createBufferSource:()=>audioNode()};}};
 global.AudioContext=global.window.AudioContext;
 global.innerWidth=430; global.innerHeight=880; global.devicePixelRatio=2;
 global.addEventListener=()=>{};
 global.localStorage={_d:{},getItem(k){return this._d[k]??null;},setItem(k,v){this._d[k]=String(v);}};
-global.document={getElementById:el};
+global.document={getElementById:el,addEventListener(){},hidden:false};
 global.Image=function(){this.onload=null;Object.defineProperty(this,'src',{set(){if(this.onload)this.onload();}});};
 let raf=[]; global.requestAnimationFrame=cb=>{raf.push(cb);};
 global.performance={now:()=>tNow};
@@ -51,6 +56,7 @@ G.spawnRing(0,0,0.4); G.update(0.1);
 ok(S.combo===1&&S.score===150,'centre ring = PERFECT 150, combo 1 (score='+S.score+')');
 ok(G.parts.length>0&&G.pops.length>0,'perfect spawns particles & popup');
 ok(G.waves.length>0,'perfect spawns shockwave');
+ok(S.slow>0,'perfect triggers hit-stop slow-mo');
 
 // GOOD: inside ring but off-centre
 let sc=S.score; G.spawnRing(0.25,0,0.4); G.update(0.1);
@@ -102,6 +108,12 @@ ok(+global.localStorage.getItem('warpBest')===G.getBest()&&G.getBest()>0,'best p
 // Restart works and best survives
 G.startGame(); noSpawn();
 ok(S.mode==='play'&&S.score===0&&S.hearts===3,'restart resets game');
+
+// Moving ring sways around its anchor while approaching (sp:0, ph:π/2 → sin=1 → x=amp)
+G.spawnRing(0,0,5,{amp:.3,sp:0,ph:Math.PI/2});
+{ const ring=G.ents[G.ents.length-1]; G.update(0.1);
+  ok(Math.abs(ring.x-0.3)<1e-9,'moving ring sways around anchor (x='+ring.x.toFixed(2)+')');
+  G.ents.length=0; }
 G.spawnRing(0,0,0.4); G.update(0.1);
 ok(S.score===150,'scoring works after restart');
 
