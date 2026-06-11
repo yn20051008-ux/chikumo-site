@@ -1,5 +1,5 @@
 /* Service Worker — 畜物語 */
-const CACHE = 'chikumonogatari-v53';
+const CACHE = 'chikumonogatari-v54';
 const ASSETS = [
   './',
   './index.html',
@@ -24,6 +24,19 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
+  // ページ(HTML)はネットワーク優先 — メニュー更新や新ゲームを即反映、オフライン時のみキャッシュ
+  if (req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html')) {
+    event.respondWith(
+      fetch(req).then((res) => {
+        if (res && res.status === 200 && res.type === 'basic') {
+          const clone = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, clone));
+        }
+        return res;
+      }).catch(() => caches.match(req).then((cached) => cached || caches.match('./index.html')))
+    );
+    return;
+  }
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
