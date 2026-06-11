@@ -305,7 +305,7 @@ let score=0,best=+(localStorage.getItem('shakeBest')||0),
   fever=0,shield=0,magnet=0,invuln=0,distKm=0,
   rescued=0,rescueStreak=0,missed=0,scoreMult=1,
   px=0,py=0,shake=0,flash=0,flashCol='255,60,60',hue=320,lastTick=99,
-  shakeMode=null,waveCD=0,waveFx=0;
+  shakeMode=null,waveCD=0,waveFx=0,waveCol='176,139,255';
 
 /* ───────── オブジェクト・プーリング ───────── */
 const ZSPAWN=2300,FOCAL=460,PLAYER_R=0.10,CATCH_Z=120;
@@ -323,7 +323,7 @@ function burst(x,y,n,cols,emoji){
     const p=part();if(!p)break;
     const a=Math.random()*TAU,v=60+Math.random()*340;
     p.alive=true;p.x=x;p.y=y;p.vx=Math.cos(a)*v;p.vy=Math.sin(a)*v-60;
-    p.t=0;p.dur=.5+Math.random()*.8;p.size=3+Math.random()*7;
+    p.t=0;p.dur=.5+Math.random()*.8;p.size=3+Math.random()*7;p.float=false;
     p.emoji=(emoji&&Math.random()<.4)?emoji[(Math.random()*emoji.length)|0]:null;
     p.col=cols[(Math.random()*cols.length)|0];
   }
@@ -338,8 +338,18 @@ function freedFly(){
     const p=part();if(!p)break;
     p.alive=true;p.x=W/2+(i-1)*30;p.y=H*.5;
     p.vx=(i-1)*40;p.vy=-160-Math.random()*80;
-    p.t=0;p.dur=1.6;p.size=11;
+    p.t=0;p.dur=1.6;p.size=11;p.float=true;
     p.emoji=['🎈','💖','🐣'][i];p.col='#fff';
+  }
+}
+/* 画面いっぱいの紙吹雪レイン */
+function confettiRain(){
+  for(let i=0;i<24;i++){
+    const p=part();if(!p)break;
+    p.alive=true;p.x=Math.random()*W;p.y=-20-Math.random()*H*.3;
+    p.vx=rnd(-50,50);p.vy=rnd(130,280);p.t=0;p.dur=1.5;
+    p.size=6+Math.random()*5;p.float=true;
+    p.emoji=['🎊','🎉','✨','⭐','💖'][(Math.random()*5)|0];p.col='#fff';
   }
 }
 
@@ -413,7 +423,7 @@ function doShake(){
   }
   if(waveCD>0)return;
   /* 衝撃波: 画面内のブラックこっこ・機雷を一掃 */
-  waveCD=3;waveFx=.6;shake=10;vib([20,20,40]);sfxWave();
+  waveCD=3;waveFx=.6;waveCol='176,139,255';shake=10;vib([20,20,40]);sfxWave();
   let n=0;
   for(const e of ents){
     if(!e.alive)continue;
@@ -436,7 +446,8 @@ function rescueOK(){
   popup(W/2,H*.36,'🎉 救出！ +'+Math.round(pts*scoreMult),'#ffd76e',32);
   popup(W/2,H*.48,'⏰+2秒','#9fe8a0',20);
   burst(W/2,H*.5,46,['#ffd76e','#ff8ac2','#7ad7ff','#b08bff'],['🎉','✨','💖','🐣','⭐']);
-  freedFly();
+  waveFx=.6;waveCol='255,215,110';            /* 祝福のゴールドリング */
+  freedFly();confettiRain();
 }
 function rescueFail(){
   const e=shakeMode.e;shakeMode=null;e.alive=false;
@@ -600,7 +611,7 @@ function update(dt){
   /* パーティクル */
   for(const p of parts){if(!p.alive)continue;p.t+=rdt;
     if(p.t>=p.dur){p.alive=false;continue;}
-    p.x+=p.vx*rdt;p.y+=p.vy*rdt;if(!p.emoji||p.emoji!=='🎈')p.vy+=340*rdt;}
+    p.x+=p.vx*rdt;p.y+=p.vy*rdt;if(!p.float)p.vy+=340*rdt;}
   for(const p of pops){if(!p.alive)continue;p.t+=rdt;if(p.t>=p.dur)p.alive=false;}
 }
 
@@ -694,7 +705,7 @@ function draw(){
   /* 衝撃波エフェクト */
   if(waveFx>0){
     const k=1-waveFx/.6;
-    cx.strokeStyle=`rgba(176,139,255,${waveFx})`;cx.lineWidth=6*(1-k);
+    cx.strokeStyle=`rgba(${waveCol},${waveFx})`;cx.lineWidth=6*(1-k);
     cx.beginPath();cx.arc(cxp,cyp+H*.1,R*(0.3+k*2.4),0,TAU);cx.stroke();
   }
   /* エンティティ(奥から) */
@@ -865,7 +876,7 @@ function tick(t){
   else{
     for(const p of parts){if(!p.alive)continue;p.t+=dt;
       if(p.t>=p.dur){p.alive=false;continue;}
-      p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=340*dt;}
+      p.x+=p.vx*dt;p.y+=p.vy*dt;if(!p.float)p.vy+=340*dt;}
     for(const p of pops){if(!p.alive)continue;p.t+=dt;if(p.t>=p.dur)p.alive=false;}
     for(const s of stars){s.z-=300*dt;if(s.z<10){s.z=ZSPAWN;s.a=Math.random()*TAU;}}
     hue=(hue+dt*16)%360;
