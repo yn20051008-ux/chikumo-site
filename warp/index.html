@@ -192,17 +192,19 @@ function spawnRock(x,y,z){const vr=[];const n=8;for(let i=0;i<n;i++)vr.push(.7+M
   ents.push({type:'rock',x,y,z,r:.13+Math.random()*.09,rot:Math.random()*7,vrot:(Math.random()-.5)*3,vr,judged:false});}
 function spawnStar(x,y,z){ents.push({type:'star',x,y,z,rot:Math.random()*7,ph:Math.random()*7,judged:false});}
 function rnd(a,b){return a+Math.random()*(b-a);}
+/* 難易度設計: クリアできる要素(リング・スター) 76.6% / クリアできない要素(隕石) 23.4%
+   重み .38/.15/.18/.12/.17 → 期待値 C=.38+.15+5*.18+2*.17=1.77, U=2*.15+2*.12=.54
+   → C/(C+U)=1.77/2.31=76.6%, U=23.4% */
 function spawnPattern(z){const r=Math.random();
-  if(r<.42){const mv=state.dist>380&&Math.random()<.4?
+  if(r<.38){const mv=state.dist>380&&Math.random()<.4?
       {amp:.22+Math.random()*.15,sp:1+Math.random()*1.4,ph:Math.random()*7}:null;
     spawnRing(rnd(-.5,.5),rnd(-.4,.4),z,mv);}
-  else if(r<.6){const x=rnd(-.45,.45),y=rnd(-.35,.35);spawnRing(x,y,z);
+  else if(r<.53){const x=rnd(-.45,.45),y=rnd(-.35,.35);spawnRing(x,y,z);
     for(let i=0;i<2;i++){const a=Math.random()*Math.PI*2,d=RING_R+.3+Math.random()*.3;
       spawnRock(Math.max(-.7,Math.min(.7,x+Math.cos(a)*d)),Math.max(-.55,Math.min(.55,y+Math.sin(a)*d)),z+i*.5);}}
-  else if(r<.75){const x0=rnd(-.5,.2),y0=rnd(-.4,.3);
+  else if(r<.71){const x0=rnd(-.5,.2),y0=rnd(-.4,.3);
     for(let i=0;i<5;i++)spawnStar(x0+i*.12,y0+Math.sin(i*1.1)*.22,z+i*.85);}
-  else if(r<.92){const n=2+(Math.random()*2|0);
-    for(let i=0;i<n;i++)spawnRock(rnd(-.6,.6),rnd(-.5,.5),z+i*.9);}
+  else if(r<.83){for(let i=0;i<2;i++)spawnRock(rnd(-.6,.6),rnd(-.5,.5),z+i*.9);}
   else{const x=rnd(-.45,.45);spawnRing(x,rnd(-.35,.1),z);spawnRing(-x,rnd(-.1,.35),z+2.4);}}
 
 /* ───────── 判定（z=0通過時） ───────── */

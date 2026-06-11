@@ -117,6 +117,19 @@ G.spawnRing(0,0,5,{amp:.3,sp:0,ph:Math.PI/2});
 G.spawnRing(0,0,0.4); G.update(0.1);
 ok(S.score===150,'scoring works after restart');
 
+// Difficulty spec: clearable elements (rings/stars) 76.6% vs hazards (rocks) 23.4%
+{ const realRandom=Math.random; let seed=42;
+  Math.random=()=>{ seed=(seed*1664525+1013904223)>>>0; return seed/4294967296; };
+  G.ents.length=0;
+  let C=0,U=0;
+  const tally=()=>{ for(const o of G.ents){ if(o.type==='rock')U++; else C++; } G.ents.length=0; };
+  for(let i=0;i<20000;i++){ G.spawnPattern(26); if(G.ents.length>5000)tally(); }
+  tally();
+  Math.random=realRandom;
+  const pc=C/(C+U)*100;
+  ok(Math.abs(pc-76.6)<1.0,'difficulty mix: clearable '+pc.toFixed(2)+'% / hazards '+(100-pc).toFixed(2)+'% (spec 76.6/23.4)');
+}
+
 frames(120); ok(true,'120 frames render without error');
 
 console.log(fail?('\n'+fail+' FAILURES'):'\nALL TESTS PASSED');
