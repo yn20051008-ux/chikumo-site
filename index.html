@@ -233,14 +233,14 @@
       will-change: transform, opacity;
     }
     .menu.visible { pointer-events: auto; }
-    .menu ul { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem 1.1rem; justify-items: center; }
+    .menu ul { list-style: none; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.8rem 0.9rem; justify-items: center; }
     .menu a {
       display: grid;
       grid-template-columns: 5.8rem auto;   /* EN column (fixed) | JA column */
       align-items: baseline;
       justify-content: center;
       column-gap: 0.7em;
-      width: min(40vw, 14rem);
+      width: min(26vw, 13rem);
       box-sizing: border-box;
       padding: 0.85rem 1.1rem;
       color: #eaf2ff;
@@ -399,8 +399,17 @@
       .header { padding: 1rem 1.2rem; }
       .brand { font-size: 0.95rem; letter-spacing: 0.35em; }
       .meta { display: none; }
-      .menu ul { grid-template-columns: 1fr 1fr; gap: 0.7rem 0.6rem; }
-      .menu a { font-size: 0.95rem; padding: 0.8rem 0.6rem; width: min(42vw, 11rem); }
+      .menu ul { grid-template-columns: 1fr 1fr 1fr; gap: 0.55rem 0.45rem; }
+      .menu a {
+        grid-template-columns: 1fr;          /* EN を上、JA を下に積む */
+        justify-items: center;
+        row-gap: 0.15rem;
+        font-size: 0.9rem;
+        padding: 0.55rem 0.3rem;
+        width: min(29vw, 9rem);
+      }
+      .menu .en { justify-self: center; text-align: center; font-size: 0.52rem; letter-spacing: 0.22em; }
+      .menu .ja { justify-self: center; text-align: center; letter-spacing: 0.3em; text-indent: 0.3em; }
       .chick { width: 64px; height: 84px; margin-left: -32px; margin-top: -42px; }
       .zoom-ui { display: none; }
       .footer { left: 1rem; font-size: 0.55rem; letter-spacing: 0.2em; }
