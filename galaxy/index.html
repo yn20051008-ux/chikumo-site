@@ -584,7 +584,7 @@ function update(dt){state.t+=dt;
 /* ───────── 開始/終了 ───────── */
 function startGame(){state.mode='play';state.score=0;state.combo=0;state.maxCombo=0;state.chainBest=0;
   state.justN=0;state.hearts=3;state.fever=0;state.rainbow=0;state.time=TIME0;
-  state.mt=0;state.nextFire=.6;state.nextStep=16;state.lv=1;state.color=0;state.justShots=0;
+  state.mt=0;state.nextFire=SP*6;state.nextStep=16;state.lv=1;state.color=0;state.justShots=0;
   state.px=W/2;state.pxT=W/2;state.shake=0;state.flash=0;state.slow=0;state.lastTickS=-1;state.reason='';
   orbs.clear();bullets.clear();items.clear();foes.clear();
   parts.length=0;pops.length=0;rains.length=0;waves.length=0;phraseCache={};
