@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>こっこフィーバー | 畜物語</title>
+<meta name="description" content="リングが重なる瞬間にタップ！PERFECTを重ねてフィーバー突入。花火と虹が弾ける中毒タイミングゲーム。無料ブラウザゲーム。">
+<link rel="canonical" href="https://chikumo.jp/fever/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chikumo.jp/fever/">
+<meta property="og:title" content="こっこフィーバー | 畜物語">
+<meta property="og:description" content="リングが重なる瞬間にタップ！PERFECTを重ねてフィーバー突入。花火と虹が弾ける中毒タイミングゲーム。">
+<meta property="og:image" content="https://chikumo.jp/ogp.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="こっこフィーバー | 畜物語">
+<meta name="twitter:description" content="リングが重なる瞬間にタップ！PERFECTでフィーバー！花火と虹が弾ける中毒タイミングゲーム。">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;background:#0b0b1e;font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  user-select:none;-webkit-user-select:none;touch-action:manipulation}
+#game{position:fixed;inset:0;width:100%;height:100%;display:block}
+#ui{position:fixed;inset:0;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.overlay{pointer-events:auto;background:rgba(8,8,28,.82);backdrop-filter:blur(6px);border-radius:24px;
+  padding:28px 30px;text-align:center;color:#fff;max-width:340px;width:88%;box-shadow:0 0 60px rgba(255,120,200,.25)}
+.overlay h1{font-size:30px;background:linear-gradient(90deg,#ffd76e,#ff7ab8,#7ad7ff);-webkit-background-clip:text;
+  background-clip:text;color:transparent;margin-bottom:6px;letter-spacing:.06em}
+.overlay .sub{font-size:12px;color:#aab;margin-bottom:14px}
+.overlay img.hero{width:88px;filter:drop-shadow(0 0 18px rgba(255,200,90,.7));animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-10px) rotate(4deg)}}
+.overlay .how{font-size:13px;line-height:1.9;color:#dde;margin:14px 0;text-align:left}
+.overlay .how b{color:#ffd76e}
+.btn{pointer-events:auto;display:inline-block;margin-top:8px;padding:14px 44px;font-size:18px;font-weight:bold;color:#1a1030;
+  background:linear-gradient(135deg,#ffd76e,#ff8ac2);border:none;border-radius:999px;cursor:pointer;
+  box-shadow:0 6px 24px rgba(255,150,190,.45);transition:transform .12s}
+.btn:active{transform:scale(.93)}
+.score-row{font-size:14px;color:#ffd76e;margin:6px 0 2px}
+.big-score{font-size:42px;font-weight:bold;color:#fff;text-shadow:0 0 24px rgba(255,200,110,.8)}
+.hidden{display:none!important}
+.back{position:fixed;top:env(safe-area-inset-top,8px);left:8px;z-index:30;color:#cce;font-size:13px;text-decoration:none;
+  background:rgba(20,20,50,.6);padding:8px 14px;border-radius:999px;pointer-events:auto}
+.mute{position:fixed;top:env(safe-area-inset-top,8px);right:8px;z-index:30;font-size:18px;background:rgba(20,20,50,.6);
+  border:none;color:#fff;padding:6px 12px;border-radius:999px;pointer-events:auto;cursor:pointer}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<a class="back" href="/">← 畜物語</a>
+<button class="mute" id="muteBtn" aria-label="サウンド切替">🔊</button>
+<div id="ui">
+  <div class="overlay" id="startOv">
+    <img class="hero" src="/chikumo.svg" alt="こっこちゃん">
+    <h1>こっこフィーバー</h1>
+    <div class="sub">COCCO FEVER — 1タップ中毒リズム</div>
+    <div class="how">
+      ◆ 縮むリングが<b>金の輪にピッタリ重なる瞬間</b>にタップ！<br>
+      ◆ <b>PERFECT</b>を続けてコンボを伸ばせ。<br>
+      ◆ コンボ<b>10</b>で<b>FEVER突入</b>——花火と虹の大乱舞！<br>
+      ◆ MISS 3回でおしまい。スコアを更新せよ。
+    </div>
+    <div class="score-row" id="bestRow"></div>
+    <button class="btn" id="startBtn">はじめる</button>
+  </div>
+  <div class="overlay hidden" id="endOv">
+    <img class="hero" src="/chikumo.svg" alt="こっこちゃん">
+    <h1>RESULT</h1>
+    <div class="score-row">SCORE</div>
+    <div class="big-score" id="endScore">0</div>
+    <div class="score-row" id="endBest"></div>
+    <div class="score-row" id="endCombo"></div>
+    <button class="btn" id="retryBtn">もう一回</button>
+  </div>
+</div>
+<script>
+"use strict";
+/* ───────── 公式こっこちゃんSVG ───────── */
+const cocco=new Image();let coccoReady=false;
+cocco.onload=()=>coccoReady=true;
+cocco.src='/chikumo.svg';
+
+const cv=document.getElementById('game'),cx=cv.getContext('2d');
+let W=0,H=0,DPR=1;
+function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+  cv.width=W*DPR;cv.height=H*DPR;cv.style.width=W+'px';cv.style.height=H+'px';cx.setTransform(DPR,0,0,DPR,0,0);}
+addEventListener('resize',resize);resize();
+
+/* ───────── サウンド (WebAudio chiptune) ───────── */
+let AC=null,muted=false,bgmTimer=null,bgmStep=0;
+const MASTER=0.5;
+function audio(){if(!AC){AC=new (window.AudioContext||window.webkitAudioContext)();}if(AC.state==='suspended')AC.resume();return AC;}
+function tone(f,t0,dur,type,vol,slide){const a=audio();const o=a.createOscillator(),g=a.createGain();
+  o.type=type;o.frequency.setValueAtTime(f,t0);if(slide)o.frequency.exponentialRampToValueAtTime(slide,t0+dur);
+  g.gain.setValueAtTime(vol*MASTER,t0);g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+  o.connect(g).connect(a.destination);o.start(t0);o.stop(t0+dur+.02);}
+function noise(t0,dur,vol){const a=audio();const n=a.createBufferSource(),buf=a.createBuffer(1,a.sampleRate*dur,a.sampleRate);
+  const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
+  n.buffer=buf;const g=a.createGain();g.gain.value=vol*MASTER;n.connect(g).connect(a.destination);n.start(t0);}
+function sfxPerfect(mult){if(muted)return;const t=audio().currentTime;const base=523.25*Math.pow(1.0594631,Math.min(mult,12));
+  tone(base,t,.12,'square',.16);tone(base*1.5,t+.05,.14,'square',.13);tone(base*2,t+.1,.2,'triangle',.18);noise(t,.06,.05);}
+function sfxGreat(){if(muted)return;const t=audio().currentTime;tone(440,t,.1,'square',.12);tone(660,t+.06,.12,'triangle',.12);}
+function sfxMiss(){if(muted)return;const t=audio().currentTime;tone(220,t,.25,'sawtooth',.14,110);noise(t,.15,.08);}
+function sfxFever(){if(muted)return;const t=audio().currentTime;
+  [523,659,784,1047,1319,1568].forEach((f,i)=>{tone(f,t+i*.07,.3,'square',.15);tone(f/2,t+i*.07,.3,'triangle',.1);});
+  noise(t,.4,.1);}
+function sfxFirework(){if(muted)return;const t=audio().currentTime;noise(t,.3,.07);tone(1200+Math.random()*800,t,.2,'sine',.06,200);}
+/* 中毒BGM: 8bitループ — fever中はテンポUP&キーUP */
+const BASS=[131,131,165,165,175,175,196,165], MEL=[
+ 523,0,659,523, 784,0,659,523, 587,659,523,440, 523,0,392,440,
+ 523,0,659,784, 880,0,784,659, 698,784,659,587, 659,587,523,0];
+function bgmTick(){if(muted||!AC)return;const t=AC.currentTime;const fever=state.fever>0;
+  const sp=fever?.105:.14;const k=fever?1.3348:1; // fever=短3度上げ
+  const m=MEL[bgmStep%32];if(m)tone(m*k,t,sp*.9,'square',fever?.085:.06);
+  if(bgmStep%2===0){tone(BASS[(bgmStep>>2)%8]*k,t,sp*1.8,'triangle',.09);}
+  if(bgmStep%4===0)noise(t,.04,.025);
+  if(fever&&bgmStep%4===2)tone(m?m*k*2:1047,t,sp,'square',.04);
+  bgmStep++;clearTimeout(bgmTimer);bgmTimer=setTimeout(bgmTick,sp*1000);}
+function startBgm(){bgmStep=0;clearTimeout(bgmTimer);bgmTick();}
+document.getElementById('muteBtn').onclick=e=>{muted=!muted;e.target.textContent=muted?'🔇':'🔊';
+  if(!muted&&state.playing)startBgm();};
+
+/* ───────── ゲーム状態 ───────── */
+const state={playing:false,score:0,combo:0,maxCombo:0,miss:0,fever:0,
+  ring:1.8,speed:.9,targetR:0,shake:0,flash:0,hue:0,t:0};
+let best=+localStorage.getItem('feverBest')||0;
+const parts=[],pops=[],floaters=[],stars=[];
+for(let i=0;i<60;i++)stars.push({x:Math.random(),y:Math.random(),s:Math.random()*1.6+.4,p:Math.random()*7});
+
+function spawnBurst(x,y,n,hueBase,pw){for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,v=(Math.random()*.6+.4)*pw;
+  parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1.5,life:1,h:hueBase+Math.random()*60,r:Math.random()*4+2,g:.06});}}
+function spawnFirework(){const x=W*(0.15+Math.random()*0.7),y=H*(0.1+Math.random()*0.4);
+  sfxFirework();const h=Math.random()*360;
+  for(let i=0;i<46;i++){const a=i/46*Math.PI*2,v=Math.random()*3+2.5;
+    parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,life:1,h:h+Math.random()*40,r:3,g:.04,trail:true});}}
+function spawnPop(x,y,txt,col,size){pops.push({x,y,txt,col,size,life:1});}
+function spawnFloater(){floaters.push({x:Math.random()<.5?-60:W+60,y:H*.15+Math.random()*H*.6,
+  d:0,vx:0,r:24+Math.random()*22,sp:1.5+Math.random()*2,ph:Math.random()*7});
+  const f=floaters[floaters.length-1];f.vx=f.x<0?f.sp:-f.sp;}
+
+function newRound(){state.ring=1.8+Math.random()*.3;
+  state.speed=Math.min(.9+state.score/4000,2.2)*(state.fever>0?1.15:1);}
+function startGame(){state.playing=true;state.score=0;state.combo=0;state.maxCombo=0;state.miss=0;state.fever=0;
+  parts.length=0;pops.length=0;floaters.length=0;newRound();
+  document.getElementById('startOv').classList.add('hidden');
+  document.getElementById('endOv').classList.add('hidden');
+  audio();startBgm();}
+function endGame(){state.playing=false;clearTimeout(bgmTimer);
+  if(state.score>best){best=state.score;localStorage.setItem('feverBest',best);}
+  document.getElementById('endScore').textContent=state.score;
+  document.getElementById('endBest').textContent='BEST '+best;
+  document.getElementById('endCombo').textContent='MAX COMBO '+state.maxCombo;
+  document.getElementById('endOv').classList.remove('hidden');}
+
+function judge(){if(!state.playing)return;
+  const d=Math.abs(state.ring-1); // 1.0=ジャスト
+  const cxp=W/2,cyp=H*.46;
+  if(d<.07){ // PERFECT
+    state.combo++;state.maxCombo=Math.max(state.maxCombo,state.combo);
+    const mult=Math.min(1+Math.floor(state.combo/5),9)*(state.fever>0?2:1);
+    state.score+=100*mult;sfxPerfect(state.combo);
+    if(navigator.vibrate)navigator.vibrate(state.fever>0?[20,20,20]:15);
+    state.shake=10;state.flash=.5;
+    spawnBurst(cxp,cyp,40+state.combo*2,state.hue,4);
+    spawnPop(cxp,cyp-90,'PERFECT','#ffd76e',34);
+    spawnPop(cxp,cyp-130,'×'+mult,'#ff8ac2',22);
+    if(state.combo>0&&state.combo%10===0&&state.fever<=0){state.fever=8;sfxFever();
+      spawnPop(cxp,H*.25,'FEVER!!','#7ad7ff',46);
+      for(let i=0;i<6;i++)setTimeout(spawnFirework,i*180);
+      for(let i=0;i<8;i++)spawnFloater();}
+    newRound();
+  }else if(d<.18){ // GREAT
+    state.combo++;state.maxCombo=Math.max(state.maxCombo,state.combo);
+    state.score+=40*(state.fever>0?2:1);sfxGreat();state.shake=4;
+    spawnBurst(cxp,cyp,16,140,2.5);
+    spawnPop(cxp,cyp-90,'GREAT','#9fe88f',26);
+    newRound();
+  }else{ // MISS
+    state.combo=0;state.miss++;sfxMiss();state.shake=14;
+    spawnPop(cxp,cyp-90,'MISS…','#ff6b7a',28);
+    if(state.miss>=3){setTimeout(endGame,700);state.playing=false;clearTimeout(bgmTimer);return;}
+    newRound();}}
+
+cv.addEventListener('pointerdown',e=>{e.preventDefault();judge();},{passive:false});
+addEventListener('keydown',e=>{if(e.code==='Space'||e.code==='Enter'){e.preventDefault();
+  if(state.playing)judge();}});
+document.getElementById('startBtn').onclick=startGame;
+document.getElementById('retryBtn').onclick=startGame;
+document.getElementById('bestRow').textContent=best?('BEST '+best):'';
+
+/* ───────── 描画ループ ───────── */
+let last=performance.now();
+function frame(now){const dt=Math.min((now-last)/1000,.05);last=now;state.t+=dt;
+  state.hue=(state.hue+dt*(state.fever>0?160:30))%360;
+  if(state.fever>0){state.fever-=dt;if(state.fever<=0){state.fever=0;}
+    if(Math.random()<dt*2.2)spawnFirework();}
+  if(state.playing){state.ring-=state.speed*dt;
+    if(state.ring<0.6){ // 取り逃し=MISS
+      state.combo=0;state.miss++;sfxMiss();state.shake=12;
+      spawnPop(W/2,H*.46-90,'MISS…','#ff6b7a',28);
+      if(state.miss>=3){state.playing=false;clearTimeout(bgmTimer);setTimeout(endGame,700);}
+      else newRound();}}
+  draw(dt);requestAnimationFrame(frame);}
+function draw(dt){
+  const fever=state.fever>0;
+  // 背景
+  const g=cx.createLinearGradient(0,0,0,H);
+  if(fever){g.addColorStop(0,`hsl(${state.hue},70%,16%)`);g.addColorStop(1,`hsl(${(state.hue+80)%360},70%,8%)`);}
+  else{g.addColorStop(0,'#141433');g.addColorStop(1,'#0b0b1e');}
+  cx.fillStyle=g;cx.fillRect(0,0,W,H);
+  // 星
+  stars.forEach(s=>{const tw=.5+.5*Math.sin(state.t*2+s.p);
+    cx.fillStyle=`rgba(255,255,255,${.25*tw+(fever?.3:0)})`;
+    cx.beginPath();cx.arc(s.x*W,s.y*H,s.s*(fever?1.6:1),0,7);cx.fill();});
+  // fever虹オーラ
+  if(fever){cx.save();cx.globalAlpha=.18+.08*Math.sin(state.t*8);
+    for(let i=0;i<5;i++){cx.strokeStyle=`hsl(${(state.hue+i*70)%360},90%,60%)`;cx.lineWidth=16;
+      cx.beginPath();cx.arc(W/2,H*.46,140+i*36+Math.sin(state.t*4+i)*10,0,7);cx.stroke();}
+    cx.restore();}
+  cx.save();
+  if(state.shake>0){state.shake*=Math.pow(.001,dt);if(state.shake<.3)state.shake=0;
+    cx.translate((Math.random()-.5)*state.shake,(Math.random()-.5)*state.shake);}
+  const cxp=W/2,cyp=H*.46,R=Math.min(W,H)*.22;
+  // ターゲット金リング
+  cx.strokeStyle=fever?`hsl(${state.hue},100%,70%)`:'#ffd76e';
+  cx.lineWidth=6;cx.shadowColor=cx.strokeStyle;cx.shadowBlur=18;
+  cx.beginPath();cx.arc(cxp,cyp,R,0,7);cx.stroke();cx.shadowBlur=0;
+  // 判定ゾーン薄表示
+  cx.strokeStyle='rgba(255,215,110,.18)';cx.lineWidth=R*.14;
+  cx.beginPath();cx.arc(cxp,cyp,R,0,7);cx.stroke();
+  // 縮むリング
+  if(state.playing){const rr=R*state.ring;
+    cx.strokeStyle=fever?`hsl(${(state.hue+180)%360},100%,72%)`:'#7ad7ff';
+    cx.lineWidth=5;cx.shadowColor=cx.strokeStyle;cx.shadowBlur=14;
+    cx.beginPath();cx.arc(cxp,cyp,rr,0,7);cx.stroke();cx.shadowBlur=0;}
+  // こっこちゃん本体（拍動&フィーバーで踊る）
+  if(coccoReady){const beat=1+.06*Math.sin(state.t*(fever?14:6));
+    const sz=R*1.1*beat;cx.save();cx.translate(cxp,cyp);
+    cx.rotate(Math.sin(state.t*(fever?10:2.5))*(fever?.25:.08));
+    if(fever){cx.shadowColor=`hsl(${state.hue},100%,65%)`;cx.shadowBlur=40;}
+    cx.drawImage(cocco,-sz/2,-sz/2*1.3,sz,sz*1.3);cx.restore();}
+  // 飛ぶこっこちゃん
+  for(let i=floaters.length-1;i>=0;i--){const f=floaters[i];f.x+=f.vx;f.d+=dt;
+    const yy=f.y+Math.sin(state.t*5+f.ph)*20;
+    if(coccoReady){cx.save();cx.translate(f.x,yy);cx.rotate(Math.sin(state.t*6+f.ph)*.3);
+      cx.drawImage(cocco,-f.r/2,-f.r*.65,f.r,f.r*1.3);cx.restore();}
+    if(f.x<-80||f.x>W+80)floaters.splice(i,1);}
+  // パーティクル
+  for(let i=parts.length-1;i>=0;i--){const p=parts[i];
+    p.x+=p.vx;p.y+=p.vy;p.vy+=p.g;p.life-=dt*.9;
+    if(p.life<=0){parts.splice(i,1);continue;}
+    cx.globalAlpha=p.life;cx.fillStyle=`hsl(${p.h},95%,${60+p.life*20}%)`;
+    cx.beginPath();cx.arc(p.x,p.y,p.r*p.life,0,7);cx.fill();
+    if(p.trail&&Math.random()<.3){cx.globalAlpha=p.life*.4;
+      cx.beginPath();cx.arc(p.x-p.vx*2,p.y-p.vy*2,p.r*.5,0,7);cx.fill();}}
+  cx.globalAlpha=1;
+  // 判定ポップ
+  for(let i=pops.length-1;i>=0;i--){const p=pops[i];p.life-=dt*1.4;p.y-=dt*60;
+    if(p.life<=0){pops.splice(i,1);continue;}
+    cx.globalAlpha=Math.min(p.life*2,1);cx.font=`bold ${p.size}px sans-serif`;
+    cx.textAlign='center';cx.fillStyle=p.col;cx.shadowColor=p.col;cx.shadowBlur=12;
+    cx.fillText(p.txt,p.x,p.y);cx.shadowBlur=0;}
+  cx.globalAlpha=1;cx.restore();
+  // フラッシュ
+  if(state.flash>0){state.flash-=dt*2;cx.fillStyle=`rgba(255,255,255,${Math.max(state.flash,0)*.5})`;cx.fillRect(0,0,W,H);}
+  // HUD
+  if(state.playing||state.score>0){
+    cx.textAlign='center';cx.fillStyle='#fff';cx.font='bold 30px sans-serif';
+    cx.shadowColor='rgba(255,200,110,.8)';cx.shadowBlur=10;
+    cx.fillText(state.score,W/2,H*.1);cx.shadowBlur=0;
+    if(state.combo>1){cx.fillStyle=fever?`hsl(${state.hue},100%,75%)`:'#ffd76e';
+      cx.font=`bold ${20+Math.min(state.combo,30)}px sans-serif`;
+      cx.fillText(state.combo+' COMBO',W/2,H*.16);}
+    if(fever){cx.fillStyle=`hsl(${state.hue},100%,70%)`;cx.font='bold 22px sans-serif';
+      cx.fillText('★ FEVER ★',W/2,H*.86);
+      cx.fillStyle=`hsla(${state.hue},100%,70%,.85)`;
+      cx.fillRect(W*.2,H*.88,W*.6*(state.fever/8),6);}
+    // ライフ
+    cx.font='20px sans-serif';cx.textAlign='left';
+    for(let i=0;i<3;i++)cx.fillText(i<3-state.miss?'❤️':'🖤',12+i*26,H-18);}
+}
+requestAnimationFrame(frame);
+window.__fever={state,judge,startGame,endGame,newRound,parts,pops,floaters,getBest:()=>best};
+</script>
+</body>
+</html>
