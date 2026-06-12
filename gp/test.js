@@ -203,13 +203,13 @@ ok(S().fever>0&&S().scoreMult===2,'🌈 rainbow starts FEVER ×2');
 /* ── 🔫シューティング: 弾丸3発装填→発射→障害物を撃ち破壊 ── */
 G.set({fever:0,scoreMult:1,hitStop:0,slowmo:0,invuln:0,celeT:0,px:0});
 G.set({ammo:0}); pick('ammo','🔫');
-ok(S().ammo===3,'🔫 ammo pickup loads 3 bullets');
+ok(S().ammo===5,'🔫 ammo pickup loads 5 bullets');
 G.set({ammo:2}); pick('ammo','🔫');
-ok(S().ammo===5,'2 bullets + 🔫 pickup = 5 (stacks)');
+ok(S().ammo===7,'2 bullets + 🔫 pickup = 7 (stacks)');
 pick('ammo','🔫');
-ok(S().ammo===8,'5 bullets + 🔫 pickup = 8');
+ok(S().ammo===12,'7 bullets + 🔫 pickup = 12');
 for(let i=0;i<4;i++)pick('ammo','🔫');
-ok(S().ammo===20,'ammo stock has no cap');
+ok(S().ammo===32,'ammo stock has no cap');
 G.set({ammo:0});
 G.fire();
 ok(G.shots.length===0,'firing with no ammo does nothing');
