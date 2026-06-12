@@ -259,13 +259,15 @@ G.set({ammo:3,px:0,hitStop:0,slowmo:0});
   for(let i=0;i<40;i++){G.set({hitStop:0,slowmo:0,spd:0});G.update(0.016);if(!bomb.alive)break;}
   ok(bomb.alive===false&&chain.alive===false,'💣 blast chains into the nearby obstacle');
   ok(S().score-sc>=400,'bomb + chain pays 300+100'); }
-/* ── 🔫出現率: 2倍化(全アイテムの約12%) ── */
-{ let ammoN=0,totN=0;
-  for(let i=0;i<4000;i++){ for(const e of G.ents)e.alive=false;
+/* ── 出現率: 🔫=全アイテムの約24%(さらに2倍) / ⏰=約1.8%(半減) ── */
+{ let ammoN=0,clockN=0,totN=0;
+  for(let i=0;i<8000;i++){ for(const e of G.ents)e.alive=false;
     G.spawnItems();
-    for(const e of G.ents)if(e.alive&&e.type==='item'){totN++;if(e.kind==='ammo')ammoN++;} }
-  const r=ammoN/totN;
-  ok(r>.08&&r<.16,'🔫 spawn rate doubled (measured '+(r*100).toFixed(1)+'% of items)'); }
+    for(const e of G.ents)if(e.alive&&e.type==='item'){totN++;
+      if(e.kind==='ammo')ammoN++;if(e.kind==='clock')clockN++;} }
+  const ra=ammoN/totN,rc=clockN/totN;
+  ok(ra>.15&&ra<.25,'🔫 spawn rate doubled again (measured '+(ra*100).toFixed(1)+'% of items)');
+  ok(rc>.008&&rc<.032,'⏰ spawn rate halved (measured '+(rc*100).toFixed(1)+'% of items)'); }
 G.set({broken:true});
 G.fire();
 ok(S().ammo===2,'cannot fire while broken down');
