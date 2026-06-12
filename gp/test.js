@@ -270,6 +270,27 @@ G.set({broken:true});
 G.fire();
 ok(S().ammo===2,'cannot fire while broken down');
 G.set({broken:false});
+/* ── 🎯ロックオン: 弾があれば進路上の障害物を捕捉 ── */
+{ for(const e of G.ents)e.alive=false;
+  G.ents.push({alive:true,done:false,x:0.2,z:400,vx:0,type:'obs',kind:'cone',emoji:'🚧'});
+  G.set({ammo:2,px:0,hitStop:0,slowmo:0,spd:0});
+  G.update(0.016);
+  ok(S().lockOn===true,'reticle locks onto the obstacle ahead');
+  G.set({ammo:0});
+  G.update(0.016);
+  ok(S().lockOn===false,'no ammo → no lock-on'); }
+/* ── 3連続ヒットでバレットタイム ── */
+G.set({ammo:9,px:0,hitStop:0,slowmo:0,spd:0,shotStreak:0});
+{ for(let k=0;k<3;k++){
+    for(const e of G.ents)e.alive=false;
+    const tgt={alive:true,done:false,x:0,z:300,vx:0,type:'obs',kind:'cone',emoji:'🚧'};
+    G.ents.push(tgt);
+    G.fire();
+    for(let i=0;i<40;i++){G.set({hitStop:0,spd:0});G.update(0.016);if(!tgt.alive)break;}
+  }
+  ok(S().shotStreak===3,'three kills in a row builds a 3-hit streak (got '+S().shotStreak+')');
+  ok(S().slowmo>0,'3-hit streak triggers bullet time'); }
+G.set({slowmo:0,hitStop:0});
 G.reset();
 ok(S().ammo===0&&G.shots.length===0,'reset clears ammo and shots');
 G.set({state:'play',goT:0,invuln:0,celeT:0,fever:0,scoreMult:1,px:0});
