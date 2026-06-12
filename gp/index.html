@@ -150,6 +150,39 @@ html,body{height:100%;overflow:hidden;background:#0a0316;font-family:"Hiragino K
 .rankin-ov.reveal .rankin-cocco{animation:coccoIn .5s cubic-bezier(.2,1.6,.4,1) .12s forwards,coccoBob 1s ease-in-out 1.1s infinite}
 @keyframes coccoIn{from{opacity:0;transform:translateX(-50%) translateY(24px) scale(.3)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
 @keyframes coccoBob{0%,100%{transform:translateX(-50%) translateY(0) rotate(-5deg)}50%{transform:translateX(-50%) translateY(-14px) rotate(5deg)}}
+/* ===== ダメージビネット(エンスト中の赤い縁) ===== */
+#dmgVin{position:fixed;inset:0;pointer-events:none;z-index:25;opacity:0;transition:opacity .45s;
+  background:radial-gradient(ellipse at center,transparent 52%,rgba(255,30,30,.5) 100%)}
+#dmgVin.on{opacity:1;animation:dmgPulse .9s ease-in-out infinite}
+@keyframes dmgPulse{0%,100%{opacity:.5}50%{opacity:1}}
+/* ===== 大破シネマ演出 ===== */
+.wreck-ov{position:fixed;inset:0;z-index:80;pointer-events:none;overflow:hidden;
+  background:radial-gradient(ellipse at 50% 60%,rgba(130,22,10,.6),rgba(0,0,0,.9));
+  animation:wkIn .1s ease,wkOut .55s ease 2s forwards}
+@keyframes wkIn{from{opacity:0}to{opacity:1}}
+@keyframes wkOut{to{opacity:0}}
+.wreck-flash{position:absolute;inset:0;background:#fff;animation:wkFlash .5s ease-out forwards}
+@keyframes wkFlash{0%{opacity:1}100%{opacity:0}}
+.wreck-bar{position:absolute;left:0;width:100%;height:0;background:#000;animation:wkBar .35s ease-out .1s forwards}
+.wreck-bar.top{top:0}.wreck-bar.bot{bottom:0}
+@keyframes wkBar{to{height:11vh}}
+.wreck-ring{position:absolute;left:50%;top:55%;width:40px;height:40px;border-radius:50%;
+  border:6px solid rgba(255,190,90,.95);transform:translate(-50%,-50%) scale(0);opacity:0;
+  animation:wkRing .85s cubic-bezier(.1,.8,.3,1) forwards}
+.wreck-ring.r2{border-color:rgba(255,80,60,.85);animation-delay:.14s}
+@keyframes wkRing{0%{opacity:1;transform:translate(-50%,-50%) scale(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(24)}}
+.wreck-card{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  animation:wkShake .55s linear .08s}
+@keyframes wkShake{0%,100%{transform:translate(0,0)}10%{transform:translate(-16px,9px)}22%{transform:translate(13px,-11px)}34%{transform:translate(-11px,-7px)}46%{transform:translate(9px,11px)}60%{transform:translate(-7px,5px)}74%{transform:translate(5px,-4px)}88%{transform:translate(-3px,2px)}}
+.wreck-kanji{font-size:min(34vw,220px);font-weight:900;font-style:italic;line-height:1;color:#fff;
+  text-shadow:-6px 0 0 rgba(255,40,60,.8),6px 0 0 rgba(60,180,255,.8),0 0 44px rgba(255,130,40,.95);
+  animation:wkSlam .5s cubic-bezier(.15,1.6,.4,1) .08s both}
+@keyframes wkSlam{0%{transform:scale(3.4) rotate(-7deg);opacity:0;filter:blur(12px)}60%{transform:scale(.9) rotate(1.5deg);opacity:1;filter:blur(0)}100%{transform:scale(1) rotate(0)}}
+.wreck-sub{margin-top:2vh;font-size:min(5.5vw,26px);font-weight:800;color:#ffd76e;letter-spacing:.34em;opacity:0;
+  text-shadow:0 0 14px rgba(255,200,90,.8);animation:wkSub .35s ease-out .55s forwards}
+@keyframes wkSub{to{opacity:1}}
+.wreck-fire i{position:absolute;bottom:-10vh;font-size:7.5vw;animation:wkFire 1.7s ease-in forwards}
+@keyframes wkFire{0%{transform:translateY(0) scale(.6) rotate(0);opacity:0}15%{opacity:1}100%{transform:translateY(-115vh) scale(1.7) rotate(40deg);opacity:0}}
 </style>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
@@ -157,6 +190,7 @@ html,body{height:100%;overflow:hidden;background:#0a0316;font-family:"Hiragino K
 </head>
 <body>
 <canvas id="game"></canvas>
+<div id="dmgVin"></div>
 <a class="back" href="/">← 畜物語</a>
 <button class="mute" id="muteBtn" aria-label="サウンド切替">🔊</button>
 <button class="recal hidden" id="recalBtn" aria-label="傾きリセット">📐 傾きリセット</button>
@@ -308,6 +342,25 @@ function noise(t0,dur,vol,hp){
   else n.connect(g);
   g.connect(a.destination);n.start(t0);
 }
+/* 歪みクランチ: ホワイトノイズ→tanhウェーブシェイパー→ローパス急降下(金属が潰れる質感) */
+function crunch(t0,dur,vol,fLow){
+  try{
+    const a=audio(),n=a.createBufferSource(),
+      buf=a.createBuffer(1,Math.max(1,(a.sampleRate*dur)|0),a.sampleRate),
+      d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,2);
+    n.buffer=buf;
+    const ws=a.createWaveShaper(),c=new Float32Array(257);
+    for(let i=0;i<257;i++)c[i]=Math.tanh((i/128-1)*6);
+    ws.curve=c;
+    const f=a.createBiquadFilter();f.type='lowpass';
+    f.frequency.setValueAtTime(3400,t0);f.frequency.exponentialRampToValueAtTime(Math.max(60,fLow||140),t0+dur);
+    const g=a.createGain();g.gain.value=vol*MASTER;
+    n.connect(ws);ws.connect(f);f.connect(g);g.connect(a.destination);n.start(t0);
+  }catch(e){}
+}
+/* サブベース・ドロップ: 体に響く低音の落下(=tone のsineスライド) */
+function subDrop(t0,f0,f1,dur,vol){tone(f0,t0,dur,'sine',vol,f1);}
 /* ─ 効果音(操作リズムにキマるキメ) ─ */
 function sfxCnt(){if(muted)return;const t=audio().currentTime;tone(440,t,.14,'square',.15);}
 function sfxGo(){if(muted)return;const t=audio().currentTime;
@@ -315,7 +368,19 @@ function sfxGo(){if(muted)return;const t=audio().currentTime;
 function sfxShift(g){if(muted)return;const t=audio().currentTime;
   tone(620+g*90,t,.07,'square',.1,0,1);noise(t,.04,.05,3000);}
 function sfxCrash(){if(muted)return;const t=audio().currentTime;
-  tone(180,t,.34,'sawtooth',.18,55);tone(90,t,.4,'square',.13,40);noise(t,.3,.16);noise(t+.05,.2,.1,500);}
+  tone(180,t,.34,'sawtooth',.18,55);tone(90,t,.4,'square',.13,40);noise(t,.3,.16);noise(t+.05,.2,.1,500);
+  subDrop(t,95,26,.5,.24);crunch(t,.26,.2,160);                                   /* 腹に響く衝撃＋金属クランチ */
+  for(let i=0;i<4;i++)tone(1500+Math.random()*1800,t+.05+i*.05,.06,'triangle',.05,0,1);} /* 飛び散る破片のチリン */
+function sfxWorse(){if(muted)return;const t=audio().currentTime;                  /* エンスト中の追突: 警報つき */
+  crunch(t,.4,.26,110);subDrop(t,80,22,.6,.26);noise(t,.3,.14,400);
+  tone(740,t+.25,.13,'square',.15);tone(740,t+.45,.13,'square',.15);tone(740,t+.65,.2,'square',.15,500);}
+function sfxSlowmo(){if(muted)return;const t=audio().currentTime;                 /* 時が歪むピッチダウン */
+  tone(900,t,.55,'sawtooth',.07,110);tone(450,t,.55,'triangle',.06,70);noise(t,.45,.05,260);}
+function sfxWreck(){if(muted)return;const t=audio().currentTime;                  /* 大破: 多層爆発→警報→破片の雨 */
+  crunch(t,1,.32,80);subDrop(t,75,20,1.1,.32);noise(t,.8,.22);noise(t+.08,.5,.14,300);
+  tone(150,t,.7,'sawtooth',.2,32);tone(60,t+.05,.9,'square',.12,24);
+  [784,659,523,392].forEach((f,i)=>tone(f,t+.5+i*.17,.15,'square',.12));
+  for(let i=0;i<8;i++)tone(1100+Math.random()*2200,t+.35+i*.1,.08,'triangle',.06,0,1);}
 function sfxBreak(){if(muted)return;const t=audio().currentTime;
   tone(220,t,.5,'sawtooth',.16,50);noise(t,.4,.14,300);tone(110,t+.15,.45,'square',.12,38);}
 function sfxClank(n){if(muted)return;const t=audio().currentTime,f=520*Math.pow(1.1,Math.min(n,8));
@@ -512,7 +577,8 @@ let score=0,best=+(localStorage.getItem('gpBest')||0),
   broken=false,repairGot=0,repairNeed=5,spinT=0,brokenHits=0,wrecked=false,
   nitroStock=0,nitroT=0,celeT=0,
   gap=400,rx=0,truckFair=true,rescueNeed=4,burstT=0,burstChk=0,dropT=3,
-  rescueMode=null,shake=0,flash=0,flashCol='255,60,60',hue=320,lastTick=99,lastFair=true;
+  rescueMode=null,shake=0,flash=0,flashCol='255,60,60',hue=320,lastTick=99,lastFair=true,
+  hitStop=0,slowmo=0;   /* ヒットストップ(ms)・スローモーション(秒) */
 
 /* ───────── コース(プロシージャル・ジェネレーション) ───────── */
 const SEGL=60;                       /* セグメント長(m) */
@@ -543,12 +609,22 @@ const stars=[];       /* 夜空の星 */
 for(let i=0;i<70;i++)stars.push({x:Math.random(),y:Math.random()*.38,tw:Math.random()*TAU});
 
 function rnd(a,b){return a+Math.random()*(b-a);}
+/* 高速で飛び散る火花ストリーク(速度方向に伸びる線で描画) */
+function sparks(x,y,n,col){
+  for(let i=0;i<n;i++){
+    const p=part();if(!p)break;
+    const a=Math.random()*TAU,v=240+Math.random()*460;
+    p.alive=true;p.x=x;p.y=y;p.vx=Math.cos(a)*v;p.vy=Math.sin(a)*v-90;
+    p.t=0;p.dur=.22+Math.random()*.34;p.size=1.8+Math.random()*2.4;p.float=false;
+    p.emoji=null;p.spark=true;p.col=col||'#ffd76e';
+  }
+}
 function burst(x,y,n,cols,emoji){
   for(let i=0;i<n;i++){
     const p=part();if(!p)break;
     const a=Math.random()*TAU,v=60+Math.random()*340;
     p.alive=true;p.x=x;p.y=y;p.vx=Math.cos(a)*v;p.vy=Math.sin(a)*v-60;
-    p.t=0;p.dur=.5+Math.random()*.8;p.size=3+Math.random()*7;p.float=false;
+    p.t=0;p.dur=.5+Math.random()*.8;p.size=3+Math.random()*7;p.float=false;p.spark=false;
     p.emoji=(emoji&&Math.random()<.4)?emoji[(Math.random()*emoji.length)|0]:null;
     p.col=cols[(Math.random()*cols.length)|0];
   }
@@ -561,7 +637,7 @@ function smoke(x,y,n){
   for(let i=0;i<n;i++){
     const p=part();if(!p)break;
     p.alive=true;p.x=x+rnd(-8,8);p.y=y+rnd(-4,4);
-    p.vx=rnd(-30,30);p.vy=rnd(-90,-30);p.t=0;p.dur=rnd(.5,1);
+    p.vx=rnd(-30,30);p.vy=rnd(-90,-30);p.t=0;p.dur=rnd(.5,1);p.spark=false;
     p.size=rnd(4,9);p.float=true;p.emoji=Math.random()<.25?'💨':null;p.col='rgba(170,160,180,.7)';
   }
 }
@@ -571,7 +647,7 @@ function freedFly(){
     const p=part();if(!p)break;
     p.alive=true;p.x=W/2+(i-1)*30;p.y=H*.45;
     p.vx=(i-1)*40;p.vy=-160-Math.random()*80;
-    p.t=0;p.dur=1.6;p.size=11;p.float=true;
+    p.t=0;p.dur=1.6;p.size=11;p.float=true;p.spark=false;
     p.emoji=['🎈','💖','🐣'][i];p.col='#fff';
   }
 }
@@ -581,7 +657,7 @@ function confettiRain(){
     const p=part();if(!p)break;
     p.alive=true;p.x=Math.random()*W;p.y=-20-Math.random()*H*.3;
     p.vx=rnd(-50,50);p.vy=rnd(130,280);p.t=0;p.dur=1.5;
-    p.size=6+Math.random()*5;p.float=true;
+    p.size=6+Math.random()*5;p.float=true;p.spark=false;
     p.emoji=['🎊','🎉','✨','⭐','💖','🏁'][(Math.random()*6)|0];p.col='#fff';
   }
 }
@@ -661,8 +737,9 @@ function doShake(){
     burst(W/2,H*.8,8,['#ffd76e','#9fe8a0','#fff'],['🔧','✨','🔩']);
     popup(W/2,H*.6,'🔧 '+repairGot+'/'+repairNeed,'#9fe8a0',22);
     if(repairGot>=repairNeed){
-      broken=false;hp=3;invuln=1.5;repairGot=0;brokenHits=0;
+      broken=false;hp=3;invuln=1.5;repairGot=0;brokenHits=0;dmgVin(false);
       spd=Math.max(spd,90);
+      sparks(W/2,H*.8,24,'#9fe8a0');
       sfxRepaired();vib([30,30,30,30,80]);
       flash=.5;flashCol='160,255,170';
       popup(W/2,H*.45,'🔧 修理完了！発進！','#9fe8a0',30);
@@ -679,7 +756,7 @@ function doShake(){
   sfxHonk();                          /* なにもない時はクラクション */
 }
 function rescueWin(){
-  rescueMode=null;
+  rescueMode=null;hitStop=90;   /* 檻が割れる瞬間にドンと止める */
   rescued++;rescueStreak++;combo+=3;
   const pts=2000+rescueStreak*500;addScore(pts);
   timeLeft=Math.min(99,timeLeft+8);
@@ -706,30 +783,56 @@ function damage(){
   if(invuln>0||fever>0||celeT>0)return;
   if(shield>0){shield=0;flash=.5;flashCol='120,220,255';sfxShield();popup(W/2,H*.4,'🛡️シールド！','#7ad7ff',26);return;}
   if(broken){                       /* エンスト中の追突: 1回目=破損悪化(要シェイク+2)・2回目=大破ゲームオーバー */
-    brokenHits++;invuln=1.2;shake=22;flash=.7;flashCol='255,60,60';
-    sfxCrash();vib([60,40,80]);
+    brokenHits++;invuln=1.2;shake=26;flash=.8;flashCol='255,60,60';
+    vib([60,40,80]);
     burst(W/2,H*.78,26,['#ff5a5a','#ffb05a','#fff'],['💥','😵']);
+    sparks(W/2,H*.76,30,'#ff9a5a');
     if(brokenHits>=2){
-      wrecked=true;sfxBreak();vib([120,60,160]);
-      popup(W/2,H*.4,'💥 大破！！','#ff5a5a',36);
+      wrecked=true;hitStop=110;
+      sfxWreck();vib([160,60,200,60,260]);
+      sparks(W/2,H*.7,46,'#ffcf6e');
+      burst(W/2,H*.7,40,['#ff5a5a','#ffb05a','#ffd76e','#fff'],['💥','🔥','🔩','🛞']);
+      wreckCinema();
       gameOver();
       return;
     }
-    repairNeed+=2;sfxBreak();
+    repairNeed+=2;hitStop=80;slowmo=.6;
+    sfxWorse();sfxSlowmo();
     popup(W/2,H*.4,'⚠️ 車体がさらに破損！','#ff7a6a',28);
     popup(W/2,H*.52,'つぎ ぶつかると大破！','#ffd76e',20);
     return;
   }
   hp--;combo=0;invuln=1.2;shake=22;flash=.7;flashCol='255,60,60';spinT=.55;
-  spd*=.4;
+  spd*=.4;hitStop=70;
   sfxCrash();vib([60,40,80]);
   burst(W/2,H*.78,26,['#ff5a5a','#ffb05a','#fff'],['💥','😵']);
+  sparks(W/2,H*.76,20,'#ffcf6e');
   if(hp<=0){
     broken=true;repairGot=0;repairNeed=5;brokenHits=0;spd=Math.min(spd,40);
-    sfxBreak();vib([90,50,120]);
+    sfxBreak();vib([90,50,120]);dmgVin(true);slowmo=.7;sfxSlowmo();
     popup(W/2,H*.4,'💥 エンスト！','#ff7a6a',32);
     popup(W/2,H*.52,'📳 シェイクで修理！','#ffd76e',24);
   }
+}
+/* エンスト中の赤い警告ビネット */
+function dmgVin(on){try{const v=document.getElementById('dmgVin');if(v&&v.classList)v.classList[on?'add':'remove']('on');}catch(e){}}
+/* 大破シネマ: フラッシュ→衝撃波リング→「大破」スラム→炎と破片が舞う→リザルトへフェード */
+function wreckCinema(){
+  try{
+    if(!document.body||!document.body.appendChild)return;
+    const old=document.getElementById('wreckOv');
+    if(old&&old.parentNode)old.parentNode.removeChild(old);
+    const ov=document.createElement('div');ov.id='wreckOv';ov.className='wreck-ov';
+    let fire='';
+    for(let i=0;i<16;i++)fire+='<i style="left:'+(Math.random()*94).toFixed(0)+'%;animation-delay:'
+      +(Math.random()*.75).toFixed(2)+'s">'+['🔥','💨','🔥','💥','🔩','🛞','🔥','✨'][i%8]+'</i>';
+    ov.innerHTML='<div class="wreck-flash"></div><div class="wreck-ring"></div><div class="wreck-ring r2"></div>'
+      +'<div class="wreck-bar top"></div><div class="wreck-bar bot"></div>'
+      +'<div class="wreck-fire">'+fire+'</div>'
+      +'<div class="wreck-card"><div class="wreck-kanji">大破</div><div class="wreck-sub">— TOTALED —</div></div>';
+    document.body.appendChild(ov);
+    setTimeout(function(){if(ov.parentNode)ov.parentNode.removeChild(ov);},2600);
+  }catch(e){}
 }
 function addScore(n){score+=Math.round(n*scoreMult);}
 function startFever(){
@@ -772,7 +875,9 @@ function judge(e){
 /* ───────── メインループ ───────── */
 let last=0;
 function gameOver(){
-  state='over';rescueMode=null;sfxOver();vib([80,60,120]);
+  state='over';rescueMode=null;dmgVin(false);
+  if(!wrecked)sfxOver();   /* 大破時はsfxWreckの爆発が鳴っている */
+  vib([80,60,120]);
   if(score>best){best=score;localStorage.setItem('gpBest',best);}
   document.getElementById('endReason').textContent=
     wrecked?'💥 クルマが大破した…'+(rescued>0?'（'+rescued+'羽 救出）':''):
@@ -792,7 +897,7 @@ function reset(){
   spd=0;maxKmh=0;dist=0;distChunk=0;px=0;tilt=0;gear=0;
   rescued=0;rescueStreak=0;missed=0;round=0;
   broken=false;repairGot=0;repairNeed=5;brokenHits=0;wrecked=false;spinT=0;nitroStock=1;nitroT=0;celeT=0;
-  rescueMode=null;shake=0;flash=0;lastTick=99;lastTapMs=0;
+  rescueMode=null;shake=0;flash=0;lastTick=99;lastTapMs=0;hitStop=0;slowmo=0;dmgVin(false);
   obsT=2.2;itemT=1.6;decorT=.4;boardT=5;
   track=[];genTrack(80);
   spawnTruck();
@@ -1154,6 +1259,8 @@ function draw(){
     cx.globalAlpha=k;
     if(p.emoji){cx.font=`${p.size*3.2}px sans-serif`;cx.textAlign='center';cx.textBaseline='middle';
       cx.fillText(p.emoji,p.x,p.y);}
+    else if(p.spark){cx.strokeStyle=p.col;cx.lineWidth=Math.max(.6,p.size*k);
+      cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(p.x-p.vx*.035,p.y-p.vy*.035);cx.stroke();}
     else{cx.fillStyle=p.col;cx.beginPath();cx.arc(p.x,p.y,p.size*k,0,TAU);cx.fill();}
   }
   cx.globalAlpha=1;
@@ -1278,7 +1385,10 @@ function draw(){
 function tick(t){
   const dtMs=last?t-last:16;last=t;
   perfSample(dtMs);
-  const dt=Math.min(.05,dtMs/1000);
+  let dt=Math.min(.05,dtMs/1000);
+  /* ヒットストップ(数フレーム完全停止)→スローモーション(0.3倍速) */
+  if(hitStop>0){hitStop-=dtMs;dt=0;}
+  else if(slowmo>0){slowmo-=dt;dt*=.3;}
   if(state==='play'){update(dt);schedBGM();}
   else{
     for(const p of parts){if(!p.alive)continue;p.t+=dt;
@@ -1353,7 +1463,7 @@ window.__gp={
   get:()=>({state,score,best,combo,maxCombo,hp,timeLeft,fever,shield,magnet,invuln,
     rescued,rescueStreak,missed,scoreMult,px,spd,elapsed,goT,gap,round,lv,
     broken,repairGot,repairNeed,brokenHits,wrecked,nitroStock,nitroT,rescueMode,rescueNeed,truckFair,
-    lastFair,tilt:readTilt(),orientSeen,accSeen,maxKmh,dist}),
+    lastFair,tilt:readTilt(),orientSeen,accSeen,maxKmh,dist,hitStop,slowmo}),
   set:o=>{for(const k of Object.keys(o)){const v=o[k];
     if(k==='state')state=v;else if(k==='score')score=v;else if(k==='combo')combo=v;
     else if(k==='hp')hp=v;else if(k==='timeLeft')timeLeft=v;else if(k==='fever')fever=v;
@@ -1361,6 +1471,7 @@ window.__gp={
     else if(k==='px')px=v;else if(k==='spd')spd=v;else if(k==='goT')goT=v;
     else if(k==='gap')gap=v;else if(k==='broken')broken=v;else if(k==='repairGot')repairGot=v;
     else if(k==='brokenHits')brokenHits=v;else if(k==='repairNeed')repairNeed=v;
+    else if(k==='hitStop')hitStop=v;else if(k==='slowmo')slowmo=v;
     else if(k==='nitroStock')nitroStock=v;else if(k==='nitroT')nitroT=v;
     else if(k==='elapsed')elapsed=v;else if(k==='scoreMult')scoreMult=v;
     else if(k==='rescueMode')rescueMode=v;else if(k==='rescueNeed')rescueNeed=v;

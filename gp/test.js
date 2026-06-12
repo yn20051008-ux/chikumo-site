@@ -28,7 +28,8 @@ global.window={innerWidth:430,innerHeight:880,devicePixelRatio:2,
     createDelay:()=>audioNode(),
     createBiquadFilter:()=>audioNode(),
     createBuffer:(c,n)=>({getChannelData:()=>new Float32Array(n)}),
-    createBufferSource:()=>audioNode()};}};
+    createBufferSource:()=>audioNode(),
+    createWaveShaper:()=>audioNode()};}};
 global.AudioContext=global.window.AudioContext;
 global.CanvasRenderingContext2D=function(){};
 global.innerWidth=430; global.innerHeight=880; global.devicePixelRatio=2;
@@ -137,6 +138,16 @@ ok(S().wrecked===true&&S().state==='over','second hit while broken wrecks the ca
 ok(el('endReason').textContent.includes('大破'),'wreck shows its own game-over reason');
 G.reset();
 ok(S().brokenHits===0&&S().wrecked===false&&S().repairNeed===5,'reset clears wreck state');
+ok(S().hitStop===0&&S().slowmo===0,'reset clears hit-stop/slow-motion');
+
+/* ── ゲームフィール: ヒットストップ＆スローモーション ── */
+G.set({state:'play',goT:0,invuln:0,celeT:0,broken:false,hp:3,spd:250});
+G.damage();
+ok(S().hitStop>0,'crash triggers a hit-stop freeze');
+G.set({hitStop:0,slowmo:0,invuln:0,broken:true,hp:0,brokenHits:0,repairNeed:5});
+G.damage();
+ok(S().slowmo>0,'worsening hit while broken triggers slow-motion');
+G.reset();
 
 /* ── 大破でもシールドは身代わりになる ── */
 G.set({state:'play',goT:0,invuln:0,celeT:0,broken:true,brokenHits:1,shield:5});
@@ -162,6 +173,7 @@ ok(S().round===round0+1&&S().gap>300,'next round starts with the truck further a
 G.noSpawn(); G.set({gap:10});
 tick();
 ok(!!S().rescueMode,'caught the round-2 truck');
+G.set({hitStop:0,slowmo:0});   /* 救出演出のヒットストップを消化してから時間切れを検証 */
 S().rescueMode.t=0.001;
 tick();
 ok(!S().rescueMode&&S().missed===1,'shake window expiry lets the truck escape (missed=1)');
