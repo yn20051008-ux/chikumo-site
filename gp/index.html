@@ -484,6 +484,8 @@ function sfxAmmo(){if(muted)return;const t=audio().currentTime;        /* リロ
   noise(t,.05,.12,2500);tone(320,t,.06,'square',.12,0,1);
   noise(t+.12,.05,.12,3000);tone(420,t+.12,.06,'square',.12,0,1);
   tone(880,t+.24,.18,'triangle',.1,0,1);tone(1320,t+.3,.2,'triangle',.09,0,1);}
+function sfxLock(){if(muted)return;const t=audio().currentTime;        /* 🎯ターゲット捕捉のピピッ */
+  tone(1568,t,.04,'square',.07);tone(2093,t+.05,.05,'square',.06);}
 /* 🟤コースアウト効果音 */
 function sfxDirtIn(){if(muted)return;const t=audio().currentTime;          /* 土に乗った瞬間のズザザッ */
   noise(t,.45,.22,250);crunch(t,.32,.18,200);tone(300,t,.4,'sawtooth',.1,120);
@@ -574,6 +576,10 @@ function schedBGM(){
     if(st%4===0)kick(t);
     if(st===4||st===12)clap(t);
     hat(t,st%4===2?.05:.024);                       /* 16分ハット=爆走のリズム */
+    /* 🔫ガンマン・グルーヴ: 弾を持つとトムが疾走、ストリークで裏打ち＆スタブが乗る */
+    if(ammo>0&&(st===2||st===6||st===10||st===14))tone(mf(ch[0]-12),t,STEP16*1.4,'triangle',.055);
+    if(shotStreak>=2&&st%2===1)hat(t,.045);
+    if(shotStreak>=3&&(st===4||st===12))tone(mf(ch[2]+12),t,STEP16*1.8,'square',.06,0,1);
     if(st%2===0)bass(mf(ch[0]-24+(st%4===2?12:0)),t); /* 8分オクターブベース */
     const m=MELO[bar][st];
     if(m){lead(mf(m+(fever>0?12:0)),t,STEP16*1.9,fever>0?.11:.09);
@@ -720,7 +726,8 @@ let score=0,best=+(localStorage.getItem('gpBest')||0),
   speedX=1,speedT=0,overSpd=false,   /* ⚡2倍加速スタック(1/2/4/8)・残り秒・速度超過大破 */
   dirtT=0,wasOff=false,mudWreck=false,dirtSfxT=0,mudT=0,   /* 🟤コースアウト: 連続オフロード秒数→故障→大破 */
   urgOn=false,fevOn=false,   /* ラスト5秒/フィーバーのビネット状態 */
-  ammo=0,muzzle=0,ammoPulse=0,shotStreak=0;   /* 🔫弾丸ストック(上限なし)・マズルフラッシュ・残弾表示パルス・連続ヒット数 */
+  ammo=0,muzzle=0,ammoPulse=0,shotStreak=0,   /* 🔫弾丸ストック(上限なし)・マズルフラッシュ・残弾表示パルス・連続ヒット数 */
+  lockTgt=null;                               /* 🎯ロックオン中の障害物 */
 const shots=[];              /* 発射中の弾丸 {x,z,alive} */
 
 /* ───────── コース(プロシージャル・ジェネレーション) ───────── */
@@ -759,15 +766,21 @@ function sparks(x,y,n,col){
     const a=Math.random()*TAU,v=240+Math.random()*460;
     p.alive=true;p.x=x;p.y=y;p.vx=Math.cos(a)*v;p.vy=Math.sin(a)*v-90;
     p.t=0;p.dur=.22+Math.random()*.34;p.size=1.8+Math.random()*2.4;p.float=false;
-    p.emoji=null;p.spark=true;p.col=col||'#ffd76e';
+    p.emoji=null;p.spark=true;p.ring=false;p.col=col||'#ffd76e';
   }
+}
+/* 命中点から広がる衝撃波リング */
+function ring(x,y,col,big){
+  const p=part();if(!p)return;
+  p.alive=true;p.x=x;p.y=y;p.vx=0;p.vy=0;p.t=0;p.dur=big?.5:.35;
+  p.size=big?16:10;p.float=true;p.emoji=null;p.spark=false;p.ring=true;p.col=col||'#ffd76e';
 }
 function burst(x,y,n,cols,emoji){
   for(let i=0;i<n;i++){
     const p=part();if(!p)break;
     const a=Math.random()*TAU,v=60+Math.random()*340;
     p.alive=true;p.x=x;p.y=y;p.vx=Math.cos(a)*v;p.vy=Math.sin(a)*v-60;
-    p.t=0;p.dur=.5+Math.random()*.8;p.size=3+Math.random()*7;p.float=false;p.spark=false;
+    p.t=0;p.dur=.5+Math.random()*.8;p.size=3+Math.random()*7;p.float=false;p.spark=false;p.ring=false;
     p.emoji=(emoji&&Math.random()<.4)?emoji[(Math.random()*emoji.length)|0]:null;
     p.col=cols[(Math.random()*cols.length)|0];
   }
@@ -780,7 +793,7 @@ function smoke(x,y,n){
   for(let i=0;i<n;i++){
     const p=part();if(!p)break;
     p.alive=true;p.x=x+rnd(-8,8);p.y=y+rnd(-4,4);
-    p.vx=rnd(-30,30);p.vy=rnd(-90,-30);p.t=0;p.dur=rnd(.5,1);p.spark=false;
+    p.vx=rnd(-30,30);p.vy=rnd(-90,-30);p.t=0;p.dur=rnd(.5,1);p.spark=false;p.ring=false;
     p.size=rnd(4,9);p.float=true;p.emoji=Math.random()<.25?'💨':null;p.col='rgba(170,160,180,.7)';
   }
 }
@@ -790,7 +803,7 @@ function freedFly(){
     const p=part();if(!p)break;
     p.alive=true;p.x=W/2+(i-1)*30;p.y=H*.45;
     p.vx=(i-1)*40;p.vy=-160-Math.random()*80;
-    p.t=0;p.dur=1.6;p.size=11;p.float=true;p.spark=false;
+    p.t=0;p.dur=1.6;p.size=11;p.float=true;p.spark=false;p.ring=false;
     p.emoji=['🎈','💖','🐣'][i];p.col='#fff';
   }
 }
@@ -800,7 +813,7 @@ function confettiRain(){
     const p=part();if(!p)break;
     p.alive=true;p.x=Math.random()*W;p.y=-20-Math.random()*H*.3;
     p.vx=rnd(-50,50);p.vy=rnd(130,280);p.t=0;p.dur=1.5;
-    p.size=6+Math.random()*5;p.float=true;p.spark=false;
+    p.size=6+Math.random()*5;p.float=true;p.spark=false;p.ring=false;
     p.emoji=['🎊','🎉','✨','⭐','💖','🏁'][(Math.random()*6)|0];p.col='#fff';
   }
 }
@@ -1135,7 +1148,7 @@ function reset(){
   speedX=1;speedT=0;overSpd=false;setSpdVin(0);
   dirtT=0;wasOff=false;mudWreck=false;dirtSfxT=0;mudT=0;mudDry();mudVin(0);
   urgOn=false;fevOn=false;vinOff('urgVin');vinOff('fevVin');
-  ammo=0;muzzle=0;ammoPulse=0;shotStreak=0;shots.length=0;
+  ammo=0;muzzle=0;ammoPulse=0;shotStreak=0;lockTgt=null;shots.length=0;
   obsT=2.2;itemT=1.6;decorT=.4;boardT=5;
   track=[];genTrack(80);
   spawnTruck();
@@ -1290,6 +1303,19 @@ function update(dt){
     if(!e.done&&e.z<=14&&e.z>-30&&(e.type==='obs'||e.type==='item')){e.done=true;judge(e);}
     if(e.z<-40)e.alive=false;
   }
+  /* ── 🎯ロックオン: 弾があれば進路上の最寄り障害物に照準が吸い付く ── */
+  {
+    const prevLock=lockTgt;
+    lockTgt=null;
+    if(ammo>0&&!broken&&!rescueMode){
+      let td=1e9;
+      for(const e of ents){
+        if(!e.alive||e.type!=='obs')continue;
+        if(e.z>30&&e.z<950&&Math.abs(e.x-px)<.6&&e.z<td){td=e.z;lockTgt=e;}
+      }
+    }
+    if(lockTgt&&lockTgt!==prevLock)sfxLock();   /* 新しい獲物を捕捉 */
+  }
   /* ── 🔫弾丸: 前方へ飛んで爆弾・障害物を撃ち抜く ── */
   if(muzzle>0)muzzle=Math.max(0,muzzle-rdt);
   for(const s of shots){
@@ -1318,6 +1344,8 @@ function update(dt){
         popup(sx,sy-20,'💥+'+Math.round(pts*scoreMult),big?'#ff9a5a':'#ffd76e',big?26:22);
         burst(sx,sy,big?26:16,['#ff8a5a','#ffd76e','#fff'],[e.emoji,'💥','✨']);
         sparks(sx,sy,big?24:14,'#ffcf6e');
+        ring(sx,sy,'#fff7d8',big);if(big)ring(sx,sy,'#ff9a5a',true);
+        if(shotStreak>=3)slowmo=Math.max(slowmo,.3);        /* 3連ヒットでバレットタイム */
         if(big){                                            /* 💣は誘爆: 周囲の障害物を巻き込む連鎖 */
           flash=Math.max(flash,.35);flashCol='255,170,90';shake=Math.max(shake,12);
           for(const o of ents){
@@ -1326,7 +1354,7 @@ function update(dt){
               o.alive=false;addScore(100);combo++;
               const f3=fOf(o.z),oy=horY()+(H-horY())*f3,ox=roadCenter(o.z)+o.x*halfWpx(o.z);
               burst(ox,oy,14,['#ff8a5a','#ffd76e','#fff'],[o.emoji,'💥']);
-              sparks(ox,oy,10,'#ff9a5a');
+              sparks(ox,oy,10,'#ff9a5a');ring(ox,oy,'#ff9a5a');
               popup(ox,oy-14,'連鎖+'+Math.round(100*scoreMult),'#ff9a5a',18);
             }
           }
@@ -1605,6 +1633,24 @@ function draw(){
     }
     cx.restore();
   }
+  /* ── 🎯ロックオンレティクル(回転する照準ブラケット＋脈動) ── */
+  if(state==='play'&&lockTgt&&lockTgt.alive){
+    const e=lockTgt,f=fOf(e.z),ly=h0+(H-h0)*f,lx=roadCenter(e.z)+e.x*halfWpx(e.z),
+      r=Math.max(16,halfWpx(e.z)*.17),pl=.55+.45*Math.sin(elapsed*12),rot=elapsed*2.6;
+    cx.save();cx.translate(lx,ly-r*.35);cx.rotate(rot*.3);
+    cx.strokeStyle=`rgba(255,90,60,${pl})`;cx.lineWidth=3;
+    for(let i=0;i<4;i++){                                  /* 4分割の回転アーク */
+      cx.beginPath();cx.arc(0,0,r,i*Math.PI/2+rot,i*Math.PI/2+rot+Math.PI/3);cx.stroke();
+    }
+    cx.strokeStyle=`rgba(255,200,120,${pl*.8})`;cx.lineWidth=1.5;
+    cx.beginPath();cx.arc(0,0,r*.55,-rot*1.6,-rot*1.6+Math.PI*1.2);cx.stroke();
+    cx.fillStyle=`rgba(255,130,80,${pl})`;
+    cx.beginPath();cx.arc(0,0,3,0,TAU);cx.fill();
+    cx.restore();
+    cx.font='bold 11px sans-serif';cx.textAlign='center';
+    cx.fillStyle=`rgba(255,150,90,${pl})`;
+    cx.fillText('🎯 LOCK',lx,ly-r*1.55);
+  }
   /* マズルフラッシュ(発射の瞬間、車先から光が爆ぜる) */
   if(muzzle>0){
     cx.save();cx.globalCompositeOperation='lighter';
@@ -1639,6 +1685,9 @@ function draw(){
       cx.fillText(p.emoji,p.x,p.y);}
     else if(p.spark){cx.strokeStyle=p.col;cx.lineWidth=Math.max(.6,p.size*k);
       cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(p.x-p.vx*.035,p.y-p.vy*.035);cx.stroke();}
+    else if(p.ring){const rr=p.size*(1+(p.t/p.dur)*9);     /* 拡大する衝撃波 */
+      cx.strokeStyle=p.col;cx.lineWidth=Math.max(1.5,p.size*.4*k);
+      cx.beginPath();cx.arc(p.x,p.y,rr,0,TAU);cx.stroke();}
     else{cx.fillStyle=p.col;cx.beginPath();cx.arc(p.x,p.y,p.size*k,0,TAU);cx.fill();}
   }
   cx.globalAlpha=1;
@@ -1802,7 +1851,7 @@ function draw(){
       const k=1+ammoPulse*.55;
       cx.font=`bold ${Math.round(24*k)}px sans-serif`;cx.textAlign='center';
       cx.fillStyle='#ffe48a';cx.shadowColor='#ffb31c';cx.shadowBlur=16+ammoPulse*18;
-      cx.fillText('🔫 '+ammo+' 発',W/2,H-(H*.105));
+      cx.fillText('🔫 '+ammo+' 発'+(shotStreak>=2?'  🔥×'+shotStreak:''),W/2,H-(H*.105));
       cx.shadowBlur=0;
     }
     if(fever<=0){
@@ -1929,7 +1978,7 @@ window.__gp={
   get:()=>({state,score,best,combo,maxCombo,hp,timeLeft,fever,shield,magnet,invuln,
     rescued,rescueStreak,missed,scoreMult,px,spd,elapsed,goT,gap,round,lv,
     broken,repairGot,repairNeed,brokenHits,wrecked,nitroStock,nitroT,rescueMode,rescueNeed,truckFair,
-    lastFair,tilt:readTilt(),orientSeen,accSeen,maxKmh,dist,hitStop,slowmo,speedX,speedT,overSpd,dirtT,mudWreck,ammo}),
+    lastFair,tilt:readTilt(),orientSeen,accSeen,maxKmh,dist,hitStop,slowmo,speedX,speedT,overSpd,dirtT,mudWreck,ammo,lockOn:!!lockTgt,shotStreak}),
   set:o=>{for(const k of Object.keys(o)){const v=o[k];
     if(k==='state')state=v;else if(k==='score')score=v;else if(k==='combo')combo=v;
     else if(k==='hp')hp=v;else if(k==='timeLeft')timeLeft=v;else if(k==='fever')fever=v;
@@ -1939,7 +1988,7 @@ window.__gp={
     else if(k==='brokenHits')brokenHits=v;else if(k==='repairNeed')repairNeed=v;
     else if(k==='hitStop')hitStop=v;else if(k==='slowmo')slowmo=v;
     else if(k==='speedX')speedX=v;else if(k==='speedT')speedT=v;
-    else if(k==='dirtT')dirtT=v;else if(k==='ammo')ammo=v;
+    else if(k==='dirtT')dirtT=v;else if(k==='ammo')ammo=v;else if(k==='shotStreak')shotStreak=v;
     else if(k==='nitroStock')nitroStock=v;else if(k==='nitroT')nitroT=v;
     else if(k==='elapsed')elapsed=v;else if(k==='scoreMult')scoreMult=v;
     else if(k==='rescueMode')rescueMode=v;else if(k==='rescueNeed')rescueNeed=v;
