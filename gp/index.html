@@ -1959,7 +1959,7 @@ document.getElementById('lvUp').addEventListener('click',()=>{setLv(lv+1);vib(10
 
 let sensorsOn=false;
 async function startGame(){
-  audio();sfxStart();
+  try{audio();sfxStart();}catch(e){}
   if(!sensorsOn)sensorsOn=await enableSensors();
   reset();
   startOv.classList.add('hidden');endOv.classList.add('hidden');
@@ -2131,6 +2131,8 @@ window.__gp={
       +'<div class="rankin-msg" id="riMsg">…</div>'
       +'<div class="rankin-total" id="riTot"></div></div>';
     document.body.appendChild(ov);
+    setTimeout(function(){ if(ov.parentNode){ ov.classList.add('out');
+      setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },450); } }, 15000);  // 何があっても15秒で必ず消える(画面ロック防止)
     var numEl=ov.querySelector('#riNum'), subEl=ov.querySelector('#riSub'),
         msgEl=ov.querySelector('#riMsg'), totEl=ov.querySelector('#riTot'), confEl=ov.querySelector('.rankin-conf'),
         fwsEl=ov.querySelector('.rankin-fws');
@@ -2146,6 +2148,8 @@ window.__gp={
     var revealT;
     function doReveal(){
       if(revealed)return; revealed=true; clearInterval(roll); clearTimeout(revealT);
+      setTimeout(kill, rank===1?8500 : rank===2?6300 : rank===3?5700 : rank<=10?4600 : 4300);  // 演出が失敗しても必ず閉じる
+      try{
       numEl.textContent=rank;
       var dg=String(rank).length;                         // 桁数に応じて必ず画面内に収める
       numEl.style.fontSize = dg<=1?'min(34vw,200px)' : dg===2?'min(26vw,156px)' : dg===3?'min(20vw,118px)' : 'min(15vw,92px)';
@@ -2196,13 +2200,13 @@ window.__gp={
       }
       if(window.CoccoGpSfx) window.CoccoGpSfx(tier==='top10'?'rankin':tier);
       vib(tier==='champ'?[0,60,40,60,40,160] : tier==='miss'?[0,30] : [0,40,40,90]);
-      setTimeout(kill, tier==='champ'?8500 : tier==='second'?6300 : tier==='third'?5700 : tier==='miss'?4300 : 4600);
+      }catch(e){ kill(); }                                  // 演出中の例外でも即閉じてゲームに戻す
     }
     // Phase 1: ドラムロール＋数字スロット回転 → Phase 2: ドーン確定
     if(window.CoccoGpSfx) window.CoccoGpSfx('roll'); vib(30);
     ov.classList.add('rolling');
     revealT=setTimeout(doReveal, 1050);
-    ov.addEventListener('click', function(){ if(!revealed) doReveal(); else kill(); });   // タップでスキップ→確定、確定後は閉じる
+    ov.addEventListener('click', function(){ try{ if(!revealed){ doReveal(); return; } }catch(e){} kill(); });   // タップでスキップ→確定、確定後(や異常時)は必ず閉じる
   }
   function celebrateMine(rows){
     var my=uid(), idx=-1; for(var i=0;i<rows.length;i++){ if(rows[i].uid===my){ idx=i; break; } }
