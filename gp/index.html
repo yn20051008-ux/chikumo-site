@@ -188,6 +188,21 @@ html,body{height:100%;overflow:hidden;background:#0a0316;font-family:"Hiragino K
   text-shadow:0 0 14px rgba(255,150,60,.9);animation:retryIn .5s ease-out .9s forwards,retryBurn 1.1s ease-in-out 1.5s infinite}
 @keyframes retryIn{from{opacity:0;transform:translateY(14px) scale(.8)}to{opacity:1;transform:none}}
 @keyframes retryBurn{0%,100%{filter:brightness(1)}50%{filter:brightness(1.7)}}
+/* ===== 🌈フィーバー虹ビネット / ⏰ラスト5秒の鼓動ビネット ===== */
+#fevVin{position:fixed;inset:0;pointer-events:none;z-index:24;opacity:0;transition:opacity .35s;
+  background:radial-gradient(ellipse at center,transparent 50%,rgba(255,0,128,.42) 100%)}
+#fevVin.on{opacity:1;animation:fevHue 1.1s linear infinite}
+@keyframes fevHue{to{filter:hue-rotate(360deg)}}
+#urgVin{position:fixed;inset:0;pointer-events:none;z-index:24;opacity:0;transition:opacity .3s;
+  background:radial-gradient(ellipse at center,transparent 48%,rgba(255,30,30,.46) 100%)}
+#urgVin.on{opacity:1;animation:urgBeat .5s ease-in-out infinite}
+@keyframes urgBeat{0%,100%{opacity:.35;transform:scale(1)}14%{opacity:1}28%{opacity:.5}42%{opacity:.95}60%,100%{opacity:.35}}
+/* ===== 🏆 NEW RECORD バナー＆スコアカウントアップ ===== */
+.newrec{margin:2px 0 0;font-size:19px;font-weight:900;color:#ffd76e;letter-spacing:.14em;
+  text-shadow:0 0 18px rgba(255,210,90,.95),0 2px 0 rgba(0,0,0,.4);
+  animation:nrPop .55s cubic-bezier(.2,1.7,.4,1),nrBurn .9s ease-in-out .6s infinite}
+@keyframes nrPop{from{transform:scale(2.4) rotate(-5deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+@keyframes nrBurn{0%,100%{filter:brightness(1)}50%{filter:brightness(1.8)}}
 /* ===== ダメージビネット(エンスト中の赤い縁) ===== */
 #dmgVin{position:fixed;inset:0;pointer-events:none;z-index:25;opacity:0;transition:opacity .45s;
   background:radial-gradient(ellipse at center,transparent 52%,rgba(255,30,30,.5) 100%)}
@@ -250,6 +265,8 @@ html,body{height:100%;overflow:hidden;background:#0a0316;font-family:"Hiragino K
 <div id="dmgVin"></div>
 <div id="spdVin"></div>
 <div id="mudVin"></div>
+<div id="fevVin"></div>
+<div id="urgVin"></div>
 <div id="mudOv"></div>
 <a class="back" href="/">← 畜物語</a>
 <button class="mute" id="muteBtn" aria-label="サウンド切替">🔊</button>
@@ -291,6 +308,7 @@ html,body{height:100%;overflow:hidden;background:#0a0316;font-family:"Hiragino K
     <h1>RESULT</h1>
     <div class="score-row">SCORE</div>
     <div class="big-score" id="endScore">0</div>
+    <div class="newrec hidden" id="newRec">🏆 NEW RECORD!! 🏆</div>
     <div class="score-row" id="endRescued"></div>
     <div class="score-row" id="endStats"></div>
     <div class="score-row" id="endBest"></div>
@@ -422,9 +440,23 @@ function crunch(t0,dur,vol,fLow){
 /* サブベース・ドロップ: 体に響く低音の落下(=tone のsineスライド) */
 function subDrop(t0,f0,f1,dur,vol){tone(f0,t0,dur,'sine',vol,f1);}
 /* ─ 効果音(操作リズムにキマるキメ) ─ */
-function sfxCnt(){if(muted)return;const t=audio().currentTime;tone(440,t,.14,'square',.15);}
+function sfxCnt(n){if(muted)return;const t=audio().currentTime;        /* 3→2→1で音程が上がり緊張が高まる */
+  const f=380+(3-(n||1))*90;
+  tone(f,t,.16,'square',.16);tone(f*2,t,.1,'triangle',.07);
+  tone(55,t,.14,'sine',.22);                                           /* 胸を打つ低音 */
+  tone(70,t,.9,'sawtooth',.05,70+(3-(n||1))*120);}                     /* エンジンの空ぶかしが荒ぶる */
 function sfxGo(){if(muted)return;const t=audio().currentTime;
-  tone(880,t,.4,'square',.16,0,1);tone(1108,t,.4,'square',.12,0,1);tone(1318,t,.45,'square',.1,0,1);noise(t,.2,.08,2000);}
+  tone(880,t,.4,'square',.16,0,1);tone(1108,t,.4,'square',.12,0,1);tone(1318,t,.45,'square',.1,0,1);noise(t,.2,.08,2000);
+  tone(70,t,.8,'sawtooth',.16,520);noise(t,.45,.12,300);subDrop(t,90,30,.5,.22);} /* フルスロットルのレブアップ */
+function sfxHeart(n){if(muted)return;const t=audio().currentTime;      /* 残り秒数で速まる心臓ドクン */
+  tone(58,t,.11,'sine',.26);tone(52,t+.16,.09,'sine',.2);
+  tone(1100+(5-(n||0))*180,t,.06,'square',.1);}
+function sfxCountTick(p){if(muted)return;const t=audio().currentTime;  /* スコアカウントアップのカリカリ音 */
+  tone(700+p*900,t,.03,'square',.05);}
+function sfxNewRec(){if(muted)return;const t=audio().currentTime;      /* 🏆新記録ファンファーレ */
+  subDrop(t,80,26,.5,.24);
+  [659,784,1047,1319].forEach((f,i)=>{tone(f,t+.08+i*.09,.4,'square',.12,0,1);tone(f*2,t+.1+i*.09,.3,'triangle',.06,0,1);});
+  for(let i=0;i<6;i++)tone(1900+Math.random()*2200,t+.4+i*.09,.09,'triangle',.05,0,1);}
 function sfxShift(g){if(muted)return;const t=audio().currentTime;
   tone(620+g*90,t,.07,'square',.1,0,1);noise(t,.04,.05,3000);}
 function sfxCrash(){if(muted)return;const t=audio().currentTime;
@@ -668,7 +700,8 @@ let score=0,best=+(localStorage.getItem('gpBest')||0),
   rescueMode=null,shake=0,flash=0,flashCol='255,60,60',hue=320,lastTick=99,lastFair=true,
   hitStop=0,slowmo=0,   /* ヒットストップ(ms)・スローモーション(秒) */
   speedX=1,speedT=0,overSpd=false,   /* ⚡2倍加速スタック(1/2/4/8)・残り秒・速度超過大破 */
-  dirtT=0,wasOff=false,mudWreck=false,dirtSfxT=0,mudT=0;   /* 🟤コースアウト: 連続オフロード秒数→故障→大破 */
+  dirtT=0,wasOff=false,mudWreck=false,dirtSfxT=0,mudT=0,   /* 🟤コースアウト: 連続オフロード秒数→故障→大破 */
+  urgOn=false,fevOn=false;   /* ラスト5秒/フィーバーのビネット状態 */
 
 /* ───────── コース(プロシージャル・ジェネレーション) ───────── */
 const SEGL=60;                       /* セグメント長(m) */
@@ -1014,15 +1047,43 @@ function judge(e){
 
 /* ───────── メインループ ───────── */
 let last=0;
+/* リザルトのスコアが0からカリカリと跳ね上がるカウントアップ */
+function animateScore(el,target,onDone){
+  if(!el){if(onDone)onDone();return;}
+  let t0=null,lastP=-1;
+  const dur=950;
+  function step(ts){
+    if(t0==null)t0=ts;
+    const k=Math.min(1,(ts-t0)/dur),e=1-Math.pow(1-k,3);
+    el.textContent=Math.round(target*e).toLocaleString();
+    const p=(k*14)|0;
+    if(p!==lastP){lastP=p;try{sfxCountTick(k);}catch(err){}}
+    if(k<1)requestAnimationFrame(step);
+    else{el.textContent=target.toLocaleString();if(onDone)onDone();}
+  }
+  requestAnimationFrame(step);
+}
+function vinOff(id){try{const v=document.getElementById(id);if(v&&v.classList)v.classList.remove('on');}catch(e){}}
 function gameOver(){
-  state='over';rescueMode=null;dmgVin(false);
+  state='over';rescueMode=null;dmgVin(false);mudVin(0);setSpdVin(0);
+  vinOff('urgVin');vinOff('fevVin');urgOn=false;fevOn=false;
   if(!wrecked)sfxOver();   /* 大破時はsfxWreckの爆発が鳴っている */
   vib([80,60,120]);
-  if(score>best){best=score;localStorage.setItem('gpBest',best);}
+  const newBest=score>best;
+  if(newBest){best=score;localStorage.setItem('gpBest',best);}
   document.getElementById('endReason').textContent=
     wrecked?(overSpd?'⚡ 速度超過で大破した…':mudWreck?'🟤 コースアウトで大破した…':'💥 クルマが大破した…')+(rescued>0?'（'+rescued+'羽 救出）':''):
     rescued>0?'🎉 こっこちゃんを '+rescued+'羽 救出！':'😢 救出ならず…リベンジだ！';
-  document.getElementById('endScore').textContent=score.toLocaleString();
+  const nrEl=document.getElementById('newRec');
+  if(nrEl)nrEl.classList.add('hidden');
+  animateScore(document.getElementById('endScore'),score,function(){
+    if(newBest&&score>0){                       /* カウントアップが止まった瞬間に新記録ドーン */
+      if(nrEl)nrEl.classList.remove('hidden');
+      sfxNewRec();vib([30,30,30,30,90]);
+      confettiRain();confettiRain();
+      burst(W/2,H*.35,30,['#ffd76e','#ff8ac2','#7ad7ff','#fff'],['🏆','✨','⭐']);
+    }
+  });
   document.getElementById('endRescued').textContent='🐣 救出 '+rescued+'羽 ／ 逃した '+missed+'回 ／ 🤖Lv'+lv;
   document.getElementById('endStats').textContent='🏎️ 最高速 '+Math.round(maxKmh)+'km/h ／ '+ (dist/1000).toFixed(1)+'km ／ コンボ'+maxCombo;
   document.getElementById('endBest').textContent='ベスト '+best.toLocaleString();
@@ -1040,6 +1101,7 @@ function reset(){
   rescueMode=null;shake=0;flash=0;lastTick=99;lastTapMs=0;hitStop=0;slowmo=0;dmgVin(false);
   speedX=1;speedT=0;overSpd=false;setSpdVin(0);
   dirtT=0;wasOff=false;mudWreck=false;dirtSfxT=0;mudT=0;mudDry();mudVin(0);
+  urgOn=false;fevOn=false;vinOff('urgVin');vinOff('fevVin');
   obsT=2.2;itemT=1.6;decorT=.4;boardT=5;
   track=[];genTrack(80);
   spawnTruck();
@@ -1056,8 +1118,11 @@ function update(dt){
   if(goT>0){
     const prev=Math.ceil(goT);
     goT-=rdt;
-    if(goT>0&&Math.ceil(goT)!==prev)sfxCnt();
-    if(goT<=0){popup(W/2,H*.4,'GO!! 🏁','#ffd76e',40);sfxGo();}
+    if(goT>0&&Math.ceil(goT)!==prev){sfxCnt(Math.ceil(goT));vib(20);shake=Math.max(shake,5);}
+    if(goT<=0){popup(W/2,H*.4,'GO!! 🏁','#ffd76e',40);sfxGo();vib([30,20,60]);
+      flash=.55;flashCol='255,215,120';shake=18;
+      sparks(W/2,H*.8,26,'#ffd76e');
+      burst(W/2,H*.78,22,['#ffd76e','#7ad7ff','#ff8ac2'],['🏁','💨','✨']);}
     return;
   }
   if(rescueMode){
@@ -1125,8 +1190,13 @@ function update(dt){
   /* ── タイマー類(実時間) ── */
   timeLeft-=rdt;
   if(timeLeft<=0){timeLeft=0;gameOver();return;}
-  if(timeLeft<5.5&&Math.ceil(timeLeft)!==lastTick){lastTick=Math.ceil(timeLeft);sfxTick();}
+  if(timeLeft<5.5&&Math.ceil(timeLeft)!==lastTick){lastTick=Math.ceil(timeLeft);
+    sfxHeart(lastTick);vib(25);shake=Math.max(shake,3);}   /* 心臓の鼓動で追い込まれる */
+  const urg=timeLeft<5.5;
+  if(urg!==urgOn){urgOn=urg;try{const v=document.getElementById('urgVin');if(v&&v.classList)v.classList[urg?'add':'remove']('on');}catch(e){}}
   if(fever>0){fever-=rdt;if(fever<=0){fever=0;scoreMult=1;}}
+  const fv=fever>0;
+  if(fv!==fevOn){fevOn=fv;try{const v=document.getElementById('fevVin');if(v&&v.classList)v.classList[fv?'add':'remove']('on');}catch(e){}}
   if(speedT>0){speedT-=rdt;
     if(speedT<=0){speedT=0;speedX=1;setSpdVin(0);sfxBoostEnd();
       popup(W/2,H*.55,'⚡ブースト終了','#9ab',18);}}
@@ -1154,8 +1224,11 @@ function update(dt){
     rx=Math.sin(elapsed*.6)*.45;
     if(gap<=16&&!broken){
       rescueMode={t:3.4,need:rescueNeed,got:0};
-      gap=16;
-      sfxStart();vib(40);
+      gap=16;hitStop=60;                                  /* 追いついた瞬間ドンと止めて緊張 */
+      sfxStart();vib([40,30,70]);
+      flash=.45;flashCol='255,215,120';shake=Math.max(shake,12);
+      sparks(W/2,H*.45,22,'#ffd76e');
+      burst(W/2,H*.4,16,['#ffd76e','#fff','#ff8ac2'],['🚚','💨','✨']);
       popup(W/2,H*.28,'🚚に追いついた！','#ffd76e',26);
       popup(W/2,H*.4,'📳 ふれ！ふれ！ふれ！','#ffd76e',30);
     }
@@ -1457,10 +1530,10 @@ function draw(){
   }
   cx.globalAlpha=1;
   cx.restore();
-  /* ⚡スピードライン: 画面端から中心へ吸い込まれる放射ストリーク(段階で密度・速度・色が激化) */
-  if(state==='play'&&speedX>1){
-    const tier=speedX===2?1:speedX===4?2:3,n=8+tier*8,
-      hueB=tier===1?200:tier===2?275:18,cxm=W/2,cym=H*.42;
+  /* ⚡🚀スピードライン: 画面端から中心へ吸い込まれる放射ストリーク(段階で密度・速度・色が激化) */
+  if(state==='play'&&(speedX>1||nitroT>0)){
+    const tier=speedX===8?3:speedX===4?2:1,n=8+tier*8,
+      hueB=nitroT>0&&speedX<=1?190:tier===1?200:tier===2?275:18,cxm=W/2,cym=H*.42;
     cx.save();
     cx.globalCompositeOperation='lighter';
     for(let i=0;i<n;i++){
@@ -1523,9 +1596,16 @@ function draw(){
     }
     /* カウントダウン */
     if(goT>0){
-      const n=Math.ceil(goT),k=goT-Math.floor(goT);
-      cx.font=`bold ${70+k*40}px sans-serif`;
-      cx.fillStyle='#ffd76e';cx.shadowColor='#ffd76e';cx.shadowBlur=26;
+      const n=Math.ceil(goT),k=goT-Math.floor(goT),
+        col=n>=3?'#7ad7ff':n===2?'#ffd76e':'#ff6a8a';        /* 3=青→2=金→1=赤と熱くなる */
+      /* 広がる衝撃波リング(毎秒リセット) */
+      cx.strokeStyle=col;cx.globalAlpha=k*.8;cx.lineWidth=4+(1-k)*8;
+      cx.beginPath();cx.arc(W/2,H*.42,(1-k)*Math.min(W,H)*.34+30,0,TAU);cx.stroke();
+      cx.globalAlpha=k*.35;cx.lineWidth=2;
+      cx.beginPath();cx.arc(W/2,H*.42,(1-k)*Math.min(W,H)*.5+30,0,TAU);cx.stroke();
+      cx.globalAlpha=1;
+      cx.font=`bold ${70+k*60}px sans-serif`;
+      cx.fillStyle=col;cx.shadowColor=col;cx.shadowBlur=30+k*20;
       cx.fillText(n+'',W/2,H*.42);
       cx.shadowBlur=0;
       cx.font='bold 18px sans-serif';cx.fillStyle='#ffb0d8';
