@@ -282,6 +282,7 @@ html,body{height:100%;overflow:hidden;background:#0a0316;font-family:"Hiragino K
       ◆ 🚚に追いついたら<b>📳シェイク</b>で檻を破壊→救出！<br>
       ◆ 💥クラッシュでエンストしたら<b>📳シェイクで修理</b>（復旧作業！）<br>
       ◆ 🚀ニトロを拾ってシェイク発射！⭐💎⏰🛡️🧲🔧🌈もフル活用！<br>
+      ◆ 🔫弾丸を拾うと<b>3発</b>装填！<b>タップ</b>で発射→💣爆弾も🚧障害物も撃ち破壊！<br>
       ◆ <b>⏰60秒</b>のタイムレース——救出するたび⏰+8秒＆次のラウンドへ！
     </div>
     <div class="lvbox">
@@ -468,6 +469,19 @@ function sfxWorse(){if(muted)return;const t=audio().currentTime;                
   tone(740,t+.25,.13,'square',.15);tone(740,t+.45,.13,'square',.15);tone(740,t+.65,.2,'square',.15,500);}
 function sfxSlowmo(){if(muted)return;const t=audio().currentTime;                 /* 時が歪むピッチダウン */
   tone(900,t,.55,'sawtooth',.07,110);tone(450,t,.55,'triangle',.06,70);noise(t,.45,.05,260);}
+/* 🔫シューティング効果音 */
+function sfxShot(){if(muted)return;const t=audio().currentTime;        /* 鋭い銃声＋胸を打つ低音＋薬莢チリン */
+  noise(t,.08,.22,1500);crunch(t,.1,.18,500);
+  tone(1400,t,.09,'square',.12,180,1);tone(90,t,.12,'sine',.2,45);
+  tone(2400+Math.random()*800,t+.18,.08,'triangle',.05,0,1);}
+function sfxShotHit(big){if(muted)return;const t=audio().currentTime;  /* 命中爆発(💣はド派手) */
+  noise(t,big?.4:.25,big?.2:.15,big?0:600);crunch(t,.25,.18,150);
+  subDrop(t,80,30,.4,big?.26:.18);
+  for(let i=0;i<4;i++)tone(1300+Math.random()*1600,t+.06+i*.05,.06,'triangle',.05,0,1);}
+function sfxAmmo(){if(muted)return;const t=audio().currentTime;        /* リロード: ガシャッ→チャキッ→チーン */
+  noise(t,.05,.12,2500);tone(320,t,.06,'square',.12,0,1);
+  noise(t+.12,.05,.12,3000);tone(420,t+.12,.06,'square',.12,0,1);
+  tone(880,t+.24,.18,'triangle',.1,0,1);tone(1320,t+.3,.2,'triangle',.09,0,1);}
 /* 🟤コースアウト効果音 */
 function sfxDirtIn(){if(muted)return;const t=audio().currentTime;          /* 土に乗った瞬間のズザザッ */
   noise(t,.45,.22,250);crunch(t,.32,.18,200);tone(300,t,.4,'sawtooth',.1,120);
@@ -664,6 +678,7 @@ addEventListener('pointerup',()=>{
   if(dragId!=null&&!rescueMode&&!broken&&dragMove<14&&Date.now()-downMs<220){
     const now=Date.now();
     if(now-lastTapMs<300)doShake();             /* ダブルタップ=シェイク */
+    else fire();                                /* シングルタップ=🔫発射(弾があれば) */
     lastTapMs=now;
   }
   dragId=null;touchTilt=null;
@@ -672,6 +687,7 @@ addEventListener('pointercancel',()=>{dragId=null;touchTilt=null;});
 addEventListener('keydown',e=>{
   if(e.target&&e.target.tagName==='INPUT')return;   /* ランキングの名前入力を妨げない */
   if(e.code==='Space'){e.preventDefault();doShake();}
+  if(e.code==='KeyZ'||e.code==='ArrowUp'){e.preventDefault();fire();}
   if(e.code==='ArrowLeft')keyL=true;
   if(e.code==='ArrowRight')keyR=true;
 });
@@ -701,7 +717,9 @@ let score=0,best=+(localStorage.getItem('gpBest')||0),
   hitStop=0,slowmo=0,   /* ヒットストップ(ms)・スローモーション(秒) */
   speedX=1,speedT=0,overSpd=false,   /* ⚡2倍加速スタック(1/2/4/8)・残り秒・速度超過大破 */
   dirtT=0,wasOff=false,mudWreck=false,dirtSfxT=0,mudT=0,   /* 🟤コースアウト: 連続オフロード秒数→故障→大破 */
-  urgOn=false,fevOn=false;   /* ラスト5秒/フィーバーのビネット状態 */
+  urgOn=false,fevOn=false,   /* ラスト5秒/フィーバーのビネット状態 */
+  ammo=0,muzzle=0;           /* 🔫弾丸ストック(最大9)・マズルフラッシュ残時間 */
+const shots=[];              /* 発射中の弾丸 {x,z,alive} */
 
 /* ───────── コース(プロシージャル・ジェネレーション) ───────── */
 const SEGL=60;                       /* セグメント長(m) */
@@ -815,13 +833,14 @@ function spawnItems(){
   }else{
     const e=ent();e.alive=true;e.type='item';e.done=false;e.vx=0;
     e.z=SPAWNZ;e.x=rnd(-.7,.7);
-    if(pick<.52){e.kind='nitro';e.emoji='🚀';}
-    else if(pick<.63){e.kind='boost';e.emoji='⚡';}
-    else if(pick<.72){e.kind='gem';e.emoji='💎';}
-    else if(pick<.80){e.kind='clock';e.emoji='⏰';}
-    else if(pick<.86){e.kind='wrench';e.emoji='🔧';}
-    else if(pick<.92){e.kind='shield';e.emoji='🛡️';}
-    else if(pick<.97){e.kind='magnet';e.emoji='🧲';}
+    if(pick<.48){e.kind='nitro';e.emoji='🚀';}
+    else if(pick<.58){e.kind='boost';e.emoji='⚡';}
+    else if(pick<.68){e.kind='ammo';e.emoji='🔫';}
+    else if(pick<.76){e.kind='gem';e.emoji='💎';}
+    else if(pick<.83){e.kind='clock';e.emoji='⏰';}
+    else if(pick<.88){e.kind='wrench';e.emoji='🔧';}
+    else if(pick<.93){e.kind='shield';e.emoji='🛡️';}
+    else if(pick<.975){e.kind='magnet';e.emoji='🧲';}
     else{e.kind='rainbow';e.emoji='🌈';}
   }
 }
@@ -980,6 +999,15 @@ function wreckCinema(sub){
   }catch(e){}
 }
 function addScore(n){score+=Math.round(n*scoreMult);}
+/* 🔫弾丸発射: タップ/Zキーで前方へエネルギー弾(爆弾・障害物を破壊) */
+function fire(){
+  if(state!=='play'||goT>0||broken||rescueMode||ammo<=0)return;
+  ammo--;muzzle=.12;
+  shots.push({x:px,z:26,alive:true});
+  shake=Math.max(shake,5);flash=Math.max(flash,.14);flashCol='255,230,150';
+  sparks(W/2,H*.72,10,'#ffe48a');
+  sfxShot();vib(18);
+}
 /* ⚡2倍加速: ×2→×4→×8とスタック、×8でさらに取ると速度超過で大破 */
 function setSpdVin(x){try{const v=document.getElementById('spdVin');if(v)v.className=x>1?'x'+x:'';}catch(e){}}
 function pickBoost(sx,sy){
@@ -1039,6 +1067,9 @@ function judge(e){
       else if(e.kind==='shield'){shield=8;sfxShield();popup(sx,sy,'🛡️シールド 8秒','#7ad7ff',24);combo++;}
       else if(e.kind==='magnet'){magnet=7;sfxMagnet();popup(sx,sy,'🧲マグネット 7秒','#ffb86e',24);combo++;}
       else if(e.kind==='boost'){pickBoost(sx,sy);combo++;}
+      else if(e.kind==='ammo'){ammo=Math.min(9,ammo+3);combo++;sfxAmmo();
+        popup(sx,sy,'🔫 弾丸+3！(タップで発射)','#ffe48a',20);
+        burst(sx,sy,12,['#ffe48a','#fff','#ffb31c'],['🔫','✨']);}
       else if(e.kind==='rainbow'){startFever();combo++;}
       vib(12);e.alive=false;
     }
@@ -1102,6 +1133,7 @@ function reset(){
   speedX=1;speedT=0;overSpd=false;setSpdVin(0);
   dirtT=0;wasOff=false;mudWreck=false;dirtSfxT=0;mudT=0;mudDry();mudVin(0);
   urgOn=false;fevOn=false;vinOff('urgVin');vinOff('fevVin');
+  ammo=0;muzzle=0;shots.length=0;
   obsT=2.2;itemT=1.6;decorT=.4;boardT=5;
   track=[];genTrack(80);
   spawnTruck();
@@ -1255,6 +1287,31 @@ function update(dt){
     if(!e.done&&e.z<=14&&e.z>-30&&(e.type==='obs'||e.type==='item')){e.done=true;judge(e);}
     if(e.z<-40)e.alive=false;
   }
+  /* ── 🔫弾丸: 前方へ飛んで爆弾・障害物を撃ち抜く ── */
+  if(muzzle>0)muzzle=Math.max(0,muzzle-rdt);
+  for(const s of shots){
+    if(!s.alive)continue;
+    s.z+=dt*1250;
+    for(const e of ents){
+      if(!e.alive||e.type!=='obs')continue;
+      if(Math.abs(e.z-s.z)<48&&Math.abs(e.x-s.x)<.3){
+        e.alive=false;s.alive=false;
+        const f=fOf(e.z),sy=horY()+(H-horY())*f,
+          sx=roadCenter(e.z)+e.x*halfWpx(e.z),
+          big=e.kind==='bomb',pts=big?300:150;
+        addScore(pts);combo++;
+        hitStop=Math.max(hitStop,big?60:35);                /* 命中の瞬間ドンと止まる */
+        popup(sx,sy-20,'💥+'+Math.round(pts*scoreMult),big?'#ff9a5a':'#ffd76e',big?26:22);
+        burst(sx,sy,big?26:16,['#ff8a5a','#ffd76e','#fff'],[e.emoji,'💥','✨']);
+        sparks(sx,sy,big?24:14,'#ffcf6e');
+        if(big){flash=Math.max(flash,.35);flashCol='255,170,90';shake=Math.max(shake,12);}
+        sfxShotHit(big);vib(big?[25,15,50]:[15,10,30]);
+        break;
+      }
+    }
+    if(s.z>SPAWNZ)s.alive=false;
+  }
+  for(let i=shots.length-1;i>=0;i--)if(!shots[i].alive)shots.splice(i,1);
   /* ── パーティクル ── */
   for(const p of parts){if(!p.alive)continue;p.t+=rdt;
     if(p.t>=p.dur){p.alive=false;continue;}
@@ -1491,6 +1548,35 @@ function draw(){
     }
   }
   if(truckVisible&&!truckDrawn)drawTruck(Math.max(16,gap));
+  /* ── 🔫弾丸トレーサー(加算合成の光弾＋尾を引く軌跡) ── */
+  if(shots.length){
+    cx.save();cx.globalCompositeOperation='lighter';cx.lineCap='round';
+    for(const s of shots){
+      if(!s.alive)continue;
+      const zb=Math.max(12,s.z-110),
+        f1=fOf(s.z),y1=h0+(H-h0)*f1,x1=roadCenter(s.z)+s.x*halfWpx(s.z),
+        f2=fOf(zb),y2=h0+(H-h0)*f2,x2=roadCenter(zb)+s.x*halfWpx(zb);
+      const grad=cx.createLinearGradient(x2,y2,x1,y1);
+      grad.addColorStop(0,'rgba(255,180,60,0)');
+      grad.addColorStop(1,'rgba(255,244,180,.95)');
+      cx.strokeStyle=grad;cx.lineWidth=Math.max(2,halfWpx(s.z)*.035);
+      cx.beginPath();cx.moveTo(x2,y2);cx.lineTo(x1,y1);cx.stroke();
+      cx.fillStyle='#fff7d8';cx.shadowColor='#ffd76e';cx.shadowBlur=18;
+      cx.beginPath();cx.arc(x1,y1,Math.max(2.5,halfWpx(s.z)*.022),0,TAU);cx.fill();
+      cx.shadowBlur=0;
+    }
+    cx.restore();
+  }
+  /* マズルフラッシュ(発射の瞬間、車先から光が爆ぜる) */
+  if(muzzle>0){
+    cx.save();cx.globalCompositeOperation='lighter';
+    const my=H*.74,mr=26+(0.12-muzzle)*340;
+    const g2=cx.createRadialGradient(W/2,my,0,W/2,my,mr);
+    g2.addColorStop(0,'rgba(255,250,210,'+Math.min(1,muzzle*7).toFixed(2)+')');
+    g2.addColorStop(1,'rgba(255,160,60,0)');
+    cx.fillStyle=g2;cx.beginPath();cx.arc(W/2,my,mr,0,TAU);cx.fill();
+    cx.restore();
+  }
   /* ── スピードライン(超スピード) ── */
   const spdK=spd/playerMax();
   if(spdK>.8||nitroT>0){
@@ -1559,7 +1645,7 @@ function draw(){
     cx.font='18px sans-serif';cx.textAlign='left';
     cx.fillText(broken?'🛠️修理中…':'🔧'.repeat(hp)+'⬛'.repeat(Math.max(0,3-hp)),12,top+18);
     cx.font='15px sans-serif';
-    cx.fillText('🚀×'+nitroStock+'  🐣×'+rescued,12,top+42);
+    cx.fillText('🚀×'+nitroStock+'  🔫×'+ammo+'  🐣×'+rescued,12,top+42);
     cx.fillStyle='#b08bff';cx.font='bold 13px sans-serif';
     cx.fillText('🤖Lv'+lv,12,top+64);
     /* スコア */
@@ -1791,13 +1877,13 @@ document.addEventListener('visibilitychange',()=>{
 
 /* ─ ヘッドレステスト用フック ─ */
 window.__gp={
-  ents,parts,pops,CLEAR_RATE,LV_MAX,
-  spawnObs,spawnItems,spawnTruck,setLv,rivalBase,playerMax,
+  ents,parts,pops,shots,CLEAR_RATE,LV_MAX,
+  spawnObs,spawnItems,spawnTruck,setLv,rivalBase,playerMax,fire,
   update,damage,startFever,doShake,reset,startGame,judge,onMotion,onOrient,
   get:()=>({state,score,best,combo,maxCombo,hp,timeLeft,fever,shield,magnet,invuln,
     rescued,rescueStreak,missed,scoreMult,px,spd,elapsed,goT,gap,round,lv,
     broken,repairGot,repairNeed,brokenHits,wrecked,nitroStock,nitroT,rescueMode,rescueNeed,truckFair,
-    lastFair,tilt:readTilt(),orientSeen,accSeen,maxKmh,dist,hitStop,slowmo,speedX,speedT,overSpd,dirtT,mudWreck}),
+    lastFair,tilt:readTilt(),orientSeen,accSeen,maxKmh,dist,hitStop,slowmo,speedX,speedT,overSpd,dirtT,mudWreck,ammo}),
   set:o=>{for(const k of Object.keys(o)){const v=o[k];
     if(k==='state')state=v;else if(k==='score')score=v;else if(k==='combo')combo=v;
     else if(k==='hp')hp=v;else if(k==='timeLeft')timeLeft=v;else if(k==='fever')fever=v;
@@ -1807,7 +1893,7 @@ window.__gp={
     else if(k==='brokenHits')brokenHits=v;else if(k==='repairNeed')repairNeed=v;
     else if(k==='hitStop')hitStop=v;else if(k==='slowmo')slowmo=v;
     else if(k==='speedX')speedX=v;else if(k==='speedT')speedT=v;
-    else if(k==='dirtT')dirtT=v;
+    else if(k==='dirtT')dirtT=v;else if(k==='ammo')ammo=v;
     else if(k==='nitroStock')nitroStock=v;else if(k==='nitroT')nitroT=v;
     else if(k==='elapsed')elapsed=v;else if(k==='scoreMult')scoreMult=v;
     else if(k==='rescueMode')rescueMode=v;else if(k==='rescueNeed')rescueNeed=v;

@@ -200,6 +200,35 @@ ok(S().magnet>0,'🧲 magnet arms 7s pull');
 pick('rainbow','🌈');
 ok(S().fever>0&&S().scoreMult===2,'🌈 rainbow starts FEVER ×2');
 
+/* ── 🔫シューティング: 弾丸3発装填→発射→障害物を撃ち破壊 ── */
+G.set({fever:0,scoreMult:1,hitStop:0,slowmo:0,invuln:0,celeT:0,px:0});
+G.set({ammo:0}); pick('ammo','🔫');
+ok(S().ammo===3,'🔫 ammo pickup loads 3 bullets');
+pick('ammo','🔫'); pick('ammo','🔫'); pick('ammo','🔫');
+ok(S().ammo===9,'ammo stock caps at 9');
+G.set({ammo:0});
+G.fire();
+ok(G.shots.length===0,'firing with no ammo does nothing');
+G.set({ammo:3,px:0,hitStop:0,slowmo:0});
+G.fire();
+ok(S().ammo===2&&G.shots.length===1,'fire spends a bullet and spawns a shot');
+{ for(const e of G.ents)e.alive=false;
+  const tgt={alive:true,done:false,x:0,z:600,vx:0,type:'obs',kind:'bomb',emoji:'💣'};
+  G.ents.push(tgt);
+  const sc=S().score;
+  for(let i=0;i<40;i++){G.set({hitStop:0,slowmo:0,spd:0});G.update(0.016);if(!tgt.alive)break;}
+  ok(tgt.alive===false,'shot blows up the 💣 bomb down the road');
+  ok(G.shots.length===0,'shot is consumed on impact');
+  ok(S().score>sc,'shooting a bomb pays points'); }
+G.set({broken:true});
+G.fire();
+ok(S().ammo===2,'cannot fire while broken down');
+G.set({broken:false});
+G.reset();
+ok(S().ammo===0&&G.shots.length===0,'reset clears ammo and shots');
+G.set({state:'play',goT:0,invuln:0,celeT:0,fever:0,scoreMult:1,px:0});
+G.noSpawn();
+
 /* ── ⚡2倍加速アイテム: ×2→×4→×8スタック → 4枚目で速度超過大破 ── */
 G.set({fever:0,scoreMult:1,speedX:1,speedT:0,hitStop:0,slowmo:0,invuln:0,celeT:0});
 pick('boost','⚡');
@@ -210,7 +239,7 @@ G.set({hitStop:0,invuln:0}); pick('boost','⚡');
 ok(S().speedX===8,'⚡ on ×4 stacks to ×8 (max shift)');
 G.set({spd:0,hitStop:0,slowmo:0,speedT:99,timeLeft:99,combo:0,fever:0,scoreMult:1});   /* 検証中にブースト/フィーバーが変動しないよう固定 */
 { const mx=G.playerMax()*8;
-  for(let i=0;i<200;i++)G.update(0.05);
+  for(let i=0;i<200;i++){G.set({px:0});G.update(0.05);}   /* コース中央固定(土の減速を排除) */
   ok(S().spd>G.playerMax()*4,'×8 boost pushes way past normal top speed ('+Math.round(S().spd)+' km/h)');
   ok(S().spd<=mx+90,'boosted speed still respects the ×8 ceiling'); }
 G.set({hitStop:0,invuln:0,timeLeft:60,speedT:99,px:0}); pick('boost','⚡');
