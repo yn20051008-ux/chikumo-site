@@ -474,9 +474,11 @@ function sfxShot(){if(muted)return;const t=audio().currentTime;        /* 鋭い
   noise(t,.08,.22,1500);crunch(t,.1,.18,500);
   tone(1400,t,.09,'square',.12,180,1);tone(90,t,.12,'sine',.2,45);
   tone(2400+Math.random()*800,t+.18,.08,'triangle',.05,0,1);}
-function sfxShotHit(big){if(muted)return;const t=audio().currentTime;  /* 命中爆発(💣はド派手) */
+function sfxShotHit(big,streak){if(muted)return;const t=audio().currentTime;  /* 命中爆発(💣はド派手・連続ヒットで音程上昇) */
   noise(t,big?.4:.25,big?.2:.15,big?0:600);crunch(t,.25,.18,150);
   subDrop(t,80,30,.4,big?.26:.18);
+  const sf=660*Math.pow(1.122,Math.min(streak||0,10));                 /* ストリークで半音ずつ上がる快感 */
+  tone(sf,t+.05,.18,'square',.1,0,1);tone(sf*1.5,t+.1,.16,'triangle',.07,0,1);
   for(let i=0;i<4;i++)tone(1300+Math.random()*1600,t+.06+i*.05,.06,'triangle',.05,0,1);}
 function sfxAmmo(){if(muted)return;const t=audio().currentTime;        /* リロード: ガシャッ→チャキッ→チーン */
   noise(t,.05,.12,2500);tone(320,t,.06,'square',.12,0,1);
@@ -718,7 +720,7 @@ let score=0,best=+(localStorage.getItem('gpBest')||0),
   speedX=1,speedT=0,overSpd=false,   /* ⚡2倍加速スタック(1/2/4/8)・残り秒・速度超過大破 */
   dirtT=0,wasOff=false,mudWreck=false,dirtSfxT=0,mudT=0,   /* 🟤コースアウト: 連続オフロード秒数→故障→大破 */
   urgOn=false,fevOn=false,   /* ラスト5秒/フィーバーのビネット状態 */
-  ammo=0,muzzle=0,ammoPulse=0;   /* 🔫弾丸ストック(上限なし)・マズルフラッシュ・残弾表示パルス */
+  ammo=0,muzzle=0,ammoPulse=0,shotStreak=0;   /* 🔫弾丸ストック(上限なし)・マズルフラッシュ・残弾表示パルス・連続ヒット数 */
 const shots=[];              /* 発射中の弾丸 {x,z,alive} */
 
 /* ───────── コース(プロシージャル・ジェネレーション) ───────── */
@@ -833,14 +835,14 @@ function spawnItems(){
   }else{
     const e=ent();e.alive=true;e.type='item';e.done=false;e.vx=0;
     e.z=SPAWNZ;e.x=rnd(-.7,.7);
-    if(pick<.48){e.kind='nitro';e.emoji='🚀';}
-    else if(pick<.58){e.kind='boost';e.emoji='⚡';}
-    else if(pick<.68){e.kind='ammo';e.emoji='🔫';}
-    else if(pick<.76){e.kind='gem';e.emoji='💎';}
-    else if(pick<.83){e.kind='clock';e.emoji='⏰';}
+    if(pick<.42){e.kind='nitro';e.emoji='🚀';}
+    else if(pick<.52){e.kind='boost';e.emoji='⚡';}
+    else if(pick<.72){e.kind='ammo';e.emoji='🔫';}
+    else if(pick<.78){e.kind='gem';e.emoji='💎';}
+    else if(pick<.84){e.kind='clock';e.emoji='⏰';}
     else if(pick<.88){e.kind='wrench';e.emoji='🔧';}
-    else if(pick<.93){e.kind='shield';e.emoji='🛡️';}
-    else if(pick<.975){e.kind='magnet';e.emoji='🧲';}
+    else if(pick<.92){e.kind='shield';e.emoji='🛡️';}
+    else if(pick<.965){e.kind='magnet';e.emoji='🧲';}
     else{e.kind='rainbow';e.emoji='🌈';}
   }
 }
@@ -1003,7 +1005,7 @@ function addScore(n){score+=Math.round(n*scoreMult);}
 function fire(){
   if(state!=='play'||goT>0||broken||rescueMode||ammo<=0)return;
   ammo--;muzzle=.12;ammoPulse=1;
-  shots.push({x:px,z:26,alive:true});
+  shots.push({x:px,z:12,alive:true});   /* 手前z=12から発射: バンパー直前の障害物も撃てる */
   shake=Math.max(shake,5);flash=Math.max(flash,.14);flashCol='255,230,150';
   sparks(W/2,H*.72,10,'#ffe48a');
   sfxShot();vib(18);
@@ -1133,7 +1135,7 @@ function reset(){
   speedX=1;speedT=0;overSpd=false;setSpdVin(0);
   dirtT=0;wasOff=false;mudWreck=false;dirtSfxT=0;mudT=0;mudDry();mudVin(0);
   urgOn=false;fevOn=false;vinOff('urgVin');vinOff('fevVin');
-  ammo=0;muzzle=0;shots.length=0;
+  ammo=0;muzzle=0;ammoPulse=0;shotStreak=0;shots.length=0;
   obsT=2.2;itemT=1.6;decorT=.4;boardT=5;
   track=[];genTrack(80);
   spawnTruck();
@@ -1292,11 +1294,22 @@ function update(dt){
   if(muzzle>0)muzzle=Math.max(0,muzzle-rdt);
   for(const s of shots){
     if(!s.alive)continue;
+    const pz=s.z;                       /* スイープ判定用: 移動前位置(高速時のすり抜け防止) */
     s.z+=dt*1250;
+    /* エイムアシスト: 進路近くの障害物へ弾が緩やかに吸い付く */
+    let tgt=null,td=1e9;
     for(const e of ents){
       if(!e.alive||e.type!=='obs')continue;
-      if(Math.abs(e.z-s.z)<48&&Math.abs(e.x-s.x)<.3){
-        e.alive=false;s.alive=false;
+      if(e.z>pz-20&&e.z<s.z+520&&Math.abs(e.x-s.x)<.75){
+        const d=e.z-s.z;if(d<td){td=d;tgt=e;}
+      }
+    }
+    if(tgt)s.x+=(tgt.x-s.x)*Math.min(1,dt*8);
+    for(const e of ents){
+      if(!e.alive||e.type!=='obs')continue;
+      /* スイープ: このフレームに弾が通過した区間全体で判定＋当たり幅も拡大 */
+      if(e.z>=pz-42&&e.z<=s.z+48&&Math.abs(e.x-s.x)<.42){
+        e.alive=false;s.alive=false;shotStreak++;
         const f=fOf(e.z),sy=horY()+(H-horY())*f,
           sx=roadCenter(e.z)+e.x*halfWpx(e.z),
           big=e.kind==='bomb',pts=big?300:150;
@@ -1305,12 +1318,25 @@ function update(dt){
         popup(sx,sy-20,'💥+'+Math.round(pts*scoreMult),big?'#ff9a5a':'#ffd76e',big?26:22);
         burst(sx,sy,big?26:16,['#ff8a5a','#ffd76e','#fff'],[e.emoji,'💥','✨']);
         sparks(sx,sy,big?24:14,'#ffcf6e');
-        if(big){flash=Math.max(flash,.35);flashCol='255,170,90';shake=Math.max(shake,12);}
-        sfxShotHit(big);vib(big?[25,15,50]:[15,10,30]);
+        if(big){                                            /* 💣は誘爆: 周囲の障害物を巻き込む連鎖 */
+          flash=Math.max(flash,.35);flashCol='255,170,90';shake=Math.max(shake,12);
+          for(const o of ents){
+            if(!o.alive||o.type!=='obs')continue;
+            if(Math.abs(o.z-e.z)<160&&Math.abs(o.x-e.x)<.65){
+              o.alive=false;addScore(100);combo++;
+              const f3=fOf(o.z),oy=horY()+(H-horY())*f3,ox=roadCenter(o.z)+o.x*halfWpx(o.z);
+              burst(ox,oy,14,['#ff8a5a','#ffd76e','#fff'],[o.emoji,'💥']);
+              sparks(ox,oy,10,'#ff9a5a');
+              popup(ox,oy-14,'連鎖+'+Math.round(100*scoreMult),'#ff9a5a',18);
+            }
+          }
+        }
+        if(shotStreak>=2)popup(W/2,H*.3,shotStreak+' HIT!! 🔥','#ffd76e',24+Math.min(14,shotStreak*3));
+        sfxShotHit(big,shotStreak);vib(big?[25,15,50]:[15,10,30]);
         break;
       }
     }
-    if(s.z>SPAWNZ)s.alive=false;
+    if(s.z>SPAWNZ){s.alive=false;shotStreak=0;}   /* 外すとストリーク終了 */
   }
   for(let i=shots.length-1;i>=0;i--)if(!shots[i].alive)shots.splice(i,1);
   /* ── パーティクル ── */

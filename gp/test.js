@@ -224,6 +224,48 @@ ok(S().ammo===2&&G.shots.length===1,'fire spends a bullet and spawns a shot');
   ok(tgt.alive===false,'shot blows up the 💣 bomb down the road');
   ok(G.shots.length===0,'shot is consumed on impact');
   ok(S().score>sc,'shooting a bomb pays points'); }
+/* ── 近距離の障害物も撃てる(バンパー直前) ── */
+G.set({ammo:3,px:0,hitStop:0,slowmo:0,spd:0});
+{ for(const e of G.ents)e.alive=false;
+  const near={alive:true,done:false,x:0,z:60,vx:0,type:'obs',kind:'cone',emoji:'🚧'};
+  G.ents.push(near);
+  G.fire(); G.set({hitStop:0,slowmo:0}); G.update(0.016); G.update(0.016);
+  ok(near.alive===false,'point-blank obstacle (z=60) is shootable'); }
+/* ── 超高速でもすり抜けない(スイープ判定) ── */
+G.set({ammo:3,px:0,hitStop:0,slowmo:0,spd:2600,speedX:8,speedT:99});
+{ for(const e of G.ents)e.alive=false;
+  const far={alive:true,done:false,x:0,z:400,vx:0,type:'obs',kind:'barrel',emoji:'🛢️'};
+  G.ents.push(far);
+  G.fire();
+  for(let i=0;i<14;i++){G.set({hitStop:0,slowmo:0,px:0});G.update(0.05);if(!far.alive)break;}
+  ok(far.alive===false,'swept collision kills the target even at 2600km/h'); }
+G.set({speedX:1,speedT:0,spd:0});
+/* ── エイムアシスト: 少しズレてても吸い付いて当たる ── */
+G.set({ammo:3,px:0,hitStop:0,slowmo:0});
+{ for(const e of G.ents)e.alive=false;
+  const off={alive:true,done:false,x:0.55,z:700,vx:0,type:'obs',kind:'cone',emoji:'🚧'};
+  G.ents.push(off);
+  G.fire();
+  for(let i=0;i<60;i++){G.set({hitStop:0,slowmo:0,spd:0});G.update(0.016);if(!off.alive)break;}
+  ok(off.alive===false,'aim assist curves the shot into an off-axis target'); }
+/* ── 💣誘爆: 近くの障害物を連鎖で巻き込む ── */
+G.set({ammo:3,px:0,hitStop:0,slowmo:0});
+{ for(const e of G.ents)e.alive=false;
+  const bomb={alive:true,done:false,x:0,z:500,vx:0,type:'obs',kind:'bomb',emoji:'💣'},
+    chain={alive:true,done:false,x:0.4,z:560,vx:0,type:'obs',kind:'cone',emoji:'🚧'};
+  G.ents.push(bomb,chain);
+  const sc=S().score;
+  G.fire();
+  for(let i=0;i<40;i++){G.set({hitStop:0,slowmo:0,spd:0});G.update(0.016);if(!bomb.alive)break;}
+  ok(bomb.alive===false&&chain.alive===false,'💣 blast chains into the nearby obstacle');
+  ok(S().score-sc>=400,'bomb + chain pays 300+100'); }
+/* ── 🔫出現率: 2倍化(全アイテムの約12%) ── */
+{ let ammoN=0,totN=0;
+  for(let i=0;i<4000;i++){ for(const e of G.ents)e.alive=false;
+    G.spawnItems();
+    for(const e of G.ents)if(e.alive&&e.type==='item'){totN++;if(e.kind==='ammo')ammoN++;} }
+  const r=ammoN/totN;
+  ok(r>.08&&r<.16,'🔫 spawn rate doubled (measured '+(r*100).toFixed(1)+'% of items)'); }
 G.set({broken:true});
 G.fire();
 ok(S().ammo===2,'cannot fire while broken down');
