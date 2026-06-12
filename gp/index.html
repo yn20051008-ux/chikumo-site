@@ -363,7 +363,7 @@ if(!CanvasRenderingContext2D.prototype.roundRect)
 const cv=document.getElementById('game'),cx=cv.getContext('2d');
 let W=0,H=0,DPR=1,renderScale=1;
 function resize(){
-  DPR=Math.min(devicePixelRatio||1,2)*renderScale;
+  DPR=Math.min(devicePixelRatio||1,1.6)*renderScale;   /* 発熱対策: 高DPR端末の無駄な高解像度描画を抑制 */
   W=innerWidth;H=innerHeight;
   cv.width=Math.max(1,Math.round(W*DPR));cv.height=Math.max(1,Math.round(H*DPR));
   cv.style.width=W+'px';cv.style.height=H+'px';
@@ -378,12 +378,15 @@ function perfSample(dtMs){
   perfAcc+=dtMs;perfN++;
   if(perfN>=70){
     const avg=perfAcc/perfN;perfAcc=0;perfN=0;
-    if(avg>24&&renderScale>0.55){renderScale=Math.max(0.55,renderScale-0.15);resize();}
-    else if(avg<14.5&&renderScale<1){renderScale=Math.min(1,renderScale+0.15);resize();}
+    if(avg>20&&renderScale>0.5){renderScale=Math.max(0.5,renderScale-0.15);resize();}
+    else if(avg<13.5&&renderScale<1){renderScale=Math.min(1,renderScale+0.1);resize();}
   }
 }
 
 function vib(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
+/* 発熱対策: shadowBlur(ガウスぼかし)はCanvas最重量級。常時55%に減量し、
+   端末が苦しい時(renderScale自動降格中)はグローを丸ごと省略する */
+function glow(b){return renderScale<.8?0:b*.55;}
 
 /* ───────── プロシージャル・オーディオ ───────── */
 let AC=null,muted=false,ECHO=null,echoWet=null,engOsc=null,engGain=null,engFlt=null,
@@ -1448,7 +1451,7 @@ function drawTruck(z){
   cx.beginPath();cx.roundRect(-w/2,-h*.78,w,h*.62,w*.07);cx.fill();
   /* ブレーキランプ */
   const bl=.6+.4*Math.sin(elapsed*10);
-  cx.fillStyle=`rgba(255,40,70,${bl})`;cx.shadowColor='#f24';cx.shadowBlur=Math.min(14,10*f*40);
+  cx.fillStyle=`rgba(255,40,70,${bl})`;cx.shadowColor='#f24';cx.shadowBlur=glow(Math.min(14,10*f*40));
   cx.fillRect(-w*.46,-h*.3,w*.12,h*.08);cx.fillRect(w*.34,-h*.3,w*.12,h*.08);
   cx.shadowBlur=0;
   /* タイヤ */
@@ -1460,7 +1463,7 @@ function drawTruck(z){
   if(coccoReady){cx.save();cx.globalAlpha*=.97;cx.drawImage(cocco,-cw/2,cy0-ch2,cw,ch2);cx.restore();}
   drawEmoji('💧',cw*.32,cy0-ch2*.62,Math.max(7,w*.13));
   const gold=truckFair?'#ffd76e':'#c9d4e4';
-  cx.strokeStyle=gold;cx.shadowColor=gold;cx.shadowBlur=12;
+  cx.strokeStyle=gold;cx.shadowColor=gold;cx.shadowBlur=glow(12);
   cx.lineWidth=Math.max(1.2,w*.035);
   cx.beginPath();cx.roundRect(-cw*.72,cy0-ch2*1.08,cw*1.44,ch2*1.16,cw*.1);cx.stroke();
   const bars=truckFair?4:6;
@@ -1509,8 +1512,8 @@ function drawPlayer(){
   if(magnet>0){cx.strokeStyle=`rgba(255,184,110,${.4+.3*Math.sin(elapsed*6)})`;cx.lineWidth=2;
     cx.setLineDash([6,8]);cx.beginPath();cx.arc(0,-ph*.3,pw*.78,0,TAU);cx.stroke();cx.setLineDash([]);}
   /* マシン本体 */
-  if(fever>0){cx.shadowColor=`hsl(${hue},95%,70%)`;cx.shadowBlur=30;}
-  else{cx.shadowColor='rgba(255,150,200,.7)';cx.shadowBlur=16;}
+  if(fever>0){cx.shadowColor=`hsl(${hue},95%,70%)`;cx.shadowBlur=glow(30);}
+  else{cx.shadowColor='rgba(255,150,200,.7)';cx.shadowBlur=glow(16);}
   const bg=cx.createLinearGradient(-pw/2,0,pw/2,0);
   if(broken){bg.addColorStop(0,'#5a3a44');bg.addColorStop(.5,'#7a5060');bg.addColorStop(1,'#4a3040');}
   else{bg.addColorStop(0,'#ff5a9e');bg.addColorStop(.5,'#ffd76e');bg.addColorStop(1,'#ff5a9e');}
@@ -1630,7 +1633,7 @@ function draw(){
       cx.restore();
     }else{
       cx.save();cx.globalAlpha=Math.min(1,f*12);
-      if(e.type==='item'){cx.shadowColor='#fff';cx.shadowBlur=14*Math.min(1,f*8);
+      if(e.type==='item'){cx.shadowColor='#fff';cx.shadowBlur=glow(14*Math.min(1,f*8));
         drawEmoji(e.emoji,sx,y+Math.sin(elapsed*5+e.z*.02)*s*.15,s);}
       else drawEmoji(e.emoji,sx,y,s);
       cx.restore();
@@ -1659,9 +1662,9 @@ function draw(){
       cx.strokeStyle=grad2;cx.lineWidth=Math.max(4,halfWpx(s.z)*.045)*pl;
       cx.beginPath();cx.moveTo(x2,y2);cx.lineTo(x1,y1);cx.stroke();
       /* エネルギーコア(グロー強・二重円) */
-      cx.fillStyle='rgba(255,210,110,.55)';cx.shadowColor='#ffb31c';cx.shadowBlur=34;
+      cx.fillStyle='rgba(255,210,110,.55)';cx.shadowColor='#ffb31c';cx.shadowBlur=glow(34);
       cx.beginPath();cx.arc(x1,y1,Math.max(9,halfWpx(s.z)*.075)*pl,0,TAU);cx.fill();
-      cx.fillStyle='#fffbe8';cx.shadowColor='#ffd76e';cx.shadowBlur=24;
+      cx.fillStyle='#fffbe8';cx.shadowColor='#ffd76e';cx.shadowBlur=glow(24);
       cx.beginPath();cx.arc(x1,y1,Math.max(5,halfWpx(s.z)*.04)*pl,0,TAU);cx.fill();
       cx.shadowBlur=0;
     }
@@ -1745,7 +1748,7 @@ function draw(){
     const k=p.t/p.dur;
     cx.globalAlpha=k<.15?k/.15:1-Math.max(0,(k-.6)/.4);
     cx.font=`bold ${p.size}px sans-serif`;cx.textAlign='center';cx.textBaseline='middle';
-    cx.shadowColor=p.col;cx.shadowBlur=12;
+    cx.shadowColor=p.col;cx.shadowBlur=glow(12);
     cx.fillStyle=p.col;cx.fillText(p.text,p.x,p.y-k*46);
     cx.shadowBlur=0;
   }
@@ -1785,7 +1788,7 @@ function draw(){
     cx.fillText('🤖Lv'+lv,12,top+64);
     /* スコア */
     cx.textAlign='right';cx.font='bold 22px sans-serif';
-    cx.fillStyle='#fff';cx.shadowColor='#ff8ac2';cx.shadowBlur=10;
+    cx.fillStyle='#fff';cx.shadowColor='#ff8ac2';cx.shadowBlur=glow(10);
     cx.fillText(score.toLocaleString(),W-12,top+16);
     cx.shadowBlur=0;
     if(combo>1){cx.font='bold 14px sans-serif';cx.fillStyle='#ffd76e';
@@ -1797,7 +1800,7 @@ function draw(){
         jy=hot?(Math.random()-.5)*Math.min(5,sr*2):0;
       cx.font=`bold ${Math.round(30+Math.min(26,sr*13))}px sans-serif`;
       cx.fillStyle=nitroT>0?'#7ad7ff':sr>1.4?`hsl(${(18+Math.sin(elapsed*22)*14)|0},100%,62%)`:sr>.92?'#ffd76e':'#fff';
-      cx.shadowColor=sr>1.4?'#ff5a3c':'#ff5a9e';cx.shadowBlur=12+Math.min(24,sr*10);
+      cx.shadowColor=sr>1.4?'#ff5a3c':'#ff5a9e';cx.shadowBlur=glow(12+Math.min(24,sr*10));
       cx.fillText(Math.round(spd)+'',W-12+jx,H-(H*.08)-14+jy);
       cx.shadowBlur=0;
       cx.font='12px sans-serif';cx.fillStyle='#ffb0d8';
@@ -1831,7 +1834,7 @@ function draw(){
       cx.beginPath();cx.arc(W/2,H*.42,(1-k)*Math.min(W,H)*.5+30,0,TAU);cx.stroke();
       cx.globalAlpha=1;
       cx.font=`bold ${70+k*60}px sans-serif`;
-      cx.fillStyle=col;cx.shadowColor=col;cx.shadowBlur=30+k*20;
+      cx.fillStyle=col;cx.shadowColor=col;cx.shadowBlur=glow(30+k*20);
       cx.fillText(n+'',W/2,H*.42);
       cx.shadowBlur=0;
       cx.font='bold 18px sans-serif';cx.fillStyle='#ffb0d8';
@@ -1841,7 +1844,7 @@ function draw(){
     if(rescueMode){
       const k=.5+.5*Math.sin(elapsed*40);
       cx.font=`bold ${28+k*8}px sans-serif`;
-      cx.fillStyle='#ffd76e';cx.shadowColor='#ffd76e';cx.shadowBlur=20;
+      cx.fillStyle='#ffd76e';cx.shadowColor='#ffd76e';cx.shadowBlur=glow(20);
       cx.fillText('📳 ふれ！ふれ！ 📳',W/2,H*.2);
       cx.shadowBlur=0;
       const gw=Math.min(W*.6,300),gx=W/2-gw/2,gy=H*.26;
@@ -1860,7 +1863,7 @@ function draw(){
     if(broken&&!rescueMode){
       const k=.5+.5*Math.sin(elapsed*30);
       cx.font=`bold ${24+k*6}px sans-serif`;
-      cx.fillStyle='#9fe8a0';cx.shadowColor='#9fe8a0';cx.shadowBlur=16;
+      cx.fillStyle='#9fe8a0';cx.shadowColor='#9fe8a0';cx.shadowBlur=glow(16);
       cx.fillText('📳 シェイクで修理！ 🔧',W/2,H*.3);
       cx.shadowBlur=0;
       const gw=Math.min(W*.55,280),gx=W/2-gw/2,gy=H*.35;
@@ -1875,7 +1878,7 @@ function draw(){
         pl=.5+.5*Math.sin(elapsed*(danger?26:12));
       cx.font=`bold ${danger?17+pl*4:14}px sans-serif`;cx.textAlign='center';
       cx.fillStyle=danger?'#ff5a4a':'#d8a05a';
-      cx.shadowColor=cx.fillStyle;cx.shadowBlur=danger?14:8;
+      cx.shadowColor=cx.fillStyle;cx.shadowBlur=glow(danger?14:8);
       cx.fillText(danger?'🟤 もどれ！クルマが壊れる！！':'🟤 土でスピードダウン！',W/2,H*.6);
       cx.shadowBlur=0;
       const gw=Math.min(W*.5,260),gx=W/2-gw/2,gy=H*.63;
@@ -1886,14 +1889,14 @@ function draw(){
     }
     /* フィーバー/バフ表示 */
     if(fever>0){cx.font='bold 18px sans-serif';
-      cx.fillStyle=`hsl(${hue},95%,75%)`;cx.shadowColor=`hsl(${hue},95%,70%)`;cx.shadowBlur=12;
+      cx.fillStyle=`hsl(${hue},95%,75%)`;cx.shadowColor=`hsl(${hue},95%,70%)`;cx.shadowBlur=glow(12);
       cx.fillText('🌈 FEVER ×2  '+fever.toFixed(0)+'s 🌈',W/2,H-(H*.05));cx.shadowBlur=0;}
     /* ⚡ブースト表示(×8は点滅警告) */
     if(speedX>1){
       const tier=speedX===2?1:speedX===4?2:3,k=.5+.5*Math.sin(elapsed*(8+tier*8));
       cx.font=`bold ${16+tier*3}px sans-serif`;cx.textAlign='center';
       cx.fillStyle=tier===1?'#7ad7ff':tier===2?'#c08bff':`rgba(255,${90+k*100|0},60,1)`;
-      cx.shadowColor=cx.fillStyle;cx.shadowBlur=10+tier*5;
+      cx.shadowColor=cx.fillStyle;cx.shadowBlur=glow(10+tier*5);
       cx.fillText('⚡×'+speedX+'  '+Math.ceil(speedT)+'s',W/2,H*.12);
       cx.shadowBlur=0;
       if(tier===3&&k>.4){cx.font='bold 14px sans-serif';cx.fillStyle='#ff5a5a';
@@ -1903,7 +1906,7 @@ function draw(){
     if(ammo>0){
       const k=1+ammoPulse*.55;
       cx.font=`bold ${Math.round(24*k)}px sans-serif`;cx.textAlign='center';
-      cx.fillStyle='#ffe48a';cx.shadowColor='#ffb31c';cx.shadowBlur=16+ammoPulse*18;
+      cx.fillStyle='#ffe48a';cx.shadowColor='#ffb31c';cx.shadowBlur=glow(16+ammoPulse*18);
       cx.fillText('🔫 '+ammo+' 発'+(shotStreak>=2?'  🔥×'+shotStreak:''),W/2,H-(H*.105));
       cx.shadowBlur=0;
     }
