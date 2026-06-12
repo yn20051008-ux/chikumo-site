@@ -868,10 +868,10 @@ function spawnItems(){
   }else{
     const e=ent();e.alive=true;e.type='item';e.done=false;e.vx=0;
     e.z=SPAWNZ;e.x=rnd(-.7,.7);
-    if(pick<.42){e.kind='nitro';e.emoji='🚀';}
-    else if(pick<.52){e.kind='boost';e.emoji='⚡';}
-    else if(pick<.72){e.kind='ammo';e.emoji='🔫';}
-    else if(pick<.78){e.kind='gem';e.emoji='💎';}
+    if(pick<.25){e.kind='nitro';e.emoji='🚀';}
+    else if(pick<.35){e.kind='boost';e.emoji='⚡';}
+    else if(pick<.75){e.kind='ammo';e.emoji='🔫';}
+    else if(pick<.81){e.kind='gem';e.emoji='💎';}
     else if(pick<.84){e.kind='clock';e.emoji='⏰';}
     else if(pick<.88){e.kind='wrench';e.emoji='🔧';}
     else if(pick<.92){e.kind='shield';e.emoji='🛡️';}
