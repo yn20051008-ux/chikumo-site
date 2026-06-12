@@ -123,6 +123,27 @@ G.doShake();
 ok(S().broken===false&&S().hp===3,'final shake completes the repair (hp back to 3)');
 ok(S().invuln>0,'fresh repair grants brief invulnerability');
 
+/* ── エンスト中の追突: 1回目=破損悪化(+2シェイク) → 2回目=大破ゲームオーバー ── */
+G.reset(); G.set({state:'play',goT:0,spd:250,invuln:0,celeT:0}); G.noSpawn();
+G.set({broken:true,hp:0,brokenHits:0,repairNeed:5,repairGot:0,spd:60});
+G.damage();
+ok(S().broken===true&&S().state==='play','first hit while broken does not end the race');
+ok(S().repairNeed===7&&S().brokenHits===1,'first hit while broken worsens damage (+2 shakes needed)');
+G.damage();
+ok(S().brokenHits===1,'invulnerability window blocks an instant second hit');
+G.set({invuln:0});
+G.damage();
+ok(S().wrecked===true&&S().state==='over','second hit while broken wrecks the car — game over');
+ok(el('endReason').textContent.includes('大破'),'wreck shows its own game-over reason');
+G.reset();
+ok(S().brokenHits===0&&S().wrecked===false&&S().repairNeed===5,'reset clears wreck state');
+
+/* ── 大破でもシールドは身代わりになる ── */
+G.set({state:'play',goT:0,invuln:0,celeT:0,broken:true,brokenHits:1,shield:5});
+G.damage();
+ok(S().state==='play'&&S().shield===0&&S().brokenHits===1,'shield absorbs a would-be wrecking hit');
+G.reset();
+
 /* ── CPUトラック追跡 → 追いついてシェイク救出 ── */
 G.reset(); G.set({state:'play',goT:0,spd:300}); G.noSpawn();
 G.set({gap:10});

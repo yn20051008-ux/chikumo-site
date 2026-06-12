@@ -509,7 +509,7 @@ let score=0,best=+(localStorage.getItem('gpBest')||0),
   fever=0,shield=0,magnet=0,invuln=0,scoreMult=1,
   spd=0,maxKmh=0,dist=0,distChunk=0,px=0,tilt=0,
   rescued=0,rescueStreak=0,missed=0,round=0,
-  broken=false,repairGot=0,repairNeed=5,spinT=0,
+  broken=false,repairGot=0,repairNeed=5,spinT=0,brokenHits=0,wrecked=false,
   nitroStock=0,nitroT=0,celeT=0,
   gap=400,rx=0,truckFair=true,rescueNeed=4,burstT=0,burstChk=0,dropT=3,
   rescueMode=null,shake=0,flash=0,flashCol='255,60,60',hue=320,lastTick=99,lastFair=true;
@@ -661,7 +661,7 @@ function doShake(){
     burst(W/2,H*.8,8,['#ffd76e','#9fe8a0','#fff'],['🔧','✨','🔩']);
     popup(W/2,H*.6,'🔧 '+repairGot+'/'+repairNeed,'#9fe8a0',22);
     if(repairGot>=repairNeed){
-      broken=false;hp=3;invuln=1.5;repairGot=0;
+      broken=false;hp=3;invuln=1.5;repairGot=0;brokenHits=0;
       spd=Math.max(spd,90);
       sfxRepaired();vib([30,30,30,30,80]);
       flash=.5;flashCol='160,255,170';
@@ -705,12 +705,27 @@ function rescueFail(){
 function damage(){
   if(invuln>0||fever>0||celeT>0)return;
   if(shield>0){shield=0;flash=.5;flashCol='120,220,255';sfxShield();popup(W/2,H*.4,'🛡️シールド！','#7ad7ff',26);return;}
+  if(broken){                       /* エンスト中の追突: 1回目=破損悪化(要シェイク+2)・2回目=大破ゲームオーバー */
+    brokenHits++;invuln=1.2;shake=22;flash=.7;flashCol='255,60,60';
+    sfxCrash();vib([60,40,80]);
+    burst(W/2,H*.78,26,['#ff5a5a','#ffb05a','#fff'],['💥','😵']);
+    if(brokenHits>=2){
+      wrecked=true;sfxBreak();vib([120,60,160]);
+      popup(W/2,H*.4,'💥 大破！！','#ff5a5a',36);
+      gameOver();
+      return;
+    }
+    repairNeed+=2;sfxBreak();
+    popup(W/2,H*.4,'⚠️ 車体がさらに破損！','#ff7a6a',28);
+    popup(W/2,H*.52,'つぎ ぶつかると大破！','#ffd76e',20);
+    return;
+  }
   hp--;combo=0;invuln=1.2;shake=22;flash=.7;flashCol='255,60,60';spinT=.55;
   spd*=.4;
   sfxCrash();vib([60,40,80]);
   burst(W/2,H*.78,26,['#ff5a5a','#ffb05a','#fff'],['💥','😵']);
   if(hp<=0){
-    broken=true;repairGot=0;repairNeed=5;spd=Math.min(spd,40);
+    broken=true;repairGot=0;repairNeed=5;brokenHits=0;spd=Math.min(spd,40);
     sfxBreak();vib([90,50,120]);
     popup(W/2,H*.4,'💥 エンスト！','#ff7a6a',32);
     popup(W/2,H*.52,'📳 シェイクで修理！','#ffd76e',24);
@@ -760,6 +775,7 @@ function gameOver(){
   state='over';rescueMode=null;sfxOver();vib([80,60,120]);
   if(score>best){best=score;localStorage.setItem('gpBest',best);}
   document.getElementById('endReason').textContent=
+    wrecked?'💥 クルマが大破した…'+(rescued>0?'（'+rescued+'羽 救出）':''):
     rescued>0?'🎉 こっこちゃんを '+rescued+'羽 救出！':'😢 救出ならず…リベンジだ！';
   document.getElementById('endScore').textContent=score.toLocaleString();
   document.getElementById('endRescued').textContent='🐣 救出 '+rescued+'羽 ／ 逃した '+missed+'回 ／ 🤖Lv'+lv;
@@ -775,7 +791,7 @@ function reset(){
   fever=0;shield=0;magnet=0;invuln=0;scoreMult=1;
   spd=0;maxKmh=0;dist=0;distChunk=0;px=0;tilt=0;gear=0;
   rescued=0;rescueStreak=0;missed=0;round=0;
-  broken=false;repairGot=0;spinT=0;nitroStock=1;nitroT=0;celeT=0;
+  broken=false;repairGot=0;repairNeed=5;brokenHits=0;wrecked=false;spinT=0;nitroStock=1;nitroT=0;celeT=0;
   rescueMode=null;shake=0;flash=0;lastTick=99;lastTapMs=0;
   obsT=2.2;itemT=1.6;decorT=.4;boardT=5;
   track=[];genTrack(80);
@@ -1336,7 +1352,7 @@ window.__gp={
   update,damage,startFever,doShake,reset,startGame,judge,onMotion,onOrient,
   get:()=>({state,score,best,combo,maxCombo,hp,timeLeft,fever,shield,magnet,invuln,
     rescued,rescueStreak,missed,scoreMult,px,spd,elapsed,goT,gap,round,lv,
-    broken,repairGot,repairNeed,nitroStock,nitroT,rescueMode,rescueNeed,truckFair,
+    broken,repairGot,repairNeed,brokenHits,wrecked,nitroStock,nitroT,rescueMode,rescueNeed,truckFair,
     lastFair,tilt:readTilt(),orientSeen,accSeen,maxKmh,dist}),
   set:o=>{for(const k of Object.keys(o)){const v=o[k];
     if(k==='state')state=v;else if(k==='score')score=v;else if(k==='combo')combo=v;
@@ -1344,6 +1360,7 @@ window.__gp={
     else if(k==='shield')shield=v;else if(k==='magnet')magnet=v;else if(k==='invuln')invuln=v;
     else if(k==='px')px=v;else if(k==='spd')spd=v;else if(k==='goT')goT=v;
     else if(k==='gap')gap=v;else if(k==='broken')broken=v;else if(k==='repairGot')repairGot=v;
+    else if(k==='brokenHits')brokenHits=v;else if(k==='repairNeed')repairNeed=v;
     else if(k==='nitroStock')nitroStock=v;else if(k==='nitroT')nitroT=v;
     else if(k==='elapsed')elapsed=v;else if(k==='scoreMult')scoreMult=v;
     else if(k==='rescueMode')rescueMode=v;else if(k==='rescueNeed')rescueNeed=v;
