@@ -39,9 +39,9 @@ html,body{height:100%;overflow:hidden;background:#0a0316;font-family:"Hiragino K
 .score-row{font-size:14px;color:#ff9ad2;margin:5px 0 2px}
 .big-score{font-size:42px;font-weight:bold;color:#fff;text-shadow:0 0 24px rgba(255,160,220,.9)}
 .hidden{display:none!important}
-.back{position:fixed;top:env(safe-area-inset-top,8px);left:8px;z-index:30;color:#fce;font-size:13px;text-decoration:none;
+.back{position:fixed;top:env(safe-area-inset-top,8px);left:8px;z-index:65;color:#fce;font-size:13px;text-decoration:none;
   background:rgba(50,15,60,.6);padding:8px 14px;border-radius:999px;pointer-events:auto}
-.mute{position:fixed;top:env(safe-area-inset-top,8px);right:8px;z-index:30;font-size:18px;background:rgba(50,15,60,.6);
+.mute{position:fixed;top:env(safe-area-inset-top,8px);right:8px;z-index:65;font-size:18px;background:rgba(50,15,60,.6);
   border:none;color:#fff;padding:6px 12px;border-radius:999px;pointer-events:auto;cursor:pointer}
 .recal{position:fixed;bottom:max(12px,env(safe-area-inset-bottom));right:12px;z-index:30;font-size:13px;
   background:rgba(50,15,60,.65);border:1px solid rgba(255,180,220,.4);color:#fdc;padding:9px 14px;border-radius:999px;
@@ -98,7 +98,7 @@ html,body{height:100%;overflow:hidden;background:#0a0316;font-family:"Hiragino K
 .rankin-ov{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;pointer-events:auto;
   background:radial-gradient(ellipse at 50% 44%,rgba(50,24,72,.62),rgba(0,0,0,.84));
   -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);animation:rankinFade .25s ease}
-.rankin-ov.out{animation:rankinFadeOut .42s ease forwards}
+.rankin-ov.out{animation:rankinFadeOut .42s ease forwards;pointer-events:none}
 @keyframes rankinFade{from{opacity:0}to{opacity:1}}
 @keyframes rankinFadeOut{to{opacity:0}}
 .rankin-card{position:relative;text-align:center;animation:rankinPop .5s cubic-bezier(.2,1.4,.4,1)}
@@ -272,6 +272,7 @@ html,body{height:100%;overflow:hidden;background:#0a0316;font-family:"Hiragino K
 <div id="urgVin"></div>
 <div id="mudOv"></div>
 <a class="back" href="/">← 畜物語</a>
+<div style="position:fixed;bottom:max(4px,env(safe-area-inset-bottom));left:8px;z-index:65;font-size:9px;color:rgba(255,200,240,.45);pointer-events:none">v37</div>
 <button class="mute" id="muteBtn" aria-label="サウンド切替">🔊</button>
 <button class="recal hidden" id="recalBtn" aria-label="傾きリセット">📐 傾きリセット</button>
 <div id="ui">
