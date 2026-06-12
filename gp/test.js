@@ -231,6 +231,33 @@ G.set({hitStop:0,invuln:0,spd:250});
 forge({type:'obs',kind:'cone',emoji:'🚧'}); tick();
 ok(S().speedX===1&&S().speedT===0,'crash cancels the ⚡ boost');
 G.reset();
+
+/* ── 🟤コースアウト: 急減速 → 2.5秒でエンスト → 計5秒で大破 ── */
+G.set({state:'play',goT:0,invuln:0,celeT:0,hitStop:0,slowmo:0,fever:0,spd:300,px:1.4,timeLeft:99});
+G.noSpawn();
+for(let i=0;i<20;i++)G.update(0.05);   /* 土の上を1秒 */
+ok(S().spd<120,'offroad dirt slams the speed down hard ('+Math.round(S().spd)+' km/h)');
+ok(S().dirtT>0.8&&!S().broken,'dirt timer counts up while off course');
+G.set({px:0});
+for(let i=0;i<30;i++)G.update(0.05);   /* 道に戻って1.5秒 */
+ok(S().dirtT<0.5,'returning to the road drains the dirt timer');
+G.set({px:1.4,dirtT:0,spd:200});
+for(let i=0;i<56;i++){G.set({hitStop:0,slowmo:0});G.update(0.05);}   /* 連続2.8秒 */
+ok(S().broken===true&&S().state==='play','2.5s of dirt clogs the engine (breakdown, race continues)');
+for(let i=0;i<50;i++){G.set({hitStop:0,slowmo:0});if(S().state!=='play')break;G.update(0.05);}
+ok(S().wrecked===true&&S().mudWreck===true&&S().state==='over','5s of dirt wrecks the car — game over');
+ok(el('endReason').textContent.includes('コースアウト'),'mud wreck shows its own game-over reason');
+G.reset();
+ok(S().dirtT===0&&S().mudWreck===false,'reset clears the dirt state');
+
+/* ── 泥エンストを修理すれば泥カウントは仕切り直し ── */
+G.set({state:'play',goT:0,invuln:0,celeT:0,hitStop:0,slowmo:0,px:1.4,dirtT:0,spd:200,timeLeft:99});
+G.noSpawn();
+for(let i=0;i<56;i++){G.set({hitStop:0,slowmo:0});G.update(0.05);}
+ok(S().broken===true,'dirt breakdown re-armed for repair check');
+{ const n=S().repairNeed; for(let i=0;i<n;i++)G.doShake(); }
+ok(S().broken===false&&S().dirtT===0,'shake repair on dirt resets the dirt timer (fresh 2.5s)');
+G.reset();
 G.set({state:'play',goT:0,invuln:0,celeT:0,fever:0,scoreMult:1});
 G.noSpawn();
 G.set({fever:0,scoreMult:1});
