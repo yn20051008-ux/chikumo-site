@@ -266,8 +266,17 @@ G.set({ammo:3,px:0,hitStop:0,slowmo:0});
     for(const e of G.ents)if(e.alive&&e.type==='item'){totN++;
       if(e.kind==='ammo')ammoN++;if(e.kind==='clock')clockN++;} }
   const ra=ammoN/totN,rc=clockN/totN;
-  ok(ra>.15&&ra<.25,'🔫 spawn rate doubled again (measured '+(ra*100).toFixed(1)+'% of items)');
+  ok(ra>.10&&ra<.17,'🔫 spawn rate doubled again (measured '+(ra*100).toFixed(1)+'% of items)');
   ok(rc>.008&&rc<.032,'⏰ spawn rate halved (measured '+(rc*100).toFixed(1)+'% of items)'); }
+/* ── ⚡出現率: 2倍化(抽選内10%→20%)・🚀も復活していること ── */
+{ let bN=0,nN=0,totN=0;
+  for(let i=0;i<8000;i++){ for(const e of G.ents)e.alive=false;
+    G.spawnItems();
+    for(const e of G.ents)if(e.alive&&e.type==='item'){totN++;
+      if(e.kind==='boost')bN++;if(e.kind==='nitro')nN++;} }
+  const rb=bN/totN,rn=nN/totN;
+  ok(rb>.05&&rb<.09,'⚡ spawn rate doubled (measured '+(rb*100).toFixed(1)+'% of items)');
+  ok(rn>.04&&rn<.1,'🚀 nitro still spawns (measured '+(rn*100).toFixed(1)+'% of items)'); }
 G.set({broken:true});
 G.fire();
 ok(S().ammo===2,'cannot fire while broken down');
