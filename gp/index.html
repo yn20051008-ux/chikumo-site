@@ -272,7 +272,7 @@ html,body{height:100%;overflow:hidden;background:#0a0316;font-family:"Hiragino K
 <div id="urgVin"></div>
 <div id="mudOv"></div>
 <a class="back" href="/">← 畜物語</a>
-<div style="position:fixed;bottom:max(4px,env(safe-area-inset-bottom));left:8px;z-index:65;font-size:9px;color:rgba(255,200,240,.45);pointer-events:none">v38</div>
+<div style="position:fixed;bottom:max(4px,env(safe-area-inset-bottom));left:8px;z-index:65;font-size:9px;color:rgba(255,200,240,.45);pointer-events:none">v39</div>
 <button class="mute" id="muteBtn" aria-label="サウンド切替">🔊</button>
 <button class="recal hidden" id="recalBtn" aria-label="傾きリセット">📐 傾きリセット</button>
 <div id="ui">
@@ -286,7 +286,7 @@ html,body{height:100%;overflow:hidden;background:#0a0316;font-family:"Hiragino K
       ◆ 🚚に追いついたら<b>📳シェイク</b>で檻を破壊→救出！<br>
       ◆ 💥クラッシュでエンストしたら<b>📳シェイクで修理</b>（復旧作業！）<br>
       ◆ 🚀ニトロを拾ってシェイク発射！⭐💎⏰🛡️🧲🔧🌈もフル活用！<br>
-      ◆ 🔫弾丸を拾うと<b>3発</b>装填！<b>タップ</b>で発射→💣爆弾も🚧障害物も撃ち破壊！<br>
+      ◆ 🔫弾丸を拾うと<b>5発</b>装填！<b>タップ</b>で発射→💣爆弾も🚧障害物も撃ち破壊！<br>
       ◆ <b>⏰60秒</b>のタイムレース——救出するたび⏰+8秒＆次のラウンドへ！
     </div>
     <div class="lvbox">
@@ -1110,8 +1110,8 @@ function judge(e){
       else if(e.kind==='shield'){shield=8;sfxShield();popup(sx,sy,'🛡️シールド 8秒','#7ad7ff',24);combo++;}
       else if(e.kind==='magnet'){magnet=7;sfxMagnet();popup(sx,sy,'🧲マグネット 7秒','#ffb86e',24);combo++;}
       else if(e.kind==='boost'){pickBoost(sx,sy);combo++;}
-      else if(e.kind==='ammo'){ammo+=3;ammoPulse=1;combo++;sfxAmmo();   /* 上限なしスタック: 2発持ち→獲得で5発 */
-        popup(sx,sy,'🔫 弾丸+3！残り '+ammo+' 発','#ffe48a',22);
+      else if(e.kind==='ammo'){ammo+=5;ammoPulse=1;combo++;sfxAmmo();   /* 上限なしスタック: 2発持ち→獲得で7発 */
+        popup(sx,sy,'🔫 弾丸+5！残り '+ammo+' 発','#ffe48a',22);
         burst(sx,sy,12,['#ffe48a','#fff','#ffb31c'],['🔫','✨']);}
       else if(e.kind==='rainbow'){startFever();combo++;}
       vib(12);e.alive=false;
