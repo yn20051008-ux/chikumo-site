@@ -163,6 +163,17 @@ html,body{height:100%;overflow:hidden;background:#0a0316;font-family:"Hiragino K
 #spdVin.x8{opacity:1;background:radial-gradient(ellipse at 50% 42%,transparent 38%,rgba(255,90,50,.62) 100%);
   animation:spdPulse .22s ease-in-out infinite}
 @keyframes spdPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.7)}}
+/* ===== 🟤コースアウト演出(泥ビネット＋フロントガラスの泥ハネ) ===== */
+#mudVin{position:fixed;inset:0;pointer-events:none;z-index:25;opacity:0;transition:opacity .35s}
+#mudVin.m1{opacity:1;background:radial-gradient(ellipse at center,transparent 50%,rgba(120,80,30,.5) 100%)}
+#mudVin.m2{opacity:1;background:radial-gradient(ellipse at center,transparent 38%,rgba(140,62,18,.65) 100%);
+  animation:dmgPulse .4s ease-in-out infinite}
+#mudOv{position:fixed;inset:0;pointer-events:none;z-index:26;overflow:hidden}
+.mud-splat{position:absolute;border-radius:46% 54% 52% 48%/52% 46% 54% 48%;opacity:0;filter:blur(1px);
+  background:radial-gradient(circle at 42% 40%,rgba(98,64,28,.88),rgba(72,46,18,.72) 55%,rgba(50,30,10,0) 74%);
+  animation:mudIn .15s ease-out forwards}
+@keyframes mudIn{to{opacity:.92}}
+.mud-splat.dry{transition:opacity .9s ease,margin-top .9s ease;opacity:0!important;margin-top:46px;animation:none}
 /* ===== 大破シネマ演出 ===== */
 .wreck-ov{position:fixed;inset:0;z-index:80;pointer-events:none;overflow:hidden;
   background:radial-gradient(ellipse at 50% 60%,rgba(130,22,10,.6),rgba(0,0,0,.9));
@@ -200,6 +211,8 @@ html,body{height:100%;overflow:hidden;background:#0a0316;font-family:"Hiragino K
 <canvas id="game"></canvas>
 <div id="dmgVin"></div>
 <div id="spdVin"></div>
+<div id="mudVin"></div>
+<div id="mudOv"></div>
 <a class="back" href="/">← 畜物語</a>
 <button class="mute" id="muteBtn" aria-label="サウンド切替">🔊</button>
 <button class="recal hidden" id="recalBtn" aria-label="傾きリセット">📐 傾きリセット</button>
@@ -385,6 +398,16 @@ function sfxWorse(){if(muted)return;const t=audio().currentTime;                
   tone(740,t+.25,.13,'square',.15);tone(740,t+.45,.13,'square',.15);tone(740,t+.65,.2,'square',.15,500);}
 function sfxSlowmo(){if(muted)return;const t=audio().currentTime;                 /* 時が歪むピッチダウン */
   tone(900,t,.55,'sawtooth',.07,110);tone(450,t,.55,'triangle',.06,70);noise(t,.45,.05,260);}
+/* 🟤コースアウト効果音 */
+function sfxDirtIn(){if(muted)return;const t=audio().currentTime;          /* 土に乗った瞬間のズザザッ */
+  noise(t,.45,.22,250);crunch(t,.32,.18,200);tone(300,t,.4,'sawtooth',.1,120);
+  for(let i=0;i<5;i++)noise(t+.05+i*.06,.04,.08,800+Math.random()*1400);}
+function sfxGravel(){if(muted)return;const t=audio().currentTime;          /* 砂利が車体を叩くラトル */
+  noise(t,.05,.05+Math.random()*.04,500+Math.random()*1800);
+  if(Math.random()<.3)tone(180+Math.random()*120,t,.05,'square',.04,90);}
+function sfxMudBreak(){if(muted)return;const t=audio().currentTime;        /* エンジンが咳き込んで止まる */
+  [0,.14,.3,.5,.75,1.05].forEach((d,i)=>tone(110-i*12,t+d,.12,'square',.14-i*.012,60));
+  crunch(t+.2,.5,.2,120);noise(t+1,.3,.1,200);subDrop(t+1,70,24,.6,.22);}
 /* ⚡加速ピックアップ: 段ごとに高く激しくなるシェパード風ライザー＋和音スタブ */
 function sfxBoost(tier){if(muted)return;const t=audio().currentTime;
   noise(t,.35,.1+tier*.03,700+tier*400);                                  /* 風切りウーッシュ */
@@ -484,8 +507,10 @@ function engUpdate(){
     rpm=(spd-g*span)/span;
   if(g>gear){sfxShift(g);}
   gear=g;
-  engOsc.frequency.value=(broken?34:46)+rpm*110+g*10+Math.sin(elapsed*30)*2;
-  engFlt.frequency.value=420+rpm*900+(nitroT>0?900:0);
+  const off=Math.abs(px)>1.04;
+  engOsc.frequency.value=(broken?34:46)+rpm*110+g*10+Math.sin(elapsed*30)*2
+    +(off?Math.sin(elapsed*70)*9+Math.random()*6:0);   /* 土の上はエンジンがガタガタ濁る */
+  engFlt.frequency.value=(off?260:420)+rpm*900+(nitroT>0?900:0);
 }
 
 /* ───────── CPU難易度 20段階 ───────── */
@@ -604,7 +629,8 @@ let score=0,best=+(localStorage.getItem('gpBest')||0),
   gap=400,rx=0,truckFair=true,rescueNeed=4,burstT=0,burstChk=0,dropT=3,
   rescueMode=null,shake=0,flash=0,flashCol='255,60,60',hue=320,lastTick=99,lastFair=true,
   hitStop=0,slowmo=0,   /* ヒットストップ(ms)・スローモーション(秒) */
-  speedX=1,speedT=0,overSpd=false;   /* ⚡2倍加速スタック(1/2/4/8)・残り秒・速度超過大破 */
+  speedX=1,speedT=0,overSpd=false,   /* ⚡2倍加速スタック(1/2/4/8)・残り秒・速度超過大破 */
+  dirtT=0,wasOff=false,mudWreck=false,dirtSfxT=0,mudT=0;   /* 🟤コースアウト: 連続オフロード秒数→故障→大破 */
 
 /* ───────── コース(プロシージャル・ジェネレーション) ───────── */
 const SEGL=60;                       /* セグメント長(m) */
@@ -764,7 +790,7 @@ function doShake(){
     burst(W/2,H*.8,8,['#ffd76e','#9fe8a0','#fff'],['🔧','✨','🔩']);
     popup(W/2,H*.6,'🔧 '+repairGot+'/'+repairNeed,'#9fe8a0',22);
     if(repairGot>=repairNeed){
-      broken=false;hp=3;invuln=1.5;repairGot=0;brokenHits=0;dmgVin(false);
+      broken=false;hp=3;invuln=1.5;repairGot=0;brokenHits=0;dirtT=0;dmgVin(false);   /* 修理完了で泥カウントも仕切り直し */
       spd=Math.max(spd,90);
       sparks(W/2,H*.8,24,'#9fe8a0');
       sfxRepaired();vib([30,30,30,30,80]);
@@ -844,6 +870,26 @@ function damage(){
 }
 /* エンスト中の赤い警告ビネット */
 function dmgVin(on){try{const v=document.getElementById('dmgVin');if(v&&v.classList)v.classList[on?'add':'remove']('on');}catch(e){}}
+/* 🟤泥ビネット(警告=薄茶/エンスト中=濃く脈動) */
+function mudVin(lv){try{const v=document.getElementById('mudVin');if(v)v.className=lv===2?'m2':lv===1?'m1':'';}catch(e){}}
+/* フロントガラスに泥がベチャッと付着していく */
+function mudSplat(){try{
+  const ov=document.getElementById('mudOv');if(!ov||!ov.appendChild)return;
+  if(ov.childElementCount>14&&ov.firstChild)ov.removeChild(ov.firstChild);
+  const d=document.createElement('div');d.className='mud-splat';
+  const s=44+Math.random()*130;
+  d.style.cssText='left:'+(Math.random()*96).toFixed(0)+'%;top:'+(Math.random()*96).toFixed(0)
+    +'%;width:'+s.toFixed(0)+'px;height:'+(s*(0.65+Math.random()*.6)).toFixed(0)
+    +'px;transform:rotate('+(Math.random()*360|0)+'deg) scale('+(0.8+Math.random()*.4).toFixed(2)+')';
+  ov.appendChild(d);
+}catch(e){}}
+/* 道に戻ると泥が流れ落ちて消える */
+function mudDry(){try{
+  const ov=document.getElementById('mudOv');if(!ov||!ov.children)return;
+  const kids=[].slice.call(ov.children);
+  kids.forEach(function(k){k.className='mud-splat dry';});
+  setTimeout(function(){kids.forEach(function(k){if(k.parentNode===ov)ov.removeChild(k);});},1000);
+}catch(e){}}
 /* 大破シネマ: フラッシュ→衝撃波リング→「大破」スラム→炎と破片が舞う→リザルトへフェード */
 function wreckCinema(sub){
   try{
@@ -936,7 +982,7 @@ function gameOver(){
   vib([80,60,120]);
   if(score>best){best=score;localStorage.setItem('gpBest',best);}
   document.getElementById('endReason').textContent=
-    wrecked?(overSpd?'⚡ 速度超過で大破した…':'💥 クルマが大破した…')+(rescued>0?'（'+rescued+'羽 救出）':''):
+    wrecked?(overSpd?'⚡ 速度超過で大破した…':mudWreck?'🟤 コースアウトで大破した…':'💥 クルマが大破した…')+(rescued>0?'（'+rescued+'羽 救出）':''):
     rescued>0?'🎉 こっこちゃんを '+rescued+'羽 救出！':'😢 救出ならず…リベンジだ！';
   document.getElementById('endScore').textContent=score.toLocaleString();
   document.getElementById('endRescued').textContent='🐣 救出 '+rescued+'羽 ／ 逃した '+missed+'回 ／ 🤖Lv'+lv;
@@ -955,6 +1001,7 @@ function reset(){
   broken=false;repairGot=0;repairNeed=5;brokenHits=0;wrecked=false;spinT=0;nitroStock=1;nitroT=0;celeT=0;
   rescueMode=null;shake=0;flash=0;lastTick=99;lastTapMs=0;hitStop=0;slowmo=0;dmgVin(false);
   speedX=1;speedT=0;overSpd=false;setSpdVin(0);
+  dirtT=0;wasOff=false;mudWreck=false;dirtSfxT=0;mudT=0;mudDry();mudVin(0);
   obsT=2.2;itemT=1.6;decorT=.4;boardT=5;
   track=[];genTrack(80);
   spawnTruck();
@@ -986,8 +1033,44 @@ function update(dt){
   const offroad=Math.abs(px)>1.04;
   if(spd<max)spd=Math.min(max,spd+dt*(nitroT>0?260:95)*(speedX>1?speedX*speedX*.5:1)); /* ⚡は段の2乗で一気に突き抜ける */
   else spd=Math.max(max,spd-dt*180);
-  if(offroad&&spd>85){spd+=(85-spd)*dt*2.6;shake=Math.max(shake,4);
-    if(Math.random()<dt*8)smoke(W/2+(px>0?1:-1)*W*.18,H*.84,1);}
+  /* ── 🟤コースアウト(土): 急減速 → 2.5秒で泥づまりエンスト → 計5秒で大破 ── */
+  if(offroad){
+    if(!wasOff){wasOff=true;sfxDirtIn();vib(45);shake=Math.max(shake,10);
+      popup(W/2,H*.6,'🟤 コースアウト！','#d8a05a',22);
+      burst(W/2+(px>0?1:-1)*W*.2,H*.8,14,['#8a5a2a','#6b4420','#a87840'],['🪨','💨','🌿']);}
+    if(spd>50)spd+=(50-spd)*dt*6;            /* 土に乗った途端ガクンと減速 */
+    shake=Math.max(shake,6);
+    dirtT+=rdt;
+    mudVin(broken?2:dirtT>.8?1:0);
+    dirtSfxT-=rdt;
+    if(dirtSfxT<=0){dirtSfxT=.13;sfxGravel();}            /* 砂利を弾くラトル音 */
+    mudT-=rdt;
+    if(mudT<=0&&dirtT>.35){mudT=.3;mudSplat();}           /* フロントガラスに泥ハネが堆積 */
+    if(Math.random()<dt*14){smoke(W/2+(px>0?1:-1)*W*.18,H*.84,1);
+      sparks(W/2+(px>0?1:-1)*W*.18,H*.82,3,'#a87840');}   /* 土塊が跳ねる */
+    if(!broken&&dirtT>=2.5){                              /* 泥づまりでエンスト */
+      broken=true;repairGot=0;repairNeed=5;brokenHits=0;spd=Math.min(spd,40);
+      dmgVin(true);slowmo=.6;hitStop=70;
+      sfxMudBreak();sfxSlowmo();vib([90,50,120]);
+      popup(W/2,H*.4,'🟤 泥づまりでエンスト！','#d8a05a',30);
+      popup(W/2,H*.52,'📳 シェイク修理＆道へもどれ！','#ffd76e',22);
+      burst(W/2,H*.8,24,['#8a5a2a','#a87840','#ff7a6a'],['🟫','💨','⚙️']);
+    }
+    if(broken&&dirtT>=5){                                 /* それでも土を走り続けた末路 */
+      mudWreck=true;wrecked=true;hitStop=110;
+      sfxWreck();vib([160,60,200,60,260]);
+      sparks(W/2,H*.7,46,'#a87840');
+      burst(W/2,H*.7,40,['#8a5a2a','#ff5a5a','#a87840','#fff'],['🟫','💥','🪨','🛞']);
+      mudVin(0);
+      wreckCinema('🟤 OFF COURSE 🟤');
+      gameOver();
+      return;
+    }
+  }else if(wasOff||dirtT>0){
+    if(wasOff){wasOff=false;mudDry();mudVin(0);            /* 道に戻ると泥が流れ落ちる */
+      if(dirtT>.8)popup(W/2,H*.6,'🛣️ コース復帰！','#9fe8a0',20);}
+    dirtT=Math.max(0,dirtT-rdt*1.8);
+  }
   if(spd>maxKmh)maxKmh=spd;
   if(nitroT>0)nitroT-=rdt;
   /* ── 走行距離・距離スコア ── */
@@ -1442,6 +1525,21 @@ function draw(){
       cx.fillStyle='#9fe8a0';
       cx.beginPath();cx.roundRect(gx,gy,Math.max(2,gw*repairGot/repairNeed),12,6);cx.fill();
     }
+    /* 🟤コースアウト危険ゲージ(土の上: エンストまで/大破まで) */
+    if(dirtT>0.15){
+      const danger=broken,lim=danger?5:2.5,k=Math.min(1,dirtT/lim),
+        pl=.5+.5*Math.sin(elapsed*(danger?26:12));
+      cx.font=`bold ${danger?17+pl*4:14}px sans-serif`;cx.textAlign='center';
+      cx.fillStyle=danger?'#ff5a4a':'#d8a05a';
+      cx.shadowColor=cx.fillStyle;cx.shadowBlur=danger?14:8;
+      cx.fillText(danger?'🟤 もどれ！クルマが壊れる！！':'🟤 土でスピードダウン！',W/2,H*.6);
+      cx.shadowBlur=0;
+      const gw=Math.min(W*.5,260),gx=W/2-gw/2,gy=H*.63;
+      cx.fillStyle='rgba(255,255,255,.16)';
+      cx.beginPath();cx.roundRect(gx,gy,gw,10,5);cx.fill();
+      cx.fillStyle=danger?`rgba(255,${60+pl*60|0},40,1)`:'#d8a05a';
+      cx.beginPath();cx.roundRect(gx,gy,Math.max(2,gw*k),10,5);cx.fill();
+    }
     /* フィーバー/バフ表示 */
     if(fever>0){cx.font='bold 18px sans-serif';
       cx.fillStyle=`hsl(${hue},95%,75%)`;cx.shadowColor=`hsl(${hue},95%,70%)`;cx.shadowBlur=12;
@@ -1553,7 +1651,7 @@ window.__gp={
   get:()=>({state,score,best,combo,maxCombo,hp,timeLeft,fever,shield,magnet,invuln,
     rescued,rescueStreak,missed,scoreMult,px,spd,elapsed,goT,gap,round,lv,
     broken,repairGot,repairNeed,brokenHits,wrecked,nitroStock,nitroT,rescueMode,rescueNeed,truckFair,
-    lastFair,tilt:readTilt(),orientSeen,accSeen,maxKmh,dist,hitStop,slowmo,speedX,speedT,overSpd}),
+    lastFair,tilt:readTilt(),orientSeen,accSeen,maxKmh,dist,hitStop,slowmo,speedX,speedT,overSpd,dirtT,mudWreck}),
   set:o=>{for(const k of Object.keys(o)){const v=o[k];
     if(k==='state')state=v;else if(k==='score')score=v;else if(k==='combo')combo=v;
     else if(k==='hp')hp=v;else if(k==='timeLeft')timeLeft=v;else if(k==='fever')fever=v;
@@ -1563,6 +1661,7 @@ window.__gp={
     else if(k==='brokenHits')brokenHits=v;else if(k==='repairNeed')repairNeed=v;
     else if(k==='hitStop')hitStop=v;else if(k==='slowmo')slowmo=v;
     else if(k==='speedX')speedX=v;else if(k==='speedT')speedT=v;
+    else if(k==='dirtT')dirtT=v;
     else if(k==='nitroStock')nitroStock=v;else if(k==='nitroT')nitroT=v;
     else if(k==='elapsed')elapsed=v;else if(k==='scoreMult')scoreMult=v;
     else if(k==='rescueMode')rescueMode=v;else if(k==='rescueNeed')rescueNeed=v;
