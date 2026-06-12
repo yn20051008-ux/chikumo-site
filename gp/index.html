@@ -874,14 +874,15 @@ function spawnItems(){
   }else{
     const e=ent();e.alive=true;e.type='item';e.done=false;e.vx=0;
     e.z=SPAWNZ;e.x=rnd(-.7,.7);
-    if(pick<.25){e.kind='nitro';e.emoji='🚀';}
-    else if(pick<.35){e.kind='boost';e.emoji='⚡';}
-    else if(pick<.75){e.kind='ammo';e.emoji='🔫';}
-    else if(pick<.81){e.kind='gem';e.emoji='💎';}
-    else if(pick<.84){e.kind='clock';e.emoji='⏰';}
-    else if(pick<.88){e.kind='wrench';e.emoji='🔧';}
-    else if(pick<.92){e.kind='shield';e.emoji='🛡️';}
-    else if(pick<.965){e.kind='magnet';e.emoji='🧲';}
+    const p2=Math.random();   /* ⭐判定とは独立に再抽選(pickは0.4以上しか来ないため) */
+    if(p2<.15){e.kind='nitro';e.emoji='🚀';}
+    else if(p2<.35){e.kind='boost';e.emoji='⚡';}
+    else if(p2<.75){e.kind='ammo';e.emoji='🔫';}
+    else if(p2<.81){e.kind='gem';e.emoji='💎';}
+    else if(p2<.84){e.kind='clock';e.emoji='⏰';}
+    else if(p2<.88){e.kind='wrench';e.emoji='🔧';}
+    else if(p2<.92){e.kind='shield';e.emoji='🛡️';}
+    else if(p2<.965){e.kind='magnet';e.emoji='🧲';}
     else{e.kind='rainbow';e.emoji='🌈';}
   }
 }
