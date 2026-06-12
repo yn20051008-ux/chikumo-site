@@ -718,7 +718,7 @@ let score=0,best=+(localStorage.getItem('gpBest')||0),
   speedX=1,speedT=0,overSpd=false,   /* ⚡2倍加速スタック(1/2/4/8)・残り秒・速度超過大破 */
   dirtT=0,wasOff=false,mudWreck=false,dirtSfxT=0,mudT=0,   /* 🟤コースアウト: 連続オフロード秒数→故障→大破 */
   urgOn=false,fevOn=false,   /* ラスト5秒/フィーバーのビネット状態 */
-  ammo=0,muzzle=0;           /* 🔫弾丸ストック(最大9)・マズルフラッシュ残時間 */
+  ammo=0,muzzle=0,ammoPulse=0;   /* 🔫弾丸ストック(上限なし)・マズルフラッシュ・残弾表示パルス */
 const shots=[];              /* 発射中の弾丸 {x,z,alive} */
 
 /* ───────── コース(プロシージャル・ジェネレーション) ───────── */
@@ -1002,7 +1002,7 @@ function addScore(n){score+=Math.round(n*scoreMult);}
 /* 🔫弾丸発射: タップ/Zキーで前方へエネルギー弾(爆弾・障害物を破壊) */
 function fire(){
   if(state!=='play'||goT>0||broken||rescueMode||ammo<=0)return;
-  ammo--;muzzle=.12;
+  ammo--;muzzle=.12;ammoPulse=1;
   shots.push({x:px,z:26,alive:true});
   shake=Math.max(shake,5);flash=Math.max(flash,.14);flashCol='255,230,150';
   sparks(W/2,H*.72,10,'#ffe48a');
@@ -1067,8 +1067,8 @@ function judge(e){
       else if(e.kind==='shield'){shield=8;sfxShield();popup(sx,sy,'🛡️シールド 8秒','#7ad7ff',24);combo++;}
       else if(e.kind==='magnet'){magnet=7;sfxMagnet();popup(sx,sy,'🧲マグネット 7秒','#ffb86e',24);combo++;}
       else if(e.kind==='boost'){pickBoost(sx,sy);combo++;}
-      else if(e.kind==='ammo'){ammo=Math.min(9,ammo+3);combo++;sfxAmmo();
-        popup(sx,sy,'🔫 弾丸+3！(タップで発射)','#ffe48a',20);
+      else if(e.kind==='ammo'){ammo+=3;ammoPulse=1;combo++;sfxAmmo();   /* 上限なしスタック: 2発持ち→獲得で5発 */
+        popup(sx,sy,'🔫 弾丸+3！残り '+ammo+' 発','#ffe48a',22);
         burst(sx,sy,12,['#ffe48a','#fff','#ffb31c'],['🔫','✨']);}
       else if(e.kind==='rainbow'){startFever();combo++;}
       vib(12);e.alive=false;
@@ -1237,6 +1237,7 @@ function update(dt){
   if(invuln>0)invuln-=rdt;
   if(celeT>0)celeT-=rdt;
   if(shake>0)shake=Math.max(0,shake-rdt*60);
+  if(ammoPulse>0)ammoPulse=Math.max(0,ammoPulse-rdt*3);
   if(flash>0)flash=Math.max(0,flash-rdt*2.2);
   hue=(hue+dt*(fever>0?160:14))%360;
   if(combo>maxCombo)maxCombo=combo;
@@ -1553,16 +1554,27 @@ function draw(){
     cx.save();cx.globalCompositeOperation='lighter';cx.lineCap='round';
     for(const s of shots){
       if(!s.alive)continue;
-      const zb=Math.max(12,s.z-110),
+      const zb=Math.max(12,s.z-180),
         f1=fOf(s.z),y1=h0+(H-h0)*f1,x1=roadCenter(s.z)+s.x*halfWpx(s.z),
-        f2=fOf(zb),y2=h0+(H-h0)*f2,x2=roadCenter(zb)+s.x*halfWpx(zb);
+        f2=fOf(zb),y2=h0+(H-h0)*f2,x2=roadCenter(zb)+s.x*halfWpx(zb),
+        pl=.8+.2*Math.sin(elapsed*40);                       /* 高速で脈打つ */
+      /* 外側オーラ → 中間炎 → 白熱コアの三重トレーサー */
       const grad=cx.createLinearGradient(x2,y2,x1,y1);
-      grad.addColorStop(0,'rgba(255,180,60,0)');
-      grad.addColorStop(1,'rgba(255,244,180,.95)');
-      cx.strokeStyle=grad;cx.lineWidth=Math.max(2,halfWpx(s.z)*.035);
+      grad.addColorStop(0,'rgba(255,140,40,0)');
+      grad.addColorStop(.6,'rgba(255,180,70,.55)');
+      grad.addColorStop(1,'rgba(255,220,120,.95)');
+      cx.strokeStyle=grad;cx.lineWidth=Math.max(10,halfWpx(s.z)*.11)*pl;
       cx.beginPath();cx.moveTo(x2,y2);cx.lineTo(x1,y1);cx.stroke();
-      cx.fillStyle='#fff7d8';cx.shadowColor='#ffd76e';cx.shadowBlur=18;
-      cx.beginPath();cx.arc(x1,y1,Math.max(2.5,halfWpx(s.z)*.022),0,TAU);cx.fill();
+      const grad2=cx.createLinearGradient(x2,y2,x1,y1);
+      grad2.addColorStop(0,'rgba(255,244,180,0)');
+      grad2.addColorStop(1,'rgba(255,250,220,1)');
+      cx.strokeStyle=grad2;cx.lineWidth=Math.max(4,halfWpx(s.z)*.045)*pl;
+      cx.beginPath();cx.moveTo(x2,y2);cx.lineTo(x1,y1);cx.stroke();
+      /* エネルギーコア(グロー強・二重円) */
+      cx.fillStyle='rgba(255,210,110,.55)';cx.shadowColor='#ffb31c';cx.shadowBlur=34;
+      cx.beginPath();cx.arc(x1,y1,Math.max(9,halfWpx(s.z)*.075)*pl,0,TAU);cx.fill();
+      cx.fillStyle='#fffbe8';cx.shadowColor='#ffd76e';cx.shadowBlur=24;
+      cx.beginPath();cx.arc(x1,y1,Math.max(5,halfWpx(s.z)*.04)*pl,0,TAU);cx.fill();
       cx.shadowBlur=0;
     }
     cx.restore();
@@ -1758,6 +1770,14 @@ function draw(){
       cx.shadowBlur=0;
       if(tier===3&&k>.4){cx.font='bold 14px sans-serif';cx.fillStyle='#ff5a5a';
         cx.fillText('⚠️ つぎの⚡で大破！！',W/2,H*.12+24);}
+    }
+    /* 🔫残弾カウンター(獲得/発射で弾むビッグ表示) */
+    if(ammo>0){
+      const k=1+ammoPulse*.55;
+      cx.font=`bold ${Math.round(24*k)}px sans-serif`;cx.textAlign='center';
+      cx.fillStyle='#ffe48a';cx.shadowColor='#ffb31c';cx.shadowBlur=16+ammoPulse*18;
+      cx.fillText('🔫 '+ammo+' 発',W/2,H-(H*.105));
+      cx.shadowBlur=0;
     }
     if(fever<=0){
       let bl='';
