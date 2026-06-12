@@ -199,6 +199,40 @@ pick('magnet','🧲');
 ok(S().magnet>0,'🧲 magnet arms 7s pull');
 pick('rainbow','🌈');
 ok(S().fever>0&&S().scoreMult===2,'🌈 rainbow starts FEVER ×2');
+
+/* ── ⚡2倍加速アイテム: ×2→×4→×8スタック → 4枚目で速度超過大破 ── */
+G.set({fever:0,scoreMult:1,speedX:1,speedT:0,hitStop:0,slowmo:0,invuln:0,celeT:0});
+pick('boost','⚡');
+ok(S().speedX===2&&S().speedT>0,'⚡ boost doubles speed (×2)');
+G.set({hitStop:0,invuln:0}); pick('boost','⚡');
+ok(S().speedX===4,'⚡ on ×2 stacks to ×4');
+G.set({hitStop:0,invuln:0}); pick('boost','⚡');
+ok(S().speedX===8,'⚡ on ×4 stacks to ×8 (max shift)');
+G.set({spd:0,hitStop:0,slowmo:0,speedT:99,timeLeft:99,combo:0,fever:0,scoreMult:1});   /* 検証中にブースト/フィーバーが変動しないよう固定 */
+{ const mx=G.playerMax()*8;
+  for(let i=0;i<200;i++)G.update(0.05);
+  ok(S().spd>G.playerMax()*4,'×8 boost pushes way past normal top speed ('+Math.round(S().spd)+' km/h)');
+  ok(S().spd<=mx+90,'boosted speed still respects the ×8 ceiling'); }
+G.set({hitStop:0,invuln:0,timeLeft:60,speedT:99,px:0}); pick('boost','⚡');
+ok(S().wrecked===true&&S().overSpd===true&&S().state==='over','4th ⚡ at ×8 wrecks the car — overspeed game over');
+ok(el('endReason').textContent.includes('速度超過'),'overspeed shows its own game-over reason');
+G.reset();
+ok(S().speedX===1&&S().speedT===0&&S().overSpd===false,'reset clears the ⚡ boost stack');
+
+/* ── ⚡は時間切れで×1へ・クラッシュで解除 ── */
+G.set({state:'play',goT:0,invuln:0,celeT:0,hitStop:0,slowmo:0,fever:0});
+G.noSpawn();
+pick('boost','⚡');
+G.set({speedT:0.01,hitStop:0});
+frames(3);
+ok(S().speedX===1,'boost expires back to ×1');
+pick('boost','⚡');
+G.set({hitStop:0,invuln:0,spd:250});
+forge({type:'obs',kind:'cone',emoji:'🚧'}); tick();
+ok(S().speedX===1&&S().speedT===0,'crash cancels the ⚡ boost');
+G.reset();
+G.set({state:'play',goT:0,invuln:0,celeT:0,fever:0,scoreMult:1});
+G.noSpawn();
 G.set({fever:0,scoreMult:1});
 
 /* ── 🧲マグネットが遠いアイテムを引き寄せる ── */
