@@ -277,6 +277,15 @@ G.set({ammo:3,px:0,hitStop:0,slowmo:0});
   const rb=bN/totN,rn=nN/totN;
   ok(rb>.05&&rb<.09,'⚡ spawn rate doubled (measured '+(rb*100).toFixed(1)+'% of items)');
   ok(rn>.04&&rn<.1,'🚀 nitro still spawns (measured '+(rn*100).toFixed(1)+'% of items)'); }
+/* ── 🌈を減らして🔫を増やす(抽選内: 🌈3.5%→1.5% / 🔫40%→42%) ── */
+{ let rN=0,aN=0,totN=0;
+  for(let i=0;i<12000;i++){ for(const e of G.ents)e.alive=false;
+    G.spawnItems();
+    for(const e of G.ents)if(e.alive&&e.type==='item'){totN++;
+      if(e.kind==='rainbow')rN++;if(e.kind==='ammo')aN++;} }
+  const rr=rN/totN,ra2=aN/totN;
+  ok(rr<.011,'🌈 spawn rate reduced (measured '+(rr*100).toFixed(2)+'% of items)');
+  ok(ra2>.115&&ra2<.165,'🔫 spawn rate increased again (measured '+(ra2*100).toFixed(1)+'% of items)'); }
 G.set({broken:true});
 G.fire();
 ok(S().ammo===2,'cannot fire while broken down');

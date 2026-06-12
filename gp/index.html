@@ -272,7 +272,7 @@ html,body{height:100%;overflow:hidden;background:#0a0316;font-family:"Hiragino K
 <div id="urgVin"></div>
 <div id="mudOv"></div>
 <a class="back" href="/">← 畜物語</a>
-<div style="position:fixed;bottom:max(4px,env(safe-area-inset-bottom));left:8px;z-index:65;font-size:9px;color:rgba(255,200,240,.45);pointer-events:none">v37</div>
+<div style="position:fixed;bottom:max(4px,env(safe-area-inset-bottom));left:8px;z-index:65;font-size:9px;color:rgba(255,200,240,.45);pointer-events:none">v38</div>
 <button class="mute" id="muteBtn" aria-label="サウンド切替">🔊</button>
 <button class="recal hidden" id="recalBtn" aria-label="傾きリセット">📐 傾きリセット</button>
 <div id="ui">
@@ -878,12 +878,12 @@ function spawnItems(){
     const p2=Math.random();   /* ⭐判定とは独立に再抽選(pickは0.4以上しか来ないため) */
     if(p2<.15){e.kind='nitro';e.emoji='🚀';}
     else if(p2<.35){e.kind='boost';e.emoji='⚡';}
-    else if(p2<.75){e.kind='ammo';e.emoji='🔫';}
-    else if(p2<.81){e.kind='gem';e.emoji='💎';}
-    else if(p2<.84){e.kind='clock';e.emoji='⏰';}
-    else if(p2<.88){e.kind='wrench';e.emoji='🔧';}
-    else if(p2<.92){e.kind='shield';e.emoji='🛡️';}
-    else if(p2<.965){e.kind='magnet';e.emoji='🧲';}
+    else if(p2<.77){e.kind='ammo';e.emoji='🔫';}
+    else if(p2<.83){e.kind='gem';e.emoji='💎';}
+    else if(p2<.86){e.kind='clock';e.emoji='⏰';}
+    else if(p2<.90){e.kind='wrench';e.emoji='🔧';}
+    else if(p2<.94){e.kind='shield';e.emoji='🛡️';}
+    else if(p2<.985){e.kind='magnet';e.emoji='🧲';}
     else{e.kind='rainbow';e.emoji='🌈';}
   }
 }
