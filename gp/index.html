@@ -283,10 +283,10 @@ html,body{height:100%;overflow:hidden;background:#0a0316;font-family:"Hiragino K
     <div class="how">
       ◆ ブラックこっこの🚚トラックが、こっこちゃんを連れ去った！<br>
       ◆ スマホを<b>かたむけて</b>ハンドル！（ジャイロ／指でなぞってもOK）<br>
-      ◆ 🚚に追いついたら<b>📳シェイク</b>で檻を破壊→救出！<br>
+      ◆ 🚚に追いついたら<b>🔫タップで一撃救出</b>！弾がなければ<b>📳シェイク</b>で檻を破壊！<br>
       ◆ 💥クラッシュでエンストしたら<b>📳シェイクで修理</b>（復旧作業！）<br>
       ◆ 🚀ニトロを拾ってシェイク発射！⭐💎⏰🛡️🧲🔧🌈もフル活用！<br>
-      ◆ 🔫弾丸を拾うと<b>5発</b>装填！<b>タップ</b>で発射→💣爆弾も🚧障害物も撃ち破壊！<br>
+      ◆ 🔫弾丸を拾うと<b>5発</b>装填！<b>タップ</b>で発射→💣爆弾も🚧障害物も撃ち破壊＆こっこ救出！<br>
       ◆ <b>⏰60秒</b>のタイムレース——救出するたび⏰+8秒＆次のラウンドへ！
     </div>
     <div class="lvbox">
@@ -1044,7 +1044,16 @@ function wreckCinema(sub){
 function addScore(n){score+=Math.round(n*scoreMult);}
 /* 🔫弾丸発射: タップ/Zキーで前方へエネルギー弾(爆弾・障害物を破壊) */
 function fire(){
-  if(state!=='play'||goT>0||broken||rescueMode||ammo<=0)return;
+  if(state!=='play'||goT>0||broken||ammo<=0)return;
+  if(rescueMode){                         /* 🔫救出: 一発でこっこちゃんを救出！ */
+    ammo--;muzzle=.12;ammoPulse=1;
+    sfxShot();vib(18);
+    flash=Math.max(flash,.2);flashCol='255,230,150';shake=Math.max(shake,8);
+    sparks(W/2,H*.45,16,'#ffe48a');
+    burst(W/2,H*.45,12,['#ffe48a','#fff','#ffd76e'],['🔫','💥','✨']);
+    rescueWin();
+    return;
+  }
   ammo--;muzzle=.12;ammoPulse=1;
   shots.push({x:px,z:12,alive:true});   /* 手前z=12から発射: バンパー直前の障害物も撃てる */
   shake=Math.max(shake,5);flash=Math.max(flash,.14);flashCol='255,230,150';
@@ -1093,7 +1102,8 @@ function judge(e){
     if(Math.abs(dx)<.28){e.alive=false;damage();
       burst(W/2+dx*W*.3,H*.74,14,['#ff8a5a','#876','#fff'],[e.emoji,'💥']);}
   }else if(e.type==='item'){
-    if(Math.abs(dx)<.3+(magnet>0?.45:0)){
+    const bigGet=(e.kind==='boost'||e.kind==='ammo')?.6:0;   /* 🔫⚡は当たり幅も拡大して取りやすく */
+    if(Math.abs(dx)<.3+bigGet+(magnet>0?.45:0)){
       const sx=W/2+dx*W*.3,sy=H*.6;
       if(e.kind==='star'){addScore(150);combo++;sfxItem();popup(sx,sy,'⭐+'+Math.round(150*scoreMult),'#ffe28a',20);}
       else if(e.kind==='gem'){addScore(500);combo++;sfxGem();popup(sx,sy,'💎+'+Math.round(500*scoreMult),'#8ad7ff',24);burst(sx,sy,14,['#8ad7ff','#fff'],['💎','✨']);}
@@ -1310,7 +1320,7 @@ function update(dt){
       sparks(W/2,H*.45,22,'#ffd76e');
       burst(W/2,H*.4,16,['#ffd76e','#fff','#ff8ac2'],['🚚','💨','✨']);
       popup(W/2,H*.28,'🚚に追いついた！','#ffd76e',26);
-      popup(W/2,H*.4,'📳 ふれ！ふれ！ふれ！','#ffd76e',30);
+      popup(W/2,H*.4,ammo>0?'🔫 タップで一撃救出！':'📳 ふれ！ふれ！ふれ！','#ffd76e',30);
     }
     /* トラックの💣投下 */
     dropT-=dt;
@@ -1624,8 +1634,9 @@ function draw(){
   const truckVisible=state!=='menu'&&gap<SPAWNZ;
   for(const e of sorted){
     if(truckVisible&&!truckDrawn&&gap>=e.z){drawTruck(Math.max(16,gap));truckDrawn=true;}
+    const bigGet=e.type==='item'&&(e.kind==='boost'||e.kind==='ammo');   /* 🔫⚡は4倍に拡大して取りやすく */
     const f=fOf(e.z),y=h0+(H-h0)*f,c=roadCenter(e.z),
-      sx=c+e.x*halfWpx(e.z),s=halfWpx(e.z)*(e.type==='decor'?.5:e.type==='board'?.4:.24);
+      sx=c+e.x*halfWpx(e.z),s=halfWpx(e.z)*(e.type==='decor'?.5:e.type==='board'?.4:bigGet?.96:.24);
     if(e.type==='board'&&s>8){
       cx.save();cx.globalAlpha=Math.min(1,f*12);
       cx.fillStyle='#2a1840';cx.strokeStyle='#ff8ac2';cx.lineWidth=Math.max(1,s*.06);
@@ -1847,7 +1858,7 @@ function draw(){
       const k=.5+.5*Math.sin(elapsed*40);
       cx.font=`bold ${28+k*8}px sans-serif`;
       cx.fillStyle='#ffd76e';cx.shadowColor='#ffd76e';cx.shadowBlur=glow(20);
-      cx.fillText('📳 ふれ！ふれ！ 📳',W/2,H*.2);
+      cx.fillText(ammo>0?'🔫 タップで一撃救出！':'📳 ふれ！ふれ！ 📳',W/2,H*.2);
       cx.shadowBlur=0;
       const gw=Math.min(W*.6,300),gx=W/2-gw/2,gy=H*.26;
       cx.fillStyle='rgba(255,255,255,.16)';
