@@ -46,6 +46,9 @@
   #homeBtn.on{display:flex;}
   #muteBtn{top:calc(10px + env(safe-area-inset-top));right:calc(58px + env(safe-area-inset-right));}
   #fsBtn{top:calc(10px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));}
+  #rideBtn{top:calc(10px + env(safe-area-inset-top));right:calc(150px + env(safe-area-inset-right));display:none;font-size:20px;}
+  #rideBtn.on{display:flex;}
+  #rideBtn.riding{background:rgba(110,200,255,.55);border-color:rgba(150,220,255,.85);box-shadow:0 0 14px rgba(120,200,255,.5);}
 
   /* ===== HUD ===== */
   #hud{position:absolute;inset:0;z-index:8;pointer-events:none;display:none;}
@@ -166,6 +169,39 @@
     letter-spacing:.1em;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.8);opacity:0;}
   #koOverlay.on #koText{animation:kotext 2.6s ease forwards;}
   @keyframes kotext{0%,18%{opacity:0;}34%,82%{opacity:1;}100%{opacity:0;}}
+  /* ねむり演出 */
+  #sleepOv{position:absolute;inset:0;z-index:17;display:none;pointer-events:none;background:#04060c;opacity:0;}
+  #sleepOv.on{display:flex;flex-direction:column;align-items:center;justify-content:center;animation:sleepfade 2.4s ease forwards;}
+  @keyframes sleepfade{0%{opacity:0;}22%,78%{opacity:.96;}100%{opacity:0;}}
+  #sleepZ{font-size:60px;animation:zzz 2s ease-in-out infinite;}
+  @keyframes zzz{0%,100%{transform:translateY(0) scale(1);}50%{transform:translateY(-10px) scale(1.1);}}
+  #sleepTxt{margin-top:10px;font-size:18px;font-weight:900;letter-spacing:.16em;color:#cfe6ff;opacity:.9;}
+  /* お店 */
+  #shopScreen{position:absolute;inset:0;z-index:21;display:none;align-items:center;justify-content:center;padding:18px;
+    background:radial-gradient(ellipse at 50% 30%,rgba(30,40,60,.55),rgba(4,8,16,.86));-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+  #shopScreen.on{display:flex;animation:shopin .22s ease-out;}
+  @keyframes shopin{0%{opacity:0;}100%{opacity:1;}}
+  #shopCard{width:min(94vw,440px);max-height:88vh;display:flex;flex-direction:column;
+    background:linear-gradient(180deg,rgba(28,40,30,.96),rgba(16,26,20,.98));border-radius:22px;
+    box-shadow:0 16px 50px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.12);border:1px solid rgba(150,220,130,.25);padding:16px;}
+  #shopHead{display:flex;justify-content:space-between;align-items:center;font-size:18px;font-weight:900;
+    color:#eaffd0;margin-bottom:10px;padding:0 4px;}
+  #shopMoney{font-size:16px;color:#ffe89a;background:rgba(0,0,0,.3);padding:4px 12px;border-radius:14px;}
+  #shopList{overflow-y:auto;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:9px;padding:2px;}
+  .shopItem{display:flex;align-items:center;gap:11px;background:rgba(255,255,255,.05);border-radius:14px;padding:10px 12px;
+    border:1px solid rgba(255,255,255,.07);}
+  .shopItem.got{opacity:.72;}
+  .si-ico{font-size:30px;width:40px;text-align:center;flex:none;}
+  .si-info{flex:1;min-width:0;}
+  .si-name{font-size:15px;font-weight:900;color:#f4f8ef;}
+  .si-desc{font-size:11.5px;line-height:1.5;color:#bcd6ab;opacity:.92;margin-top:2px;}
+  .si-btn{flex:none;border:none;border-radius:20px;padding:10px 14px;font-size:14px;font-weight:900;cursor:pointer;
+    color:#1d3a14;background:linear-gradient(180deg,#d8f7a8,#7fce5a);box-shadow:0 3px 12px rgba(110,210,80,.35);
+    font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .si-btn:active{transform:translateY(1px);}
+  .si-btn.no{background:rgba(255,255,255,.12);color:#9fb392;box-shadow:none;}
+  .si-btn.got{background:none;color:#9fdc7a;box-shadow:none;cursor:default;font-size:13px;}
+  #shopClose{margin-top:14px;align-self:center;}
 
   /* ===== Screens ===== */
   .screen{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;
@@ -213,12 +249,13 @@
   <div class="ctrlbtn" id="homeBtn">🏠</div>
   <div class="ctrlbtn" id="muteBtn">🔊</div>
   <div class="ctrlbtn" id="fsBtn">⛶</div>
+  <div class="ctrlbtn" id="rideBtn">🚲</div>
 
   <!-- HUD -->
   <div id="hud">
     <div id="hudClock">AM 9:00 ・ 1日め</div>
     <div id="hudInv">
-      <div id="hudCoin" class="it">🪙 0</div>
+      <div id="hudCoin" class="it">💴 0</div>
       <div class="row">
         <span class="it" id="invFruit">🍎 0</span>
         <span class="it" id="invFlower">🌼 0</span>
@@ -245,6 +282,18 @@
   <div id="playerHP"></div>
   <div id="battleBanner"></div>
   <div id="koOverlay"><div id="koAmb">🚑</div><div id="koText">救急車で はこばれた…</div></div>
+
+  <!-- ねむり演出 -->
+  <div id="sleepOv"><div id="sleepZ">💤</div><div id="sleepTxt">おやすみ…</div></div>
+
+  <!-- お店 -->
+  <div id="shopScreen">
+    <div id="shopCard">
+      <div id="shopHead"><span>🏪 こっこ商店</span><span id="shopMoney">💴 0</span></div>
+      <div id="shopList"></div>
+      <button class="btn" id="shopClose">とじる</button>
+    </div>
+  </div>
 
   <!-- TITLE -->
   <div class="screen" id="titleScreen">
@@ -276,7 +325,8 @@
       ◆ <b>パソコン</b>：WASDで移動、画面クリックでマウス視点。<b>Eキー</b>か<b>クリック</b>でアクション、スペースでジャンプ。<br><br>
       ◆ できること：🌳<b>木をゆらす</b>と くだものが落ちる／🌼<b>花をつむ</b>／🦋<b>虫をつかまえる</b>/🪨<b>岩をたたく</b>と コインが出る／🐚<b>かいがらをひろう</b>／🐰🐻🐸<b>住民とおしゃべり</b>。<br><br>
       ◆ 島には <b>朝・ひる・夜</b> がある。夜は ✨ホタルが とぶよ。<br><br>
-      ◆ <b style="color:#ff7a7a;">⚠ ブラックこっこ</b>に であうと…のどかな島が一変！<b>アクションボタン</b>で <b>たたかう</b>。<b>ジャンプ中の攻撃はクリティカル💥</b>、連続ヒットで <b>コンボ</b>！ つっこみ💢は <b>うごいて回避</b>。たおすと <b>コインどっさり</b>🪙。やられても <b>🚑救急車</b>がたすけてくれるよ。<br><br>
+      ◆ <b style="color:#ff7a7a;">⚠ ブラックこっこ</b>に であうと…のどかな島が一変！<b>アクションボタン</b>で <b>たたかう</b>。<b>ジャンプ中の攻撃はクリティカル💥</b>、連続ヒットで <b>コンボ</b>！ つっこみ💢は <b>うごいて回避</b>。たおすと <b>札束💴どっさり</b>！ やられても <b>🚑救急車</b>がたすけてくれるよ。<br><br>
+      ◆ <b style="color:#ffe07a;">🏪 こっこ商店</b>（スポーン近く）で 💴をつかって おかいもの！ <b>🏠おうち</b>（ねるとHP全回復＆あさに）、<b>🚲じてんしゃ</b>（のって高速移動）、<b>⚔️つるぎ</b>（こうげき力UP）、<b>👟くつ</b>（はやあるき）、<b>💗ハートのうつわ</b>（最大HP UP）。買ったものは 島ぐらしで じっさいに使えるよ！<br><br>
       ◆ <b>島の地形はGPUで毎回計算生成</b>。「はじめから」を選ぶたびに 新しい島になるよ。<br><br>
       ◆ あそんだ記録は <b>ブラウザに自動セーブ</b>（💾マーク）。つぎは「<b>つづきから</b>」で同じ島のつづきが あそべる！🏠ボタンでセーブしてタイトルへ。
     </div>
@@ -368,6 +418,11 @@ const Sound=(function(){
     save(){ tone(784,0.1,'triangle',0.14); setTimeout(()=>tone(1175,0.14,'triangle',0.12),90); },
     bird(){ const f=2200+Math.random()*900; tone(f,0.07,'sine',0.05,f*1.3); setTimeout(()=>tone(f*1.1,0.06,'sine',0.04,f*0.8),90); },
     welcome(){ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>tone(f,0.16,'triangle',0.2),i*100)); },
+    cash(){ tone(1318,0.05,'square',0.12); setTimeout(()=>tone(1760,0.08,'square',0.1),55); setTimeout(()=>tone(2093,0.09,'square',0.09),110); },
+    buy(){ [659,880,1047,1319].forEach((f,i)=>setTimeout(()=>tone(f,0.12,'triangle',0.16),i*70)); },
+    nope(){ tone(220,0.12,'square',0.14,150); setTimeout(()=>tone(180,0.14,'square',0.12,120),90); },
+    sleep(){ [784,659,523,392].forEach((f,i)=>setTimeout(()=>tone(f,0.5,'sine',0.12),i*180)); },
+    wake(){ [392,523,659,880,1047].forEach((f,i)=>setTimeout(()=>tone(f,0.2,'triangle',0.16),i*90)); },
     ui(){ tone(700,0.04,'triangle',0.14); } };
 })();
 
@@ -628,8 +683,10 @@ const atlasTex=gl.createTexture();
 const EMOJI_FONT='100px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
 const EMO={4:'🌳',5:'🌴',6:'🌲',7:'🍎',8:'🍊',9:'🍑',10:'🌷',11:'🌸',12:'🌼',13:'🌻',
   14:'🪨',15:'🐚',16:'🦋',17:'🪙',18:'✨',19:'🍄',20:'☀️',21:'🌙',22:'🐰',23:'🐻',24:'🐸',25:'🌰',
-  26:'💢',27:'💥',28:'😵',29:'🚑'};
+  26:'💢',27:'💥',28:'😵',29:'🚑',
+  33:'💴',34:'🏪',35:'🏠',36:'🚲'};
 const CELL_BAR=32; // 純白の四角（HPバー・フラッシュ用）
+const CELL_CASH=33, CELL_SHOP=34, CELL_HOUSE=35, CELL_BIKE=36;
 function cellRect(c){ return [(c%ACELL)*128,((c/ACELL)|0)*128]; }
 function buildAtlas(){
   atx.clearRect(0,0,1024,1024);
@@ -760,7 +817,21 @@ function genWorld(seed){
     if(!ok) continue;
     enemies.push(makeEnemy(x,z));
   }
+  // お店とおうちの場所（スポーン近くの平らな草地に決定論的に）
+  shopSpot=findFlatNear(SPAWN.x,SPAWN.z,6,5,14,null);
+  houseSpot=findFlatNear(SPAWN.x,SPAWN.z,7,9,18,shopSpot);
   buildRadarLand();
+}
+function findFlatNear(ox,oz,seedA,rmin,rmax,avoid){
+  for(let r=rmin;r<=rmax;r+=1.5){
+    for(let a=0;a<TAU;a+=0.5){
+      const ang=a+seedA, x=clamp(ox+Math.cos(ang)*r,-HALF+6,HALF-6), z=clamp(oz+Math.sin(ang)*r,-HALF+6,HALF-6);
+      if(heightAt(x,z)<WL+1.0||slopeAt(x,z)>0.4) continue;
+      if(avoid&&Math.hypot(x-avoid.x,z-avoid.z)<6) continue;
+      return {x,z,gy:heightAt(x,z)};
+    }
+  }
+  return {x:clamp(ox+rmin,-HALF+6,HALF-6),z:oz,gy:heightAt(ox+rmin,oz)};
 }
 const ENEMY_MAXHP=10;
 function makeEnemy(x,z){
@@ -784,10 +855,14 @@ const G={phase:'title',time:0,tod:0.375,day:1,coins:0,paused:false,playSec:0,sav
   inv:{fruit:0,flower:0,bug:0,shell:0},
   /* バトル */
   hp:5,maxHp:5,invuln:0,combo:0,comboT:0,bestCombo:0,defeated:0,
-  inBattle:false,battleT:0,atkCD:0,swingT:0,shake:0,hitStop:0,regenT:0,ko:false,koT:0};
+  inBattle:false,battleT:0,atkCD:0,swingT:0,shake:0,hitStop:0,regenT:0,ko:false,koT:0,
+  /* 暮らし（お金・お店・もちもの） */
+  owned:{house:false,bike:false,sword:false,boots:false,heart:0},
+  riding:false,shopOpen:false,sleepT:0};
 const P={x:0,z:0,y:0,vy:0,moving:false,flip:1,onG:true};
 const cam={yaw:0,pitch:-0.32,dist:8.5};
 let parts=[], pickups=[], bflies=[], bflyT=4, enemies=[];
+let shopSpot={x:6,z:0}, houseSpot={x:-6,z:0};
 
 /* ===== セーブ（ブラウザ保存：絵文字の島は数値の配列だけで軽い！） ===== */
 const SAVE_KEY='coccoMoriSave1';
@@ -798,6 +873,7 @@ function saveGame(){
       v:1,seed:worldSeed,day:G.day,tod:+G.tod.toFixed(4),
       px:+P.x.toFixed(1),pz:+P.z.toFixed(1),yaw:+cam.yaw.toFixed(2),pitch:+cam.pitch.toFixed(2),
       coins:G.coins,inv:G.inv,playSec:Math.round(G.playSec),def:G.defeated,
+      own:G.owned,
       tr:trees.map(t=>t.fruitT>0?Math.ceil(t.fruitT):0),
       fl:flowers.map(f=>f.reT>0?Math.ceil(f.reT):0),
       ro:rocks.map(r=>r.cdT>0?Math.ceil(r.cdT):0),
@@ -868,6 +944,9 @@ function nearestInteract(){
   // 敵が近くにいれば最優先で「たたかう」
   for(const e of enemies) if(!e.dead) cand(Math.hypot(e.x-P.x,e.z-P.z),3.7,{kind:'enemy',obj:e,ico:'🥊',lbl:'たたかう'});
   if(best) return best;
+  // お店・おうち
+  cand(Math.hypot(shopSpot.x-P.x,shopSpot.z-P.z),3.2,{kind:'shop',obj:shopSpot,ico:'🛒',lbl:'おみせ'});
+  if(G.owned.house) cand(Math.hypot(houseSpot.x-P.x,houseSpot.z-P.z),3.2,{kind:'house',obj:houseSpot,ico:'🛏',lbl:'ねる'});
   for(const v of villagers) cand(Math.hypot(v.x-P.x,v.z-P.z),3.0,{kind:'talk',obj:v,ico:EMO[v.cell],lbl:'はなす'});
   for(const b of bflies) cand(Math.hypot(b.x-P.x,b.z-P.z),2.3,{kind:'bug',obj:b,ico:'🦋',lbl:'つかまえる'});
   for(const t of trees) if(t.fruitT<=0) cand(Math.hypot(t.x-P.x,t.z-P.z),2.9,{kind:'tree',obj:t,ico:EMO[t.cell],lbl:'ゆらす'});
@@ -877,11 +956,13 @@ function nearestInteract(){
   return best;
 }
 function doAction(){
-  if(G.phase!=='play'||G.paused) return;
+  if(G.phase!=='play'||G.paused||G.shopOpen||G.sleepT>0) return;
   const it=nearestInteract();
   if(!it) return;
   const o=it.obj;
   if(it.kind==='enemy'){ playerSwing(); return; }
+  if(it.kind==='shop'){ openShop(); return; }
+  if(it.kind==='house'){ sleepInHouse(); return; }
   if(it.kind==='tree'){
     o.shakeT=0.7; o.fruitT=FRUIT_RE; Sound.shake();
     const n=2+((Math.random()*2)|0);
@@ -956,7 +1037,8 @@ function playerSwing(){
 }
 function hitEnemy(e,crit,dir){
   if(e.dead) return;
-  const dmg=crit?3:1+(G.combo>=6?1:0); // コンボでダメージ上昇
+  const sword=G.owned.sword?(crit?2:1):0; // てつのつるぎで攻撃力アップ
+  const dmg=(crit?3:1+(G.combo>=6?1:0))+sword;
   e.hp-=dmg; e.flash=0.18; e.aggro=true;
   e.kx=dir[0]*(crit?9:5); e.kz=dir[1]*(crit?9:5);
   if(crit){ e.vy=4.5; e.onG=false; e.state='recover'; e.stT=0.5; Sound.crit(); }
@@ -972,14 +1054,12 @@ function defeatEnemy(e){
   e.dead=true; e.deadT=0; e.respawnT=rnd(30,52); e.aggro=false; G.defeated++;
   Sound.enemyDefeat();
   G.shake=Math.max(G.shake,0.9);
-  // ごほうび：コインどっさり＋コンボボーナス
-  const base=120+G.combo*15;
-  const n=10+((G.combo*0.6)|0);
-  for(let i=0;i<n;i++) dropPickup(e.x+rnd(-1,1),e.y+1.4,e.z+rnd(-1,1),17,'coin');
+  // ごほうび：札束💴どっさり＋コンボボーナス（拾うと1枚100円）
+  const n=6+((G.combo*0.7)|0);
+  for(let i=0;i<n;i++) dropPickup(e.x+rnd(-1.2,1.2),e.y+1.4,e.z+rnd(-1.2,1.2),CELL_CASH,'money');
   burst3(e.x,e.y+1.2,e.z,[0.1,0.04,0.08],26,5,27);
   hearts3(e.x,e.y+1.6,e.z);
-  showToast('🥊 ブラックこっこ を たおした！ +🪙'+base+(G.combo>=4?'（'+G.combo+'コンボ！）':''));
-  G.coins+=base; hudInv('hudCoin');
+  showToast('🥊 ブラックこっこ を たおした！ 💴'+(n*100)+'ゲット'+(G.combo>=4?'（'+G.combo+'コンボ！）':''));
   G.combo=0;
   if(!anyAggro()) endBattle(true);
 }
@@ -1104,6 +1184,79 @@ function updateEnemies(dt){
   else if(!aggroNow&&G.inBattle&&!G.ko) endBattle(true);
 }
 
+/* ===== お店・暮らし（💴でかいもの → 島で実使用） ===== */
+const SHOP=[
+  {id:'house',ico:'🏠',name:'おうち',desc:'ねるとHP全回復＆あさになる。島に たつよ',price:1500,max:1},
+  {id:'bike', ico:'🚲',name:'じてんしゃ',desc:'のりもの。🚲ボタンでのって スイスイ移動',price:800,max:1},
+  {id:'sword',ico:'⚔️',name:'てつのつるぎ',desc:'こうげき力アップ！バトルがグッと楽に',price:600,max:1},
+  {id:'boots',ico:'👟',name:'すごいくつ',desc:'いつでも すこし はやあるき',price:400,max:1},
+  {id:'heart',ico:'💗',name:'ハートのうつわ',desc:'さいだいHP＋1（くりかえし買える）',price:300,max:4},
+];
+function itemOwned(it){ return it.id==='heart'?G.owned.heart:G.owned[it.id]; }
+function itemPrice(it){ return it.id==='heart'?it.price*(G.owned.heart+1):it.price; }
+function itemMaxed(it){ return itemOwned(it)>=it.max; }
+function openShop(){
+  if(G.shopOpen) return;
+  G.shopOpen=true; Sound.ui();
+  renderShop(); $('shopScreen').classList.add('on');
+}
+function closeShop(){ G.shopOpen=false; $('shopScreen').classList.remove('on'); lastAct='?'; }
+function renderShop(){
+  $('shopMoney').textContent='💴 '+G.coins.toLocaleString();
+  let html='';
+  for(const it of SHOP){
+    const owned=itemMaxed(it), price=itemPrice(it), can=G.coins>=price;
+    const sub=it.id==='heart'&&G.owned.heart>0?'（'+G.owned.heart+'/'+it.max+'こ）':'';
+    html+='<div class="shopItem'+(owned?' got':'')+'">'+
+      '<div class="si-ico">'+it.ico+'</div>'+
+      '<div class="si-info"><div class="si-name">'+it.name+' '+sub+'</div><div class="si-desc">'+it.desc+'</div></div>'+
+      (owned?'<div class="si-btn got">もっている</div>'
+            :'<button class="si-btn'+(can?'':' no')+'" data-buy="'+it.id+'">💴'+price.toLocaleString()+'</button>')+
+      '</div>';
+  }
+  $('shopList').innerHTML=html;
+  $('shopList').querySelectorAll('[data-buy]').forEach(b=>b.addEventListener('click',()=>buyItem(b.getAttribute('data-buy'))));
+}
+function buyItem(id){
+  const it=SHOP.find(s=>s.id===id); if(!it||itemMaxed(it)) return;
+  const price=itemPrice(it);
+  if(G.coins<price){ Sound.nope(); showToast('💴 おかねが たりないよ…'); return; }
+  G.coins-=price; Sound.buy();
+  if(id==='heart'){ G.owned.heart++; G.maxHp++; G.hp=Math.min(G.maxHp,G.hp+1); updateHP(); }
+  else G.owned[id]=true;
+  if(id==='bike') updateRideBtn();
+  hudInv('hudCoin'); renderShop();
+  const m={house:'🏠 おうちを てにいれた！ ねむれば げんきに！',bike:'🚲 じてんしゃ ゲット！ 🚲ボタンで のれるよ',
+    sword:'⚔️ てつのつるぎ そうび！ つよくなった',boots:'👟 すごいくつ！ あしが はやくなった',
+    heart:'💗 さいだいHPが ふえた！'}[id];
+  showToast(m); saveGame();
+}
+/* じてんしゃ（のりもの）のON/OFF */
+function updateRideBtn(){
+  const b=$('rideBtn');
+  b.classList.toggle('on',G.owned.bike&&G.phase==='play');
+  b.classList.toggle('riding',G.riding);
+}
+function toggleRide(){
+  if(!G.owned.bike) return;
+  G.riding=!G.riding; Sound.ui(); updateRideBtn();
+  showToast(G.riding?'🚲 じてんしゃに のった！':'🚶 じてんしゃを おりた');
+}
+/* おうちで ねる（体力回復＆あさへ） */
+function sleepInHouse(){
+  if(G.sleepT>0) return;
+  G.sleepT=2.4; G.riding=false; updateRideBtn();
+  Sound.stopBGM(); Sound.sleep();
+  $('sleepOv').classList.remove('on'); void $('sleepOv').offsetWidth; $('sleepOv').classList.add('on');
+  // 演出の中ほどで回復＆あさへ
+  setTimeout(()=>{
+    G.hp=G.maxHp; updateHP();
+    if(G.tod>0.28) G.day++;       // 夜どおしねたら 翌朝あつかい
+    G.tod=0.29;                   // あさ7時ごろ
+  },1100);
+  setTimeout(()=>{ Sound.wake(); if(!muted&&!G.paused&&!G.inBattle) Sound.startBGM(); },2000);
+}
+
 /* ===== 会話ふきだし ===== */
 let bubbleTO=null;
 function showBubble(v){
@@ -1115,8 +1268,14 @@ function showBubble(v){
 }
 
 /* ===== HUD ===== */
+function moveSpeed(){
+  let s=7.2;
+  if(G.owned.boots) s+=1.7;
+  if(G.owned.bike&&G.riding) s*=1.9;
+  return s;
+}
 function hudInv(popId){
-  $('hudCoin').textContent='🪙 '+G.coins.toLocaleString();
+  $('hudCoin').textContent='💴 '+G.coins.toLocaleString();
   $('invFruit').textContent='🍎 '+G.inv.fruit;
   $('invFlower').textContent='🌼 '+G.inv.flower;
   $('invBug').textContent='🦋 '+G.inv.bug;
@@ -1189,6 +1348,10 @@ function update(dt){
   if(G.shake>0) G.shake=Math.max(0,G.shake-dt*2.2);
   /* 救急車KO演出中は世界を止める */
   if(G.ko){ G.koT+=dt; updateEnemies(dt); updateFx(dt); if(G.koT>=2.6) reviveFromKO(); return; }
+  /* おみせを ひらいている間は 世界を止める */
+  if(G.shopOpen){ updateFx(dt); return; }
+  /* ねむっている間（おうち）は 世界を止める */
+  if(G.sleepT>0){ G.sleepT-=dt; updateFx(dt); if(G.sleepT<=0){ $('sleepOv').classList.remove('on'); showToast('🌅 ぐっすり ねむった！ げんきに かいふく'); } return; }
   G.playSec+=dt;
 
   /* バトル用タイマー */
@@ -1214,7 +1377,7 @@ function update(dt){
   const iv=moveVec();
   P.moving=Math.hypot(iv.x,iv.z)>0.05;
   if(P.moving){
-    const sp=7.2;
+    const sp=moveSpeed();
     tryMove(iv.x*sp*dt,iv.z*sp*dt);
     collideObjects();
     const rt=camRightH(), sx=iv.x*rt[0]+iv.z*rt[2];
@@ -1236,7 +1399,8 @@ function update(dt){
     const dx=P.x-p.x, dz=P.z-p.z, d=Math.hypot(dx,dz);
     if(p.t>0.5&&d<2.4){ p.vx+=dx/d*22*dt; p.vz+=dz/d*22*dt; }
     if(p.t>0.5&&d<1.1){
-      if(p.kind==='coin'){ G.coins+=10; Sound.coin(); hudInv('hudCoin'); }
+      if(p.kind==='money'){ G.coins+=100; Sound.cash(); hudInv('hudCoin'); }
+      else if(p.kind==='coin'){ G.coins+=10; Sound.coin(); hudInv('hudCoin'); }
       else { G.inv.fruit++; Sound.pick(); hudInv('invFruit'); }
       sparks3(p.x,p.y,p.z,3);
       pickups.splice(i,1);
@@ -1428,7 +1592,20 @@ function buildSprites(){
     if(!G.ko){
       shadow(P.x,pfl,P.z,1.9,clamp(0.7-(P.y-pfl)*0.12,0.15,0.7));
       sprite(P.x,P.y+h*0.52+bob,P.z,w,h,0,hurtTint[0],hurtTint[1],hurtTint[2],blink,P.flip<0);
+      if(G.riding&&G.owned.bike) sprite(P.x,P.y+0.55,P.z,1.7,1.7,CELL_BIKE,1,1,1,1,P.flip<0); // じてんしゃ
       if(G.swingT>0) spriteBB(P.x+P.flip*0.6,P.y+1.1,P.z,1.0,1.0,27,1,1,0.9,G.swingT*4); // 振りエフェクト💥
+    }
+  }
+  /* お店とおうち */
+  if(G.phase==='play'){
+    if(visible(shopSpot.x,shopSpot.z)){
+      shadow(shopSpot.x,shopSpot.gy,shopSpot.z,2.6,0.45);
+      sprite(shopSpot.x,shopSpot.gy+1.5,shopSpot.z,3.0,3.0,CELL_SHOP,1,1,1,1,false);
+      spriteBB(shopSpot.x,shopSpot.gy+3.4,shopSpot.z,1.0,1.0,CELL_CASH,1,1,1,0.9); // 💴の看板
+    }
+    if(G.owned.house&&visible(houseSpot.x,houseSpot.z)){
+      shadow(houseSpot.x,houseSpot.gy,houseSpot.z,2.8,0.45);
+      sprite(houseSpot.x,houseSpot.gy+1.6,houseSpot.z,3.2,3.2,CELL_HOUSE,1,1,1,1,false);
     }
   }
   /* ブラックこっこ（敵） */
@@ -1562,6 +1739,15 @@ function drawRadar(){
   rcx.strokeStyle='rgba(180,255,150,.55)'; rcx.lineWidth=1.4;
   rcx.beginPath(); rcx.moveTo(0,0); rcx.lineTo(R,0); rcx.stroke();
   rcx.restore();
+  // お店（黄）・おうち（水色）のマーカー
+  function marker(sx,sz,col,glyph){
+    const [mx,my]=radarPt(sx,sz,cx,cy,R);
+    rcx.fillStyle=col; rcx.beginPath(); rcx.arc(mx,my,4.6,0,TAU); rcx.fill();
+    rcx.fillStyle='rgba(0,0,0,.55)'; rcx.font='900 6px sans-serif';
+    rcx.textAlign='center'; rcx.textBaseline='middle'; rcx.fillText(glyph,mx,my+0.5);
+  }
+  marker(shopSpot.x,shopSpot.z,'rgba(255,214,90,.95)','¥');
+  if(G.owned.house) marker(houseSpot.x,houseSpot.z,'rgba(120,210,255,.95)','H');
   // ブラックこっこ（赤い点・アグロ中は脈動リング）
   for(const e of enemies){
     if(e.dead) continue;
@@ -1737,9 +1923,11 @@ function resetBattle(){
   G.hp=G.maxHp; G.invuln=0; G.combo=0; G.comboT=0; G.atkCD=0; G.swingT=0;
   G.shake=0; G.hitStop=0; G.regenT=0; G.ko=false; G.koT=0;
   G.inBattle=false; G.battleT=0;
+  G.shopOpen=false; G.riding=false; G.sleepT=0;
   Sound.stopBattleBGM();
   $('battleVig').classList.remove('on'); $('bossWrap').classList.remove('on');
   $('playerHP').classList.remove('on'); $('koOverlay').classList.remove('on');
+  $('shopScreen').classList.remove('on'); $('sleepOv').classList.remove('on');
   updateHP();
 }
 function enterPlay(){
@@ -1748,7 +1936,7 @@ function enterPlay(){
   parts=[]; pickups=[]; bflies=[]; bflyT=2;
   lastAct='?'; lastClock='';
   resetBattle();
-  hudInv(); hudClock(); hudAction();
+  hudInv(); hudClock(); hudAction(); updateRideBtn();
   show(null);
   Sound.startBGM();
 }
@@ -1759,6 +1947,7 @@ function startNew(){
   cam.yaw=0; cam.pitch=-0.32;
   G.tod=0.375; G.day=1; G.coins=0; G.playSec=0; G.defeated=0;
   G.inv={fruit:0,flower:0,bug:0,shell:0};
+  G.owned={house:false,bike:false,sword:false,boots:false,heart:0}; G.maxHp=5;
   enterPlay();
   Sound.welcome();
   showToast('🏝 こっこ島へ ようこそ！');
@@ -1772,6 +1961,8 @@ function startContinue(){
   cam.yaw=s.yaw||0; cam.pitch=s.pitch||-0.32;
   G.tod=s.tod; G.day=s.day||1; G.coins=s.coins||0; G.playSec=s.playSec||0; G.defeated=s.def||0;
   G.inv=Object.assign({fruit:0,flower:0,bug:0,shell:0},s.inv);
+  G.owned=Object.assign({house:false,bike:false,sword:false,boots:false,heart:0},s.own);
+  G.maxHp=5+(G.owned.heart||0);
   (s.tr||[]).forEach((v,i)=>{ if(trees[i])trees[i].fruitT=v; });
   (s.fl||[]).forEach((v,i)=>{ if(flowers[i])flowers[i].reT=v; });
   (s.ro||[]).forEach((v,i)=>{ if(rocks[i])rocks[i].cdT=v; });
@@ -1788,7 +1979,8 @@ function toTitle(){
   Sound.stopBGM(); Sound.stopBattleBGM();
   $('battleVig').classList.remove('on'); $('bossWrap').classList.remove('on');
   $('playerHP').classList.remove('on'); $('koOverlay').classList.remove('on');
-  G.inBattle=false; G.ko=false;
+  $('shopScreen').classList.remove('on'); $('sleepOv').classList.remove('on'); $('rideBtn').classList.remove('on');
+  G.inBattle=false; G.ko=false; G.shopOpen=false; G.sleepT=0;
   if(document.pointerLockElement===cv){ try{document.exitPointerLock();}catch(e){} }
   refreshTitle();
   show('titleScreen');
@@ -1833,6 +2025,8 @@ $('fsBtn').addEventListener('click',()=>{
     else{ const el=d.documentElement; const f=el.requestFullscreen||el.webkitRequestFullscreen; if(f)f.call(el); }
   }catch(e){}
 });
+$('rideBtn').addEventListener('click',()=>{ Sound.init(); Sound.resume(); toggleRide(); });
+$('shopClose').addEventListener('click',()=>{ Sound.ui(); closeShop(); });
 
 /* ===== 起動：セーブがあれば その島をタイトル背景に ===== */
 {
