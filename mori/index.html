@@ -65,6 +65,13 @@
     font-size:13px;opacity:0;transition:opacity .4s;text-shadow:0 1px 4px rgba(0,0,0,.7);}
   #saveFlash.on{opacity:.85;}
 
+  /* レーダーマップ */
+  #radar{position:absolute;z-index:10;left:calc(12px + env(safe-area-inset-left));
+    bottom:calc(20px + env(safe-area-inset-bottom));width:124px;height:124px;pointer-events:none;
+    border-radius:50%;background:rgba(6,20,12,.5);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+    box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 0 2px rgba(150,230,120,.4),
+      inset 0 0 16px rgba(120,230,110,.18),0 0 14px rgba(120,230,110,.22);}
+
   /* 仮想スティック */
   #stickBase{position:absolute;z-index:9;width:96px;height:96px;border-radius:50%;pointer-events:none;display:none;
     border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.06);}
@@ -106,6 +113,59 @@
     pointer-events:none;background:rgba(5,16,8,.4);}
   #pauseOv.on{display:flex;}
   #pauseOv div{font-size:30px;font-weight:900;text-shadow:0 4px 16px rgba(0,0,0,.6);}
+
+  /* ===== バトルUI ===== */
+  /* 空気が一変する暗赤ビネット */
+  #battleVig{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;
+    transition:opacity .6s ease;
+    background:radial-gradient(ellipse at 50% 42%,rgba(0,0,0,0) 38%,rgba(60,0,10,.55) 100%),
+               linear-gradient(0deg,rgba(40,0,8,.28),rgba(40,0,8,.28));}
+  #battleVig.on{opacity:1;animation:vigpulse 2.4s ease-in-out infinite;}
+  @keyframes vigpulse{0%,100%{filter:none;}50%{filter:brightness(1.12);}}
+  /* ボスHPバー（上からスラム・イン） */
+  #bossWrap{position:absolute;z-index:13;left:50%;top:calc(8px + env(safe-area-inset-top));
+    transform:translate(-50%,-160%);width:min(86vw,440px);pointer-events:none;
+    transition:transform .35s cubic-bezier(.2,1.5,.4,1);}
+  #bossWrap.on{transform:translate(-50%,0);}
+  #bossTop{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:4px;
+    text-shadow:0 2px 6px rgba(0,0,0,.7);}
+  #bossName{font-size:15px;font-weight:900;letter-spacing:.12em;color:#ff6b6b;}
+  #comboTag{font-size:13px;font-weight:900;color:#ffe07a;opacity:0;transform-origin:right bottom;}
+  #comboTag.show{opacity:1;animation:combopop .18s ease-out;}
+  @keyframes combopop{0%{transform:scale(1.6);}100%{transform:scale(1);}}
+  #bossBarBg{height:14px;border-radius:8px;background:rgba(10,2,4,.7);
+    border:2px solid rgba(255,90,90,.55);box-shadow:0 4px 16px rgba(120,0,0,.5),0 0 14px rgba(255,40,40,.3);overflow:hidden;}
+  #bossBarFill{height:100%;width:100%;border-radius:6px;transform-origin:left;
+    background:linear-gradient(90deg,#ff3b3b,#ff7a4d);transition:width .18s ease,background .2s;}
+  #bossBarFill.flash{background:#fff;}
+  /* プレイヤーHP（ハート） */
+  #playerHP{position:absolute;z-index:13;left:50%;bottom:calc(118px + env(safe-area-inset-bottom));
+    transform:translateX(-50%);display:none;gap:3px;font-size:24px;pointer-events:none;
+    filter:drop-shadow(0 2px 5px rgba(0,0,0,.6));letter-spacing:1px;white-space:nowrap;}
+  #playerHP.on{display:flex;}
+  #playerHP .hp-lost{opacity:.28;filter:grayscale(1);}
+  #playerHP.hurt{animation:hphurt .4s ease;}
+  @keyframes hphurt{0%,100%{transform:translateX(-50%);}25%{transform:translate(-54%,0);}75%{transform:translate(-46%,0);}}
+  /* バトル開始/勝利バナー */
+  #battleBanner{position:absolute;z-index:16;left:50%;top:38%;transform:translate(-50%,-50%) scale(.6);
+    font-size:30px;font-weight:900;letter-spacing:.08em;text-align:center;pointer-events:none;opacity:0;
+    color:#fff;text-shadow:0 3px 0 #b30019,0 6px 22px rgba(0,0,0,.7);white-space:nowrap;}
+  #battleBanner.show{animation:bannerpop 1.5s ease-out;}
+  @keyframes bannerpop{0%{opacity:0;transform:translate(-50%,-50%) scale(.4);}
+    14%{opacity:1;transform:translate(-50%,-50%) scale(1.1);}30%{transform:translate(-50%,-50%) scale(1);}
+    78%{opacity:1;}100%{opacity:0;transform:translate(-50%,-50%) scale(1);}}
+  /* 救急車KO演出 */
+  #koOverlay{position:absolute;inset:0;z-index:18;display:none;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,.2),rgba(0,0,0,.72));}
+  #koOverlay.on{display:block;}
+  #koAmb{position:absolute;top:46%;left:-30%;font-size:84px;transform:translateY(-50%);
+    filter:drop-shadow(0 8px 18px rgba(0,0,0,.5));}
+  #koOverlay.on #koAmb{animation:ambdrive 2.6s ease-in-out forwards;}
+  @keyframes ambdrive{0%{left:-30%;}42%{left:42%;}58%{left:42%;}100%{left:120%;}}
+  #koText{position:absolute;top:64%;left:50%;transform:translateX(-50%);font-size:20px;font-weight:900;
+    letter-spacing:.1em;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.8);opacity:0;}
+  #koOverlay.on #koText{animation:kotext 2.6s ease forwards;}
+  @keyframes kotext{0%,18%{opacity:0;}34%,82%{opacity:1;}100%{opacity:0;}}
 
   /* ===== Screens ===== */
   .screen{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;
@@ -168,12 +228,23 @@
     </div>
     <div id="saveFlash">💾 セーブしました</div>
     <div id="stickBase"></div><div id="stickKnob"></div>
+    <canvas id="radar" width="124" height="124"></canvas>
   </div>
   <div class="actbtn hidden idle" id="actBtn"><span id="actIco">🤚</span><span id="actLbl">しらべる</span></div>
   <div class="actbtn hidden" id="jumpBtn">⬆</div>
   <div id="bubble"><span class="nm" id="bubbleName"></span><span id="bubbleText"></span></div>
   <div id="toast"></div>
   <div id="pauseOv"><div>タップで さいかい</div></div>
+
+  <!-- バトル用UI -->
+  <div id="battleVig"></div>
+  <div id="bossWrap">
+    <div id="bossTop"><span id="bossName">💢 ブラックこっこ</span><span id="comboTag"></span></div>
+    <div id="bossBarBg"><div id="bossBarFill"></div></div>
+  </div>
+  <div id="playerHP"></div>
+  <div id="battleBanner"></div>
+  <div id="koOverlay"><div id="koAmb">🚑</div><div id="koText">救急車で はこばれた…</div></div>
 
   <!-- TITLE -->
   <div class="screen" id="titleScreen">
@@ -205,6 +276,7 @@
       ◆ <b>パソコン</b>：WASDで移動、画面クリックでマウス視点。<b>Eキー</b>か<b>クリック</b>でアクション、スペースでジャンプ。<br><br>
       ◆ できること：🌳<b>木をゆらす</b>と くだものが落ちる／🌼<b>花をつむ</b>／🦋<b>虫をつかまえる</b>/🪨<b>岩をたたく</b>と コインが出る／🐚<b>かいがらをひろう</b>／🐰🐻🐸<b>住民とおしゃべり</b>。<br><br>
       ◆ 島には <b>朝・ひる・夜</b> がある。夜は ✨ホタルが とぶよ。<br><br>
+      ◆ <b style="color:#ff7a7a;">⚠ ブラックこっこ</b>に であうと…のどかな島が一変！<b>アクションボタン</b>で <b>たたかう</b>。<b>ジャンプ中の攻撃はクリティカル💥</b>、連続ヒットで <b>コンボ</b>！ つっこみ💢は <b>うごいて回避</b>。たおすと <b>コインどっさり</b>🪙。やられても <b>🚑救急車</b>がたすけてくれるよ。<br><br>
       ◆ <b>島の地形はGPUで毎回計算生成</b>。「はじめから」を選ぶたびに 新しい島になるよ。<br><br>
       ◆ あそんだ記録は <b>ブラウザに自動セーブ</b>（💾マーク）。つぎは「<b>つづきから</b>」で同じ島のつづきが あそべる！🏠ボタンでセーブしてタイトルへ。
     </div>
@@ -256,7 +328,35 @@ const Sound=(function(){
     try{ bg.gain.cancelScheduledValues(ac.currentTime); bg.gain.setValueAtTime(.0001,ac.currentTime); bg.gain.linearRampToValueAtTime(.15,ac.currentTime+1.2);}catch(e){}
     bt=setInterval(bsched,50); }
   function stopBGM(){ bon=false; if(bt){clearInterval(bt);bt=null;} if(bg){try{bg.gain.cancelScheduledValues(ac.currentTime); bg.gain.linearRampToValueAtTime(.0001,ac.currentTime+0.4);}catch(e){}} }
-  return { init, resume(){ if(ac&&ac.state==='suspended')ac.resume(); }, setMuted(b){muted=b; if(b)stopBGM();}, startBGM, stopBGM,
+  /* ガチ系バトルBGM（マイナー・ドライブ） */
+  let xg=null,xt=null,xn=0,xs=0,xon=false; const XD=60/150/2;
+  const XBASS=[55.00,55.00,82.41,73.42], XARP=[440.00,523.25,659.25,523.25,587.33,440.00,659.25,587.33];
+  function xnote(f,t,d,ty,v,dst){ const o=ac.createOscillator(),g=ac.createGain(); o.type=ty; o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(v,t+.01); g.gain.exponentialRampToValueAtTime(.0001,t+d);
+    o.connect(g); g.connect(dst||xg); o.start(t); o.stop(t+d+.02); }
+  function xstep(i,t){ const bar=Math.floor(i/8)%4;
+    if(i%2===0) xnote(XBASS[bar],t,XD*1.7,'sawtooth',.12);            // ドライブ・ベース
+    if(i%4===2) xnote(XBASS[bar]*1.5,t,XD*1.0,'square',.05);
+    xnote(XARP[i%8],t,XD*1.3,'square',.045);                          // 緊迫アルペジオ
+    if(i%4===0) xnote(70,t,.07,'triangle',.10);                       // キック感
+  }
+  function xsched(){ if(!ac||!xon)return; while(xn<ac.currentTime+0.2){ xstep(xs,xn); xn+=XD; xs=(xs+1)%32; } }
+  function startBattleBGM(){ if(!ac||muted)return; stopBGM();
+    if(!xg){xg=ac.createGain(); xg.gain.value=.0001; xg.connect(master);}
+    if(xon)return; xon=true; xs=0; xn=ac.currentTime+0.05;
+    try{ xg.gain.cancelScheduledValues(ac.currentTime); xg.gain.setValueAtTime(.0001,ac.currentTime); xg.gain.linearRampToValueAtTime(.16,ac.currentTime+0.5);}catch(e){}
+    xt=setInterval(xsched,50); }
+  function stopBattleBGM(){ xon=false; if(xt){clearInterval(xt);xt=null;} if(xg){try{xg.gain.cancelScheduledValues(ac.currentTime); xg.gain.linearRampToValueAtTime(.0001,ac.currentTime+0.35);}catch(e){}} }
+  return { init, resume(){ if(ac&&ac.state==='suspended')ac.resume(); }, setMuted(b){muted=b; if(b){stopBGM();stopBattleBGM();}}, startBGM, stopBGM,
+    startBattleBGM, stopBattleBGM,
+    battleStart(){ noise(.5,.3,900); [330,261.63,196,164.81].forEach((f,i)=>setTimeout(()=>tone(f,0.3,'sawtooth',0.16,f*0.6),i*90));
+      setTimeout(()=>{ tone(110,0.5,'square',0.2,80); noise(.3,.2,1400); },420); },
+    swing(){ noise(.09,.18,3200); tone(420,0.06,'triangle',0.08,180); },
+    hitEnemy(){ tone(180,0.07,'square',0.22,70); noise(.07,.22,2200); },
+    crit(){ noise(.12,.3,3000); [880,587,392].forEach((f,i)=>setTimeout(()=>tone(f,0.1,'square',0.18,f*0.6),i*45)); tone(80,0.16,'sawtooth',0.22,50); },
+    hurt(){ tone(300,0.18,'sawtooth',0.22,90); noise(.12,.18,1200); },
+    enemyDefeat(){ noise(.4,.28,1600); [196,261.63,392,523.25,784].forEach((f,i)=>setTimeout(()=>tone(f,0.18,'triangle',0.2),i*80)); },
+    siren(){ if(!ac||muted)return; let k=0; const id=setInterval(()=>{ tone(k%2?770:960,0.32,'sine',0.16); if(++k>=8)clearInterval(id); },340); },
     jump(){ tone(330,0.12,'triangle',0.14,520); },
     pick(){ tone(660,0.07,'triangle',0.2,990); setTimeout(()=>tone(1320,0.09,'sine',0.12),60); },
     shake(){ noise(.22,.18,1200); },
@@ -527,7 +627,9 @@ const atx=atlasCv.getContext('2d');
 const atlasTex=gl.createTexture();
 const EMOJI_FONT='100px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
 const EMO={4:'🌳',5:'🌴',6:'🌲',7:'🍎',8:'🍊',9:'🍑',10:'🌷',11:'🌸',12:'🌼',13:'🌻',
-  14:'🪨',15:'🐚',16:'🦋',17:'🪙',18:'✨',19:'🍄',20:'☀️',21:'🌙',22:'🐰',23:'🐻',24:'🐸',25:'🌰'};
+  14:'🪨',15:'🐚',16:'🦋',17:'🪙',18:'✨',19:'🍄',20:'☀️',21:'🌙',22:'🐰',23:'🐻',24:'🐸',25:'🌰',
+  26:'💢',27:'💥',28:'😵',29:'🚑'};
+const CELL_BAR=32; // 純白の四角（HPバー・フラッシュ用）
 function cellRect(c){ return [(c%ACELL)*128,((c/ACELL)|0)*128]; }
 function buildAtlas(){
   atx.clearRect(0,0,1024,1024);
@@ -556,6 +658,11 @@ function buildAtlas(){
   // 4〜: 絵文字
   atx.font=EMOJI_FONT; atx.textAlign='center'; atx.textBaseline='middle';
   for(const c in EMO){ const [ox,oy]=cellRect(+c); atx.fillText(EMO[c],ox+64,oy+70); }
+  // 32: 純白の角丸四角（HPバー・ヒットフラッシュ用）
+  { const [ox,oy]=cellRect(CELL_BAR); atx.fillStyle='#fff';
+    atx.beginPath(); const r=18; atx.moveTo(ox+8+r,oy+8);
+    atx.arcTo(ox+120,oy+8,ox+120,oy+120,r); atx.arcTo(ox+120,oy+120,ox+8,oy+120,r);
+    atx.arcTo(ox+8,oy+120,ox+8,oy+8,r); atx.arcTo(ox+8,oy+8,ox+120,oy+8,r); atx.fill(); }
   gl.bindTexture(gl.TEXTURE_2D,atlasTex);
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlasCv);
@@ -642,14 +749,45 @@ function genWorld(seed){
     }
     villagers.push({cell:def.cell,name:def.name,lines:def.lines,x,z,hx:x,hz:z,tx:x,tz:z,think:rr(0,2),talkT:0,flip:1,sq:rr(0,TAU)});
   });
+  // ブラックこっこ（道端をうろつく敵）：草地に決定論的に配置
+  enemies=[];
+  for(let k=0;k<400&&enemies.length<3;k++){
+    const x=rr(-HALF+14,HALF-14), z=rr(-HALF+14,HALF-14);
+    if(heightAt(x,z)<WL+0.8||slopeAt(x,z)>0.5) continue;
+    if(Math.hypot(x-SPAWN.x,z-SPAWN.z)<22) continue; // スポーン直近には出さない
+    let ok=true;
+    for(const e of enemies) if(Math.hypot(x-e.hx,z-e.hz)<28){ok=false;break;}
+    if(!ok) continue;
+    enemies.push(makeEnemy(x,z));
+  }
+  buildRadarLand();
+}
+const ENEMY_MAXHP=10;
+function makeEnemy(x,z){
+  return {x,z,y:heightAt(x,z),vy:0,onG:true,hx:x,hz:z,tx:x,tz:z,
+    hp:ENEMY_MAXHP,maxHp:ENEMY_MAXHP,state:'roam',stT:rnd(1,3),flip:1,flash:0,
+    kx:0,kz:0,sq:rnd(0,TAU),atkCD:rnd(1,2.5),aggro:false,dead:false,respawnT:0,deadT:0};
+}
+function relocateEnemy(e){
+  for(let k=0;k<200;k++){
+    const x=rnd(-HALF+14,HALF-14), z=rnd(-HALF+14,HALF-14);
+    if(heightAt(x,z)<WL+0.8||slopeAt(x,z)>0.5) continue;
+    if(Math.hypot(x-P.x,z-P.z)<30) continue; // プレイヤーの すぐ近くには湧かない
+    e.x=e.hx=e.tx=x; e.z=e.hz=e.tz=z; e.y=heightAt(x,z); break;
+  }
+  e.hp=e.maxHp; e.state='roam'; e.stT=rnd(1,3); e.flash=0; e.vy=0; e.kx=e.kz=0;
+  e.aggro=false; e.dead=false; e.deadT=0; e.atkCD=rnd(1,2);
 }
 
 /* ===== ゲーム状態 ===== */
 const G={phase:'title',time:0,tod:0.375,day:1,coins:0,paused:false,playSec:0,saveT:0,birdT:3,
-  inv:{fruit:0,flower:0,bug:0,shell:0}};
+  inv:{fruit:0,flower:0,bug:0,shell:0},
+  /* バトル */
+  hp:5,maxHp:5,invuln:0,combo:0,comboT:0,bestCombo:0,defeated:0,
+  inBattle:false,battleT:0,atkCD:0,swingT:0,shake:0,hitStop:0,regenT:0,ko:false,koT:0};
 const P={x:0,z:0,y:0,vy:0,moving:false,flip:1,onG:true};
 const cam={yaw:0,pitch:-0.32,dist:8.5};
-let parts=[], pickups=[], bflies=[], bflyT=4;
+let parts=[], pickups=[], bflies=[], bflyT=4, enemies=[];
 
 /* ===== セーブ（ブラウザ保存：絵文字の島は数値の配列だけで軽い！） ===== */
 const SAVE_KEY='coccoMoriSave1';
@@ -659,7 +797,7 @@ function saveGame(){
     localStorage.setItem(SAVE_KEY,JSON.stringify({
       v:1,seed:worldSeed,day:G.day,tod:+G.tod.toFixed(4),
       px:+P.x.toFixed(1),pz:+P.z.toFixed(1),yaw:+cam.yaw.toFixed(2),pitch:+cam.pitch.toFixed(2),
-      coins:G.coins,inv:G.inv,playSec:Math.round(G.playSec),
+      coins:G.coins,inv:G.inv,playSec:Math.round(G.playSec),def:G.defeated,
       tr:trees.map(t=>t.fruitT>0?Math.ceil(t.fruitT):0),
       fl:flowers.map(f=>f.reT>0?Math.ceil(f.reT):0),
       ro:rocks.map(r=>r.cdT>0?Math.ceil(r.cdT):0),
@@ -727,6 +865,9 @@ function dropPickup(x,y,z,cell,kind){
 function nearestInteract(){
   let best=null,bd=1e9;
   function cand(d,max,o){ if(d<max&&d<bd){bd=d;best=o;} }
+  // 敵が近くにいれば最優先で「たたかう」
+  for(const e of enemies) if(!e.dead) cand(Math.hypot(e.x-P.x,e.z-P.z),3.7,{kind:'enemy',obj:e,ico:'🥊',lbl:'たたかう'});
+  if(best) return best;
   for(const v of villagers) cand(Math.hypot(v.x-P.x,v.z-P.z),3.0,{kind:'talk',obj:v,ico:EMO[v.cell],lbl:'はなす'});
   for(const b of bflies) cand(Math.hypot(b.x-P.x,b.z-P.z),2.3,{kind:'bug',obj:b,ico:'🦋',lbl:'つかまえる'});
   for(const t of trees) if(t.fruitT<=0) cand(Math.hypot(t.x-P.x,t.z-P.z),2.9,{kind:'tree',obj:t,ico:EMO[t.cell],lbl:'ゆらす'});
@@ -740,6 +881,7 @@ function doAction(){
   const it=nearestInteract();
   if(!it) return;
   const o=it.obj;
+  if(it.kind==='enemy'){ playerSwing(); return; }
   if(it.kind==='tree'){
     o.shakeT=0.7; o.fruitT=FRUIT_RE; Sound.shake();
     const n=2+((Math.random()*2)|0);
@@ -763,6 +905,203 @@ function doAction(){
     o.talkT=4; o.flip=(P.x-o.x)<0?-1:1;
     showBubble(o); hearts3(o.x,heightAt(o.x,o.z)+1.6,o.z); Sound.talk();
   }
+}
+
+/* ===== バトル：ブラックこっこ ===== */
+const AGGRO_R=14, DEAGGRO_R=30, ATK_RANGE=3.6, ATK_ARC=0.32;
+function anyAggro(){ for(const e of enemies) if(!e.dead&&e.aggro) return true; return false; }
+function nearestAggro(){ let b=null,bd=1e9; for(const e of enemies){ if(e.dead||!e.aggro)continue;
+  const d=Math.hypot(e.x-P.x,e.z-P.z); if(d<bd){bd=d;b=e;} } return b; }
+function triggerBattle(){
+  if(G.inBattle) return;
+  G.inBattle=true; G.battleT=0;
+  Sound.battleStart(); Sound.startBattleBGM();
+  $('battleVig').classList.add('on');
+  $('playerHP').classList.add('on'); updateHP();
+  showBanner('⚠ ブラックこっこ あらわれた！');
+  G.shake=Math.max(G.shake,0.8);
+}
+function endBattle(win){
+  if(!G.inBattle) return;
+  G.inBattle=false; G.combo=0; G.comboT=0;
+  Sound.stopBattleBGM(); if(!muted&&!G.paused) Sound.startBGM();
+  $('battleVig').classList.remove('on');
+  $('bossWrap').classList.remove('on');
+  $('playerHP').classList.remove('on');
+  if(win) showBanner('🕊 へいわが もどった…');
+}
+function playerSwing(){
+  if(G.phase!=='play'||G.paused||G.ko) return;
+  if(G.atkCD>0) return;
+  G.atkCD=0.34; G.swingT=0.18;
+  const crit=!P.onG; // ジャンプ中の攻撃はクリティカル（ヒップアタック）
+  Sound.swing();
+  // 前方アーク内の敵すべてにヒット
+  const fwd=[Math.sin(cam.yaw),-Math.cos(cam.yaw)];
+  let hitAny=false;
+  for(const e of enemies){
+    if(e.dead) continue;
+    let dx=e.x-P.x, dz=e.z-P.z; const d=Math.hypot(dx,dz);
+    if(d>ATK_RANGE) continue;
+    if(d>0.01){ const dot=(dx/d)*fwd[0]+(dz/d)*fwd[1]; if(dot<ATK_ARC) continue; }
+    hitEnemy(e,crit,d>0.01?[dx/d,dz/d]:[0,1]);
+    hitAny=true;
+  }
+  if(hitAny){
+    G.hitStop=Math.max(G.hitStop,crit?0.08:0.045);
+    G.shake=Math.max(G.shake,crit?0.7:0.4);
+    G.combo++; G.comboT=2.2; if(G.combo>G.bestCombo)G.bestCombo=G.combo;
+    showCombo();
+  }
+}
+function hitEnemy(e,crit,dir){
+  if(e.dead) return;
+  const dmg=crit?3:1+(G.combo>=6?1:0); // コンボでダメージ上昇
+  e.hp-=dmg; e.flash=0.18; e.aggro=true;
+  e.kx=dir[0]*(crit?9:5); e.kz=dir[1]*(crit?9:5);
+  if(crit){ e.vy=4.5; e.onG=false; e.state='recover'; e.stT=0.5; Sound.crit(); }
+  else Sound.hitEnemy();
+  if(!G.inBattle) triggerBattle();
+  const ey=e.y+1.2;
+  burst3(e.x,ey,e.z,[0.15,0.05,0.1],crit?10:6,crit?5:3.2,27);   // 💥
+  sparks3(e.x,ey,e.z,crit?7:4);
+  hitNum(e.x,ey+0.6,e.z,dmg,crit);
+  if(e.hp<=0) defeatEnemy(e);
+}
+function defeatEnemy(e){
+  e.dead=true; e.deadT=0; e.respawnT=rnd(30,52); e.aggro=false; G.defeated++;
+  Sound.enemyDefeat();
+  G.shake=Math.max(G.shake,0.9);
+  // ごほうび：コインどっさり＋コンボボーナス
+  const base=120+G.combo*15;
+  const n=10+((G.combo*0.6)|0);
+  for(let i=0;i<n;i++) dropPickup(e.x+rnd(-1,1),e.y+1.4,e.z+rnd(-1,1),17,'coin');
+  burst3(e.x,e.y+1.2,e.z,[0.1,0.04,0.08],26,5,27);
+  hearts3(e.x,e.y+1.6,e.z);
+  showToast('🥊 ブラックこっこ を たおした！ +🪙'+base+(G.combo>=4?'（'+G.combo+'コンボ！）':''));
+  G.coins+=base; hudInv('hudCoin');
+  G.combo=0;
+  if(!anyAggro()) endBattle(true);
+}
+function damagePlayer(e){
+  if(G.invuln>0||G.ko) return;
+  G.hp--; G.invuln=1.2; G.shake=Math.max(G.shake,0.7); G.hitStop=Math.max(G.hitStop,0.05);
+  G.combo=0; $('comboTag').classList.remove('show');
+  Sound.hurt();
+  let dx=P.x-e.x, dz=P.z-e.z; const d=Math.hypot(dx,dz)||1;
+  P.vy=4; P.onG=false; tryMove(dx/d*1.4,dz/d*1.4);
+  updateHP();
+  const hp=$('playerHP'); hp.classList.remove('hurt'); void hp.offsetWidth; hp.classList.add('hurt');
+  if(G.hp<=0) playerKO();
+}
+function playerKO(){
+  G.ko=true; G.koT=0; G.hp=0; updateHP();
+  Sound.stopBattleBGM(); Sound.siren();
+  for(const e of enemies) e.aggro=false;
+  $('koOverlay').classList.remove('on'); void $('koOverlay').offsetWidth; $('koOverlay').classList.add('on');
+}
+function reviveFromKO(){
+  G.ko=false; G.hp=G.maxHp; G.invuln=2; updateHP();
+  $('koOverlay').classList.remove('on');
+  // スポーン地点へ搬送
+  P.x=SPAWN.x; P.z=SPAWN.z; P.y=heightAt(P.x,P.z); P.vy=0;
+  for(const e of enemies){ e.aggro=false; if(Math.hypot(e.x-SPAWN.x,e.z-SPAWN.z)<AGGRO_R+4) relocateEnemy(e); }
+  endBattle(false);
+  showToast('🏥 げんきに かいふく！ むりは きんもつだよ');
+}
+/* バトルUI */
+function updateHP(){
+  let s='';
+  for(let i=0;i<G.maxHp;i++) s+='<span class="'+(i<G.hp?'':'hp-lost')+'">❤️</span>';
+  $('playerHP').innerHTML=s;
+}
+let comboTO=null;
+function showCombo(){
+  if(G.combo<2){ $('comboTag').classList.remove('show'); return; }
+  const t=$('comboTag'); t.textContent=G.combo+' コンボ！';
+  t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
+}
+let bannerTO=null;
+function showBanner(msg){
+  const b=$('battleBanner'); b.textContent=msg;
+  b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
+}
+function hitNum(x,y,z,dmg,crit){
+  parts.push({x,y,z,vx:rnd(-0.5,0.5),vy:3.2,vz:rnd(-0.5,0.5),life:0.6,t:0,
+    col:crit?[1,0.85,0.2]:[1,1,1],size:crit?0.9:0.6,cell:crit?27:18,grav:6});
+}
+function updateBoss(){
+  const e=nearestAggro();
+  if(e&&G.inBattle){
+    $('bossWrap').classList.add('on');
+    const f=$('bossBarFill'); f.style.width=Math.max(0,e.hp/e.maxHp*100)+'%';
+    if(e.flash>0.1){ f.classList.add('flash'); } else { f.classList.remove('flash'); }
+  }else{
+    $('bossWrap').classList.remove('on');
+  }
+}
+/* 敵の更新（道端AI＋バトル） */
+function updateEnemies(dt){
+  let aggroNow=false;
+  for(const e of enemies){
+    if(e.dead){
+      e.deadT+=dt; e.respawnT-=dt;
+      if(e.respawnT<=0) relocateEnemy(e);
+      continue;
+    }
+    if(e.flash>0) e.flash-=dt;
+    e.atkCD-=dt;
+    // ノックバック減衰
+    e.x+=e.kx*dt; e.z+=e.kz*dt; e.kx*=0.86; e.kz*=0.86;
+    // 重力（クリティカルで打ち上げ）
+    const fl=heightAt(e.x,e.z);
+    if(e.y>fl+0.01||e.vy>0){ e.vy-=24*dt; e.y+=e.vy*dt; e.onG=false; if(e.y<=fl){e.y=fl;e.vy=0;e.onG=true;} }
+    else { e.y=fl; e.onG=true; }
+    const pd=Math.hypot(e.x-P.x,e.z-P.z);
+    // アグロ判定
+    if(!G.ko){
+      if(!e.aggro&&pd<AGGRO_R) e.aggro=true;
+      else if(e.aggro&&pd>DEAGGRO_R){ e.aggro=false; e.state='roam'; e.stT=rnd(1,2); }
+    }
+    if(e.aggro&&!G.ko){
+      aggroNow=true;
+      e.flip=(P.x-e.x)<0?-1:1;
+      if(e.state==='wind'){
+        e.stT-=dt; e.sq+=dt*4;
+        if(e.stT<=0){ // 突進開始：プレイヤー方向へ
+          let dx=P.x-e.x, dz=P.z-e.z; const d=Math.hypot(dx,dz)||1;
+          e.lx=dx/d; e.lz=dz/d; e.state='lunge'; e.stT=0.38;
+        }
+      }else if(e.state==='lunge'){
+        e.stT-=dt;
+        const sp=15;
+        e.x+=e.lx*sp*dt; e.z+=e.lz*sp*dt; e.sq+=dt*18;
+        if(pd<1.35){ damagePlayer(e); e.state='recover'; e.stT=0.7; }
+        if(e.stT<=0){ e.state='recover'; e.stT=0.6; }
+      }else if(e.state==='recover'){
+        e.stT-=dt; if(e.stT<=0) e.state='chase';
+      }else{ // chase
+        if(pd>ATK_RANGE-1.0){
+          const sp=4.6; let dx=P.x-e.x, dz=P.z-e.z; const d=Math.hypot(dx,dz)||1;
+          const nx=e.x+dx/d*sp*dt, nz=e.z+dz/d*sp*dt;
+          if(heightAt(nx,nz)>WL+0.3){ e.x=nx; e.z=nz; } e.sq+=dt*10;
+        }else if(e.atkCD<=0){ e.state='wind'; e.stT=0.42; e.atkCD=1.6; }
+      }
+      e.x=clamp(e.x,-HALF+2,HALF-2); e.z=clamp(e.z,-HALF+2,HALF-2);
+    }else if(!G.ko){
+      // のんびり徘徊（住民風）
+      e.stT-=dt;
+      if(e.stT<=0){ e.stT=rnd(2,5);
+        for(let k=0;k<8;k++){ const tx=clamp(e.hx+rnd(-12,12),-HALF+8,HALF-8), tz=clamp(e.hz+rnd(-12,12),-HALF+8,HALF-8);
+          if(heightAt(tx,tz)>WL+0.6&&slopeAt(tx,tz)<0.5){ e.tx=tx; e.tz=tz; break; } } }
+      let dx=e.tx-e.x, dz=e.tz-e.z; const d=Math.hypot(dx,dz);
+      if(d>0.8){ const nx=e.x+dx/d*1.4*dt, nz=e.z+dz/d*1.4*dt;
+        if(heightAt(nx,nz)>WL+0.4){ e.x=nx; e.z=nz; e.flip=dx<0?-1:1; e.sq+=dt*6; } else e.stT=0; }
+    }
+  }
+  // バトルの開始/終了
+  if(aggroNow&&!G.inBattle&&!G.ko) triggerBattle();
+  else if(!aggroNow&&G.inBattle&&!G.ko) endBattle(true);
 }
 
 /* ===== 会話ふきだし ===== */
@@ -846,7 +1185,19 @@ function update(dt){
   G.time+=dt;
   if(G.phase!=='play'){ updateFx(dt); return; }
   if(G.paused) return;
+  /* 共通の減衰（KO中も進める） */
+  if(G.shake>0) G.shake=Math.max(0,G.shake-dt*2.2);
+  /* 救急車KO演出中は世界を止める */
+  if(G.ko){ G.koT+=dt; updateEnemies(dt); updateFx(dt); if(G.koT>=2.6) reviveFromKO(); return; }
   G.playSec+=dt;
+
+  /* バトル用タイマー */
+  if(G.atkCD>0) G.atkCD-=dt;
+  if(G.swingT>0) G.swingT-=dt;
+  if(G.invuln>0) G.invuln-=dt;
+  if(G.comboT>0){ G.comboT-=dt; if(G.comboT<=0){ G.combo=0; $('comboTag').classList.remove('show'); } }
+  // 戦闘外ではHPゆっくり回復（ほのぼの）
+  if(!G.inBattle&&G.hp<G.maxHp){ G.regenT+=dt; if(G.regenT>=8){ G.regenT=0; G.hp++; updateHP(); } } else G.regenT=0;
 
   /* 時間：1日8分 */
   G.tod+=dt/DAY_LEN;
@@ -942,6 +1293,10 @@ function update(dt){
       else v.think=0;
     }
   }
+
+  /* ブラックこっこ（道端バトル） */
+  updateEnemies(dt);
+  updateBoss();
 
   updateFx(dt);
   hudAction();
@@ -1067,8 +1422,40 @@ function buildSprites(){
     const bob=Math.sin(G.time*9)*(P.moving?0.07:0.03);
     const w=1.7,h=1.7/AR;
     const pfl=heightAt(P.x,P.z);
-    shadow(P.x,pfl,P.z,1.9,clamp(0.7-(P.y-pfl)*0.12,0.15,0.7));
-    sprite(P.x,P.y+h*0.52+bob,P.z,w,h,0,1,1,1,1,P.flip<0);
+    // 無敵中（被ダメ後）は点滅、攻撃の振りで少し前のめり
+    const blink=(G.invuln>0&&(Math.sin(G.time*40)<0))?0.3:1;
+    const hurtTint=G.invuln>0.9?[1,0.5,0.5]:[1,1,1];
+    if(!G.ko){
+      shadow(P.x,pfl,P.z,1.9,clamp(0.7-(P.y-pfl)*0.12,0.15,0.7));
+      sprite(P.x,P.y+h*0.52+bob,P.z,w,h,0,hurtTint[0],hurtTint[1],hurtTint[2],blink,P.flip<0);
+      if(G.swingT>0) spriteBB(P.x+P.flip*0.6,P.y+1.1,P.z,1.0,1.0,27,1,1,0.9,G.swingT*4); // 振りエフェクト💥
+    }
+  }
+  /* ブラックこっこ（敵） */
+  if(G.phase==='play') for(const e of enemies){
+    if(e.dead||!visible(e.x,e.z)) continue;
+    const gy=e.y;
+    const wind=e.state==='wind', lunge=e.state==='lunge';
+    const sq=wind?(1-0.18+Math.sin(e.sq*6)*0.06):(1+Math.sin(e.sq)*0.05);
+    const w=1.9, h=1.9/AR*sq;
+    shadow(e.x,heightAt(e.x,e.z),e.z,1.8,clamp(0.6-(e.y-heightAt(e.x,e.z))*0.12,0.12,0.6));
+    // 通常は黒タイント、ヒット時は白フラッシュ、突進時は赤め
+    let r,g,b;
+    if(e.flash>0){ r=g=b=1; }
+    else if(lunge){ r=0.5; g=0.08; b=0.12; }
+    else if(wind){ const p=0.55+Math.sin(G.time*30)*0.25; r=p; g=0.05; b=0.1; }
+    else { r=0.22; g=0.13; b=0.18; }
+    sprite(e.x,gy+0.95*sq,e.z,w,h,0,r,g,b,1,e.flip<0);
+    // 赤い目の威圧（小さな赤グロー）
+    spriteBB(e.x,gy+1.05*sq,e.z,1.4,1.4,2,1,0.1,0.1,e.flash>0?0:0.18);
+    // 怒りマーク💢（アグロ中）
+    if(e.aggro) spriteBB(e.x+0.7,gy+2.0*sq,e.z,0.7,0.7,26,1,1,1,0.95);
+    // 頭上のミニHPバー
+    if(e.aggro&&e.hp<e.maxHp){
+      const bw=1.7, by=gy+2.05*sq, ratio=clamp(e.hp/e.maxHp,0,1);
+      spriteBB(e.x,by,e.z,bw+0.12,0.32,CELL_BAR,0.05,0.0,0.02,0.85);
+      spriteBB(e.x-(bw*(1-ratio))/2,by,e.z,bw*ratio,0.2,CELL_BAR,1,0.25,0.2,1);
+    }
   }
   /* 木＋実 */
   for(const t of trees){
@@ -1121,6 +1508,85 @@ function buildSprites(){
   }
 }
 
+/* ===== レーダーマップ（島の地形＋こっこ＆ブラックこっこの位置） ===== */
+const radarCv=$('radar'), rcx=radarCv.getContext('2d');
+const RAD_SIZE=124, RAD_PAD=9;
+const radarLand=document.createElement('canvas'); radarLand.width=HN; radarLand.height=HN;
+const rlx=radarLand.getContext('2d');
+let radarReady=false, radarDPR=0;
+function buildRadarLand(){
+  // ハイトマップから島のかたちを2Dマップ画像に焼きこむ（北=-z=上）
+  const img=rlx.createImageData(HN,HN);
+  for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){
+    const h=heights[j*HN+i], m=moists[j*HN+i];
+    let r,g,b,a=255;
+    if(h<WL-0.5){ r=16;g=46;b=72;a=205; }                         // ふかい海
+    else if(h<WL+0.2){ r=34;g=78;b=104;a=225; }                   // あさせ
+    else if(h<WL+0.9){ r=214;g=198;b=140; }                       // 砂浜
+    else {                                                          // 草地〜岩山
+      const t=clamp((h-WL)/(HMAX-WL),0,1);
+      r=72+t*78; g=156-t*54; b=72-t*18+(m-0.5)*22;
+      if(t>0.62){ r=150+(t-0.62)*60; g=150+(t-0.62)*60; b=150+(t-0.62)*60; } // 高地は岩色
+    }
+    const o=(j*HN+i)*4; img.data[o]=r; img.data[o+1]=g; img.data[o+2]=b; img.data[o+3]=a;
+  }
+  rlx.putImageData(img,0,0); radarReady=true;
+}
+function setupRadarCanvas(){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  if(dpr===radarDPR&&radarCv.width) return;
+  radarDPR=dpr; radarCv.width=Math.round(RAD_SIZE*dpr); radarCv.height=Math.round(RAD_SIZE*dpr);
+}
+function radarPt(x,z,cx,cy,R){ return [cx+((x+HALF)/SIZE-0.5)*2*R, cy+((z+HALF)/SIZE-0.5)*2*R]; }
+function drawRadar(){
+  setupRadarCanvas();
+  const S=RAD_SIZE, cx=S/2, cy=S/2, R=S/2-RAD_PAD;
+  rcx.setTransform(radarDPR,0,0,radarDPR,0,0);
+  rcx.clearRect(0,0,S,S);
+  rcx.save();
+  rcx.beginPath(); rcx.arc(cx,cy,R,0,TAU); rcx.clip();
+  // 海の下地＋島
+  rcx.fillStyle='rgba(10,34,52,.92)'; rcx.fillRect(0,0,S,S);
+  if(radarReady){ rcx.imageSmoothingEnabled=true; rcx.globalAlpha=.95;
+    rcx.drawImage(radarLand,cx-R,cy-R,2*R,2*R); rcx.globalAlpha=1; }
+  // レーダーグリッド
+  rcx.strokeStyle='rgba(160,240,130,.16)'; rcx.lineWidth=1;
+  for(let k=1;k<=2;k++){ rcx.beginPath(); rcx.arc(cx,cy,R*k/3,0,TAU); rcx.stroke(); }
+  rcx.beginPath(); rcx.moveTo(cx-R,cy); rcx.lineTo(cx+R,cy); rcx.moveTo(cx,cy-R); rcx.lineTo(cx,cy+R); rcx.stroke();
+  // スイープ（回転する光のあおり）
+  const sw=(G.time*1.0)%TAU;
+  rcx.save(); rcx.translate(cx,cy); rcx.rotate(sw);
+  const sg=rcx.createLinearGradient(0,0,R,0);
+  sg.addColorStop(0,'rgba(160,245,130,.26)'); sg.addColorStop(1,'rgba(160,245,130,0)');
+  rcx.fillStyle=sg; rcx.beginPath(); rcx.moveTo(0,0); rcx.arc(0,0,R,-0.34,0); rcx.closePath(); rcx.fill();
+  rcx.strokeStyle='rgba(180,255,150,.55)'; rcx.lineWidth=1.4;
+  rcx.beginPath(); rcx.moveTo(0,0); rcx.lineTo(R,0); rcx.stroke();
+  rcx.restore();
+  // ブラックこっこ（赤い点・アグロ中は脈動リング）
+  for(const e of enemies){
+    if(e.dead) continue;
+    const [bx,by]=radarPt(e.x,e.z,cx,cy,R);
+    const pulse=0.5+0.5*Math.sin(G.time*6);
+    if(e.aggro){ rcx.strokeStyle='rgba(255,80,80,'+(0.45*(1-pulse))+')'; rcx.lineWidth=1.6;
+      rcx.beginPath(); rcx.arc(bx,by,4.5+pulse*5,0,TAU); rcx.stroke(); }
+    rcx.fillStyle='rgba(255,60,60,'+(e.aggro?0.7+0.3*pulse:0.9)+')';
+    rcx.beginPath(); rcx.arc(bx,by,3.2,0,TAU); rcx.fill();
+    rcx.fillStyle='rgba(120,0,0,.9)'; rcx.beginPath(); rcx.arc(bx,by,1.3,0,TAU); rcx.fill();
+  }
+  // プレイヤー（こっこ・向きのある矢印）
+  const [px,py]=radarPt(P.x,P.z,cx,cy,R);
+  rcx.save(); rcx.translate(px,py); rcx.rotate(Math.atan2(-Math.cos(cam.yaw),Math.sin(cam.yaw))+Math.PI/2);
+  rcx.fillStyle='#f6ffd6'; rcx.strokeStyle='rgba(24,46,12,.85)'; rcx.lineWidth=1.2;
+  rcx.beginPath(); rcx.moveTo(0,-6); rcx.lineTo(4,4.2); rcx.lineTo(0,2); rcx.lineTo(-4,4.2); rcx.closePath();
+  rcx.fill(); rcx.stroke();
+  rcx.restore();
+  rcx.restore(); // クリップ解除
+  // N（北）インジケータ
+  rcx.fillStyle='rgba(200,245,170,.92)'; rcx.font='900 10px sans-serif';
+  rcx.textAlign='center'; rcx.textBaseline='middle';
+  rcx.fillText('N',cx,cy-R+7);
+}
+
 /* ===== 描画 ===== */
 function resize(){
   DPR=Math.min(window.devicePixelRatio||1,2);
@@ -1147,7 +1613,12 @@ function render(){
   }else{
     eye=camEye();
     const f=camForward();
-    lookAt(Mv,eye[0],eye[1],eye[2],eye[0]+f[0],eye[1]+f[1],eye[2]+f[2]);
+    let tx=eye[0]+f[0], ty=eye[1]+f[1], tz=eye[2]+f[2];
+    // 画面シェイク（被弾・撃破・クリティカル）
+    if(G.shake>0.001){ const s=G.shake*0.5;
+      const ox=(Math.random()*2-1)*s, oy=(Math.random()*2-1)*s, oz=(Math.random()*2-1)*s;
+      eye[0]+=ox; eye[1]+=oy; eye[2]+=oz; tx+=ox; ty+=oy; tz+=oz; }
+    lookAt(Mv,eye[0],eye[1],eye[2],tx,ty,tz);
   }
   camEyeNow=eye;
   perspective(Mp,65*Math.PI/180,W/H,0.1,300);
@@ -1248,6 +1719,9 @@ function render(){
       gl.depthMask(true);
     }
   }
+
+  /* --- レーダーマップ --- */
+  if(G.phase==='play') drawRadar();
 }
 
 /* ===== ゲームフロー ===== */
@@ -1259,11 +1733,21 @@ function show(id){
   $('homeBtn').classList.toggle('on',play);
   ['actBtn','jumpBtn'].forEach(b=>$(b).classList.toggle('hidden',!play||!IS_TOUCH));
 }
+function resetBattle(){
+  G.hp=G.maxHp; G.invuln=0; G.combo=0; G.comboT=0; G.atkCD=0; G.swingT=0;
+  G.shake=0; G.hitStop=0; G.regenT=0; G.ko=false; G.koT=0;
+  G.inBattle=false; G.battleT=0;
+  Sound.stopBattleBGM();
+  $('battleVig').classList.remove('on'); $('bossWrap').classList.remove('on');
+  $('playerHP').classList.remove('on'); $('koOverlay').classList.remove('on');
+  updateHP();
+}
 function enterPlay(){
   G.phase='play'; G.paused=false; G.saveT=0;
   P.y=heightAt(P.x,P.z); P.vy=0; P.onG=true; P.flip=1;
   parts=[]; pickups=[]; bflies=[]; bflyT=2;
   lastAct='?'; lastClock='';
+  resetBattle();
   hudInv(); hudClock(); hudAction();
   show(null);
   Sound.startBGM();
@@ -1273,7 +1757,7 @@ function startNew(){
   genWorld((Math.random()*0xffffffff)>>>0);
   P.x=SPAWN.x; P.z=SPAWN.z;
   cam.yaw=0; cam.pitch=-0.32;
-  G.tod=0.375; G.day=1; G.coins=0; G.playSec=0;
+  G.tod=0.375; G.day=1; G.coins=0; G.playSec=0; G.defeated=0;
   G.inv={fruit:0,flower:0,bug:0,shell:0};
   enterPlay();
   Sound.welcome();
@@ -1286,7 +1770,7 @@ function startContinue(){
   genWorld(s.seed>>>0);
   P.x=s.px; P.z=s.pz;
   cam.yaw=s.yaw||0; cam.pitch=s.pitch||-0.32;
-  G.tod=s.tod; G.day=s.day||1; G.coins=s.coins||0; G.playSec=s.playSec||0;
+  G.tod=s.tod; G.day=s.day||1; G.coins=s.coins||0; G.playSec=s.playSec||0; G.defeated=s.def||0;
   G.inv=Object.assign({fruit:0,flower:0,bug:0,shell:0},s.inv);
   (s.tr||[]).forEach((v,i)=>{ if(trees[i])trees[i].fruitT=v; });
   (s.fl||[]).forEach((v,i)=>{ if(flowers[i])flowers[i].reT=v; });
@@ -1301,7 +1785,10 @@ function startContinue(){
 function toTitle(){
   saveGame();
   G.phase='title'; G.paused=false;
-  Sound.stopBGM();
+  Sound.stopBGM(); Sound.stopBattleBGM();
+  $('battleVig').classList.remove('on'); $('bossWrap').classList.remove('on');
+  $('playerHP').classList.remove('on'); $('koOverlay').classList.remove('on');
+  G.inBattle=false; G.ko=false;
   if(document.pointerLockElement===cv){ try{document.exitPointerLock();}catch(e){} }
   refreshTitle();
   show('titleScreen');
@@ -1318,9 +1805,9 @@ function refreshTitle(){
     $('newBtn').classList.remove('ghost');
   }
 }
-function pauseGame(){ if(G.phase==='play'&&!G.paused){ G.paused=true; saveGame(); Sound.stopBGM();
+function pauseGame(){ if(G.phase==='play'&&!G.paused){ G.paused=true; saveGame(); Sound.stopBGM(); Sound.stopBattleBGM();
   $('pauseOv').classList.add('on'); } }
-function resumeGame(){ if(G.paused){ G.paused=false; Sound.startBGM();
+function resumeGame(){ if(G.paused){ G.paused=false; if(G.inBattle&&!G.ko)Sound.startBattleBGM(); else Sound.startBGM();
   $('pauseOv').classList.remove('on'); } }
 document.addEventListener('visibilitychange',()=>{ if(document.hidden) pauseGame(); });
 window.addEventListener('beforeunload',()=>{ saveGame(); });
@@ -1356,7 +1843,9 @@ $('fsBtn').addEventListener('click',()=>{
 }
 let last=0;
 function frame(ts){
-  const dt=Math.min(0.05,(ts-last)/1000||0.016); last=ts;
+  let dt=Math.min(0.05,(ts-last)/1000||0.016); last=ts;
+  // ヒットストップ（命中の瞬間だけ時間をギュッと止める）
+  if(G.hitStop>0){ G.hitStop-=dt; dt*=0.08; }
   update(dt);
   render();
   requestAnimationFrame(frame);
