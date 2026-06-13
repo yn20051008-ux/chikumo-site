@@ -76,12 +76,28 @@
           "$other": { ".validate": false }
         }
       }
+    },
+    "letters": {
+      "makiyado": {
+        ".read": true,
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid",
+          ".validate": "newData.hasChildren(['name','msg'])",
+          "name":  { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "flag":  { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "msg":   { ".validate": "newData.isString() && newData.val().length >= 1 && newData.val().length <= 60" },
+          "ts":    { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        }
+      }
     }
   }
 }
 ```
 
-※他機能のルールが既存にある場合は、`"rankings"` ブロックだけをマージしてください（丸ごと置換しない）。
+※他機能のルールが既存にある場合は、`"rankings"` / `"letters"` ブロックだけをマージしてください（丸ごと置換しない）。
+
+> **正論蒔宿への手紙（/letter/）について**：ノード `letters/makiyado`。1人1通（`auth.uid`／端末IDの自分の枠のみ書込）・**上書き可**。本文 `msg` は最大20文字（絵文字対応のためルール上は60 UTF-16単位まで許可）。ゲーム同様、匿名認証OFFの“オープン”状態でも投稿は動きます。
 
 ---
 

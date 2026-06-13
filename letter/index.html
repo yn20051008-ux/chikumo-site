@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>正論蒔宿への手紙 ─ 畜物語</title>
+<meta name="description" content="畜物語の世界をつくる者「正論蒔宿」へ、アイデアや感想（レビュー）を手紙でおくろう。国・名前・20文字のひとこと。だれでも書けて、世界中から読めるよ。">
+<meta name="author" content="畜物語">
+<meta name="theme-color" content="#0a0c14">
+<meta name="format-detection" content="telephone=no">
+<link rel="canonical" href="https://chikumo.jp/letter/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chikumo.jp/letter/">
+<meta property="og:title" content="正論蒔宿への手紙 ─ 畜物語">
+<meta property="og:description" content="畜物語の世界をつくる者へ、アイデア・感想を手紙でおくろう。">
+<meta property="og:image" content="https://chikumo.jp/chikumo.svg">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="畜物語">
+<meta name="twitter:card" content="summary">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{--ink:#f3efe2;--gold:#ffd98a;--soft:#bfb9d6;--card:rgba(20,18,34,.82);}
+  html,body{min-height:100%;}
+  body{font-family:'Hiragino Kaku Gothic ProN','Yu Gothic','Helvetica Neue',Arial,sans-serif;color:var(--ink);
+    background:radial-gradient(1200px 700px at 50% -8%,#1a1838 0%,#0c0b18 46%,#060509 100%) fixed;
+    min-height:100vh;padding:calc(env(safe-area-inset-top) + 22px) 16px calc(env(safe-area-inset-bottom) + 40px);
+    -webkit-font-smoothing:antialiased;}
+  /* 星 */
+  body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;
+    background-image:radial-gradient(1.4px 1.4px at 20% 30%,#fff,transparent),radial-gradient(1.2px 1.2px at 70% 18%,#cfe2ff,transparent),
+      radial-gradient(1.6px 1.6px at 42% 62%,#fff,transparent),radial-gradient(1.1px 1.1px at 85% 70%,#ffe9c0,transparent),
+      radial-gradient(1.3px 1.3px at 12% 84%,#fff,transparent),radial-gradient(1.2px 1.2px at 60% 90%,#dfeaff,transparent);}
+  .wrap{max-width:560px;margin:0 auto;}
+  header{text-align:center;margin-bottom:22px;}
+  .cocco{width:84px;height:auto;filter:drop-shadow(0 6px 22px rgba(255,210,120,.35));
+    animation:fl 3.4s ease-in-out infinite;}
+  @keyframes fl{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-8px) rotate(3deg);}}
+  h1{font-size:clamp(22px,6.4vw,30px);font-weight:900;letter-spacing:.04em;margin-top:10px;
+    background:linear-gradient(180deg,#fff7e6,var(--gold) 60%,#e6a84a);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sub{margin-top:8px;font-size:13px;line-height:1.85;color:var(--soft);}
+  .sub b{color:#ffe6b0;}
+  .pill{display:inline-block;margin-top:12px;font-size:11.5px;letter-spacing:.08em;color:#cde7c0;
+    background:rgba(120,200,110,.12);border:1px solid rgba(150,220,130,.3);padding:5px 14px;border-radius:20px;}
+  .card{background:var(--card);border:1px solid rgba(255,225,160,.18);border-radius:20px;padding:18px 16px;
+    box-shadow:0 18px 50px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.06);margin-top:22px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+  .frow{display:flex;gap:9px;align-items:center;}
+  .flagbtn{flex:none;width:52px;height:48px;border-radius:12px;border:2px solid rgba(255,210,130,.4);
+    background:rgba(10,8,18,.6);color:#fff;font-size:24px;cursor:pointer;line-height:1;}
+  input,textarea{font-family:inherit;}
+  .nm{flex:1;min-width:0;height:48px;padding:0 14px;border-radius:12px;border:2px solid rgba(255,210,130,.4);
+    background:rgba(10,8,18,.6);color:#fff;font-size:16px;outline:none;}
+  .msgwrap{position:relative;margin-top:11px;}
+  .msg{width:100%;height:60px;padding:12px 14px;border-radius:12px;border:2px solid rgba(255,210,130,.4);
+    background:rgba(10,8,18,.6);color:#fff;font-size:17px;outline:none;resize:none;line-height:1.5;}
+  .count{position:absolute;right:12px;bottom:9px;font-size:12px;color:var(--soft);font-variant-numeric:tabular-nums;}
+  .count.over{color:#ff7a7a;}
+  input::placeholder,textarea::placeholder{color:rgba(255,255,255,.35);}
+  .send{display:block;width:100%;margin-top:13px;padding:15px;border:none;border-radius:30px;font-size:17px;font-weight:900;
+    letter-spacing:.1em;color:#3a2606;cursor:pointer;background:linear-gradient(180deg,#ffe7a8,#f0b955);
+    box-shadow:0 10px 26px rgba(240,180,70,.4),inset 0 1px 0 rgba(255,255,255,.6);transition:transform .08s;}
+  .send:active{transform:translateY(2px) scale(.99);}
+  .send:disabled{opacity:.55;cursor:default;}
+  .stat{min-height:16px;margin-top:10px;font-size:12.5px;text-align:center;color:var(--gold);letter-spacing:.03em;}
+  .note{margin-top:6px;font-size:11px;text-align:center;color:var(--soft);opacity:.85;}
+  .listhead{display:flex;align-items:baseline;justify-content:space-between;margin:26px 4px 10px;}
+  .listhead .t{font-size:15px;font-weight:900;letter-spacing:.1em;color:#ffe6b0;}
+  .listhead .c{font-size:12px;color:var(--soft);}
+  ul.letters{list-style:none;display:flex;flex-direction:column;gap:10px;}
+  ul.letters li{background:rgba(18,16,30,.7);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:12px 14px;
+    animation:rise .4s ease both;}
+  ul.letters li.mine{border-color:rgba(255,215,130,.6);background:rgba(60,46,16,.4);}
+  @keyframes rise{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  .lt-top{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--soft);}
+  .lt-flag{font-size:17px;line-height:1;}
+  .lt-name{font-weight:800;color:#efe9d6;max-width:55%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .lt-time{margin-left:auto;font-size:11px;opacity:.8;}
+  .lt-msg{margin-top:6px;font-size:16px;line-height:1.55;color:#fff;word-break:break-word;white-space:pre-wrap;}
+  .empty{text-align:center;color:var(--soft);opacity:.7;padding:18px;font-size:13px;}
+  .foot{margin-top:30px;text-align:center;font-size:11px;letter-spacing:.16em;color:var(--soft);opacity:.7;}
+  .foot a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3);}
+  /* 国旗ピッカー */
+  .picker{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:18px;
+    background:rgba(0,0,0,.74);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
+  .picker.on{display:flex;}
+  .picker-in{width:min(94vw,420px);max-height:82vh;overflow-y:auto;text-align:center;
+    background:rgba(18,16,30,.97);border:1px solid rgba(255,210,130,.35);border-radius:16px;padding:18px 16px;}
+  .picker-in h2{font-size:15px;color:var(--gold);letter-spacing:.14em;margin-bottom:12px;font-weight:800;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:6px;margin-bottom:12px;}
+  .grid.hidden{display:none;}
+  .grid button{font-size:24px;padding:8px 0;border-radius:8px;border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.05);cursor:pointer;color:#fff;}
+  .grid button:active{transform:scale(.9);}
+  .gbtn{display:inline-block;margin:0 4px 6px;padding:10px 16px;border-radius:22px;border:none;cursor:pointer;font-weight:800;font-size:13px;}
+  .gbtn.more{background:rgba(255,255,255,.08);color:var(--ink);box-shadow:inset 0 0 0 1px rgba(255,255,255,.22);}
+  .gbtn.close{background:linear-gradient(180deg,#ffe7a8,#f0b955);color:#3a2606;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img class="cocco" src="/chikumo.svg" alt="コッコちゃん">
+    <h1>正論蒔宿への手紙</h1>
+    <div class="sub">
+      畜物語の世界をつくる者 <b>正論蒔宿</b> へ。<br>
+      アイデアや 感想（レビュー）を ひとこと どうぞ。
+    </div>
+    <div class="pill">✉️ 1人 1通・上書きOK ／ 世界中から 読めるよ</div>
+  </header>
+
+  <div class="card">
+    <div class="frow">
+      <button type="button" class="flagbtn" id="flagBtn" aria-label="国旗をえらぶ">🇯🇵</button>
+      <input class="nm" id="nameInput" maxlength="12" placeholder="なまえ" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="msgwrap">
+      <textarea class="msg" id="msgInput" maxlength="20" placeholder="正論蒔宿さんへ ひとこと（20文字まで）"></textarea>
+      <span class="count" id="count">0/20</span>
+    </div>
+    <button class="send" id="sendBtn">✉️ 手紙を おくる</button>
+    <div class="stat" id="stat"></div>
+    <div class="note" id="note">※ 名前・国・本文は だれでも見られます。じゅうしょ や ほんみょう は 書かないでね</div>
+  </div>
+
+  <div class="listhead">
+    <span class="t">📜 みんなの手紙</span>
+    <span class="c" id="letterCount"></span>
+  </div>
+  <ul class="letters" id="letterList"><li class="empty">読み込み中…</li></ul>
+
+  <div class="foot">畜物語 ─ <a href="/">chikumo.jp</a></div>
+</div>
+
+<div class="picker" id="picker">
+  <div class="picker-in">
+    <h2>国旗をえらぶ</h2>
+    <div class="grid" id="gridMajor"></div>
+    <button type="button" class="gbtn more" id="moreBtn">🏳️ その他をすべて表示</button>
+    <div class="grid hidden" id="gridAll"></div>
+    <button type="button" class="gbtn close" id="pickerClose">とじる</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script>
+"use strict";
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var NAME_KEY='makiyadoName', FLAG_KEY='makiyadoFlag', UID_KEY='makiyadoUid';
+  var selFlag='🇯🇵';
+
+  /* 国旗 */
+  function flagOf(cc){ return cc.replace(/./g,function(c){ return String.fromCodePoint(0x1F1E6+c.charCodeAt(0)-65); }); }
+  var MAJOR=('JP US GB CA AU KR CN TW HK TH VN PH ID MY SG IN FR DE IT ES PT NL SE BR MX AR RU UA TR EG ZA SA NZ').split(' ').map(flagOf);
+  var ALL_CC=('AD AE AF AG AL AM AO AR AT AU AW AZ BA BB BD BE BF BG BH BI BJ BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FM FR GA GB GD GE GH GM GN GQ GR GT GW GY HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KI KM KN KP KR KW KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MH MK ML MM MN MR MT MU MV MW MX MY MZ NA NE NG NI NL NO NP NR NZ OM PA PE PG PH PK PL PT PW PY QA RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TD TG TH TJ TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VN VU WS YE ZA ZM ZW').split(' ');
+  var ALL=['🏳️','🏴','🏁','🇺🇳','🇪🇺'].concat(ALL_CC.map(flagOf));
+  function setFlag(f){ selFlag=f; $('flagBtn').textContent=f; try{ localStorage.setItem(FLAG_KEY,f); }catch(e){} }
+  function buildGrid(el,flags){ if(el._built)return; el._built=true;
+    el.innerHTML=flags.map(function(f){ return '<button type="button" data-f="'+f+'">'+f+'</button>'; }).join('');
+    el.addEventListener('click',function(e){ var t=e.target.closest&&e.target.closest('[data-f]'); if(!t)return; setFlag(t.getAttribute('data-f')); $('picker').classList.remove('on'); }); }
+  $('flagBtn').addEventListener('click',function(){ buildGrid($('gridMajor'),MAJOR); $('picker').classList.add('on'); });
+  $('moreBtn').addEventListener('click',function(){ buildGrid($('gridAll'),ALL); $('gridAll').classList.remove('hidden'); $('moreBtn').style.display='none'; });
+  $('pickerClose').addEventListener('click',function(){ $('picker').classList.remove('on'); });
+  $('picker').addEventListener('click',function(e){ if(e.target===$('picker')) $('picker').classList.remove('on'); });
+  try{ var sv=localStorage.getItem(FLAG_KEY); if(sv) selFlag=sv; }catch(e){} setFlag(selFlag);
+  try{ var nm=localStorage.getItem(NAME_KEY); if(nm) $('nameInput').value=nm; }catch(e){}
+
+  /* 文字カウンタ */
+  function upd(){ var n=Array.from($('msgInput').value).length; var c=$('count'); c.textContent=n+'/20'; c.classList.toggle('over',n>20); }
+  $('msgInput').addEventListener('input',upd); upd();
+
+  function esc(s){ return String(s).replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; }); }
+  function relTime(ts){ var d=Math.max(0,Date.now()-ts), m=60000,h=3600000,day=86400000;
+    if(d<m)return 'たった今'; if(d<h)return Math.floor(d/m)+'分前'; if(d<day)return Math.floor(d/h)+'時間前';
+    if(d<day*30)return Math.floor(d/day)+'日前'; var dt=new Date(ts); return (dt.getMonth()+1)+'/'+dt.getDate(); }
+
+  /* Firebase */
+  var ready=false, db=null, ref=null, myUid=null, authDone=false, lastTs=0;
+  if(typeof firebase!=='undefined'){
+    try{ if(!firebase.apps||!firebase.apps.length) firebase.initializeApp({
+      apiKey:"AIzaSyBw5-6oAuOmgYC_7G27Z0Qavwn78ZrkhdQ",
+      authDomain:"chikumonogatarikiroku.firebaseapp.com",
+      databaseURL:"https://chikumonogatarikiroku-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId:"chikumonogatarikiroku",
+      storageBucket:"chikumonogatarikiroku.firebasestorage.app",
+      messagingSenderId:"725202431277",
+      appId:"1:725202431277:web:c49c911cfcae26d63ab7a4"
+    }); }catch(e){}
+    try{ db=firebase.database(); ref=db.ref('letters/makiyado'); ready=true; }catch(e){ ready=false; }
+    if(ready&&firebase.auth){ try{ var a=firebase.auth();
+      a.onAuthStateChanged(function(u){ if(u){ myUid=u.uid; authDone=true; loadMine(); } });
+      if(!a.currentUser) a.signInAnonymously().catch(function(){ authDone=true; });
+    }catch(e){ authDone=true; } } else { authDone=true; }
+  }
+  function localUid(){ var u; try{ u=localStorage.getItem(UID_KEY); }catch(e){}
+    if(!u){ u='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); try{ localStorage.setItem(UID_KEY,u); }catch(e){} } return u; }
+  function uid(){ return myUid || localUid(); }
+
+  function render(rows){
+    var el=$('letterList'), me=uid();
+    if(!rows.length){ el.innerHTML='<li class="empty">まだ手紙がありません。さいしょの ひとことを どうぞ ✉️</li>'; $('letterCount').textContent=''; return; }
+    $('letterCount').textContent=rows.length+' 通';
+    el.innerHTML=rows.map(function(r){
+      return '<li class="'+(r.uid===me?'mine':'')+'">'
+        +'<div class="lt-top"><span class="lt-flag">'+esc(r.flag||'🏳️')+'</span>'
+        +'<span class="lt-name">'+esc(r.name||'ななし')+'</span>'
+        +'<span class="lt-time">'+relTime(r.ts||0)+'</span></div>'
+        +'<div class="lt-msg">'+esc(r.msg||'')+'</div></li>';
+    }).join('');
+  }
+  function load(){
+    if(!ready){ $('letterList').innerHTML='<li class="empty">オフラインのため 読み込めません</li>'; return; }
+    ref.orderByChild('ts').limitToLast(500).once('value').then(function(snap){
+      var rows=[]; snap.forEach(function(c){ var v=c.val()||{}; rows.push({uid:c.key,flag:v.flag,name:v.name,msg:v.msg,ts:+v.ts||0}); });
+      rows.sort(function(a,b){return b.ts-a.ts;}); render(rows);
+    }).catch(function(){ $('letterList').innerHTML='<li class="empty">読み込めませんでした（接続を確認）</li>'; });
+  }
+  function loadMine(){
+    if(!ready||!myUid) return;
+    ref.child(myUid).once('value').then(function(s){ var v=s.val(); if(v){
+      if(v.name&&!$('nameInput').value) $('nameInput').value=v.name;
+      if(v.flag) setFlag(v.flag);
+      if(v.msg&&!$('msgInput').value){ $('msgInput').value=v.msg; upd(); }
+      $('stat').textContent='あなたの手紙は とどいています（書きかえOK）';
+    } }).catch(function(){});
+  }
+
+  function send(){
+    var stat=$('stat'), btn=$('sendBtn');
+    if(!ready){ stat.textContent='いまは おくれません（オフライン）'; return; }
+    if(!myUid && !authDone){ stat.textContent='せつぞく中…数秒後に もう一度'; return; }
+    var name=($('nameInput').value||'').replace(/\s+/g,' ').trim().slice(0,12) || 'ななしの こっこ';
+    var msg=Array.from(($('msgInput').value||'').trim()).slice(0,20).join('');
+    if(!msg){ stat.textContent='ひとこと 書いてね ✍️'; return; }
+    var now=Date.now(); if(now-lastTs<1500) return; lastTs=now;
+    try{ localStorage.setItem(NAME_KEY,name); localStorage.setItem(FLAG_KEY,selFlag); }catch(e){}
+    btn.disabled=true; stat.textContent='おくっています…';
+    ref.child(uid()).set({ flag:selFlag, name:name, msg:msg, ts:now })
+      .then(function(){ stat.textContent='とどけました！ ありがとう 💛'; btn.disabled=false; load(); })
+      .catch(function(){ stat.textContent='おくれませんでした（接続を確認）'; btn.disabled=false; });
+  }
+  $('sendBtn').addEventListener('click',send);
+
+  load();
+})();
+</script>
+</body>
+</html>
