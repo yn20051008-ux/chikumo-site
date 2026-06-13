@@ -114,6 +114,7 @@
     background:radial-gradient(ellipse at 50% 30%,rgba(28,64,40,.7),rgba(5,16,10,.95));
     -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
   .screen.hidden{display:none;}
+  .hidden{display:none;}
   .hero{width:min(34vw,128px);height:auto;margin-bottom:6px;
     filter:drop-shadow(0 8px 24px rgba(140,235,120,.45));animation:fl 3s ease-in-out infinite;}
   @keyframes fl{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-10px) rotate(3deg);}}
@@ -317,7 +318,7 @@ void main(){ gl_FragColor=vec4(mix(vCol,uFogCol,vFog),1.0); }`);
 
 /* 水面 */
 const waterProg=makeProg(
-`attribute vec2 aPos; uniform mat4 uVP; uniform float uWL;
+`attribute vec2 aPos; uniform mat4 uVP; uniform mediump float uWL;
 varying vec2 vXZ;
 void main(){ gl_Position=uVP*vec4(aPos.x,uWL,aPos.y,1.0); vXZ=aPos; }`,
 `precision mediump float;
