@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>更新履歴 ─ 畜物語</title>
+<meta name="description" content="畜物語（chikumo.jp）の更新・修正の記録。新ゲームの追加、機能追加、改善、不具合修正のヒストリー。">
+<meta name="theme-color" content="#0a0c14">
+<meta name="format-detection" content="telephone=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'none'; base-uri 'self'; form-action 'none'; object-src 'none';">
+<link rel="canonical" href="https://chikumo.jp/changelog/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chikumo.jp/changelog/">
+<meta property="og:title" content="更新履歴 ─ 畜物語">
+<meta property="og:description" content="畜物語の更新・修正の記録。">
+<meta property="og:image" content="https://chikumo.jp/icon-192.png">
+<meta property="og:site_name" content="畜物語">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{--ink:#f1eee2;--soft:#b7b2cf;--line:rgba(255,255,255,.12);}
+  html,body{min-height:100%;}
+  body{font-family:'Hiragino Kaku Gothic ProN','Yu Gothic','Helvetica Neue',Arial,sans-serif;color:var(--ink);
+    background:radial-gradient(1200px 700px at 50% -8%,#1a1838 0%,#0c0b18 46%,#060509 100%) fixed;min-height:100vh;
+    padding:calc(env(safe-area-inset-top) + 22px) 16px calc(env(safe-area-inset-bottom) + 44px);-webkit-font-smoothing:antialiased;}
+  body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.45;
+    background-image:radial-gradient(1.4px 1.4px at 18% 28%,#fff,transparent),radial-gradient(1.2px 1.2px at 72% 16%,#cfe2ff,transparent),
+      radial-gradient(1.5px 1.5px at 44% 60%,#fff,transparent),radial-gradient(1.1px 1.1px at 86% 72%,#ffe9c0,transparent),
+      radial-gradient(1.3px 1.3px at 10% 82%,#fff,transparent),radial-gradient(1.2px 1.2px at 62% 92%,#dfeaff,transparent);}
+  .wrap{max-width:600px;margin:0 auto;}
+  header{text-align:center;margin-bottom:8px;}
+  .ic{width:62px;height:62px;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.5);}
+  h1{font-size:clamp(22px,6vw,30px);font-weight:900;letter-spacing:.06em;margin-top:10px;
+    background:linear-gradient(180deg,#fff7e6,#ffd98a 60%,#e6a84a);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sub{margin-top:7px;font-size:12.5px;color:var(--soft);letter-spacing:.04em;}
+  .legend{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:16px 0 6px;}
+  .tag{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.04em;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+  .t-new{background:rgba(120,210,110,.16);color:#bdf08a;border:1px solid rgba(150,220,130,.35);}
+  .t-feat{background:rgba(110,180,255,.15);color:#a8d2ff;border:1px solid rgba(130,190,255,.32);}
+  .t-imp{background:rgba(255,205,120,.15);color:#ffd98a;border:1px solid rgba(255,205,120,.3);}
+  .t-fix{background:rgba(255,120,120,.14);color:#ff9a9a;border:1px solid rgba(255,120,120,.3);}
+  .day{margin-top:24px;position:relative;padding-left:20px;border-left:2px solid var(--line);}
+  .day::before{content:"";position:absolute;left:-7px;top:4px;width:12px;height:12px;border-radius:50%;
+    background:#ffd98a;box-shadow:0 0 0 4px rgba(255,217,138,.18);}
+  .date{font-size:14px;font-weight:900;letter-spacing:.08em;color:#ffe6b0;margin-bottom:10px;}
+  .entry{background:rgba(20,18,34,.7);border:1px solid rgba(255,255,255,.07);border-radius:13px;padding:11px 13px;margin-bottom:9px;
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+  .entry .ttl{display:flex;align-items:flex-start;gap:8px;font-size:14.5px;font-weight:700;line-height:1.5;color:#fff;}
+  .entry .ttl .tag{flex:none;margin-top:1px;}
+  .entry .desc{margin-top:6px;font-size:12.5px;line-height:1.7;color:var(--soft);}
+  .entry ul{margin:6px 0 0;padding-left:1.1em;}
+  .entry li{font-size:12.5px;line-height:1.7;color:var(--soft);}
+  .foot{margin-top:32px;text-align:center;font-size:11px;letter-spacing:.16em;color:var(--soft);opacity:.7;}
+  .foot a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3);}
+  .back{display:inline-block;margin-top:18px;font-size:12px;color:var(--soft);text-decoration:none;
+    border:1px solid var(--line);border-radius:20px;padding:8px 18px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img class="ic" src="/icon-192.png" alt="コッコちゃん">
+    <h1>更新履歴</h1>
+    <div class="sub">畜物語（chikumo.jp）の あゆみ ─ 新ゲーム・新機能・改善・修正の記録</div>
+    <div class="legend">
+      <span class="tag t-new">🆕 新ゲーム</span>
+      <span class="tag t-feat">✨ 新機能</span>
+      <span class="tag t-imp">🔧 改善</span>
+      <span class="tag t-fix">🐛 修正</span>
+    </div>
+  </header>
+  <main id="log"></main>
+  <div style="text-align:center;"><a class="back" href="/">← トップへもどる</a></div>
+  <div class="foot">畜物語 ─ <a href="/">chikumo.jp</a></div>
+</div>
+
+<script>
+"use strict";
+/* 更新履歴データ（新しい順）。エントリを足すときは ここに1行 追加するだけ。
+   tag: new(新ゲーム) / feat(新機能) / imp(改善) / fix(修正) */
+var LOG=[
+  { date:"2026.06.13", items:[
+    { tag:"imp", t:"サイトの検索・タブのアイコンを「顔だけ」に変更", d:"Google検索やブラウザタブで全身だったコッコを、ホーム画面と同じ顔アイコンに統一。" },
+    { tag:"feat", t:"「正論蒔宿への手紙」ページを公開", d:"畜物語の世界をつくる者へ、感想・アイデアを投稿できるページ（国・名前・20文字／1人1通・上書きOK・サーバー保存）。こっこの森タイトルからも飛べるボタンを追加。" },
+    { tag:"feat", t:"こっこの森：諸島めぐり（船・飛行機・港・空港）", d:"🚢ふねで となりの島、✈️ひこうきで 行ったことのある島へ。⛽給油が必要。先の島ほどブラックこっこが強く、💴も増える。", li:[
+      "お店の物価は島ごとに変動（強い島ほど高い）／油は片道分しか買えない",
+      "島でしか買えないアイテム（✈️みどり島・🛡こがね島）"
+    ]},
+    { tag:"feat", t:"こっこの森：💴経済システム＆総資産ランキング", d:"札束を稼いでお店で 乗り物・家・道具を購入し、島ぐらしで実使用。朝7時に総資産を世界ランキングへ登録（サーバー保存）。" },
+    { tag:"feat", t:"こっこの森：島レーダーマップ＆ブラックこっこ道端バトル", d:"左下に島の地図と位置レーダー。出会うと空気が一変するガチ系バトル（コンボ・クリティカル）。やられても救急車で復活。" },
+    { tag:"fix", t:"こっこの森：ボタンが押せず始められない不具合を修正", d:"水面シェーダーの不整合で初期化が止まり、タイトルのボタンが反応しなかった問題を解消。" },
+    { tag:"imp", t:"こっこの森：上部HUDの重なりを修正", d:"ボタン増加で時計と重なっていたのを、時計を小型化＆右上ボタンを2段に整理。" },
+    { tag:"imp", t:"こっこGP：🔫⚡を拡大＆一撃救出に調整" }
+  ]},
+  { date:"2026.06.12", items:[
+    { tag:"new", t:"こっこの森（島ぐらしTPS）を追加", d:"GPUシェーダーで毎回生成される絵文字の島で、のんびり島ぐらし。" },
+    { tag:"new", t:"コッコスプラット／3D版コッコスプラットを追加", d:"スプラ風のインクぬり陣取りゲーム。" },
+    { tag:"imp", t:"こっこGP：シューティング・演出・発熱対策など多数改善", d:"ロックオン／バレットタイム、コースアウト挙動、スマホ発熱対策、フリーズ修正ほか。" }
+  ]},
+  { date:"2026.06.11", items:[
+    { tag:"new", t:"新ゲームを多数追加", d:"こっこGP大救出（レーシング）、こっこシェイク救出、こっこヒーロー、こっこブレイカー、こっこSOS、こっこジャイロ、こっこギャラクシー、こっこパルス、こっこビート。" },
+    { tag:"imp", t:"トップメニューのレイアウト改善／更新の即時反映", d:"メニューを列グリッド化。Service WorkerをHTMLネットワーク優先にし、メニュー更新がすぐ反映されるように。" }
+  ]},
+  { date:"2026.06.10", items:[
+    { tag:"new", t:"コッコポップ・コッコタワー・コッコラッシュを追加" },
+    { tag:"feat", t:"世界ランキング機能を安定化＆セキュリティ強化", d:"匿名認証uid＋スコア上限。設定なしでも登録でき、認証＋ルールで厳格モードに昇格できる構成に。" },
+    { tag:"imp", t:"こっこリンク：つなぐ操作感をなめらかに", d:"列ごとの最近傍ヒット判定や補間で、引っかからない指追従に。" }
+  ]}
+];
+
+(function(){
+  var TAG={ new:['t-new','🆕 新ゲーム'], feat:['t-feat','✨ 新機能'], imp:['t-imp','🔧 改善'], fix:['t-fix','🐛 修正'] };
+  function esc(s){ return String(s).replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];}); }
+  var html=LOG.map(function(day){
+    var entries=day.items.map(function(it){
+      var tg=TAG[it.tag]||TAG.feat;
+      var s='<div class="entry"><div class="ttl"><span class="tag '+tg[0]+'">'+tg[1]+'</span><span>'+esc(it.t)+'</span></div>';
+      if(it.d) s+='<div class="desc">'+esc(it.d)+'</div>';
+      if(it.li&&it.li.length) s+='<ul>'+it.li.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul>';
+      return s+'</div>';
+    }).join('');
+    return '<section class="day"><div class="date">'+esc(day.date)+'</div>'+entries+'</section>';
+  }).join('');
+  document.getElementById('log').innerHTML=html;
+})();
+</script>
+</body>
+</html>
