@@ -42,20 +42,21 @@
     width:40px;height:40px;font-size:17px;}
   .ctrlbtn:active{transform:scale(.92);}
   .ctrlbtn.off{opacity:.5;}
-  #homeBtn{top:calc(10px + env(safe-area-inset-top));right:calc(104px + env(safe-area-inset-right));display:none;}
-  #homeBtn.on{display:flex;}
-  #muteBtn{top:calc(10px + env(safe-area-inset-top));right:calc(58px + env(safe-area-inset-right));}
+  /* 右上ボタン：1段目＝🔊⛶（常設）／2段目＝🏠🏆🚲（プレイ中）。中央の時計に被らせない */
   #fsBtn{top:calc(10px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));}
-  #rideBtn{top:calc(10px + env(safe-area-inset-top));right:calc(150px + env(safe-area-inset-right));display:none;font-size:20px;}
+  #muteBtn{top:calc(10px + env(safe-area-inset-top));right:calc(58px + env(safe-area-inset-right));}
+  #homeBtn{top:calc(56px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));display:none;}
+  #homeBtn.on{display:flex;}
+  #rideBtn{top:calc(56px + env(safe-area-inset-top));right:calc(104px + env(safe-area-inset-right));display:none;font-size:20px;}
   #rideBtn.on{display:flex;}
   #rideBtn.riding{background:rgba(110,200,255,.55);border-color:rgba(150,220,255,.85);box-shadow:0 0 14px rgba(120,200,255,.5);}
 
   /* ===== HUD ===== */
   #hud{position:absolute;inset:0;z-index:8;pointer-events:none;display:none;}
   #hud.on{display:block;}
-  #hudClock{position:absolute;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);
-    font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.06em;
-    background:rgba(8,24,14,.45);padding:6px 16px;border-radius:20px;
+  #hudClock{position:absolute;top:calc(7px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);
+    font-size:11px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.01em;white-space:nowrap;
+    background:rgba(8,24,14,.45);padding:4px 11px;border-radius:14px;
     text-shadow:0 1px 4px rgba(0,0,0,.6);}
   #hudInv{position:absolute;top:calc(10px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));
     font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.7;
@@ -64,8 +65,8 @@
   #hudInv .it{transition:transform .15s;}
   #hudInv .it.pop{transform:scale(1.45);}
   #hudCoin{font-size:16px;color:#ffe07a;}
-  #saveFlash{position:absolute;top:calc(54px + env(safe-area-inset-top));right:calc(14px + env(safe-area-inset-right));
-    font-size:13px;opacity:0;transition:opacity .4s;text-shadow:0 1px 4px rgba(0,0,0,.7);}
+  #saveFlash{position:absolute;top:calc(102px + env(safe-area-inset-top));right:calc(14px + env(safe-area-inset-right));
+    font-size:12px;opacity:0;transition:opacity .4s;text-shadow:0 1px 4px rgba(0,0,0,.7);}
   #saveFlash.on{opacity:.85;}
 
   /* レーダーマップ */
@@ -107,7 +108,7 @@
   #bubble .nm{font-weight:900;font-size:12px;color:#9b6a1f;letter-spacing:.1em;display:block;margin-bottom:2px;}
 
   /* トースト */
-  #toast{position:absolute;z-index:15;left:50%;top:calc(64px + env(safe-area-inset-top));transform:translateX(-50%);
+  #toast{position:absolute;z-index:15;left:50%;top:calc(108px + env(safe-area-inset-top));transform:translateX(-50%);
     background:rgba(8,28,14,.8);padding:9px 20px;border-radius:24px;font-size:14px;font-weight:800;
     opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.5);}
   #toast.on{opacity:1;}
@@ -243,7 +244,7 @@
   .nogl{max-width:340px;font-size:13px;line-height:2;color:#cdf3a0;}
 
   /* ===== 総資産 世界ランキング ===== */
-  #rankBtn{top:calc(10px + env(safe-area-inset-top));right:calc(196px + env(safe-area-inset-right));display:none;font-size:18px;}
+  #rankBtn{top:calc(56px + env(safe-area-inset-top));right:calc(58px + env(safe-area-inset-right));display:none;font-size:18px;}
   #rankBtn.on{display:flex;}
   #rankBtn.alert{animation:rankPulse 1s ease-in-out infinite;border-color:#ffd24d;box-shadow:0 0 16px rgba(255,210,80,.6);}
   @keyframes rankPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
