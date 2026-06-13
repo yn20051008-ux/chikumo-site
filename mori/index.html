@@ -65,6 +65,13 @@
     font-size:13px;opacity:0;transition:opacity .4s;text-shadow:0 1px 4px rgba(0,0,0,.7);}
   #saveFlash.on{opacity:.85;}
 
+  /* レーダーマップ */
+  #radar{position:absolute;z-index:10;left:calc(12px + env(safe-area-inset-left));
+    bottom:calc(20px + env(safe-area-inset-bottom));width:124px;height:124px;pointer-events:none;
+    border-radius:50%;background:rgba(6,20,12,.5);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+    box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 0 2px rgba(150,230,120,.4),
+      inset 0 0 16px rgba(120,230,110,.18),0 0 14px rgba(120,230,110,.22);}
+
   /* 仮想スティック */
   #stickBase{position:absolute;z-index:9;width:96px;height:96px;border-radius:50%;pointer-events:none;display:none;
     border:2px solid rgba(255,255,255,.35);background:rgba(255,255,255,.06);}
@@ -221,6 +228,7 @@
     </div>
     <div id="saveFlash">💾 セーブしました</div>
     <div id="stickBase"></div><div id="stickKnob"></div>
+    <canvas id="radar" width="124" height="124"></canvas>
   </div>
   <div class="actbtn hidden idle" id="actBtn"><span id="actIco">🤚</span><span id="actLbl">しらべる</span></div>
   <div class="actbtn hidden" id="jumpBtn">⬆</div>
@@ -752,6 +760,7 @@ function genWorld(seed){
     if(!ok) continue;
     enemies.push(makeEnemy(x,z));
   }
+  buildRadarLand();
 }
 const ENEMY_MAXHP=10;
 function makeEnemy(x,z){
@@ -1499,6 +1508,85 @@ function buildSprites(){
   }
 }
 
+/* ===== レーダーマップ（島の地形＋こっこ＆ブラックこっこの位置） ===== */
+const radarCv=$('radar'), rcx=radarCv.getContext('2d');
+const RAD_SIZE=124, RAD_PAD=9;
+const radarLand=document.createElement('canvas'); radarLand.width=HN; radarLand.height=HN;
+const rlx=radarLand.getContext('2d');
+let radarReady=false, radarDPR=0;
+function buildRadarLand(){
+  // ハイトマップから島のかたちを2Dマップ画像に焼きこむ（北=-z=上）
+  const img=rlx.createImageData(HN,HN);
+  for(let j=0;j<HN;j++)for(let i=0;i<HN;i++){
+    const h=heights[j*HN+i], m=moists[j*HN+i];
+    let r,g,b,a=255;
+    if(h<WL-0.5){ r=16;g=46;b=72;a=205; }                         // ふかい海
+    else if(h<WL+0.2){ r=34;g=78;b=104;a=225; }                   // あさせ
+    else if(h<WL+0.9){ r=214;g=198;b=140; }                       // 砂浜
+    else {                                                          // 草地〜岩山
+      const t=clamp((h-WL)/(HMAX-WL),0,1);
+      r=72+t*78; g=156-t*54; b=72-t*18+(m-0.5)*22;
+      if(t>0.62){ r=150+(t-0.62)*60; g=150+(t-0.62)*60; b=150+(t-0.62)*60; } // 高地は岩色
+    }
+    const o=(j*HN+i)*4; img.data[o]=r; img.data[o+1]=g; img.data[o+2]=b; img.data[o+3]=a;
+  }
+  rlx.putImageData(img,0,0); radarReady=true;
+}
+function setupRadarCanvas(){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  if(dpr===radarDPR&&radarCv.width) return;
+  radarDPR=dpr; radarCv.width=Math.round(RAD_SIZE*dpr); radarCv.height=Math.round(RAD_SIZE*dpr);
+}
+function radarPt(x,z,cx,cy,R){ return [cx+((x+HALF)/SIZE-0.5)*2*R, cy+((z+HALF)/SIZE-0.5)*2*R]; }
+function drawRadar(){
+  setupRadarCanvas();
+  const S=RAD_SIZE, cx=S/2, cy=S/2, R=S/2-RAD_PAD;
+  rcx.setTransform(radarDPR,0,0,radarDPR,0,0);
+  rcx.clearRect(0,0,S,S);
+  rcx.save();
+  rcx.beginPath(); rcx.arc(cx,cy,R,0,TAU); rcx.clip();
+  // 海の下地＋島
+  rcx.fillStyle='rgba(10,34,52,.92)'; rcx.fillRect(0,0,S,S);
+  if(radarReady){ rcx.imageSmoothingEnabled=true; rcx.globalAlpha=.95;
+    rcx.drawImage(radarLand,cx-R,cy-R,2*R,2*R); rcx.globalAlpha=1; }
+  // レーダーグリッド
+  rcx.strokeStyle='rgba(160,240,130,.16)'; rcx.lineWidth=1;
+  for(let k=1;k<=2;k++){ rcx.beginPath(); rcx.arc(cx,cy,R*k/3,0,TAU); rcx.stroke(); }
+  rcx.beginPath(); rcx.moveTo(cx-R,cy); rcx.lineTo(cx+R,cy); rcx.moveTo(cx,cy-R); rcx.lineTo(cx,cy+R); rcx.stroke();
+  // スイープ（回転する光のあおり）
+  const sw=(G.time*1.0)%TAU;
+  rcx.save(); rcx.translate(cx,cy); rcx.rotate(sw);
+  const sg=rcx.createLinearGradient(0,0,R,0);
+  sg.addColorStop(0,'rgba(160,245,130,.26)'); sg.addColorStop(1,'rgba(160,245,130,0)');
+  rcx.fillStyle=sg; rcx.beginPath(); rcx.moveTo(0,0); rcx.arc(0,0,R,-0.34,0); rcx.closePath(); rcx.fill();
+  rcx.strokeStyle='rgba(180,255,150,.55)'; rcx.lineWidth=1.4;
+  rcx.beginPath(); rcx.moveTo(0,0); rcx.lineTo(R,0); rcx.stroke();
+  rcx.restore();
+  // ブラックこっこ（赤い点・アグロ中は脈動リング）
+  for(const e of enemies){
+    if(e.dead) continue;
+    const [bx,by]=radarPt(e.x,e.z,cx,cy,R);
+    const pulse=0.5+0.5*Math.sin(G.time*6);
+    if(e.aggro){ rcx.strokeStyle='rgba(255,80,80,'+(0.45*(1-pulse))+')'; rcx.lineWidth=1.6;
+      rcx.beginPath(); rcx.arc(bx,by,4.5+pulse*5,0,TAU); rcx.stroke(); }
+    rcx.fillStyle='rgba(255,60,60,'+(e.aggro?0.7+0.3*pulse:0.9)+')';
+    rcx.beginPath(); rcx.arc(bx,by,3.2,0,TAU); rcx.fill();
+    rcx.fillStyle='rgba(120,0,0,.9)'; rcx.beginPath(); rcx.arc(bx,by,1.3,0,TAU); rcx.fill();
+  }
+  // プレイヤー（こっこ・向きのある矢印）
+  const [px,py]=radarPt(P.x,P.z,cx,cy,R);
+  rcx.save(); rcx.translate(px,py); rcx.rotate(Math.atan2(-Math.cos(cam.yaw),Math.sin(cam.yaw))+Math.PI/2);
+  rcx.fillStyle='#f6ffd6'; rcx.strokeStyle='rgba(24,46,12,.85)'; rcx.lineWidth=1.2;
+  rcx.beginPath(); rcx.moveTo(0,-6); rcx.lineTo(4,4.2); rcx.lineTo(0,2); rcx.lineTo(-4,4.2); rcx.closePath();
+  rcx.fill(); rcx.stroke();
+  rcx.restore();
+  rcx.restore(); // クリップ解除
+  // N（北）インジケータ
+  rcx.fillStyle='rgba(200,245,170,.92)'; rcx.font='900 10px sans-serif';
+  rcx.textAlign='center'; rcx.textBaseline='middle';
+  rcx.fillText('N',cx,cy-R+7);
+}
+
 /* ===== 描画 ===== */
 function resize(){
   DPR=Math.min(window.devicePixelRatio||1,2);
@@ -1631,6 +1719,9 @@ function render(){
       gl.depthMask(true);
     }
   }
+
+  /* --- レーダーマップ --- */
+  if(G.phase==='play') drawRadar();
 }
 
 /* ===== ゲームフロー ===== */
