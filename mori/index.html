@@ -241,7 +241,111 @@
   .credit a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3);}
   a{pointer-events:auto;}
   .nogl{max-width:340px;font-size:13px;line-height:2;color:#cdf3a0;}
+
+  /* ===== 総資産 世界ランキング ===== */
+  #rankBtn{top:calc(10px + env(safe-area-inset-top));right:calc(196px + env(safe-area-inset-right));display:none;font-size:18px;}
+  #rankBtn.on{display:flex;}
+  #rankBtn.alert{animation:rankPulse 1s ease-in-out infinite;border-color:#ffd24d;box-shadow:0 0 16px rgba(255,210,80,.6);}
+  @keyframes rankPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.12);}}
+  #rankScreen{position:absolute;inset:0;z-index:22;display:none;flex-direction:column;align-items:center;
+    justify-content:flex-start;padding:calc(env(safe-area-inset-top) + 16px) 18px calc(env(safe-area-inset-bottom) + 16px);
+    overflow:hidden;text-align:center;background:radial-gradient(ellipse at 50% 26%,rgba(40,52,30,.72),rgba(6,10,6,.94));
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+  #rankScreen.on{display:flex;animation:shopin .22s ease-out;}
+  #rankScreen .rk-logo{font-size:21px;font-weight:900;letter-spacing:.06em;color:#ffe89a;
+    text-shadow:0 2px 10px rgba(0,0,0,.6);flex:none;}
+  #rankScreen .rk-mine{margin-top:8px;font-size:13px;color:#cdf3a0;flex:none;}
+  #rankScreen .rk-mine b{color:#ffe07a;font-size:17px;}
+  .rankentry{display:flex;gap:8px;justify-content:center;align-items:center;margin-top:12px;width:min(94vw,380px);flex:none;}
+  .rankentry input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:2px solid rgba(150,220,120,.5);
+    background:rgba(12,20,10,.7);color:#fff;font-size:15px;text-align:center;outline:none;}
+  .rankentry input::placeholder{color:rgba(255,255,255,.4);}
+  .rankflag{flex:none;padding:9px 10px;border-radius:10px;border:2px solid rgba(150,220,120,.5);
+    background:rgba(12,20,10,.7);color:#fff;font-size:20px;outline:none;cursor:pointer;line-height:1;}
+  .rankmsg{min-height:15px;margin-top:7px;font-size:12px;color:#bdf08a;letter-spacing:.04em;flex:none;}
+  .ranktitle{margin-top:12px;font-size:13px;font-weight:800;color:#bdf08a;letter-spacing:.12em;flex:none;}
+  .ranklist{list-style:none;margin:8px auto 0;padding:0 2px;width:min(94vw,380px);text-align:left;
+    flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;overscroll-behavior:contain;}
+  .ranklist li{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:9px;
+    background:rgba(255,255,255,.05);margin-bottom:5px;font-variant-numeric:tabular-nums;font-size:14px;}
+  .ranklist li.mine{outline:2px solid rgba(150,230,120,.7);background:rgba(120,200,80,.16);}
+  .ranklist li:nth-child(1){background:rgba(255,200,80,.20);}
+  .ranklist li:nth-child(2){background:rgba(210,220,255,.13);}
+  .ranklist li:nth-child(3){background:rgba(255,170,120,.13);}
+  .ranklist .rk{width:30px;flex:none;text-align:center;font-weight:800;}
+  .ranklist .rn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff;}
+  .ranklist .rs{flex:none;font-weight:800;color:#ffe07a;}
+  .rankempty{justify-content:center;opacity:.6;}
+  #rankBack{flex:none;margin-top:12px;}
+  .flagpicker{position:fixed;inset:0;z-index:71;display:flex;align-items:center;justify-content:center;padding:18px;touch-action:none;
+    background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
+  .flagpicker.hidden{display:none;}
+  .flagpicker-inner{width:min(94vw,420px);max-height:84vh;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;overscroll-behavior:contain;text-align:center;
+    background:rgba(16,22,16,.97);border:1px solid rgba(150,220,120,.35);border-radius:16px;padding:18px 16px 16px;}
+  .flagpicker-title{font-size:16px;font-weight:800;color:#bdf08a;letter-spacing:.14em;margin-bottom:12px;}
+  .flaggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:6px;margin-bottom:12px;}
+  .flaggrid.hidden{display:none;}
+  .flagopt{font-size:24px;line-height:1;padding:8px 0;border-radius:8px;border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.05);cursor:pointer;color:#fff;}
+  .flagopt:active{transform:scale(.9);} .flagopt.sel{border-color:#9be05a;background:rgba(150,224,90,.18);}
+  /* 結果発表「◯位にランクイン！」 */
+  .rankin-ov{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(ellipse at 50% 44%,rgba(30,60,28,.62),rgba(0,0,0,.84));
+    -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);animation:rankinFade .25s ease;}
+  .rankin-ov.out{animation:rankinFadeOut .42s ease forwards;}
+  @keyframes rankinFade{from{opacity:0}to{opacity:1}}
+  @keyframes rankinFadeOut{to{opacity:0}}
+  .rankin-card{position:relative;text-align:center;animation:rankinPop .5s cubic-bezier(.2,1.4,.4,1);}
+  @keyframes rankinPop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+  .rankin-rays{position:absolute;left:50%;top:46%;width:200vmax;height:200vmax;transform:translate(-50%,-50%) scale(.2);
+    opacity:0;pointer-events:none;background:repeating-conic-gradient(from 0deg,rgba(190,240,140,.16) 0deg 7deg,rgba(190,240,140,0) 7deg 14deg);}
+  .rankin-ov.reveal .rankin-rays{animation:rankinRays .6s ease-out forwards,rankinSpin 14s linear infinite .6s;}
+  @keyframes rankinRays{to{opacity:.9;transform:translate(-50%,-50%) scale(1)}}
+  @keyframes rankinSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+  .rankin-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;}
+  .rankin-ov.reveal .rankin-flash{animation:rankinFlash .5s ease-out;}
+  @keyframes rankinFlash{0%{opacity:.85}100%{opacity:0}}
+  .rankin-sub{font-size:15px;letter-spacing:.5em;color:#cdf3a0;font-weight:800;margin-bottom:4px;text-shadow:0 0 12px rgba(150,230,110,.7);}
+  .rankin-ov.reveal .rankin-sub{animation:rankinShine 1.3s ease-in-out infinite;}
+  .rankin-rank{position:relative;display:flex;align-items:baseline;justify-content:center;gap:6px;line-height:1;max-width:96vw;}
+  .rankin-ring{position:absolute;left:50%;top:50%;width:30px;height:30px;border-radius:50%;
+    border:4px solid rgba(180,240,120,.9);transform:translate(-50%,-50%) scale(0);opacity:0;}
+  .rankin-ov.reveal .rankin-ring{animation:rankinRing .7s ease-out forwards;}
+  @keyframes rankinRing{0%{opacity:.9;transform:translate(-50%,-50%) scale(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(14)}}
+  .rankin-num{font-size:min(24vw,150px);font-weight:900;font-style:italic;font-variant-numeric:tabular-nums;
+    white-space:nowrap;padding:0 .06em;line-height:1;
+    background:linear-gradient(180deg,#fdfff0 0%,#bdf08a 38%,#7fce5a 72%,#4fae52 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 18px rgba(120,210,70,.6));}
+  .rankin-ov.rolling .rankin-num{animation:rankinThrob .25s ease-in-out infinite;}
+  @keyframes rankinThrob{0%,100%{transform:scale(.94)}50%{transform:scale(1.04)}}
+  .rankin-ov.reveal .rankin-num{animation:rankinSlam .55s cubic-bezier(.18,1.6,.4,1) both;}
+  @keyframes rankinSlam{0%{transform:scale(2.4);opacity:0;filter:blur(6px)}55%{transform:scale(.86);opacity:1;filter:blur(0)}100%{transform:scale(1)}}
+  .rankin-pos{font-size:11vw;font-weight:900;color:#ffe07a;text-shadow:0 0 14px rgba(255,200,90,.8);}
+  .rankin-msg{margin-top:2px;font-size:8vw;font-weight:900;color:#fff;letter-spacing:.06em;opacity:0;
+    text-shadow:0 0 16px rgba(180,230,120,.9),0 2px 0 rgba(0,0,0,.35);}
+  .rankin-msg b{color:#bdf08a;}
+  .rankin-ov.reveal .rankin-msg{animation:rankinMsgIn .4s ease-out .25s forwards,rankinShine 1.4s ease-in-out infinite .65s;}
+  @keyframes rankinMsgIn{from{opacity:0;transform:translateY(10px) scale(.9)}to{opacity:1;transform:none}}
+  @keyframes rankinShine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.5)}}
+  .rankin-total{margin-top:12px;font-size:14px;color:#bfefff;opacity:0;letter-spacing:.1em;}
+  .rankin-ov.reveal .rankin-total{animation:rankinMsgIn .4s ease-out .45s forwards;}
+  .rankin-conf{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+  .rankin-conf i{position:absolute;top:-16px;width:10px;height:15px;border-radius:2px;opacity:.96;animation:rankinConf 2.6s linear forwards;}
+  @keyframes rankinConf{0%{top:-16px}100%{top:112%}}
+  .rankin-fws{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+  .rankin-fw{position:absolute;width:0;height:0;}
+  .rankin-fw i{position:absolute;left:0;top:0;width:7px;height:7px;border-radius:50%;opacity:1;
+    box-shadow:0 0 8px currentColor;animation:rankinFw .9s ease-out forwards;}
+  @keyframes rankinFw{0%{opacity:1;transform:translate(0,0) scale(1.1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)}}
+  .rankin-cocco{position:absolute;left:50%;top:-16vh;width:min(20vw,116px);height:auto;transform:translateX(-50%) scale(.3);opacity:0;
+    pointer-events:none;filter:drop-shadow(0 6px 16px rgba(150,220,90,.6));}
+  .rankin-ov.reveal .rankin-cocco{animation:coccoIn .5s cubic-bezier(.2,1.6,.4,1) .12s forwards,coccoBob 1s ease-in-out 1.1s infinite;}
+  @keyframes coccoIn{from{opacity:0;transform:translateX(-50%) translateY(24px) scale(.3)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+  @keyframes coccoBob{0%,100%{transform:translateX(-50%) translateY(0) rotate(-5deg)}50%{transform:translateX(-50%) translateY(-14px) rotate(5deg)}}
 </style>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 </head>
 <body>
 <div id="wrap">
@@ -250,6 +354,7 @@
   <div class="ctrlbtn" id="muteBtn">🔊</div>
   <div class="ctrlbtn" id="fsBtn">⛶</div>
   <div class="ctrlbtn" id="rideBtn">🚲</div>
+  <div class="ctrlbtn" id="rankBtn">🏆</div>
 
   <!-- HUD -->
   <div id="hud">
@@ -295,6 +400,30 @@
     </div>
   </div>
 
+  <!-- 総資産 世界ランキング -->
+  <div id="rankScreen">
+    <div class="rk-logo">🏆 総資産 世界ランキング</div>
+    <div class="rk-mine" id="rankMine">あなたの総資産：<b id="rankMyAssets">💴 0</b></div>
+    <div class="rankentry" id="rankEntry" style="display:none;">
+      <button type="button" id="rankFlagBtn" class="rankflag" aria-label="国旗をえらぶ">🇯🇵</button>
+      <input id="rankName" maxlength="10" placeholder="なまえ" autocomplete="off" spellcheck="false">
+      <button class="btn small" id="rankSubmit">登録</button>
+    </div>
+    <div class="rankmsg" id="rankMsg"></div>
+    <div class="ranktitle">― せかいの こっこたち ―</div>
+    <ol class="ranklist" id="rankList"><li class="rankempty">読み込み中…</li></ol>
+    <button class="btn" id="rankBack">とじる</button>
+  </div>
+  <div class="flagpicker hidden" id="flagPicker">
+    <div class="flagpicker-inner">
+      <div class="flagpicker-title">国旗をえらぶ</div>
+      <div class="flaggrid" id="flagGridMajor"></div>
+      <button type="button" class="btn ghost" id="flagMoreBtn" style="font-size:13px;">🏳️ その他をすべて表示</button>
+      <div class="flaggrid hidden" id="flagGridAll"></div>
+      <button type="button" class="btn" id="flagPickerClose">とじる</button>
+    </div>
+  </div>
+
   <!-- TITLE -->
   <div class="screen" id="titleScreen">
     <span class="leafring"><img class="hero" src="/chikumo.svg" alt="こっこちゃん"></span>
@@ -313,7 +442,10 @@
     <div class="btn-row">
       <button class="btn" id="newBtn">はじめから</button>
     </div>
-    <button class="btn ghost" id="howBtn">あそびかた</button>
+    <div class="btn-row">
+      <button class="btn ghost" id="howBtn">あそびかた</button>
+      <button class="btn ghost" id="rankTitleBtn">🏆 ランキング</button>
+    </div>
     <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
   </div>
 
@@ -327,6 +459,7 @@
       ◆ 島には <b>朝・ひる・夜</b> がある。夜は ✨ホタルが とぶよ。<br><br>
       ◆ <b style="color:#ff7a7a;">⚠ ブラックこっこ</b>に であうと…のどかな島が一変！<b>アクションボタン</b>で <b>たたかう</b>。<b>ジャンプ中の攻撃はクリティカル💥</b>、連続ヒットで <b>コンボ</b>！ つっこみ💢は <b>うごいて回避</b>。たおすと <b>札束💴どっさり</b>！ やられても <b>🚑救急車</b>がたすけてくれるよ。<br><br>
       ◆ <b style="color:#ffe07a;">🏪 こっこ商店</b>（スポーン近く）で 💴をつかって おかいもの！ <b>🏠おうち</b>（ねるとHP全回復＆あさに）、<b>🚲じてんしゃ</b>（のって高速移動）、<b>⚔️つるぎ</b>（こうげき力UP）、<b>👟くつ</b>（はやあるき）、<b>💗ハートのうつわ</b>（最大HP UP）。買ったものは 島ぐらしで じっさいに使えるよ！<br><br>
+      ◆ <b style="color:#ffd24d;">🏆 総資産 世界ランキング</b>：島の <b>あさ7時</b> になると、いまの総資産（おかね＋もちもの）を <b>世界ランキングに登録</b>できる！（🏠でねると あさになるよ）ランキングは <b>🏆ボタンでいつでも閲覧</b>。記録は サーバー保存だから 世界中のこっこと きそえる！<br><br>
       ◆ <b>島の地形はGPUで毎回計算生成</b>。「はじめから」を選ぶたびに 新しい島になるよ。<br><br>
       ◆ あそんだ記録は <b>ブラウザに自動セーブ</b>（💾マーク）。つぎは「<b>つづきから</b>」で同じ島のつづきが あそべる！🏠ボタンでセーブしてタイトルへ。
     </div>
@@ -858,7 +991,9 @@ const G={phase:'title',time:0,tod:0.375,day:1,coins:0,paused:false,playSec:0,sav
   inBattle:false,battleT:0,atkCD:0,swingT:0,shake:0,hitStop:0,regenT:0,ko:false,koT:0,
   /* 暮らし（お金・お店・もちもの） */
   owned:{house:false,bike:false,sword:false,boots:false,heart:0},
-  riding:false,shopOpen:false,sleepT:0};
+  riding:false,shopOpen:false,sleepT:0,
+  /* ランキング（朝7時に総資産を登録） */
+  prevTod:0.375,canRegister:false,rankOpen:false,regDay:0};
 const P={x:0,z:0,y:0,vy:0,moving:false,flip:1,onG:true};
 const cam={yaw:0,pitch:-0.32,dist:8.5};
 let parts=[], pickups=[], bflies=[], bflyT=4, enemies=[];
@@ -1201,6 +1336,22 @@ function openShop(){
   renderShop(); $('shopScreen').classList.add('on');
 }
 function closeShop(){ G.shopOpen=false; $('shopScreen').classList.remove('on'); lastAct='?'; }
+/* ===== 総資産 世界ランキング ===== */
+const MORN_A=7/24, MORN_B=9/24;   // 登録ウィンドウ：あさ7時〜9時
+function morningCheck(){
+  if(G.prevTod<MORN_A && G.tod>=MORN_A && G.tod<MORN_B && !G.canRegister){
+    G.canRegister=true; $('rankBtn').classList.add('alert');
+    showToast('🌅 あさ7時！ きょうの総資産を 世界ランキングに登録できるよ（🏆）'); Sound.save();
+  }
+  if(G.prevTod<MORN_B && G.tod>=MORN_B){ G.canRegister=false; $('rankBtn').classList.remove('alert'); }
+  G.prevTod=G.tod;
+}
+function openRank(){
+  if(G.rankOpen) return;
+  if(!window.MoriRank){ showToast('🏆 ランキングは オフラインでは つかえません'); return; }
+  G.rankOpen=true; Sound.ui(); $('rankBtn').classList.remove('alert');
+  window.MoriRank.open(totalAssets(), G.day, (G.phase==='play'&&G.canRegister), ()=>{ G.rankOpen=false; lastAct='?'; });
+}
 function renderShop(){
   $('shopMoney').textContent='💴 '+G.coins.toLocaleString();
   let html='';
@@ -1273,6 +1424,17 @@ function moveSpeed(){
   if(G.owned.boots) s+=1.7;
   if(G.owned.bike&&G.riding) s*=1.9;
   return s;
+}
+/* 総資産＝おかね＋もちもの（買った道具）＋しゅうかく品の評価額 */
+function totalAssets(){
+  let a=G.coins|0;
+  if(G.owned.house) a+=1500;
+  if(G.owned.bike)  a+=800;
+  if(G.owned.sword) a+=600;
+  if(G.owned.boots) a+=400;
+  a+=300*(G.owned.heart*(G.owned.heart+1)/2);        // ハートは買うほど高額に
+  const v=G.inv; a+=(v.fruit*5)+(v.flower*8)+(v.bug*40)+(v.shell*25);
+  return a;
 }
 function hudInv(popId){
   $('hudCoin').textContent='💴 '+G.coins.toLocaleString();
@@ -1348,8 +1510,8 @@ function update(dt){
   if(G.shake>0) G.shake=Math.max(0,G.shake-dt*2.2);
   /* 救急車KO演出中は世界を止める */
   if(G.ko){ G.koT+=dt; updateEnemies(dt); updateFx(dt); if(G.koT>=2.6) reviveFromKO(); return; }
-  /* おみせを ひらいている間は 世界を止める */
-  if(G.shopOpen){ updateFx(dt); return; }
+  /* おみせ／ランキングを ひらいている間は 世界を止める */
+  if(G.shopOpen||G.rankOpen){ updateFx(dt); return; }
   /* ねむっている間（おうち）は 世界を止める */
   if(G.sleepT>0){ G.sleepT-=dt; updateFx(dt); if(G.sleepT<=0){ $('sleepOv').classList.remove('on'); showToast('🌅 ぐっすり ねむった！ げんきに かいふく'); } return; }
   G.playSec+=dt;
@@ -1366,6 +1528,7 @@ function update(dt){
   G.tod+=dt/DAY_LEN;
   if(G.tod>=1){ G.tod-=1; G.day++; showToast('🌅 '+G.day+'日めの あさ！'); }
   hudClock();
+  morningCheck();   // あさ7時で 総資産ランキングの登録ウィンドウを開く
 
   /* 鳥のさえずり（ひるま）＆オートセーブ */
   G.birdT-=dt;
@@ -1924,10 +2087,12 @@ function resetBattle(){
   G.shake=0; G.hitStop=0; G.regenT=0; G.ko=false; G.koT=0;
   G.inBattle=false; G.battleT=0;
   G.shopOpen=false; G.riding=false; G.sleepT=0;
+  G.rankOpen=false; G.canRegister=false; G.prevTod=G.tod; G.regDay=G.day;
   Sound.stopBattleBGM();
   $('battleVig').classList.remove('on'); $('bossWrap').classList.remove('on');
   $('playerHP').classList.remove('on'); $('koOverlay').classList.remove('on');
   $('shopScreen').classList.remove('on'); $('sleepOv').classList.remove('on');
+  $('rankScreen').classList.remove('on'); $('rankBtn').classList.remove('alert');
   updateHP();
 }
 function enterPlay(){
@@ -1937,6 +2102,7 @@ function enterPlay(){
   lastAct='?'; lastClock='';
   resetBattle();
   hudInv(); hudClock(); hudAction(); updateRideBtn();
+  $('rankBtn').classList.add('on');
   show(null);
   Sound.startBGM();
 }
@@ -1980,7 +2146,8 @@ function toTitle(){
   $('battleVig').classList.remove('on'); $('bossWrap').classList.remove('on');
   $('playerHP').classList.remove('on'); $('koOverlay').classList.remove('on');
   $('shopScreen').classList.remove('on'); $('sleepOv').classList.remove('on'); $('rideBtn').classList.remove('on');
-  G.inBattle=false; G.ko=false; G.shopOpen=false; G.sleepT=0;
+  $('rankBtn').classList.remove('on'); $('rankBtn').classList.remove('alert');
+  G.inBattle=false; G.ko=false; G.shopOpen=false; G.sleepT=0; G.canRegister=false;
   if(document.pointerLockElement===cv){ try{document.exitPointerLock();}catch(e){} }
   refreshTitle();
   show('titleScreen');
@@ -2027,6 +2194,8 @@ $('fsBtn').addEventListener('click',()=>{
 });
 $('rideBtn').addEventListener('click',()=>{ Sound.init(); Sound.resume(); toggleRide(); });
 $('shopClose').addEventListener('click',()=>{ Sound.ui(); closeShop(); });
+$('rankBtn').addEventListener('click',()=>{ Sound.init(); Sound.resume(); openRank(); });
+$('rankTitleBtn').addEventListener('click',()=>{ Sound.ui(); openRank(); });
 
 /* ===== 起動：セーブがあれば その島をタイトル背景に ===== */
 {
@@ -2046,6 +2215,168 @@ function frame(ts){
 }
 resize();
 requestAnimationFrame(frame);
+})();
+</script>
+
+<script>
+/* ===== 総資産 世界ランキング（Firebase Realtime Database・サーバー保存） ===== */
+(function(){
+  if(typeof firebase==='undefined') return;                 // SDK未読込（オフライン等）→ ランキング無効、ゲームは続行
+  try{ if(!firebase.apps||!firebase.apps.length) firebase.initializeApp({
+    apiKey:"AIzaSyBw5-6oAuOmgYC_7G27Z0Qavwn78ZrkhdQ",
+    authDomain:"chikumonogatarikiroku.firebaseapp.com",
+    databaseURL:"https://chikumonogatarikiroku-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:"chikumonogatarikiroku",
+    storageBucket:"chikumonogatarikiroku.firebasestorage.app",
+    messagingSenderId:"725202431277",
+    appId:"1:725202431277:web:c49c911cfcae26d63ab7a4"
+  }); }catch(e){}
+  var db; try{ db=firebase.database(); }catch(e){ return; }
+  var ref=db.ref('rankings/mori');
+  var ASSET_CAP=99999999;
+  var NAME_KEY='coccoMoriName', UID_KEY='coccoMoriUid', FLAG_KEY='coccoMoriFlag';
+  var $=function(id){return document.getElementById(id);};
+  var selFlag='🇯🇵', curAssets=0, curDay=1, canReg=false, onCloseCb=null, lastSubmitTs=0;
+
+  /* 匿名認証で本物の uid（無ければ端末IDにフォールバック＝設定なしでも登録可） */
+  var myUid=null, authDone=false;
+  function ensureAuth(){ if(!firebase.auth){ authDone=true; return; } var a; try{ a=firebase.auth(); }catch(e){ authDone=true; return; }
+    a.onAuthStateChanged(function(u){ if(u){ myUid=u.uid; authDone=true; } });
+    if(!a.currentUser){ a.signInAnonymously().catch(function(){ authDone=true; }); } }
+  ensureAuth();
+  function localUid(){ var u; try{ u=localStorage.getItem(UID_KEY); }catch(e){}
+    if(!u){ u='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); try{ localStorage.setItem(UID_KEY,u); }catch(e){} } return u; }
+  function uid(){ return myUid || localUid(); }
+  function esc(s){ return String(s).replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; }); }
+  function fmtName(s){ s=(s||'').replace(/\s+/g,' ').trim().slice(0,10); return s||'ななしの こっこ'; }
+
+  /* 国旗ピッカー */
+  function flagOf(cc){ return cc.replace(/./g,function(c){ return String.fromCodePoint(0x1F1E6+c.charCodeAt(0)-65); }); }
+  var MAJOR=('JP US GB CA AU KR CN TW HK TH VN PH ID MY SG IN FR DE IT ES PT NL SE BR MX AR RU UA TR EG ZA SA NZ').split(' ').map(flagOf);
+  var ALL_CC=('AD AE AF AG AI AL AM AO AR AT AU AW AZ BA BB BD BE BF BG BH BI BJ BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FM FR GA GB GD GE GH GM GN GQ GR GT GW GY HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KI KM KN KP KR KW KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MH MK ML MM MN MR MT MU MV MW MX MY MZ NA NE NG NI NL NO NP NR NZ OM PA PE PG PH PK PL PT PW PY QA RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TD TG TH TJ TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VN VU WS YE ZA ZM ZW').split(' ');
+  var ALL=['🏳️','🏴','🏁','🇺🇳','🇪🇺'].concat(ALL_CC.map(flagOf));
+  function setFlag(f){ selFlag=f; var b=$('rankFlagBtn'); if(b) b.textContent=f; try{ localStorage.setItem(FLAG_KEY,f); }catch(e){} }
+  function buildGrid(elId, flags){ var el=$(elId); if(!el||el._built) return; el._built=true;
+    el.innerHTML=flags.map(function(f){ return '<button type="button" class="flagopt" data-f="'+f+'">'+f+'</button>'; }).join('');
+    el.addEventListener('click', function(e){ var t=e.target&&e.target.closest?e.target.closest('.flagopt'):null; if(!t)return; setFlag(t.getAttribute('data-f')); closePicker(); }); }
+  function openPicker(){ buildGrid('flagGridMajor', MAJOR); var p=$('flagPicker'); if(p) p.classList.remove('hidden'); }
+  function closePicker(){ var p=$('flagPicker'); if(p) p.classList.add('hidden'); }
+  function showAllFlags(){ buildGrid('flagGridAll', ALL); var g=$('flagGridAll'); if(g) g.classList.remove('hidden'); var b=$('flagMoreBtn'); if(b) b.classList.add('hidden'); }
+
+  /* 一覧の読み込み・描画 */
+  function renderList(rows){
+    var el=$('rankList'); if(!el) return; var me=uid();
+    if(!rows||!rows.length){ el.innerHTML='<li class="rankempty">まだ記録がありません。いちばんのり！</li>'; return; }
+    el.innerHTML=rows.slice(0,100).map(function(r,i){
+      var medal=['🥇','🥈','🥉'][i]||((i+1)+'.');
+      var fl=r.flag?esc(r.flag)+' ':'';
+      var mine=r.uid===me?' mine':'';
+      return '<li class="'+(mine?'mine':'')+'"><span class="rk">'+medal+'</span><span class="rn">'+fl+esc(r.name)+'</span><span class="rs">💴'+Number(r.score).toLocaleString()+'</span></li>';
+    }).join('');
+  }
+  function loadTop(after){
+    ref.orderByChild('score').limitToLast(2000).once('value').then(function(snap){
+      var rows=[]; snap.forEach(function(c){ var v=c.val()||{}; rows.push({uid:c.key,name:v.name,flag:v.flag,score:+v.score||0}); });
+      rows.sort(function(a,b){return b.score-a.score;});
+      renderList(rows); if(after) after(rows);
+    }).catch(function(){ var el=$('rankList'); if(el) el.innerHTML='<li class="rankempty">読み込めませんでした（接続を確認）</li>'; });
+  }
+
+  /* 「◯位にランクイン！」結果発表 */
+  function vib(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+  function celebrate(rank, total){
+    var old=$('rankinOv'); if(old&&old.parentNode) old.parentNode.removeChild(old);
+    var ov=document.createElement('div'); ov.id='rankinOv'; ov.className='rankin-ov';
+    ov.innerHTML='<div class="rankin-flash"></div><div class="rankin-rays"></div><div class="rankin-fws"></div><div class="rankin-conf"></div>'
+      +'<div class="rankin-card"><img class="rankin-cocco" src="/chikumo.svg" alt="">'
+      +'<div class="rankin-sub" id="riSub">総資産はっぴょう</div>'
+      +'<div class="rankin-rank"><span class="rankin-ring"></span><span class="rankin-num" id="riNum">?</span><span class="rankin-pos">位</span></div>'
+      +'<div class="rankin-msg" id="riMsg">…</div><div class="rankin-total" id="riTot"></div></div>';
+    document.body.appendChild(ov);
+    var numEl=ov.querySelector('#riNum'), subEl=ov.querySelector('#riSub'), msgEl=ov.querySelector('#riMsg'),
+        totEl=ov.querySelector('#riTot'), confEl=ov.querySelector('.rankin-conf'), fwsEl=ov.querySelector('.rankin-fws');
+    var killed=false, revealed=false, fwTimer=0;
+    function firework(){ var fw=document.createElement('div'); fw.className='rankin-fw';
+      fw.style.left=(12+Math.random()*76)+'%'; fw.style.top=(12+Math.random()*44)+'%';
+      var hue=Math.floor(Math.random()*360), n=14, html='';
+      for(var i=0;i<n;i++){ var a=(i/n)*6.283, d=44+Math.random()*46;
+        html+='<i style="--dx:'+Math.round(Math.cos(a)*d)+'px;--dy:'+Math.round(Math.sin(a)*d)+'px;background:hsl('+(hue+Math.floor(Math.random()*50))+',100%,64%)"></i>'; }
+      fw.innerHTML=html; fwsEl.appendChild(fw); setTimeout(function(){ if(fw.parentNode) fw.parentNode.removeChild(fw); },950); }
+    var kill=function(){ if(killed)return; killed=true; if(fwTimer) clearInterval(fwTimer); ov.classList.add('out'); setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },420); };
+    var roll=setInterval(function(){ numEl.textContent=Math.floor(Math.random()*Math.max(total,9))+1; }, 68);
+    var revealT;
+    function doReveal(){
+      if(revealed)return; revealed=true; clearInterval(roll); clearTimeout(revealT);
+      numEl.textContent=rank;
+      var dg=String(rank).length;
+      numEl.style.fontSize = dg<=1?'min(34vw,200px)' : dg===2?'min(26vw,156px)' : dg===3?'min(20vw,118px)' : 'min(15vw,92px)';
+      ov.classList.add('reveal');
+      var champ=rank===1, top3=rank<=3;
+      subEl.textContent = champ?'👑 せかい1の大富豪 👑' : (top3?'★ おめでとう ★':'★ RESULT ★');
+      msgEl.innerHTML = champ?'<b>せかい一！</b>' : (top3?'<b>入賞！</b>':'ランクイン！');
+      if(total) totEl.textContent='全 '+total+' 人中';
+      var pal=['#bdf08a','#ffd24d','#7ce0ff','#b15bff','#9affc0','#ff9a3c','#fff7cf'];
+      var html=''; var N=champ?72:48;
+      for(var i=0;i<N;i++){ html+='<i style="left:'+(Math.random()*100)+'%;background:'+pal[i%pal.length]
+        +';animation-delay:'+(Math.random()*0.35).toFixed(2)+'s;animation-duration:'+(2.0+Math.random()*1.6).toFixed(2)
+        +'s;transform:rotate('+Math.floor(Math.random()*360)+'deg)"></i>'; }
+      confEl.innerHTML=html;
+      firework(); fwTimer=setInterval(firework, champ?300:420);
+      vib([0,40,40,90]); setTimeout(kill, champ?6000:4600);
+    }
+    ov.classList.add('rolling'); vib(30);
+    revealT=setTimeout(doReveal, 1050);
+    ov.addEventListener('click', function(){ if(!revealed) doReveal(); else kill(); });
+  }
+  function celebrateMine(rows){ var my=uid(), idx=-1; for(var i=0;i<rows.length;i++){ if(rows[i].uid===my){ idx=i; break; } } if(idx>=0) celebrate(idx+1, rows.length); }
+
+  /* 登録（自己ベストの総資産のみ保持） */
+  function submit(){
+    var msg=$('rankMsg'), btn=$('rankSubmit');
+    if(!myUid && !authDone){ if(msg) msg.textContent='接続中…数秒後にもう一度押してね'; ensureAuth(); return; }
+    var now=Date.now(); if(now-lastSubmitTs<1500) return; lastSubmitTs=now;
+    var name=fmtName($('rankName')&&$('rankName').value), flag=selFlag||'🇯🇵';
+    try{ localStorage.setItem(NAME_KEY,name); localStorage.setItem(FLAG_KEY,flag); }catch(e){}
+    var score=Math.max(0,Math.min(ASSET_CAP,Math.floor(curAssets||0)));
+    if(btn) btn.disabled=true;
+    ref.child(uid()).transaction(function(cur){
+      if(cur && (cur.score||0)>=score){ cur.name=name; cur.flag=flag; return cur; }   // 自己ベスト未満→ベスト維持
+      return { name:name, flag:flag, score:score, day:(curDay|0), ts:now };
+    }).then(function(res){
+      var best=res&&res.snapshot?((res.snapshot.val()||{}).score||0):score;
+      if(msg) msg.textContent = best>score ? ('自己ベスト 💴'+Number(best).toLocaleString()+' を表示中🏆') : '登録しました！🏆';
+      if(btn) btn.disabled=false;
+      loadTop(celebrateMine);
+    }).catch(function(){ if(msg) msg.textContent='登録に失敗しました（接続を確認）'; if(btn) btn.disabled=false; });
+  }
+
+  /* 公開API（ゲーム本体から呼ぶ） */
+  function open(assets, day, canRegister, onClose){
+    curAssets=assets|0; curDay=day|0; canReg=!!canRegister; onCloseCb=onClose||null;
+    try{ var sv=localStorage.getItem(FLAG_KEY); if(sv) selFlag=sv; }catch(e){} setFlag(selFlag);
+    var nm=$('rankName'); if(nm){ try{ nm.value=localStorage.getItem(NAME_KEY)||''; }catch(e){} }
+    $('rankMyAssets').textContent='💴 '+curAssets.toLocaleString();
+    $('rankEntry').style.display = canReg ? 'flex' : 'none';
+    var msg=$('rankMsg');
+    if(msg) msg.textContent = canReg ? 'なまえを入れて 総資産を登録しよう！' : 'とうろくは 島の あさ7時にできるよ（🏠で ねると あさに）';
+    var btn=$('rankSubmit'); if(btn) btn.disabled=false;
+    $('rankList').innerHTML='<li class="rankempty">読み込み中…</li>';
+    $('rankScreen').classList.add('on');
+    loadTop();
+  }
+  function close(){ closePicker(); $('rankScreen').classList.remove('on'); var cb=onCloseCb; onCloseCb=null; if(cb) cb(); }
+
+  /* イベント結線 */
+  (function(){
+    var fb=$('rankFlagBtn'); if(fb) fb.addEventListener('click', openPicker);
+    var mb=$('flagMoreBtn'); if(mb) mb.addEventListener('click', showAllFlags);
+    var pc=$('flagPickerClose'); if(pc) pc.addEventListener('click', closePicker);
+    var pov=$('flagPicker'); if(pov) pov.addEventListener('click', function(e){ if(e.target===pov) closePicker(); });
+    var sb=$('rankSubmit'); if(sb) sb.addEventListener('click', submit);
+    var ni=$('rankName'); if(ni) ni.addEventListener('keydown', function(e){ if(e.key==='Enter') submit(); });
+    var bk=$('rankBack'); if(bk) bk.addEventListener('click', close);
+  })();
+  window.MoriRank={ open:open, close:close };
 })();
 </script>
 </body>
