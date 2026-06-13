@@ -420,7 +420,7 @@
   <!-- お店 -->
   <div id="shopScreen">
     <div id="shopCard">
-      <div id="shopHead"><span>🏪 こっこ商店</span><span id="shopMoney">💴 0</span></div>
+      <div id="shopHead"><span id="shopTitle">🏪 こっこ商店</span><span id="shopMoney">💴 0</span></div>
       <div id="shopList"></div>
       <button class="btn" id="shopClose">とじる</button>
     </div>
@@ -482,6 +482,7 @@
       <button class="btn ghost" id="howBtn">あそびかた</button>
       <button class="btn ghost" id="rankTitleBtn">🏆 ランキング</button>
     </div>
+    <a class="btn ghost" href="/letter/" id="letterLink" style="display:inline-block;text-decoration:none;">✉️ 正論蒔宿への手紙</a>
     <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
   </div>
 
@@ -495,7 +496,8 @@
       ◆ 島には <b>朝・ひる・夜</b> がある。夜は ✨ホタルが とぶよ。<br><br>
       ◆ <b style="color:#ff7a7a;">⚠ ブラックこっこ</b>に であうと…のどかな島が一変！<b>アクションボタン</b>で <b>たたかう</b>。<b>ジャンプ中の攻撃はクリティカル💥</b>、連続ヒットで <b>コンボ</b>！ つっこみ💢は <b>うごいて回避</b>。たおすと <b>札束💴どっさり</b>！ やられても <b>🚑救急車</b>がたすけてくれるよ。<br><br>
       ◆ <b style="color:#ffe07a;">🏪 こっこ商店</b>（スポーン近く）で 💴をつかって おかいもの！ <b>🏠おうち</b>（ねるとHP全回復＆あさに）、<b>🚲じてんしゃ</b>（のって高速移動）、<b>⚔️つるぎ</b>（こうげき力UP）、<b>👟くつ</b>（はやあるき）、<b>💗ハートのうつわ</b>（最大HP UP）。買ったものは 島ぐらしで じっさいに使えるよ！<br><br>
-      ◆ <b style="color:#8fd3ff;">🚢 ふね・✈️ ひこうき で 諸島めぐり</b>：お店で <b>船・飛行機・⛽あぶら（燃料）</b>を買うと、<b>🚢港</b>から となりの島へ、<b>✈️空港</b>から 行ったことのある島へ いつでも行ける（出発に燃料がいるよ）。<b style="color:#ff7a7a;">先の島ほど ブラックこっこが強く、💴も どっさり！</b><br><br>
+      ◆ <b style="color:#8fd3ff;">🚢 ふね・✈️ ひこうき で 諸島めぐり</b>：<b>🚢港</b>から となりの島へ、<b>✈️空港</b>から 行ったことのある島へ。出発には <b>⛽あぶら（給油）</b>がいるよ。<b style="color:#ff7a7a;">先の島ほど ブラックこっこが強く、💴も どっさり！</b><br><br>
+      ◆ <b style="color:#ffe07a;">物価のしくみ</b>：<b>強い島ほど お店の物価も高い</b>（ブラックこっこの💴に比例）。だから <b>高い島でかせいで、安い島で買う</b>のがオトク！ ただし <b>⛽油は片道ぶんしか買えない</b>（買いだめできない＝その島の物価で給油）。<b>その島でしか買えないアイテム</b>もあるよ（✈️ひこうき＝みどり島、🛡たて＝こがね島）。<br><br>
       ◆ <b style="color:#ffd24d;">🏆 総資産 世界ランキング</b>：島の <b>あさ7時</b> になると、いまの総資産（おかね＋もちもの）を <b>世界ランキングに登録</b>できる！（🏠でねると あさになるよ）ランキングは <b>🏆ボタンでいつでも閲覧</b>。記録は サーバー保存だから 世界中のこっこと きそえる！<br><br>
       ◆ <b>島の地形はGPUで毎回計算生成</b>。「はじめから」を選ぶたびに 新しい島になるよ。<br><br>
       ◆ あそんだ記録は <b>ブラウザに自動セーブ</b>（💾マーク）。つぎは「<b>つづきから</b>」で同じ島のつづきが あそべる！🏠ボタンでセーブしてタイトルへ。
@@ -1033,7 +1035,7 @@ const G={phase:'title',time:0,tod:0.375,day:1,coins:0,paused:false,playSec:0,sav
   hp:5,maxHp:5,invuln:0,combo:0,comboT:0,bestCombo:0,defeated:0,
   inBattle:false,battleT:0,atkCD:0,swingT:0,shake:0,hitStop:0,regenT:0,ko:false,koT:0,
   /* 暮らし（お金・お店・もちもの） */
-  owned:{house:false,bike:false,sword:false,boots:false,heart:0,ship:false,plane:false},
+  owned:{house:false,bike:false,sword:false,boots:false,heart:0,ship:false,plane:false,shield:false},
   riding:false,shopOpen:false,sleepT:0,
   /* 諸島めぐり（船・飛行機・燃料） */
   homeSeed:0,island:0,visited:[0],fuel:0,travelOpen:false,travelKind:'',travelT:0,
@@ -1255,6 +1257,11 @@ function defeatEnemy(e){
 }
 function damagePlayer(e){
   if(G.invuln>0||G.ko) return;
+  // まもりのたて：ときどき ガード（ダメージ無効）
+  if(G.owned.shield && Math.random()<0.4){
+    G.invuln=0.6; G.shake=Math.max(G.shake,0.25); Sound.ui();
+    sparks3(P.x,P.y+1.1,P.z,5); showToast('🛡 ガード！'); return;
+  }
   G.hp--; G.invuln=1.2; G.shake=Math.max(G.shake,0.7); G.hitStop=Math.max(G.hitStop,0.05);
   G.combo=0; $('comboTag').classList.remove('show');
   Sound.hurt();
@@ -1375,20 +1382,25 @@ function updateEnemies(dt){
 }
 
 /* ===== お店・暮らし（💴でかいもの → 島で実使用） ===== */
-const FUEL_PER_CAN=5;
+const FUEL_CAP=3, FUEL_UNIT=90;          // タンクは片道分のみ（油は買いだめ不可）
+function priceMult(){ return 1+(G.island|0); }   // 物価＝ブラックこっこの強さ(💴)に比例
 const SHOP=[
-  {id:'house',ico:'🏠',name:'おうち',desc:'ねるとHP全回復＆あさになる。島に たつよ',price:1500,max:1},
-  {id:'bike', ico:'🚲',name:'じてんしゃ',desc:'のりもの。🚲ボタンでのって スイスイ移動',price:800,max:1},
-  {id:'sword',ico:'⚔️',name:'てつのつるぎ',desc:'こうげき力アップ！バトルがグッと楽に',price:600,max:1},
+  {id:'house',ico:'🏠',name:'おうち',desc:'ねるとHP全回復＆あさになる',price:1500,max:1},
+  {id:'bike', ico:'🚲',name:'じてんしゃ',desc:'のって スイスイ移動',price:800,max:1},
+  {id:'sword',ico:'⚔️',name:'てつのつるぎ',desc:'こうげき力アップ！',price:600,max:1},
   {id:'boots',ico:'👟',name:'すごいくつ',desc:'いつでも すこし はやあるき',price:400,max:1},
   {id:'heart',ico:'💗',name:'ハートのうつわ',desc:'さいだいHP＋1（くりかえし買える）',price:300,max:4},
   {id:'ship', ico:'🚢',name:'じかようの ふね',desc:'港から となりの島へ（要・⛽あぶら）',price:2500,max:1},
-  {id:'plane',ico:'✈️',name:'じかようの ひこうき',desc:'空港から 行ったことのある島へ（要・⛽あぶら）',price:6000,max:1},
-  {id:'fuel', ico:'⛽',name:'あぶら（燃料）',desc:'船・飛行機のねんりょう ＋'+FUEL_PER_CAN+'。くりかえし買える',price:250,max:Infinity},
+  {id:'fuel', ico:'⛽',name:'あぶら（給油）',desc:'片道ぶんだけ給油（買いだめ不可）。この島の物価で',price:0,max:1,fuel:true},
+  {id:'plane',ico:'✈️',name:'じかようの ひこうき',desc:'空港から 行ったことのある島へ。【みどり島でしか買えない】',price:4000,max:1,only:1},
+  {id:'shield',ico:'🛡',name:'まもりの たて',desc:'こうげきを ときどき ガード！【こがね島でしか買えない】',price:2000,max:1,only:2},
 ];
-function itemOwned(it){ if(it.id==='heart')return G.owned.heart; if(it.id==='fuel')return 0; return G.owned[it.id]; }
-function itemPrice(it){ return it.id==='heart'?it.price*(G.owned.heart+1):it.price; }
-function itemMaxed(it){ if(it.id==='fuel')return false; return itemOwned(it)>=it.max; }
+function itemAvail(it){ return it.only===undefined || it.only===(G.island|0); }   // 島限定アイテム
+function fuelFillCost(){ return Math.max(0,FUEL_CAP-G.fuel)*FUEL_UNIT*priceMult(); }
+function itemOwned(it){ if(it.id==='heart')return G.owned.heart; if(it.fuel)return 0; return G.owned[it.id]?1:0; }
+function basePrice(it){ return it.id==='heart'?it.price*(G.owned.heart+1):it.price; }
+function itemPrice(it){ return it.fuel?fuelFillCost():Math.round(basePrice(it)*priceMult()/10)*10; }  // 物価で変動
+function itemMaxed(it){ if(it.fuel)return G.fuel>=FUEL_CAP; return itemOwned(it)>=it.max; }
 function openShop(){
   if(G.shopOpen) return;
   G.shopOpen=true; Sound.ui();
@@ -1468,17 +1480,20 @@ function performTravel(target,air){
   hudInv(); saveGame();
 }
 function renderShop(){
+  $('shopTitle').textContent='🏪 '+islandName(G.island)+' 商店（物価×'+priceMult()+'）';
   $('shopMoney').textContent='💴 '+G.coins.toLocaleString();
   let html='';
   for(const it of SHOP){
-    const owned=itemMaxed(it), price=itemPrice(it), can=G.coins>=price;
+    if(!itemAvail(it)) continue;                        // この島で売っていない（島限定）
+    const maxed=itemMaxed(it), price=itemPrice(it), can=G.coins>=price;
     let sub='';
     if(it.id==='heart'&&G.owned.heart>0) sub='（'+G.owned.heart+'/'+it.max+'こ）';
-    if(it.id==='fuel') sub='（いま ⛽'+G.fuel+'）';
-    html+='<div class="shopItem'+(owned?' got':'')+'">'+
+    if(it.fuel) sub='（タンク ⛽'+G.fuel+'/'+FUEL_CAP+'）';
+    const gotLbl=it.fuel?'まんタン':'もっている';
+    html+='<div class="shopItem'+(maxed?' got':'')+'">'+
       '<div class="si-ico">'+it.ico+'</div>'+
       '<div class="si-info"><div class="si-name">'+it.name+' '+sub+'</div><div class="si-desc">'+it.desc+'</div></div>'+
-      (owned?'<div class="si-btn got">もっている</div>'
+      (maxed?'<div class="si-btn got">'+gotLbl+'</div>'
             :'<button class="si-btn'+(can?'':' no')+'" data-buy="'+it.id+'">💴'+price.toLocaleString()+'</button>')+
       '</div>';
   }
@@ -1486,19 +1501,20 @@ function renderShop(){
   $('shopList').querySelectorAll('[data-buy]').forEach(b=>b.addEventListener('click',()=>buyItem(b.getAttribute('data-buy'))));
 }
 function buyItem(id){
-  const it=SHOP.find(s=>s.id===id); if(!it||itemMaxed(it)) return;
+  const it=SHOP.find(s=>s.id===id); if(!it||!itemAvail(it)||itemMaxed(it)) return;
   const price=itemPrice(it);
   if(G.coins<price){ Sound.nope(); showToast('💴 おかねが たりないよ…'); return; }
   G.coins-=price; Sound.buy();
   if(id==='heart'){ G.owned.heart++; G.maxHp++; G.hp=Math.min(G.maxHp,G.hp+1); updateHP(); }
-  else if(id==='fuel'){ G.fuel+=FUEL_PER_CAN; hudInv(); }
+  else if(it.fuel){ G.fuel=FUEL_CAP; hudInv(); }
   else G.owned[id]=true;
   if(id==='bike') updateRideBtn();
   hudInv('hudCoin'); renderShop();
   const m={house:'🏠 おうちを てにいれた！ ねむれば げんきに！',bike:'🚲 じてんしゃ ゲット！ 🚲ボタンで のれるよ',
     sword:'⚔️ てつのつるぎ そうび！ つよくなった',boots:'👟 すごいくつ！ あしが はやくなった',
     heart:'💗 さいだいHPが ふえた！',ship:'🚢 じかようの ふね！ 港から となりの島へ',
-    plane:'✈️ じかようの ひこうき！ 空港から いろんな島へ',fuel:'⛽ きゅうゆ完了！ いま ⛽'+G.fuel}[id];
+    plane:'✈️ じかようの ひこうき！ 空港から いろんな島へ',shield:'🛡 まもりの たて！ ときどき ガードするよ',
+    fuel:'⛽ 給油完了！ 片道ぶん（⛽'+G.fuel+'）'}[id];
   showToast(m); saveGame();
 }
 /* じてんしゃ（のりもの）のON/OFF */
@@ -1552,6 +1568,9 @@ function totalAssets(){
   if(G.owned.sword) a+=600;
   if(G.owned.boots) a+=400;
   a+=300*(G.owned.heart*(G.owned.heart+1)/2);        // ハートは買うほど高額に
+  if(G.owned.ship)  a+=2500;
+  if(G.owned.plane) a+=4000;
+  if(G.owned.shield)a+=2000;
   const v=G.inv; a+=(v.fruit*5)+(v.flower*8)+(v.bug*40)+(v.shell*25);
   return a;
 }
@@ -2252,7 +2271,7 @@ function startNew(){
   cam.yaw=0; cam.pitch=-0.32;
   G.tod=0.375; G.day=1; G.coins=0; G.playSec=0; G.defeated=0;
   G.inv={fruit:0,flower:0,bug:0,shell:0};
-  G.owned={house:false,bike:false,sword:false,boots:false,heart:0,ship:false,plane:false}; G.maxHp=5;
+  G.owned={house:false,bike:false,sword:false,boots:false,heart:0,ship:false,plane:false,shield:false}; G.maxHp=5;
   enterPlay();
   Sound.welcome();
   showToast('🏝 こっこ島へ ようこそ！');
@@ -2270,7 +2289,7 @@ function startContinue(){
   cam.yaw=s.yaw||0; cam.pitch=s.pitch||-0.32;
   G.tod=s.tod; G.day=s.day||1; G.coins=s.coins||0; G.playSec=s.playSec||0; G.defeated=s.def||0;
   G.inv=Object.assign({fruit:0,flower:0,bug:0,shell:0},s.inv);
-  G.owned=Object.assign({house:false,bike:false,sword:false,boots:false,heart:0,ship:false,plane:false},s.own);
+  G.owned=Object.assign({house:false,bike:false,sword:false,boots:false,heart:0,ship:false,plane:false,shield:false},s.own);
   G.maxHp=5+(G.owned.heart||0);
   (s.tr||[]).forEach((v,i)=>{ if(trees[i])trees[i].fruitT=v; });
   (s.fl||[]).forEach((v,i)=>{ if(flowers[i])flowers[i].reT=v; });
