@@ -1,8 +1,8 @@
 # ランキング（結果発表）DB セットアップ & セキュリティ手順
 
-対象ゲーム：コッコリンク（/link/）・コッコ救出（/rescue/）
+対象ゲーム：コッコリンク（/link/）・コッコ救出（/rescue/）・こっこの森（/mori/ 総資産ランキング）
 保存先：既存 Firebase プロジェクト `chikumonogatarikiroku` の Realtime Database
-ノード：リンク=`rankings/link` ／ 救出=`rankings/rescue`（**新規DBは不要**）
+ノード：リンク=`rankings/link` ／ 救出=`rankings/rescue` ／ こっこの森=`rankings/mori`（**新規DBは不要**）
 
 ---
 
@@ -63,6 +63,18 @@
           "ts":    { ".validate": "newData.isNumber()" },
           "$other": { ".validate": false }
         }
+      },
+      "mori": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && (!data.exists() || newData.child('score').val() >= data.child('score').val())",
+          ".validate": "newData.hasChildren(['name','score'])",
+          "name":  { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "flag":  { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99999999" },
+          "day":   { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999999" },
+          "ts":    { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        }
       }
     }
   }
@@ -94,8 +106,14 @@
 
 ---
 
+## こっこの森（/mori/）について
+- **総資産 世界ランキング**：おかね＋買った道具＋しゅうかく品の評価額（=総資産）の自己ベストを登録。
+- 登録できるのは **島の時刻 あさ7時（7:00〜9:00）** のあいだだけ（🏠おうちで「ねる」とあさになり登録できる）。
+- 閲覧は **🏆ボタン（プレイ中／タイトル）からいつでも** 可能。
+- ゲームの進行データはこれまで通り **ブラウザ保存（localStorage）**、ランキングだけ **サーバー保存（Firebase）**。
+
 ## 動作テスト
-1. （上記2ステップ実施後）https://chikumo.jp/link/ または /rescue/ をプレイ → 結果画面で名前を入れて「ランキング登録」
+1. （上記2ステップ実施後）https://chikumo.jp/link/ ・ /rescue/ ・ /mori/ をプレイ → /mori/ はあさ7時に🏆から名前を入れて「登録」
 2. 「登録しました！🏆」＋「◯位にランクイン！」が出れば成功
 3. 別端末でも同じランキングが見える
 4. 検証：ブラウザのコンソールから他人の枠へ `set()` を試す → `permission_denied` で**拒否される**ことを確認
