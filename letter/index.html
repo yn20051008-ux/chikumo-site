@@ -248,6 +248,9 @@
 
   function render(rows){
     var el=$('letterList'), me=uid();
+    /* 表示側でもNGを弾く：送信時フィルタは端末側のみなので、
+       フィルタ導入前に保存された手紙や、すり抜けた手紙を みんなの目に触れさせない */
+    rows=rows.filter(function(r){ return !isNG(r.name||'') && !isNG(r.msg||''); });
     if(!rows.length){ el.innerHTML='<li class="empty">まだ手紙がありません。さいしょの ひとことを どうぞ ✉️</li>'; $('letterCount').textContent=''; return; }
     $('letterCount').textContent=rows.length+' 通';
     el.innerHTML=rows.map(function(r){
