@@ -235,6 +235,14 @@
   #wazaBar{position:absolute;z-index:13;left:50%;bottom:calc(150px + env(safe-area-inset-bottom));
     transform:translateX(-50%);display:none;flex-direction:column;align-items:center;gap:7px;pointer-events:none;}
   #wazaBar.on{display:flex;}
+  #wazaTop{display:flex;align-items:center;gap:8px;}
+  #wazaO2Lbl{font-size:10px;font-weight:900;letter-spacing:.14em;color:#bfe6ff;text-shadow:0 1px 3px rgba(0,0,0,.7);}
+  #o2Btn{pointer-events:auto;cursor:pointer;display:none;align-items:center;gap:2px;font-size:16px;line-height:1;
+    padding:4px 9px;border-radius:14px;color:#eaf7ff;font-weight:900;
+    border:1px solid rgba(120,210,255,.6);background:rgba(14,40,58,.7);box-shadow:0 2px 8px rgba(0,0,0,.4),0 0 10px rgba(90,190,255,.3);}
+  #o2Btn.show{display:flex;}
+  #o2Btn #o2Count{font-size:11px;letter-spacing:.02em;}
+  #o2Btn:active{transform:scale(.92);}
   #wazaGauge{width:188px;height:9px;border-radius:6px;background:rgba(6,16,26,.75);
     border:1px solid rgba(120,200,255,.55);overflow:hidden;box-shadow:0 0 12px rgba(70,170,255,.35);}
   #wazaGaugeFill{height:100%;width:0%;border-radius:6px;background:linear-gradient(90deg,#4fc9ff,#bdf0ff);
@@ -529,7 +537,11 @@
   <div id="battleBanner"></div>
   <!-- ひっさつわざUI（ゲージ＋技ボタン） -->
   <div id="wazaBar">
-    <div id="wazaGauge"><div id="wazaGaugeFill"></div></div>
+    <div id="wazaTop">
+      <span id="wazaO2Lbl">酸素</span>
+      <div id="wazaGauge"><div id="wazaGaugeFill"></div></div>
+      <div id="o2Btn">🫧<span id="o2Count">×0</span></div>
+    </div>
     <div id="wazaBtns"></div>
   </div>
   <div id="wazaBanner"></div>
@@ -638,7 +650,7 @@
       ◆ できること：🌳<b>木をゆらす</b>と くだものが落ちる／🌼<b>花をつむ</b>／🦋<b>虫をつかまえる</b>/🪨<b>岩をたたく</b>と コインが出る／🐚<b>かいがらをひろう</b>／🐰🐻🐸<b>住民とおしゃべり</b>。<br><br>
       ◆ 島には <b>朝・ひる・夜</b> がある。夜は ✨ホタルが とぶよ。<br><br>
       ◆ <b style="color:#ff7a7a;">⚠ ブラックこっこ</b>に であうと…のどかな島が一変！<b>アクションボタン</b>で <b>たたかう</b>。<b>ジャンプ中の攻撃はクリティカル💥</b>、連続ヒットで <b>コンボ</b>！ つっこみ💢は <b>うごいて回避</b>。たおすと <b>札束💴どっさり</b>！ やられても <b>🚑救急車</b>がたすけてくれるよ。<br><br>
-      ◆ <b style="color:#ff9b5a;">🏋️ こっこジム</b>（スポーン近く）で 💴特訓すると <b>ひっさつわざ</b>を おぼえる！（🌀つむじキック→🚀ロケットずつき→⚡かみなりラッシュ→☄️メテオこっこ）。たたかいで 敵をなぐると <b>わざゲージ</b>がたまり、<b>技ボタン</b>（PCは <b>1〜4キー</b>）で 発動！ ゲージが満ちるほど 強い技が うてるよ。<br><br>
+      ◆ <b style="color:#ff9b5a;">🏋️ こっこジム</b>（スポーン近く）で 💴特訓すると <b>ひっさつわざ</b>を おぼえる！（🌀つむじキック→🚀ロケットずつき→⚡かみなりラッシュ→☄️メテオこっこ）。<b>技ボタン</b>（PCは <b>1〜4キー</b>）で発動。<b style="color:#bfe6ff;">酸素ゲージ</b>は満タンスタートで、技をつかうと へる。<b>歩き回る</b>と じわじわ回復、<b>🫧酸素ボンベ</b>（お店で購入・Qキー）を つかえば いっきに満タン！ ゲージが満ちるほど 強い技が うてるよ。<br><br>
       ◆ <b style="color:#ffe07a;">🏪 こっこ商店</b>（スポーン近く）で 💴をつかって おかいもの！ <b>🏠おうち</b>（ねるとHP全回復＆あさに）、<b>🚲じてんしゃ</b>（のって高速移動）、<b>⚔️つるぎ</b>（こうげき力UP）、<b>👟くつ</b>（はやあるき）、<b>💗ハートのうつわ</b>（最大HP UP）。買ったものは 島ぐらしで じっさいに使えるよ！<br><br>
       ◆ <b style="color:#8fd3ff;">🚢 ふね・✈️ ひこうき で 諸島めぐり</b>：<b>🚢港</b>から となりの島へ、<b>✈️空港</b>から 行ったことのある島へ。出発には <b>⛽あぶら（給油）</b>がいるよ。<b style="color:#ff7a7a;">先の島ほど ブラックこっこが強く、💴も どっさり！</b><br><br>
       ◆ <b style="color:#ffe07a;">物価のしくみ</b>：<b>強い島ほど お店の物価も高い</b>（ブラックこっこの💴に比例）。だから <b>高い島でかせいで、安い島で買う</b>のがオトク！ ただし <b>⛽油は片道ぶんしか買えない</b>（買いだめできない＝その島の物価で給油）。<b>その島でしか買えないアイテム</b>もあるよ（✈️ひこうき＝みどり島、🛡たて＝こがね島）。<br><br>
@@ -788,6 +800,8 @@ const Sound=(function(){
     },
     wazaLearn(){ if(!ac||muted)return; const t=ac.currentTime; subDrop(t,80,28,.5,.22); aNoise(t,.2,.1,3000);
       [392,523,659,784,1047,1319,1568].forEach((f,k)=>{ aTone(f,t+.08+k*.07,.3,'square',.12,0,1); aTone(f*2,t+.1+k*.07,.2,'triangle',.06,0,1); }); },
+    o2(){ if(!ac||muted)return; const t=ac.currentTime; aNoise(t,.4,.12,1200); aTone(300,t,.4,'sine',.1,900,1); /* シューッと充填 */
+      [784,1047,1319].forEach((f,k)=>aTone(f,t+.18+k*.06,.26,'triangle',.12,0,1)); },
     ui(){ tone(700,0.04,'triangle',0.14); } };
 })();
 
@@ -1225,7 +1239,7 @@ function relocateEnemy(e){
 
 /* ===== ゲーム状態 ===== */
 const G={phase:'title',time:0,tod:0.375,day:1,coins:0,paused:false,playSec:0,saveT:0,birdT:3,
-  inv:{fruit:0,flower:0,bug:0,shell:0},
+  inv:{fruit:0,flower:0,bug:0,shell:0,o2:0},
   /* バトル */
   hp:5,maxHp:5,invuln:0,combo:0,comboT:0,bestCombo:0,defeated:0,
   inBattle:false,battleT:0,atkCD:0,swingT:0,shake:0,hitStop:0,slow:0,zoom:0,regenT:0,ko:false,koT:0,
@@ -1435,7 +1449,6 @@ function hitEnemy(e,crit,dir){
   e.kx=dir[0]*(crit?9:5); e.kz=dir[1]*(crit?9:5);
   if(crit){ e.vy=4.5; e.onG=false; e.state='recover'; e.stT=0.5; Sound.crit(); }
   else Sound.hitEnemy();
-  gainGauge(crit?0.14:0.08);   // ひっさつわざゲージを ためる
   if(!G.inBattle) triggerBattle();
   const ey=e.y+1.2;
   burst3(e.x,ey,e.z,[0.15,0.05,0.1],crit?10:6,crit?5:3.2,27);   // 💥
@@ -1740,6 +1753,18 @@ function updateWazaUI(){
   const btns=$('wazaBtns').children;
   for(let i=0;i<btns.length;i++){ const ready=G.gauge>=WAZA[i].cost;
     btns[i].classList.toggle('ready',ready); btns[i].classList.toggle('no',!ready); }
+  const o2=$('o2Btn'); o2.classList.toggle('show',G.inv.o2>0);
+  $('o2Count').textContent='×'+G.inv.o2;
+}
+/* 🫧酸素ボンベ：つかうとゲージ満タン回復 */
+function useO2(){
+  if(G.phase!=='play'||G.paused||G.ko) return;
+  if(G.inv.o2<=0){ Sound.nope(); return; }
+  if(G.gauge>=1){ showToast('🫧 酸素は まんタンだよ'); return; }
+  G.inv.o2--; G.gauge=1; updateWazaUI(); hudInv(); saveGame();
+  Sound.o2(); screenFlash('rgba(130,225,255,.55)',0.4);
+  wazaRing(hex2rgb('#9be3ff'),24,5);
+  showToast('🫧 酸素ボンベ！ ゲージ かいふく');
 }
 /* ===== ジム（わざの特訓） ===== */
 function openGym(){
@@ -1787,6 +1812,7 @@ const SHOP=[
   {id:'sword',ico:'⚔️',name:'てつのつるぎ',desc:'こうげき力アップ！',price:600,max:1},
   {id:'boots',ico:'👟',name:'すごいくつ',desc:'いつでも すこし はやあるき',price:400,max:1},
   {id:'heart',ico:'💗',name:'ハートのうつわ',desc:'さいだいHP＋1（くりかえし買える）',price:300,max:4},
+  {id:'o2',   ico:'🫧',name:'酸素ボンベ',desc:'つかうと 酸素ゲージが まんタンに回復（もちもの・くりかえし買える）',price:200,max:99,stack:true},
   {id:'ship', ico:'🚢',name:'じかようの ふね',desc:'港から となりの島へ（要・⛽あぶら）',price:2500,max:1},
   {id:'fuel', ico:'⛽',name:'あぶら（給油）',desc:'片道ぶんだけ給油（買いだめ不可）。この島の物価で',price:0,max:1,fuel:true},
   {id:'plane',ico:'✈️',name:'じかようの ひこうき',desc:'空港から 行ったことのある島へ。【みどり島でしか買えない】',price:4000,max:1,only:1},
@@ -1794,7 +1820,7 @@ const SHOP=[
 ];
 function itemAvail(it){ return it.only===undefined || it.only===(G.island|0); }   // 島限定アイテム
 function fuelFillCost(){ return Math.max(0,FUEL_CAP-G.fuel)*FUEL_UNIT*priceMult(); }
-function itemOwned(it){ if(it.id==='heart')return G.owned.heart; if(it.fuel)return 0; return G.owned[it.id]?1:0; }
+function itemOwned(it){ if(it.id==='heart')return G.owned.heart; if(it.id==='o2')return G.inv.o2; if(it.fuel)return 0; return G.owned[it.id]?1:0; }
 function basePrice(it){ return it.id==='heart'?it.price*(G.owned.heart+1):it.price; }
 function itemPrice(it){ return it.fuel?fuelFillCost():Math.round(basePrice(it)*priceMult()/10)*10; }  // 物価で変動
 function itemMaxed(it){ if(it.fuel)return G.fuel>=FUEL_CAP; return itemOwned(it)>=it.max; }
@@ -1885,6 +1911,7 @@ function renderShop(){
     const maxed=itemMaxed(it), price=itemPrice(it), can=G.coins>=price;
     let sub='';
     if(it.id==='heart'&&G.owned.heart>0) sub='（'+G.owned.heart+'/'+it.max+'こ）';
+    if(it.id==='o2'&&G.inv.o2>0) sub='（もちもの '+G.inv.o2+'こ）';
     if(it.fuel) sub='（タンク ⛽'+G.fuel+'/'+FUEL_CAP+'）';
     const gotLbl=it.fuel?'まんタン':'もっている';
     html+='<div class="shopItem'+(maxed?' got':'')+'">'+
@@ -1903,13 +1930,14 @@ function buyItem(id){
   if(G.coins<price){ Sound.nope(); showToast('💴 おかねが たりないよ…'); return; }
   G.coins-=price; Sound.buy();
   if(id==='heart'){ G.owned.heart++; G.maxHp++; G.hp=Math.min(G.maxHp,G.hp+1); updateHP(); }
+  else if(id==='o2'){ G.inv.o2++; updateWazaUI(); }
   else if(it.fuel){ G.fuel=FUEL_CAP; hudInv(); }
   else G.owned[id]=true;
   if(id==='bike') updateRideBtn();
   hudInv('hudCoin'); renderShop();
   const m={house:'🏠 おうちを てにいれた！ ねむれば げんきに！',bike:'🚲 じてんしゃ ゲット！ 🚲ボタンで のれるよ',
     sword:'⚔️ てつのつるぎ そうび！ つよくなった',boots:'👟 すごいくつ！ あしが はやくなった',
-    heart:'💗 さいだいHPが ふえた！',ship:'🚢 じかようの ふね！ 港から となりの島へ',
+    heart:'💗 さいだいHPが ふえた！',o2:'🫧 酸素ボンベ ゲット！ たたかいで つかえるよ',ship:'🚢 じかようの ふね！ 港から となりの島へ',
     plane:'✈️ じかようの ひこうき！ 空港から いろんな島へ',shield:'🛡 まもりの たて！ ときどき ガードするよ',
     fuel:'⛽ 給油完了！ 片道ぶん（⛽'+G.fuel+'）'}[id];
   showToast(m); saveGame();
@@ -2085,6 +2113,7 @@ function update(dt){
     collideObjects();
     const rt=camRightH(), sx=iv.x*rt[0]+iv.z*rt[2];
     if(Math.abs(sx)>0.05) P.flip=sx<0?-1:1;
+    if(G.gauge<1) gainGauge(dt*0.06);   // 歩き回ると 酸素ゲージが じわじわ回復
   }
   const fl=heightAt(P.x,P.z);
   if(P.y>fl+0.001||P.vy>0){
@@ -2231,6 +2260,7 @@ window.addEventListener('keydown',e=>{
   if(k===' '){ e.preventDefault(); doJump(); }
   if(k==='e'||k==='enter') doAction();
   if(k>='1'&&k<='4'){ Sound.init(); Sound.resume(); doWaza((+k)-1); }
+  if(k==='q'){ Sound.init(); Sound.resume(); useO2(); }
 });
 window.addEventListener('keyup',e=>{ input.keys[e.key.toLowerCase()]=false; });
 function doJump(){
@@ -2239,6 +2269,7 @@ function doJump(){
 }
 $('actBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); doAction(); });
 $('jumpBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); doJump(); });
+$('o2Btn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); useO2(); });
 
 /* ===== カメラ ===== */
 function camEye(){
@@ -2698,7 +2729,7 @@ function startNew(){
   P.x=SPAWN.x; P.z=SPAWN.z;
   cam.yaw=0; cam.pitch=-0.32;
   G.tod=0.375; G.day=1; G.coins=0; G.playSec=0; G.defeated=0;
-  G.inv={fruit:0,flower:0,bug:0,shell:0};
+  G.inv={fruit:0,flower:0,bug:0,shell:0,o2:0};
   G.owned={house:false,bike:false,sword:false,boots:false,heart:0,ship:false,plane:false,shield:false}; G.maxHp=5;
   G.skills=0; G.gauge=1;
   enterPlay();
@@ -2717,7 +2748,7 @@ function startContinue(){
   P.x=s.px; P.z=s.pz;
   cam.yaw=s.yaw||0; cam.pitch=s.pitch||-0.32;
   G.tod=s.tod; G.day=s.day||1; G.coins=s.coins||0; G.playSec=s.playSec||0; G.defeated=s.def||0;
-  G.inv=Object.assign({fruit:0,flower:0,bug:0,shell:0},s.inv);
+  G.inv=Object.assign({fruit:0,flower:0,bug:0,shell:0,o2:0},s.inv);
   G.owned=Object.assign({house:false,bike:false,sword:false,boots:false,heart:0,ship:false,plane:false,shield:false},s.own);
   G.skills=Math.min(WAZA.length,s.skills||0);
   G.maxHp=5+(G.owned.heart||0);
