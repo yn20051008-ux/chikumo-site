@@ -183,6 +183,28 @@
   $('msgInput').addEventListener('input',upd); upd();
 
   function esc(s){ return String(s).replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; }); }
+
+  /* 不快な手紙・なまえを自動で弾く（NGワード） */
+  var BAD=[
+    // 死・暴力
+    'しね','死ね','しんで','死んで','たひね','くたばれ','ころす','殺す','殺し','殺せ','殺害','ぶっころ','じさつしろ','自殺しろ','きえろ','消えろ','きえうせろ',
+    // ののしり
+    'きもい','きしょ','きっしょ','うざい','うっざ','ぶす','でぶ','のろま','きちがい','基地外','がいじ','池沼','くそやろう','くそが','くそがき','ばかやろう','あほんだら',
+    // 差別
+    'ちょん','支那','しなじん','部落','土人','どじん','めくら','つんぼ',
+    // 性的
+    'ちんこ','ちんぽ','ちんちん','まんこ','おまんこ','せっくす','sex','ぱいずり','きんたま','やりまん','ふぇら','童貞','どうてい','しこる',
+    // English
+    'fuck','fuk','fck','shit','bitch','asshole','dick','cunt','pussy','nigger','nigga','faggot','retard','kys'
+  ];
+  function ngNorm(s){
+    s=(s||'').toLowerCase();
+    try{ s=s.normalize('NFKC'); }catch(e){}
+    s=s.replace(/[ァ-ヶ]/g,function(c){ return String.fromCharCode(c.charCodeAt(0)-0x60); }); // カタカナ→ひらがな
+    s=s.replace(/[\s　.,_\-~～〜ーｰ・*\/\\|｜=+'"`^。、！!？?]/g,'');                              // 区切り・記号をのぞいて回避を抑止
+    return s;
+  }
+  function isNG(s){ var n=ngNorm(s); for(var i=0;i<BAD.length;i++){ if(n.indexOf(BAD[i])>=0) return true; } return false; }
   function relTime(ts){ var d=Math.max(0,Date.now()-ts), m=60000,h=3600000,day=86400000;
     if(d<m)return 'たった今'; if(d<h)return Math.floor(d/m)+'分前'; if(d<day)return Math.floor(d/h)+'時間前';
     if(d<day*30)return Math.floor(d/day)+'日前'; var dt=new Date(ts); return (dt.getMonth()+1)+'/'+dt.getDate(); }
@@ -245,6 +267,7 @@
     var name=($('nameInput').value||'').replace(/\s+/g,' ').trim().slice(0,12) || 'ななしの こっこ';
     var msg=Array.from(($('msgInput').value||'').trim()).slice(0,20).join('');
     if(!msg){ stat.textContent='ひとこと 書いてね ✍️'; return; }
+    if(isNG(name)||isNG(msg)){ stat.textContent='おくれませんでした…🙏 やさしい ことばで おねがいします'; return; }
     var now=Date.now(); if(now-lastTs<1500) return; lastTs=now;
     try{ localStorage.setItem(NAME_KEY,name); localStorage.setItem(FLAG_KEY,selFlag); }catch(e){}
     btn.disabled=true; stat.textContent='おくっています…';
