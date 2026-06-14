@@ -2004,6 +2004,7 @@ function buildSprites(){
 /* ===== レーダーマップ（島の地形＋こっこ＆ブラックこっこの位置） ===== */
 const radarCv=$('radar'), rcx=radarCv.getContext('2d');
 const RAD_SIZE=124, RAD_PAD=9;
+const kokkoIcon=new Image(); kokkoIcon.src='/chikumo.svg';   // レーダー上のこっこちゃん本体アイコン
 const radarLand=document.createElement('canvas'); radarLand.width=HN; radarLand.height=HN;
 const rlx=radarLand.getContext('2d');
 let radarReady=false, radarDPR=0;
@@ -2077,13 +2078,31 @@ function drawRadar(){
     rcx.beginPath(); rcx.arc(bx,by,3.2,0,TAU); rcx.fill();
     rcx.fillStyle='rgba(120,0,0,.9)'; rcx.beginPath(); rcx.arc(bx,by,1.3,0,TAU); rcx.fill();
   }
-  // プレイヤー（こっこ・向きのある矢印）
+  // プレイヤー（こっこちゃん本体・向きをしめす視界コーン＋アイコン）
   const [px,py]=radarPt(P.x,P.z,cx,cy,R);
-  rcx.save(); rcx.translate(px,py); rcx.rotate(Math.atan2(-Math.cos(cam.yaw),Math.sin(cam.yaw))+Math.PI/2);
-  rcx.fillStyle='#f6ffd6'; rcx.strokeStyle='rgba(24,46,12,.85)'; rcx.lineWidth=1.2;
-  rcx.beginPath(); rcx.moveTo(0,-6); rcx.lineTo(4,4.2); rcx.lineTo(0,2); rcx.lineTo(-4,4.2); rcx.closePath();
-  rcx.fill(); rcx.stroke();
+  const facing=Math.atan2(-Math.cos(cam.yaw),Math.sin(cam.yaw))+Math.PI/2;
+  // 視界コーン（こっこの向き＝マップとの向きをしめす）
+  rcx.save(); rcx.translate(px,py); rcx.rotate(facing);
+  const cone=rcx.createRadialGradient(0,0,0,0,0,16);
+  cone.addColorStop(0,'rgba(255,240,150,.55)'); cone.addColorStop(1,'rgba(255,240,150,0)');
+  rcx.fillStyle=cone; rcx.beginPath(); rcx.moveTo(0,0);
+  rcx.arc(0,0,16,-Math.PI/2-0.52,-Math.PI/2+0.52); rcx.closePath(); rcx.fill();
   rcx.restore();
+  if(kokkoIcon.complete&&kokkoIcon.naturalWidth){
+    // こっこちゃんアイコン（つねに正立＝ひと目で本体とわかる）
+    const iw=15, ih=iw*kokkoIcon.naturalHeight/kokkoIcon.naturalWidth;
+    rcx.save();
+    rcx.shadowColor='rgba(0,0,0,.5)'; rcx.shadowBlur=3; rcx.shadowOffsetY=1;
+    rcx.drawImage(kokkoIcon,px-iw/2,py-ih*0.62,iw,ih);
+    rcx.restore();
+  }else{
+    // フォールバック：従来の向き矢印
+    rcx.save(); rcx.translate(px,py); rcx.rotate(facing);
+    rcx.fillStyle='#f6ffd6'; rcx.strokeStyle='rgba(24,46,12,.85)'; rcx.lineWidth=1.2;
+    rcx.beginPath(); rcx.moveTo(0,-6); rcx.lineTo(4,4.2); rcx.lineTo(0,2); rcx.lineTo(-4,4.2); rcx.closePath();
+    rcx.fill(); rcx.stroke();
+    rcx.restore();
+  }
   rcx.restore(); // クリップ解除
   // N（北）インジケータ
   rcx.fillStyle='rgba(200,245,170,.92)'; rcx.font='900 10px sans-serif';
