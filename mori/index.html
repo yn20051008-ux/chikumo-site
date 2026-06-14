@@ -1230,7 +1230,7 @@ const G={phase:'title',time:0,tod:0.375,day:1,coins:0,paused:false,playSec:0,sav
   hp:5,maxHp:5,invuln:0,combo:0,comboT:0,bestCombo:0,defeated:0,
   inBattle:false,battleT:0,atkCD:0,swingT:0,shake:0,hitStop:0,slow:0,zoom:0,regenT:0,ko:false,koT:0,
   /* ひっさつわざ（ジムで習得・ゲージで発動） */
-  skills:0,gauge:0,wazaCD:0,
+  skills:0,gauge:1,wazaCD:0,
   /* 暮らし（お金・お店・もちもの） */
   owned:{house:false,bike:false,sword:false,boots:false,heart:0,ship:false,plane:false,shield:false},
   riding:false,shopOpen:false,gymOpen:false,sleepT:0,
@@ -2667,7 +2667,7 @@ function show(id){
 function resetBattle(){
   G.hp=G.maxHp; G.invuln=0; G.combo=0; G.comboT=0; G.atkCD=0; G.swingT=0;
   G.shake=0; G.hitStop=0; G.slow=0; G.regenT=0; G.ko=false; G.koT=0;
-  G.gauge=0; G.wazaCD=0;
+  G.gauge=1; G.wazaCD=0;   // 酸素ゲージは満タンスタート
   G.inBattle=false; G.battleT=0;
   G.shopOpen=false; G.gymOpen=false; G.riding=false; G.sleepT=0;
   G.travelOpen=false; G.travelT=0;
@@ -2700,7 +2700,7 @@ function startNew(){
   G.tod=0.375; G.day=1; G.coins=0; G.playSec=0; G.defeated=0;
   G.inv={fruit:0,flower:0,bug:0,shell:0};
   G.owned={house:false,bike:false,sword:false,boots:false,heart:0,ship:false,plane:false,shield:false}; G.maxHp=5;
-  G.skills=0; G.gauge=0;
+  G.skills=0; G.gauge=1;
   enterPlay();
   Sound.welcome();
   showToast('🏝 こっこ島へ ようこそ！');
