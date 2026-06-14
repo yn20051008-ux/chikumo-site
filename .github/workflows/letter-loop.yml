@@ -1,0 +1,108 @@
+name: 正論蒔宿の手紙 定期チェック
+
+# 「正論蒔宿への手紙」(/letter/) を定期的に確認し、利用者からのフィードバックに
+# もとづく改修が必要なら自動でPRを作成/更新する。
+# 認証は Claude Pro/Max サブスクの OAuth トークン（CLAUDE_CODE_OAUTH_TOKEN）。
+#   → 従量課金APIには課金されない。
+#
+# 必要なセットアップ（リポジトリ管理者が1回だけ）:
+#   1. ローカルで `claude setup-token` を実行し、出力されたトークンをコピー
+#   2. Settings → Secrets and variables → Actions に `CLAUDE_CODE_OAUTH_TOKEN` を登録
+#   3. Settings → Actions → General → Workflow permissions で
+#      「Allow GitHub Actions to create and approve pull requests」を有効化
+#      （peter-evans/create-pull-request がPRを作成するために必要）
+
+on:
+  schedule:
+    # 5時間ごと（UTC 00,05,10,15,20時）。GitHubのcronは混雑時に数分ずれることがある。
+    - cron: "0 */5 * * *"
+  workflow_dispatch: {}   # 手動実行（動作確認用）
+
+# 同時実行を1本に制限（重複起動を防ぐ）
+concurrency:
+  group: letter-loop
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  letter-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: リポジトリを取得
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: みんなの手紙（Firebase）を取得
+        run: |
+          # 読み取り公開のRealtime Databaseから手紙一覧を取得。失敗時は空として続行。
+          curl -fsS --max-time 30 \
+            "https://chikumonogatarikiroku-default-rtdb.asia-southeast1.firebasedatabase.app/letters/makiyado.json" \
+            -o letters.json || echo '{}' > letters.json
+          echo "----- letters.json -----"
+          cat letters.json
+          echo
+
+      - name: Claudeで手紙を確認・必要なら改修
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            あなたは静的サイト「畜物語」(chikumo.jp) の、ページ「正論蒔宿への手紙」(/letter/) の
+            定期レビュー担当です。利用者が投稿した手紙の中にあるフィードバックを読んで、
+            サイト改修で対応できるものがあれば最小限の安全な変更を行ってください。
+
+            【入力ファイル】
+            - ./letters.json … 「みんなの手紙」の現在の内容（Firebaseから取得）。
+              形は { "<id>": { "flag":"🇯🇵", "name":"なまえ", "msg":"本文", "ts":166... }, ... }
+            - ./letter/index.html … 手紙ページ本体（HTML+JSの単一ファイル）
+
+            【手順】
+            1. letters.json を読み、各手紙の本文(msg)・なまえ(name)を確認する。
+            2. 「テスト」「てすと」「test」「動作確認」など動作確認目的の投稿や、
+               意味をなさない投稿は対象外として無視する。
+            3. サイトへの実フィードバック（アイデア・要望・不具合報告）があり、かつ
+               コード改修で対応できる内容なら、関連ファイル（主に letter/index.html、
+               必要なら他のファイルも）を編集して対応する。
+            4. 改修すべき内容が無ければ、ファイルを一切変更しないこと
+               （変更が無ければPRは作られません）。
+
+            【厳守事項】
+            - git の commit / push / ブランチ作成 / PR作成 を自分で実行しないこと。
+              あなたはワーキングツリーのファイルを編集するだけ。後続ステップが差分をPR化します。
+            - letters.json は編集・追加しないこと（実行時の一時ファイルです）。
+            - main を壊す変更や、無関係の大規模リファクタはしないこと。最小限・安全な変更に限る。
+            - 既存の挙動（投稿・上書き・国旗ピッカー・NGフィルタ等）を壊さないこと。
+            - 変更した場合は、最後に「手紙の要点／改修内容／確認したこと」を簡潔に出力すること
+              （PR本文の参考にします）。
+          claude_args: |
+            --max-turns 20
+            --allowedTools "Read,Edit,Write,Bash(cat:*),Bash(grep:*),Bash(node:*),Bash(ls:*)"
+
+      - name: 一時ファイルを除去
+        if: always()
+        run: rm -f letters.json
+
+      - name: 変更があればPRを作成/更新
+        uses: peter-evans/create-pull-request@v7
+        with:
+          base: main
+          branch: auto/letter-review
+          # 同じブランチを使い回すので、既存PRがあれば自動で更新される（重複作成しない）
+          delete-branch: false
+          commit-message: "letter: 手紙のフィードバックにもとづく自動改修"
+          title: "🤖 正論蒔宿の手紙：自動レビューによる改修"
+          body: |
+            「正論蒔宿への手紙」(/letter/) の定期チェック（5時間ごと）で、
+            利用者の手紙にもとづく改修が検出されたため自動作成/更新されたPRです。
+
+            - 変更内容は下の diff を確認してください。
+            - 問題なければマージしてください（自動マージはしません）。
+
+            ※ このPRはClaude Codeの定期ワークフローが生成しています。
+          labels: |
+            automated
+            letter
