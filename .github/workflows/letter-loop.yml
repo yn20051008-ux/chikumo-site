@@ -30,6 +30,12 @@ permissions:
 jobs:
   letter-check:
     runs-on: ubuntu-latest
+    env:
+      # iPhoneへの通知に使う ntfy 設定（任意）。未設定なら通知ステップはスキップされる。
+      #   NTFY_TOPIC … ntfy のトピック名（推測されにくい長い文字列にする。例: chikumo-letter-9f3k2q）
+      #   NTFY_URL   … 省略時は https://ntfy.sh。セルフホスト時のみ設定。
+      NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+      NTFY_URL: ${{ secrets.NTFY_URL }}
     steps:
       - name: リポジトリを取得
         uses: actions/checkout@v4
@@ -87,6 +93,7 @@ jobs:
         run: rm -f letters.json
 
       - name: 変更があればPRを作成/更新
+        id: cpr
         uses: peter-evans/create-pull-request@v7
         with:
           base: main
@@ -106,3 +113,30 @@ jobs:
           labels: |
             automated
             letter
+
+      - name: iPhoneへ通知（ntfy）
+        # NTFY_TOPIC が設定されている時だけ実行。成功・失敗・差分なしのすべてで必ず通知する。
+        if: ${{ always() && env.NTFY_TOPIC != '' }}
+        run: |
+          OP="${{ steps.cpr.outputs.pull-request-operation }}"
+          NUM="${{ steps.cpr.outputs.pull-request-number }}"
+          URL="${{ steps.cpr.outputs.pull-request-url }}"
+          if [ "${{ job.status }}" != "success" ]; then
+            TITLE="手紙チェック：失敗"
+            BODY="ワークフローが失敗しました。GitHubのActionsログを確認してください。"
+            PRIO=5; TAGS="warning"
+          elif [ -n "$NUM" ] && { [ "$OP" = "created" ] || [ "$OP" = "updated" ]; }; then
+            TITLE="正論蒔宿の手紙：改修PRあり"
+            BODY="手紙のフィードバックで改修PR #${NUM} を${OP}しました。マージ判断をどうぞ → ${URL}"
+            PRIO=4; TAGS="incoming_envelope"
+          else
+            TITLE="正論蒔宿の手紙：改修なし"
+            BODY="手紙を確認しましたが、対応すべき改修はありませんでした（差分なし）。"
+            PRIO=2; TAGS="white_check_mark"
+          fi
+          # 日本語/絵文字を安全に送るため JSON 発行形式を使う（jq で組み立て）
+          jq -nc --arg t "$NTFY_TOPIC" --arg ti "$TITLE" --arg m "$BODY" \
+                 --argjson p "$PRIO" --arg tg "$TAGS" \
+                 '{topic:$t, title:$ti, message:$m, priority:$p, tags:($tg|split(","))}' \
+            | curl -fsS --max-time 20 -d @- "${NTFY_URL:-https://ntfy.sh}" \
+            || echo "ntfy通知に失敗しました（本処理は継続）"
