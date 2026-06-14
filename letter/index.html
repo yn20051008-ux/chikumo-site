@@ -159,7 +159,7 @@
 "use strict";
 (function(){
   var $=function(id){return document.getElementById(id);};
-  var NAME_KEY='makiyadoName', FLAG_KEY='makiyadoFlag', UID_KEY='makiyadoUid';
+  var NAME_KEY='makiyadoName', FLAG_KEY='makiyadoFlag', UID_KEY='makiyadoUid', LKEY='makiyadoKey';
   var selFlag='🇯🇵';
 
   /* 国旗 */
@@ -244,10 +244,14 @@
   }
   function localUid(){ var u; try{ u=localStorage.getItem(UID_KEY); }catch(e){}
     if(!u){ u='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); try{ localStorage.setItem(UID_KEY,u); }catch(e){} } return u; }
-  function uid(){ return myUid || localUid(); }
+  /* 一度 手紙を書いたら その保存キーを固定（ピン留め）して 以降は必ず同じ場所を上書きする。
+     これがないと「認証uid ↔ 端末ID」「再訪で変わる匿名uid」のズレで 上書きが別レコードになり 手紙が重複/消える。 */
+  function pinnedKey(){ try{ return localStorage.getItem(LKEY)||''; }catch(e){ return ''; } }
+  function pinKey(k){ if(!k)return; try{ localStorage.setItem(LKEY,k); }catch(e){} }
+  function letterKey(){ return pinnedKey() || myUid || localUid(); }
 
   function render(rows){
-    var el=$('letterList'), me=uid();
+    var el=$('letterList'), me=letterKey();
     /* 表示側でもNGを弾く：送信時フィルタは端末側のみなので、
        フィルタ導入前に保存された手紙や、すり抜けた手紙を みんなの目に触れさせない */
     rows=rows.filter(function(r){ return !isNG(r.name||'') && !isNG(r.msg||''); });
@@ -268,14 +272,24 @@
       rows.sort(function(a,b){return b.ts-a.ts;}); render(rows);
     }).catch(function(){ $('letterList').innerHTML='<li class="empty">読み込めませんでした（接続を確認）</li>'; });
   }
+  function fillMine(v){
+    if(v.name&&!$('nameInput').value) $('nameInput').value=v.name;
+    if(v.flag) setFlag(v.flag);
+    if(v.msg&&!$('msgInput').value){ $('msgInput').value=v.msg; upd(); }
+    $('stat').textContent='あなたの手紙は とどいています（書きかえOK）';
+  }
+  /* 自分の手紙を ピン→認証uid→端末ID の順で探し、見つかった保存キーを固定する。
+     これで 過去に別キーで保存した手紙も ちゃんと拾って 同じ場所を上書きできる。 */
   function loadMine(){
-    if(!ready||!myUid) return;
-    ref.child(myUid).once('value').then(function(s){ var v=s.val(); if(v){
-      if(v.name&&!$('nameInput').value) $('nameInput').value=v.name;
-      if(v.flag) setFlag(v.flag);
-      if(v.msg&&!$('msgInput').value){ $('msgInput').value=v.msg; upd(); }
-      $('stat').textContent='あなたの手紙は とどいています（書きかえOK）';
-    } }).catch(function(){});
+    if(!ready) return;
+    var seen={}, cands=[pinnedKey(), myUid, localUid()].filter(function(k){ if(!k||seen[k])return false; seen[k]=1; return true; });
+    (function tryNext(i){
+      if(i>=cands.length) return;
+      var k=cands[i];
+      ref.child(k).once('value').then(function(s){ var v=s.val();
+        if(v){ fillMine(v); pinKey(k); } else tryNext(i+1);
+      }).catch(function(){ tryNext(i+1); });
+    })(0);
   }
 
   function send(){
@@ -289,13 +303,15 @@
     var now=Date.now(); if(now-lastTs<1500) return; lastTs=now;
     try{ localStorage.setItem(NAME_KEY,name); localStorage.setItem(FLAG_KEY,selFlag); }catch(e){}
     btn.disabled=true; stat.textContent='おくっています…';
-    ref.child(uid()).set({ flag:selFlag, name:name, msg:msg, ts:now })
-      .then(function(){ stat.textContent='とどけました！ ありがとう 💛'; btn.disabled=false; load(); })
+    var k=letterKey();                       // ピン留め済みなら 必ず同じ場所を上書き
+    ref.child(k).set({ flag:selFlag, name:name, msg:msg, ts:now })
+      .then(function(){ pinKey(k); stat.textContent='とどけました！ ありがとう 💛'; btn.disabled=false; load(); })
       .catch(function(){ stat.textContent='おくれませんでした（接続を確認）'; btn.disabled=false; });
   }
   $('sendBtn').addEventListener('click',send);
 
   load();
+  loadMine();   // 認証を待たずに（ピン/端末ID）自分の手紙を読み込む。認証後にも再度よばれる
 })();
 </script>
 </body>
