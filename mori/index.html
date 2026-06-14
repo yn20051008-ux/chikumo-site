@@ -265,6 +265,51 @@
     16%{opacity:1;transform:translate(-50%,-50%) scale(1.15) rotate(-2deg);}
     30%{transform:translate(-50%,-50%) scale(1) rotate(0);}74%{opacity:1;}
     100%{opacity:0;transform:translate(-50%,-54%) scale(1);}}
+  /* ===== ひっさつわざ シネマティック・カットイン ===== */
+  #wazaCut{position:absolute;inset:0;z-index:19;pointer-events:none;display:none;overflow:hidden;--wc:#7dffce;}
+  #wazaCut.go{display:block;}
+  .wc-flash{position:absolute;inset:0;background:var(--wc);opacity:0;mix-blend-mode:screen;}
+  #wazaCut.go .wc-flash{animation:wcFlash .5s ease-out;}
+  @keyframes wcFlash{0%{opacity:.9}22%{opacity:.25}100%{opacity:0}}
+  .wc-tint{position:absolute;inset:0;opacity:0;
+    background:radial-gradient(ellipse at 28% 60%,color-mix(in srgb,var(--wc) 45%,transparent),transparent 62%),
+               linear-gradient(180deg,rgba(0,0,0,.36),rgba(0,0,0,.5));}
+  #wazaCut.go .wc-tint{animation:wcTint 1s ease-out;}
+  @keyframes wcTint{0%{opacity:0}14%{opacity:1}74%{opacity:1}100%{opacity:0}}
+  .wc-rays{position:absolute;left:28%;top:58%;width:200vmax;height:200vmax;transform:translate(-50%,-50%) scale(.2);opacity:0;
+    background:repeating-conic-gradient(from 0deg,color-mix(in srgb,var(--wc) 55%,transparent) 0deg 6deg,transparent 6deg 13deg);}
+  #wazaCut.go .wc-rays{animation:wcRays .5s ease-out forwards,wcSpin 7s linear infinite;}
+  @keyframes wcRays{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}40%{opacity:.85}100%{opacity:.7;transform:translate(-50%,-50%) scale(1)}}
+  @keyframes wcSpin{to{transform:translate(-50%,-50%) rotate(360deg) scale(1)}}
+  /* マンガ風スピード線（左右からシュッと収束） */
+  .wc-lines{position:absolute;inset:0;opacity:0;
+    background:repeating-linear-gradient(90deg,rgba(255,255,255,.5) 0 2px,transparent 2px 10px);
+    -webkit-mask-image:radial-gradient(ellipse at 50% 56%,transparent 24%,#000 60%);mask-image:radial-gradient(ellipse at 50% 56%,transparent 24%,#000 60%);}
+  #wazaCut.go .wc-lines{animation:wcLines .55s ease-out;}
+  @keyframes wcLines{0%{opacity:0;transform:scaleX(2.2)}30%{opacity:.85}100%{opacity:0;transform:scaleX(1)}}
+  .wc-ring{position:absolute;left:50%;top:56%;width:40px;height:40px;border-radius:50%;
+    border:6px solid var(--wc);transform:translate(-50%,-50%) scale(0);opacity:0;box-shadow:0 0 26px var(--wc);}
+  #wazaCut.go .wc-ring{animation:wcRing .6s ease-out .04s;}
+  @keyframes wcRing{0%{opacity:.95;transform:translate(-50%,-50%) scale(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(20)}}
+  .wc-cocco{position:absolute;left:26%;top:58%;width:min(46vh,300px);height:auto;transform:translate(-50%,-50%) translateX(-60vw) rotate(-16deg);opacity:0;
+    filter:drop-shadow(0 8px 22px rgba(0,0,0,.55)) drop-shadow(0 0 24px var(--wc));}
+  #wazaCut.go .wc-cocco{animation:wcCocco 1s cubic-bezier(.16,1.5,.3,1) both;}
+  @keyframes wcCocco{0%{opacity:0;transform:translate(-50%,-50%) translateX(-60vw) rotate(-16deg) scale(.9)}
+    20%{opacity:1;transform:translate(-50%,-50%) translateX(0) rotate(-7deg) scale(1.06)}
+    30%{transform:translate(-50%,-50%) translateX(0) rotate(-5deg) scale(1)}
+    74%{opacity:1;transform:translate(-50%,-50%) translateX(0) rotate(-5deg) scale(1)}
+    100%{opacity:0;transform:translate(-50%,-50%) translateX(8vw) rotate(-2deg) scale(1.02)}}
+  .wc-name{position:absolute;right:6vw;top:50%;transform:translateY(-50%);text-align:right;max-width:64vw;}
+  .wc-sub{display:block;font-size:clamp(12px,2.4vw,20px);font-weight:900;letter-spacing:.42em;opacity:0;
+    color:#fff;text-shadow:0 0 12px var(--wc),0 2px 6px rgba(0,0,0,.7);}
+  #wazaCut.go .wc-sub{animation:wcSubIn .5s ease-out .12s both;}
+  @keyframes wcSubIn{from{opacity:0;transform:translateX(40px)}to{opacity:.96;transform:none}}
+  .wc-jp{display:block;font-size:clamp(34px,9vw,86px);font-weight:900;font-style:italic;letter-spacing:.02em;line-height:1.04;white-space:nowrap;
+    color:#fff;-webkit-text-stroke:2px rgba(0,0,0,.32);
+    text-shadow:0 0 22px var(--wc),0 4px 0 rgba(0,0,0,.34),0 8px 26px rgba(0,0,0,.6);opacity:0;}
+  #wazaCut.go .wc-jp{animation:wcJpSlam .55s cubic-bezier(.18,1.7,.36,1) .06s both,wcJpShake .5s ease-in-out .6s;}
+  @keyframes wcJpSlam{0%{opacity:0;transform:scale(2.6) skewX(-8deg);filter:blur(8px)}55%{opacity:1;transform:scale(.92) skewX(-3deg);filter:blur(0)}100%{transform:scale(1) skewX(-3deg)}}
+  @keyframes wcJpShake{0%,100%{margin-right:0}25%{margin-right:6px}75%{margin-right:-6px}}
   /* ジム画面（赤い道場テーマ） */
   #gymScreen{position:absolute;inset:0;z-index:21;display:none;align-items:center;justify-content:center;padding:18px;
     background:radial-gradient(ellipse at 50% 30%,rgba(60,34,30,.6),rgba(16,6,6,.88));-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
@@ -489,6 +534,16 @@
   </div>
   <div id="wazaBanner"></div>
   <div id="fxFlash"></div>
+  <!-- ひっさつわざ シネマティック・カットイン -->
+  <div id="wazaCut">
+    <div class="wc-tint"></div>
+    <div class="wc-rays"></div>
+    <div class="wc-lines"></div>
+    <div class="wc-ring"></div>
+    <div class="wc-flash"></div>
+    <img class="wc-cocco" src="/chikumo.svg" alt="">
+    <div class="wc-name"><span class="wc-sub"></span><span class="wc-jp"></span></div>
+  </div>
   <div id="koOverlay"><div id="koAmb">🚑</div><div id="koText">救急車で はこばれた…</div></div>
 
   <!-- ねむり演出 -->
@@ -614,6 +669,27 @@ const Sound=(function(){
   let ac=null,master=null,muted=false;
   function init(){ if(ac)return; try{ ac=new (window.AudioContext||window.webkitAudioContext)();
     master=ac.createGain(); master.gain.value=0.5; master.connect(ac.destination);}catch(e){ac=null;} }
+  /* ── 救出ゲーム級 リッチ音声プリミティブ（絶対時刻スケジューリング＋歪み＋サブ＋エコー） ── */
+  let echo=null;
+  function ensureEcho(){ if(!ac)return null; if(echo)return echo;
+    const d=ac.createDelay(); d.delayTime.value=0.16; const fb=ac.createGain(); fb.gain.value=0.3;
+    const wet=ac.createGain(); wet.gain.value=0.5; d.connect(fb); fb.connect(d); d.connect(wet); wet.connect(master); echo=d; return d; }
+  function aTone(f,t0,dur,type,vol,slide,ech){ if(!ac||muted)return; const o=ac.createOscillator(),g=ac.createGain();
+    o.type=type||'sine'; o.frequency.setValueAtTime(Math.max(20,f),t0); if(slide)o.frequency.exponentialRampToValueAtTime(Math.max(20,slide),t0+dur);
+    g.gain.setValueAtTime(Math.max(.0001,vol),t0); g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+    o.connect(g); g.connect(master); if(ech){ const e=ensureEcho(); if(e)g.connect(e); } o.start(t0); o.stop(t0+dur+.03); }
+  function aNoise(t0,dur,vol,hp){ if(!ac||muted)return; const len=Math.max(1,(ac.sampleRate*dur)|0),b=ac.createBuffer(1,len,ac.sampleRate),d=b.getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*(1-i/len); const s=ac.createBufferSource(); s.buffer=b; const g=ac.createGain(); g.gain.value=vol;
+    if(hp){ const f=ac.createBiquadFilter(); f.type='highpass'; f.frequency.value=hp; s.connect(f); f.connect(g); } else s.connect(g); g.connect(master); s.start(t0); }
+  function crunch(t0,dur,vol,fLow){ if(!ac||muted)return; try{ const len=Math.max(1,(ac.sampleRate*dur)|0),b=ac.createBuffer(1,len,ac.sampleRate),d=b.getChannelData(0);
+    for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2); const s=ac.createBufferSource(); s.buffer=b;
+    const ws=ac.createWaveShaper(),c=new Float32Array(257); for(let i=0;i<257;i++)c[i]=Math.tanh((i/128-1)*6); ws.curve=c;
+    const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.setValueAtTime(3400,t0); f.frequency.exponentialRampToValueAtTime(Math.max(60,fLow||140),t0+dur);
+    const g=ac.createGain(); g.gain.value=vol; s.connect(ws); ws.connect(f); f.connect(g); g.connect(master); s.start(t0); }catch(e){} }
+  function subDrop(t0,f0,f1,dur,vol){ aTone(f0,t0,dur,'sine',vol,f1); }
+  function duck(dur){ if(!ac)return; const g=(xg&&xon)?xg:((bg&&bon)?bg:null); if(!g)return;
+    try{ const now=ac.currentTime, cur=Math.max(.0001,g.gain.value); g.gain.cancelScheduledValues(now); g.gain.setValueAtTime(cur,now);
+      g.gain.linearRampToValueAtTime(cur*0.22,now+0.05); g.gain.linearRampToValueAtTime(cur,now+(dur||0.9)); }catch(e){} }
   function tone(f,d,t,v,sl){ if(!ac||muted)return; const n=ac.currentTime,o=ac.createOscillator(),g=ac.createGain();
     o.type=t||'sine'; o.frequency.setValueAtTime(f,n); if(sl)o.frequency.exponentialRampToValueAtTime(Math.max(40,sl),n+d);
     g.gain.setValueAtTime(.0001,n); g.gain.exponentialRampToValueAtTime(v||.3,n+.006); g.gain.exponentialRampToValueAtTime(.0001,n+d);
@@ -684,25 +760,34 @@ const Sound=(function(){
     nope(){ tone(220,0.12,'square',0.14,150); setTimeout(()=>tone(180,0.14,'square',0.12,120),90); },
     sleep(){ [784,659,523,392].forEach((f,i)=>setTimeout(()=>tone(f,0.5,'sine',0.12),i*180)); },
     wake(){ [392,523,659,880,1047].forEach((f,i)=>setTimeout(()=>tone(f,0.2,'triangle',0.16),i*90)); },
-    /* ひっさつわざ：技ごとに 専用ジングル＋スティンガー */
-    waza(i){ if(!ac||muted)return;
-      if(i===0){ // つむじキック：whoosh＋上昇アルペジオ
-        noise(.32,.3,1700); [523,659,784,1047,1319].forEach((f,k)=>setTimeout(()=>tone(f,0.11,'square',0.16),k*42));
-        setTimeout(()=>tone(196,0.25,'sawtooth',0.16,90),60);
-      }else if(i===1){ // ロケットずつき：上昇ロケット→着弾ドン
-        tone(160,0.4,'sawtooth',0.2,1500); noise(.4,.26,1000);
-        setTimeout(()=>{ tone(70,0.3,'sawtooth',0.3,40); noise(.3,.34,1400); tone(330,0.14,'square',0.16,120); },300);
-      }else if(i===2){ // かみなりラッシュ：連続ザップ→雷鳴
-        for(let k=0;k<6;k++) setTimeout(()=>{ tone(1100+Math.random()*900,0.05,'square',0.13); noise(.05,.22,6000); },k*72);
-        setTimeout(()=>{ tone(98,0.4,'sawtooth',0.22,55); noise(.4,.3,900); },470);
-      }else{ // メテオこっこ（奥義）：チャージ→大爆発→歓喜コーラス
-        tone(120,0.5,'sawtooth',0.16,1400);
-        setTimeout(()=>{ noise(.7,.42,1100); tone(55,0.7,'sawtooth',0.34,38);
-          [392,523,659,784,1047,1319].forEach((f,k)=>setTimeout(()=>tone(f,0.5,'triangle',0.18),k*55)); },360);
+    /* ひっさつわざ：技ごとの シネマティック・サウンド（ライザー→インパクト→歓喜の和音） */
+    wazaCharge(){ if(!ac||muted)return; const t=ac.currentTime; aTone(220,t,.28,'sawtooth',.1,1300,1); aNoise(t,.18,.06,2200); },
+    waza(i){ if(!ac||muted)return; const t=ac.currentTime; duck(1.15);
+      if(i===0){ // 🌀つむじキック：旋風ライザー→斬撃→上昇スタブ
+        aNoise(t,.42,.16,1300); aTone(300,t,.46,'sawtooth',.12,1800,1);
+        crunch(t+.18,.2,.18,420); subDrop(t+.18,92,34,.4,.22); aNoise(t+.18,.18,.14,900);
+        [523,659,784,1047].forEach((f,k)=>{ aTone(f,t+.2+k*.05,.3,'square',.12,0,1); aTone(f*2,t+.22+k*.05,.22,'triangle',.06,0,1); });
+      }else if(i===1){ // 🚀ロケットずつき：点火→3オクターブ加速→大着弾
+        aNoise(t,.5,.18,800); aTone(120,t,.5,'sawtooth',.2,1700,1);
+        for(let k=0;k<3;k++) aTone(110*(k+1),t,.5,'sawtooth',.07,430*(k+1),1);
+        crunch(t+.34,.32,.27,150); subDrop(t+.34,95,26,.5,.3); aNoise(t+.34,.3,.18,300);
+        aTone(70,t+.34,.6,'square',.16,30); [392,523,659].forEach((f,k)=>aTone(f,t+.4+k*.06,.3,'square',.12,0,1));
+      }else if(i===2){ // ⚡かみなりラッシュ：連続電撃→雷鳴→和音
+        for(let k=0;k<7;k++){ const tt=t+k*.07; aNoise(tt,.05,.16,6000); aTone(1100+Math.random()*1400,tt,.05,'square',.12,0,1); crunch(tt,.05,.1,800); }
+        subDrop(t+.52,90,30,.5,.26); aTone(98,t+.52,.5,'sawtooth',.2,55,1); aNoise(t+.52,.4,.16,500);
+        [659,784,988,1319].forEach((f,k)=>aTone(f,t+.57+k*.05,.3,'square',.11,0,1));
+      }else{ // ☄️メテオこっこ（奥義）：チャージ→落下→大爆発→歓喜コーラス
+        aTone(160,t,.55,'sawtooth',.14,1500,1); aNoise(t,.5,.1,2000);
+        aTone(1500,t+.18,.5,'sine',.08,180,1);
+        const tb=t+.6;
+        crunch(tb,1,.34,80); subDrop(tb,80,20,1.1,.34); aNoise(tb,.8,.24); aNoise(tb+.08,.5,.16,300);
+        aTone(150,tb,.7,'sawtooth',.22,32); aTone(55,tb+.05,.9,'square',.14,22);
+        [523,659,784,1047,1319].forEach((f,k)=>{ aTone(f,tb+.4+k*.06,.5,'triangle',.16,0,1); aTone(f/2,tb+.4+k*.06,.5,'sine',.08); });
+        for(let k=0;k<10;k++) aTone(1400+Math.random()*2400,tb+.3+k*.08,.08,'triangle',.05,0,1);
       }
     },
-    wazaLearn(){ if(!ac||muted)return; noise(.2,.16,3200);
-      [392,523,659,784,1047,1319,1568].forEach((f,k)=>setTimeout(()=>tone(f,0.16,'triangle',0.2),k*66)); },
+    wazaLearn(){ if(!ac||muted)return; const t=ac.currentTime; subDrop(t,80,28,.5,.22); aNoise(t,.2,.1,3000);
+      [392,523,659,784,1047,1319,1568].forEach((f,k)=>{ aTone(f,t+.08+k*.07,.3,'square',.12,0,1); aTone(f*2,t+.1+k*.07,.2,'triangle',.06,0,1); }); },
     ui(){ tone(700,0.04,'triangle',0.14); } };
 })();
 
@@ -1143,7 +1228,7 @@ const G={phase:'title',time:0,tod:0.375,day:1,coins:0,paused:false,playSec:0,sav
   inv:{fruit:0,flower:0,bug:0,shell:0},
   /* バトル */
   hp:5,maxHp:5,invuln:0,combo:0,comboT:0,bestCombo:0,defeated:0,
-  inBattle:false,battleT:0,atkCD:0,swingT:0,shake:0,hitStop:0,slow:0,regenT:0,ko:false,koT:0,
+  inBattle:false,battleT:0,atkCD:0,swingT:0,shake:0,hitStop:0,slow:0,zoom:0,regenT:0,ko:false,koT:0,
   /* ひっさつわざ（ジムで習得・ゲージで発動） */
   skills:0,gauge:0,wazaCD:0,
   /* 暮らし（お金・お店・もちもの） */
@@ -1500,113 +1585,135 @@ function updateEnemies(dt){
 
 /* ===== ひっさつわざ（ジムで特訓 → 戦闘でゲージ発動） ===== */
 const WAZA=[
-  {name:'つむじキック',ico:'🌀',col:'#7dffce',cost:0.25,learn:800,
+  {name:'つむじキック',sub:'WHIRL KICK',ico:'🌀',col:'#7dffce',cost:0.25,learn:800,
    desc:'まわりの敵を ぐるっと なぎ払う。囲まれたら これ！',fire(){ wazaWhirl(); }},
-  {name:'ロケットずつき',ico:'🚀',col:'#ff9b5a',cost:0.4,learn:2200,
+  {name:'ロケットずつき',sub:'ROCKET BUTT',ico:'🚀',col:'#ff9b5a',cost:0.4,learn:2200,
    desc:'前方へ ロケット突進！ 大ダメージ＆ふっとばし。',fire(){ wazaRocket(); }},
-  {name:'かみなりラッシュ',ico:'⚡',col:'#ffe24d',cost:0.6,learn:4800,
+  {name:'かみなりラッシュ',sub:'THUNDER RUSH',ico:'⚡',col:'#ffe24d',cost:0.6,learn:4800,
    desc:'稲妻の連打！ 目の前の敵を 多段ヒットで さらう。',fire(){ wazaThunder(); }},
-  {name:'メテオこっこ',ico:'☄️',col:'#ff5e7a',cost:1.0,learn:9800,
+  {name:'メテオこっこ',sub:'METEO COCCO',ico:'☄️',col:'#ff5e7a',cost:1.0,learn:9800,
    desc:'奥義。とびあがって 落下！ 画面ぜんたいに 衝撃波。',fire(){ wazaMeteo(); }},
 ];
 function gainGauge(a){ if(G.gauge>=1)return; G.gauge=Math.min(1,G.gauge+a); updateWazaUI(); }
 function fwdVec(){ return [Math.sin(cam.yaw),-Math.cos(cam.yaw)]; }
-/* わざ命中：任意ダメージ＋派手なヒット */
+function hex2rgb(h){ return [parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255]; }
+/* わざ命中：任意ダメージ＋ド派手ヒット（衝撃波・火花・ダメージ数） */
 function wazaDamage(e,dmg,dir,kb,launch){
   if(e.dead) return;
-  e.hp-=dmg; e.flash=0.22; e.aggro=true;
+  e.hp-=dmg; e.flash=0.26; e.aggro=true;
   e.kx=dir[0]*kb; e.kz=dir[1]*kb;
   if(launch){ e.vy=launch; e.onG=false; e.state='recover'; e.stT=0.6; }
   if(!G.inBattle) triggerBattle();
-  const ey=e.y+1.2;
-  burst3(e.x,ey,e.z,[0.15,0.05,0.1],dmg>=6?14:9,dmg>=6?6:4.2,27);
-  sparks3(e.x,ey,e.z,dmg>=6?10:6);
+  const big=dmg>=6, ey=e.y+1.2;
+  burst3(e.x,ey,e.z,[0.18,0.06,0.12],big?22:13,big?8:5.2,27);
+  sparks3(e.x,ey,e.z,big?16:9);
+  shockRing(e.x,e.y+0.4,e.z,[1,0.95,0.85],big?20:12,big?9:6);
   hitNum(e.x,ey+0.6,e.z,dmg,true);
-  G.combo++; G.comboT=2.4; if(G.combo>G.bestCombo)G.bestCombo=G.combo; showCombo();
+  G.combo++; G.comboT=2.6; if(G.combo>G.bestCombo)G.bestCombo=G.combo; showCombo();
   if(e.hp<=0) defeatEnemy(e);
 }
-function wazaRing(col,n){ // プレイヤー周りに色つきリング状パーティクル
-  for(let i=0;i<n;i++){ const a=i/n*TAU, s=rnd(3,6);
-    parts.push({x:P.x,y:P.y+0.8,z:P.z,vx:Math.cos(a)*s,vy:rnd(1,3),vz:Math.sin(a)*s,
-      life:rnd(0.4,0.8),t:0,col,size:rnd(0.3,0.55),cell:2,grav:6}); }
+/* 地面を走る衝撃波リング（水平に広がるパーティクル） */
+function shockRing(x,y,z,col,n,sp){
+  for(let i=0;i<n;i++){ const a=i/n*TAU;
+    parts.push({x,y,z,vx:Math.cos(a)*sp,vy:rnd(-0.3,0.6),vz:Math.sin(a)*sp,
+      life:rnd(0.34,0.6),t:0,col,size:rnd(0.34,0.6),cell:2,grav:1.5}); }
 }
-/* 1) つむじキック：周囲なぎ払い */
+/* プレイヤー周りの色つきバースト */
+function wazaRing(col,n,sp){
+  for(let i=0;i<n;i++){ const a=i/n*TAU, s=rnd((sp||5)*0.6,sp||5);
+    parts.push({x:P.x,y:P.y+0.8,z:P.z,vx:Math.cos(a)*s,vy:rnd(1,3.5),vz:Math.sin(a)*s,
+      life:rnd(0.45,0.85),t:0,col,size:rnd(0.32,0.6),cell:2,grav:6}); }
+}
+/* 上に立ちのぼる光の柱 */
+function beam3(x,z,col,n,h){
+  for(let i=0;i<n;i++) parts.push({x:x+rnd(-0.3,0.3),y:P.y+rnd(0,h||3),z:z+rnd(-0.3,0.3),
+    vx:rnd(-0.4,0.4),vy:rnd(4,9),vz:rnd(-0.4,0.4),life:rnd(0.3,0.6),t:0,col,size:rnd(0.3,0.55),cell:18,grav:-2});
+}
+/* 1) 🌀つむじキック：周囲なぎ払い＋旋風 */
 function wazaWhirl(){
-  G.shake=Math.max(G.shake,0.7); G.hitStop=Math.max(G.hitStop,0.06); G.slow=0.25;
-  wazaRing([0.5,1,0.8],26);
-  for(const e of enemies){ if(e.dead)continue;
-    const dx=e.x-P.x, dz=e.z-P.z, d=Math.hypot(dx,dz); if(d>6) continue;
-    wazaDamage(e,4,d>0.01?[dx/d,dz/d]:[0,1],7,3); }
-  Sound.waza(0);
-}
-/* 2) ロケットずつき：前方突進 */
-function wazaRocket(){
-  const f=fwdVec();
-  G.shake=Math.max(G.shake,0.9); G.slow=0.2;
-  tryMove(f[0]*2.4,f[1]*2.4);
-  for(let i=0;i<14;i++) parts.push({x:P.x-f[0]*i*0.25,y:P.y+0.7,z:P.z-f[1]*i*0.25,
-    vx:rnd(-0.6,0.6),vy:rnd(0.4,1.6),vz:rnd(-0.6,0.6),life:rnd(0.3,0.6),t:0,col:[1,0.6,0.3],size:rnd(0.3,0.55),cell:2,grav:3});
-  let hit=false;
+  const col=hex2rgb('#7dffce');
+  G.shake=Math.max(G.shake,0.9); G.hitStop=Math.max(G.hitStop,0.07); G.slow=0.28; G.zoom=Math.max(G.zoom,2.2);
+  wazaRing(col,40,7); shockRing(P.x,P.y+0.2,P.z,col,26,9);
   for(const e of enemies){ if(e.dead)continue;
     const dx=e.x-P.x, dz=e.z-P.z, d=Math.hypot(dx,dz); if(d>6.5) continue;
-    if(d>0.01){ const dot=(dx/d)*f[0]+(dz/d)*f[1]; if(dot<0.3) continue; }
-    wazaDamage(e,9,d>0.01?[dx/d,dz/d]:f,13,5.5); hit=true; }
-  if(hit) G.hitStop=Math.max(G.hitStop,0.1);
-  Sound.waza(1);
+    wazaDamage(e,4,d>0.01?[dx/d,dz/d]:[0,1],8,3.5); }
 }
-/* 3) かみなりラッシュ：前方多段ヒット */
+/* 2) 🚀ロケットずつき：前方突進＋噴射 */
+function wazaRocket(){
+  const f=fwdVec(), col=hex2rgb('#ff9b5a');
+  G.shake=Math.max(G.shake,1.0); G.slow=0.22; G.zoom=Math.max(G.zoom,2.6);
+  tryMove(f[0]*2.8,f[1]*2.8);
+  for(let i=0;i<26;i++) parts.push({x:P.x-f[0]*i*0.22,y:P.y+0.7,z:P.z-f[1]*i*0.22,
+    vx:-f[0]*rnd(1,3)+rnd(-0.5,0.5),vy:rnd(0.3,1.8),vz:-f[1]*rnd(1,3)+rnd(-0.5,0.5),
+    life:rnd(0.3,0.65),t:0,col,size:rnd(0.34,0.62),cell:2,grav:2});
+  let hit=false;
+  for(const e of enemies){ if(e.dead)continue;
+    const dx=e.x-P.x, dz=e.z-P.z, d=Math.hypot(dx,dz); if(d>7) continue;
+    if(d>0.01){ const dot=(dx/d)*f[0]+(dz/d)*f[1]; if(dot<0.25) continue; }
+    wazaDamage(e,9,d>0.01?[dx/d,dz/d]:f,15,5.5); hit=true; }
+  if(hit){ G.hitStop=Math.max(G.hitStop,0.12); G.shake=Math.max(G.shake,1.2); }
+}
+/* 3) ⚡かみなりラッシュ：前方多段ヒット＋落雷 */
 function wazaThunder(){
-  const f=fwdVec();
-  G.shake=Math.max(G.shake,0.6); G.slow=0.3;
+  const f=fwdVec(), col=hex2rgb('#ffe24d');
+  G.shake=Math.max(G.shake,0.7); G.slow=0.34; G.zoom=Math.max(G.zoom,2.0);
   const targets=enemies.filter(e=>{ if(e.dead)return false;
-    const dx=e.x-P.x,dz=e.z-P.z,d=Math.hypot(dx,dz); if(d>7)return false;
-    if(d>0.01){ const dot=(dx/d)*f[0]+(dz/d)*f[1]; if(dot<0.1)return false; } return true; });
+    const dx=e.x-P.x,dz=e.z-P.z,d=Math.hypot(dx,dz); if(d>7.5)return false;
+    if(d>0.01){ const dot=(dx/d)*f[0]+(dz/d)*f[1]; if(dot<0.05)return false; } return true; });
   let n=0;
   const id=setInterval(()=>{
-    if(n>=5||G.phase!=='play'){ clearInterval(id); return; }
+    if(n>=6||G.phase!=='play'){ clearInterval(id); return; }
     for(const e of targets){ if(e.dead)continue;
       const dx=e.x-P.x,dz=e.z-P.z,d=Math.hypot(dx,dz)||1;
-      for(let k=0;k<4;k++) parts.push({x:e.x+rnd(-0.4,0.4),y:e.y+rnd(0.5,2.4),z:e.z+rnd(-0.4,0.4),
-        vx:rnd(-0.5,0.5),vy:rnd(-2,-5),vz:rnd(-0.5,0.5),life:0.25,t:0,col:[1,0.95,0.4],size:rnd(0.3,0.5),cell:18,grav:0});
-      wazaDamage(e,2,[dx/d,dz/d],4,n===4?4:0); }
-    G.shake=Math.max(G.shake,0.35); G.hitStop=Math.max(G.hitStop,0.03);
+      beam3(e.x,e.z,col,6,3.2);
+      for(let k=0;k<6;k++) parts.push({x:e.x+rnd(-0.5,0.5),y:e.y+rnd(0.6,3.0),z:e.z+rnd(-0.5,0.5),
+        vx:rnd(-0.6,0.6),vy:rnd(-3,-7),vz:rnd(-0.6,0.6),life:0.22,t:0,col,size:rnd(0.32,0.55),cell:18,grav:0});
+      wazaDamage(e,2,[dx/d,dz/d],5,n===5?5:0); }
+    G.shake=Math.max(G.shake,0.5); G.hitStop=Math.max(G.hitStop,0.035); screenFlash('rgba(255,240,140,.5)',0.12);
     n++;
-  },90);
-  Sound.waza(2);
+  },85);
 }
-/* 4) メテオこっこ（奥義）：全体衝撃波 */
+/* 4) ☄️メテオこっこ（奥義）：とびあがって全体衝撃波 */
 function wazaMeteo(){
-  screenFlash('rgba(255,90,120,1)',0.5);
-  G.shake=Math.max(G.shake,1.3); G.hitStop=Math.max(G.hitStop,0.14); G.slow=0.55;
-  P.vy=6; P.onG=false;
+  const col=hex2rgb('#ff5e7a');
+  screenFlash('rgba(120,40,70,1)',0.6);
+  G.shake=Math.max(G.shake,1.0); G.hitStop=Math.max(G.hitStop,0.14); G.slow=0.62; G.zoom=Math.max(G.zoom,3.6);
+  P.vy=7; P.onG=false;
+  beam3(P.x,P.z,col,18,4);
   setTimeout(()=>{
     if(G.phase!=='play') return;
-    screenFlash('rgba(255,255,255,1)',0.4);
-    G.shake=Math.max(G.shake,1.4);
-    wazaRing([1,0.4,0.5],40);
-    burst3(P.x,P.y+0.5,P.z,[1,0.6,0.2],30,7,27);
+    screenFlash('rgba(255,255,255,1)',0.5);
+    G.shake=Math.max(G.shake,1.8); G.hitStop=Math.max(G.hitStop,0.12); G.zoom=Math.max(G.zoom,3.2);
+    wazaRing(col,64,9);
+    shockRing(P.x,P.y+0.2,P.z,[1,1,1],48,13);
+    shockRing(P.x,P.y+0.2,P.z,col,40,8);
+    burst3(P.x,P.y+0.5,P.z,[1,0.55,0.25],46,9,27);
     for(const e of enemies){ if(e.dead)continue;
       const dx=e.x-P.x, dz=e.z-P.z, d=Math.hypot(dx,dz);
-      wazaDamage(e,Math.max(8,16-Math.floor(d/3)),d>0.01?[dx/d,dz/d]:[0,1],15,7); }
+      wazaDamage(e,Math.max(8,18-Math.floor(d/3)),d>0.01?[dx/d,dz/d]:[0,1],17,8); }
   },360);
-  Sound.waza(3);
 }
-/* わざ発動：ゲージ消費＋名乗り＋エフェクト */
+/* わざ発動：ゲージ消費＋シネマティック演出＋効果 */
 function doWaza(i){
   if(G.phase!=='play'||G.paused||G.ko||G.shopOpen||G.travelOpen||G.rankOpen||G.gymOpen) return;
   if(i<0||i>=G.skills||G.wazaCD>0) return;
   const w=WAZA[i];
   if(G.gauge<w.cost){ Sound.nope(); return; }
-  G.gauge-=w.cost; G.wazaCD=0.55; updateWazaUI();
+  G.gauge-=w.cost; G.wazaCD=0.6; updateWazaUI();
   const b=$('wazaBtns').children[i]; if(b){ b.classList.remove('fired'); void b.offsetWidth; b.classList.add('fired'); }
-  showWazaBanner('わざ！',w.name,w.col);
-  screenFlash('rgba(255,255,255,.9)',0.3);
-  w.fire();
+  playWazaCut(w);                 // 全画面シネマティック名乗り
+  screenFlash('rgba(255,255,255,.92)',0.32);
+  Sound.waza(i);                  // 専用サウンド（ライザー→インパクト→和音）
+  w.fire();                       // 当たり判定＋ワールド演出
 }
-function showWazaBanner(sub,name,col){
-  const b=$('wazaBanner'); b.style.color=col||'#fff';
-  b.innerHTML='<span class="wsub">'+sub+'</span>'+name;
-  b.classList.remove('show'); void b.offsetWidth; b.classList.add('show');
+/* 全画面カットイン（こっこ大ポートレート＋スラム名乗り＋放射光） */
+function playWazaCut(w){
+  const cut=$('wazaCut');
+  cut.style.setProperty('--wc',w.col);
+  cut.querySelector('.wc-sub').textContent=w.sub||'';
+  cut.querySelector('.wc-jp').textContent=w.name;
+  cut.classList.remove('go'); void cut.offsetWidth; cut.classList.add('go');
+  clearTimeout(cut._to); cut._to=setTimeout(()=>cut.classList.remove('go'),1050);
 }
 function screenFlash(rgba,dur){
   const f=$('fxFlash'); f.style.background=rgba;
@@ -1937,6 +2044,7 @@ function update(dt){
   if(G.paused) return;
   /* 共通の減衰（KO中も進める） */
   if(G.shake>0) G.shake=Math.max(0,G.shake-dt*2.2);
+  if(G.zoom>0) G.zoom=Math.max(0,G.zoom-dt*4.5);
   /* 救急車KO演出中は世界を止める */
   if(G.ko){ G.koT+=dt; updateEnemies(dt); updateFx(dt); if(G.koT>=2.6) reviveFromKO(); return; }
   /* おみせ／ランキング／港・空港メニューを ひらいている間は 世界を止める */
@@ -2136,7 +2244,8 @@ $('jumpBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init
 function camEye(){
   const f=camForward();
   const tx=P.x, ty=P.y+2.0, tz=P.z;
-  let ex=tx-f[0]*cam.dist, ey=ty-f[1]*cam.dist, ez=tz-f[2]*cam.dist;
+  const d=Math.max(2.6,cam.dist-(G.zoom||0));   // わざ発動で ぐっと寄る（ズームパンチ）
+  let ex=tx-f[0]*d, ey=ty-f[1]*d, ez=tz-f[2]*d;
   const g=heightAt(ex,ez)+0.5;
   if(ey<g)ey=g;
   return [ex,ey,ez];
