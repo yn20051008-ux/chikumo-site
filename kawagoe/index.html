@@ -158,19 +158,14 @@ function init(){
   // 夕方の太陽の向き
   const sunDir=new THREE.Vector3().setFromSphericalCoords(1,THREE.MathUtils.degToRad(74),THREE.MathUtils.degToRad(150));
 
-  buildLights(sunDir);
-  buildSky(sunDir);
-  buildTerrain();
-  buildWater(sunDir);
-  buildFuji();
-  buildTorii();
-  buildLanterns();
-  buildHouses();
-  buildBridge();
-  buildSakura();
-  buildGrass();
-  buildPetals();
-  buildComposer();
+  // 各パーツは個別に保護：1つ失敗しても残りは描画する
+  const parts=[
+    ['lights',()=>buildLights(sunDir)],['sky',()=>buildSky(sunDir)],['terrain',buildTerrain],
+    ['water',()=>buildWater(sunDir)],['fuji',buildFuji],['torii',buildTorii],['lanterns',buildLanterns],
+    ['houses',buildHouses],['bridge',buildBridge],['sakura',buildSakura],['grass',buildGrass],
+    ['petals',buildPetals],['composer',buildComposer]
+  ];
+  for(const [name,fn] of parts){ try{ fn(); }catch(e){ console.warn('skip part:',name,e); } }
 
   window.addEventListener('resize',onResize);
   setupControls();
@@ -323,6 +318,31 @@ function buildHouses(){
   bellPos.set(-46,groundHeight(-46,48),48);
 }
 const bellPos=new THREE.Vector3();
+
+function buildBridge(){
+  // 反りのある木の太鼓橋。海ぎわ〜浜にかけて架ける。
+  const wood=new THREE.MeshStandardMaterial({color:0x8a3f33,roughness:0.7});
+  const g=new THREE.Group();
+  const SEG=14, SPAN=18, RISE=3.2;
+  for(let i=0;i<SEG;i++){
+    const tx=(i/(SEG-1)-0.5)*SPAN;
+    const y=Math.cos((i/(SEG-1)-0.5)*Math.PI)*RISE;          // 中央が高い反り
+    const plank=new THREE.Mesh(new THREE.BoxGeometry(SPAN/SEG+0.15,0.35,4.4),wood);
+    plank.position.set(tx,y+1.4,0); plank.castShadow=true; plank.receiveShadow=true; g.add(plank);
+  }
+  // 欄干（両側に支柱＋手すり）
+  for(const side of [-1,1]){
+    for(let i=0;i<SEG;i+=2){
+      const tx=(i/(SEG-1)-0.5)*SPAN;
+      const y=Math.cos((i/(SEG-1)-0.5)*Math.PI)*RISE;
+      const post=new THREE.Mesh(new THREE.BoxGeometry(0.28,1.2,0.28),wood);
+      post.position.set(tx,y+2.0,side*2.0); post.castShadow=true; g.add(post);
+    }
+    const rail=new THREE.Mesh(new THREE.BoxGeometry(SPAN,0.25,0.25),wood);
+    rail.position.set(0,2.9,side*2.0); g.add(rail);
+  }
+  g.position.set(20,WATER_Y-0.6,2); g.rotation.y=-0.5; scene.add(g);
+}
 
 const petalGeoColors=[0xffd1e3,0xffc0d8,0xffe0ee];
 function buildSakura(){
