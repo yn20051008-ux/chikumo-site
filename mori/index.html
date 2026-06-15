@@ -1080,6 +1080,59 @@ const skyU=skyProg?{ top:gl.getUniformLocation(skyProg,'uTop'), hor:gl.getUnifor
 const skyA=skyProg?{ pos:gl.getAttribLocation(skyProg,'aPos') }:null;
 const SKY_TANHF=Math.tan(65*Math.PI/180/2);
 
+/* ===== ポストプロセス（軽いブルーム＋彩度/コントラスト＋ビネット）=====
+   シーンをFBOに描いてから1パスで仕上げ。FBO/シェーダが使えない端末では
+   POST_OK=false となり、従来どおり直接描画にフォールバック（必ず動く）。 */
+let POST_OK=false, sceneFBO=null, sceneTex=null, sceneDepth=null, sceneW=0, sceneH=0;
+const postProg=tryProg(
+`attribute vec2 aPos; varying vec2 vUV;
+void main(){ gl_Position=vec4(aPos,0.0,1.0); vUV=aPos*0.5+0.5; }`,
+`precision mediump float;
+varying vec2 vUV; uniform sampler2D uScene; uniform vec2 uPx;
+void main(){
+  vec3 c=texture2D(uScene,vUV).rgb;
+  vec3 b=vec3(0.0);
+  for(int i=0;i<8;i++){
+    float a=float(i)*0.785398;
+    vec2 o=vec2(cos(a),sin(a))*uPx*4.0;
+    vec3 s=texture2D(uScene,vUV+o).rgb;
+    b+=s*smoothstep(0.6,1.0,max(max(s.r,s.g),s.b));
+  }
+  c+=b*0.06;                                   // 控えめなブルーム
+  float l=dot(c,vec3(0.299,0.587,0.114));
+  c=mix(vec3(l),c,1.12);                        // 彩度
+  c=(c-0.5)*1.06+0.5;                           // コントラスト
+  vec2 d=vUV-0.5;
+  c*=mix(0.80,1.0,smoothstep(0.9,0.3,length(d))); // ビネット
+  gl_FragColor=vec4(clamp(c,0.0,1.0),1.0);
+}`);
+const postU=postProg?{ scene:gl.getUniformLocation(postProg,'uScene'), px:gl.getUniformLocation(postProg,'uPx') }:null;
+const postA=postProg?{ pos:gl.getAttribLocation(postProg,'aPos') }:null;
+function ensureSceneFBO(){
+  if(!postProg){ POST_OK=false; return; }
+  if(sceneFBO&&sceneW===cv.width&&sceneH===cv.height) return;
+  sceneW=cv.width; sceneH=cv.height;
+  if(sceneW<1||sceneH<1){ POST_OK=false; return; }
+  if(!sceneTex) sceneTex=gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D,sceneTex);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,sceneW,sceneH,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  if(!sceneDepth) sceneDepth=gl.createRenderbuffer();
+  gl.bindRenderbuffer(gl.RENDERBUFFER,sceneDepth);
+  gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,sceneW,sceneH);
+  if(!sceneFBO) sceneFBO=gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER,sceneFBO);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,sceneTex,0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,sceneDepth);
+  POST_OK=(gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+  gl.bindTexture(gl.TEXTURE_2D,null);
+  gl.bindRenderbuffer(gl.RENDERBUFFER,null);
+}
+
 /* ===== 行列 ===== */
 const Mvp=new Float32Array(16), Mp=new Float32Array(16), Mv=new Float32Array(16);
 function perspective(out,fovy,asp,near,far){
@@ -2777,6 +2830,8 @@ window.addEventListener('resize',resize);
 function render(){
   resize();
   calcDayLight();
+  ensureSceneFBO();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, POST_OK?sceneFBO:null);   // シーンはFBOへ（仕上げ用）
   gl.viewport(0,0,cv.width,cv.height);
   gl.clearColor(DL.sky[0],DL.sky[1],DL.sky[2],1);
   gl.enable(gl.DEPTH_TEST);
@@ -2919,6 +2974,22 @@ function render(){
       gl.drawArrays(gl.TRIANGLES,0,sprN*6);
       gl.depthMask(true);
     }
+  }
+
+  /* --- 仕上げ（ポストプロセス）：FBOのシーンを画面へ1パス合成 --- */
+  if(POST_OK){
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+    gl.viewport(0,0,cv.width,cv.height);
+    gl.disable(gl.DEPTH_TEST); gl.depthMask(false); gl.disable(gl.BLEND);
+    gl.useProgram(postProg);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,sceneTex);
+    gl.uniform1i(postU.scene,0);
+    gl.uniform2f(postU.px,1/sceneW,1/sceneH);
+    gl.bindBuffer(gl.ARRAY_BUFFER,quadBuf);
+    gl.enableVertexAttribArray(postA.pos); gl.vertexAttribPointer(postA.pos,2,gl.FLOAT,false,8,0);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    gl.disableVertexAttribArray(postA.pos);
+    gl.depthMask(true); gl.enable(gl.DEPTH_TEST);
   }
 
   /* --- レーダーマップ --- */
