@@ -257,7 +257,8 @@
   #wazaBar.o2hi #wazaGauge{animation:o2pulse .7s ease-in-out infinite;border-color:#bfe6ff;}
   #wazaBar.o2hi #wazaO2Lbl{animation:o2pulse .7s ease-in-out infinite;}
   @keyframes o2pulse{0%,100%{box-shadow:0 0 6px rgba(120,210,255,.45);}50%{box-shadow:0 0 20px rgba(150,225,255,.95);}}
-  #wazaBtns{display:flex;gap:11px;}
+  #wazaBtns{display:none;gap:11px;}
+  #wazaBar.battle #wazaBtns{display:flex;}   /* わざボタンは戦闘中だけ */
   .wazabtn{pointer-events:auto;width:60px;height:60px;border-radius:50%;cursor:pointer;position:relative;
     display:flex;align-items:center;justify-content:center;flex-direction:column;line-height:1;color:#fff;font-weight:900;
     border:2px solid rgba(150,210,255,.55);background:rgba(12,26,42,.62);
@@ -1624,7 +1625,7 @@ function endBattle(win){
   $('battleVig').classList.remove('on');
   $('bossWrap').classList.remove('on');
   $('playerHP').classList.remove('on');
-  $('wazaBar').classList.remove('on');
+  updateWazaUI();   // 戦闘わざボタンは消し、酸素ゲージ＆ボンベは通常表示のまま残す
   if(win) showBanner('🕊 へいわが もどった…');
 }
 function playerSwing(){
@@ -1977,11 +1978,12 @@ function buildWazaBtns(){
   updateWazaUI();
 }
 function updateWazaUI(){
-  const reveal=(G.o2Reveal||0)>0;       // 空蹴りで一時的に酸素ゲージを表示
+  const reveal=(G.o2Reveal||0)>0;       // 空蹴りで一時的にパルス
   const inWaza=G.inBattle&&G.skills>0;
-  const bar=$('wazaBar'), show=G.phase==='play'&&(inWaza||reveal);
+  const bar=$('wazaBar'), show=G.phase==='play';   // 通常時も酸素ゲージ＆ボンベを常時表示
   bar.classList.toggle('on',show);
-  bar.classList.toggle('o2hi',reveal&&!inWaza);   // 発見ガイドのパルス（戦闘UI時は出さない）
+  bar.classList.toggle('battle',inWaza);            // わざボタンは戦闘中だけ出す
+  bar.classList.toggle('o2hi',reveal&&!inWaza);     // 発見ガイドのパルス（戦闘UI時は出さない）
   if(!show) return;
   $('wazaGaugeFill').style.width=(G.gauge*100).toFixed(0)+'%';
   $('wazaGauge').classList.toggle('full',G.gauge>=1);
@@ -3027,7 +3029,7 @@ function enterPlay(){
   parts=[]; pickups=[]; bflies=[]; bflyT=2;
   lastAct='?'; lastClock='';
   resetBattle();
-  hudInv(); hudClock(); hudAction(); updateRideBtn(); buildWazaBtns(); updateHP();
+  hudInv(); hudClock(); hudAction(); updateRideBtn(); buildWazaBtns(); updateHP(); updateWazaUI();
   $('rankBtn').classList.add('on');
   show(null);
   Sound.startBGM();
