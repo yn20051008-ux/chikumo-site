@@ -145,18 +145,18 @@ function init(){
   renderer.shadowMap.enabled=true;
   renderer.shadowMap.type=THREE.PCFSoftShadowMap;
   renderer.toneMapping=THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure=0.95;
+  renderer.toneMappingExposure=1.08;
 
   scene=new THREE.Scene();
-  scene.fog=new THREE.FogExp2(0xdcc6a8,0.0028);     // 黄金がかった霞
+  scene.fog=new THREE.FogExp2(0xf0c89a,0.0024);     // 黄金がかった夕霞
 
   camera=new THREE.PerspectiveCamera(62,W/H,0.1,4000);
-  camera.position.set(0,3.5,40);
+  camera.position.set(10,4.2,48);
 
   clock=new THREE.Clock();
 
   // 夕方の太陽の向き
-  const sunDir=new THREE.Vector3().setFromSphericalCoords(1,THREE.MathUtils.degToRad(74),THREE.MathUtils.degToRad(150));
+  const sunDir=new THREE.Vector3().setFromSphericalCoords(1,THREE.MathUtils.degToRad(85),THREE.MathUtils.degToRad(155));
 
   // 各パーツは個別に保護：1つ失敗しても残りは描画する
   const parts=[
@@ -174,9 +174,9 @@ function init(){
 
 let sun, hemi;
 function buildLights(sunDir){
-  hemi=new THREE.HemisphereLight(0xbfd4ff,0x4a5535,0.55);
+  hemi=new THREE.HemisphereLight(0xffe0bc,0x55503a,0.38);
   scene.add(hemi);
-  sun=new THREE.DirectionalLight(0xffd9a0,2.6);          // 夕日（暖色）
+  sun=new THREE.DirectionalLight(0xffac5e,3.6);          // 夕日（暖色）
   sun.position.copy(sunDir).multiplyScalar(120);
   sun.castShadow=true;
   sun.shadow.mapSize.set(2048,2048);
@@ -192,8 +192,8 @@ function buildSky(sunDir){
   try{
     const sky=new Sky(); sky.scale.setScalar(6000); scene.add(sky);
     const u=sky.material.uniforms;
-    u['turbidity'].value=8; u['rayleigh'].value=2.2;
-    u['mieCoefficient'].value=0.006; u['mieDirectionalG'].value=0.85;
+    u['turbidity'].value=11; u['rayleigh'].value=2.6;
+    u['mieCoefficient'].value=0.005; u['mieDirectionalG'].value=0.8;
     u['sunPosition'].value.copy(sunDir);
   }catch(e){ scene.background=new THREE.Color(0x9fc0e8); }
 }
@@ -230,8 +230,8 @@ function buildWater(sunDir){
         t=>{ t.wrapS=t.wrapT=THREE.RepeatWrapping; });
       water=new Water(geo,{
         textureWidth:512,textureHeight:512,waterNormals:tex,
-        sunDirection:sunDir.clone(),sunColor:0xfff0d0,waterColor:0x224a63,
-        distortionScale:3.4,fog:true
+        sunDirection:sunDir.clone(),sunColor:0xffcaa0,waterColor:0x123a4e,
+        distortionScale:2.1,fog:true
       });
       water.rotation.x=-Math.PI/2; water.position.y=WATER_Y;
       scene.add(water); return;
@@ -365,21 +365,27 @@ function buildSakura(){
 
 let grass=null;
 function buildGrass(){
-  const blade=new THREE.PlaneGeometry(0.18,1.0); blade.translate(0,0.5,0);
-  const COUNT=4000;
-  const mat=new THREE.MeshStandardMaterial({color:0x6fa046,roughness:1,side:THREE.DoubleSide});
+  // 低くて細い草を、傾けて密に。背丈は最大でも約45cmに抑える（視界をふさがない）
+  const blade=new THREE.PlaneGeometry(0.07,0.34); blade.translate(0,0.17,0);
+  const COUNT=7000;
+  const mat=new THREE.MeshStandardMaterial({roughness:1,side:THREE.DoubleSide});
   grass=new THREE.InstancedMesh(blade,mat,COUNT);
   const dummy=new THREE.Object3D(); let n=0;
+  const cLo=new THREE.Color(0x4a7a30), cHi=new THREE.Color(0x8cba52);
   for(let i=0;i<COUNT;i++){
-    const x=(Math.random()-0.5)*120, z=(Math.random()-0.5)*120;
+    const x=(Math.random()-0.5)*150, z=(Math.random()-0.5)*150;
     const y=groundHeight(x,z);
-    if(y<-1.2||y>7) continue;             // 浜の下や高所には生やさない
+    if(y<-0.4||y>7) continue;             // 浜の下や高所には生やさない
     dummy.position.set(x,y,z);
-    dummy.rotation.y=Math.random()*Math.PI;
-    dummy.scale.set(1,0.7+Math.random()*0.9,1);
-    dummy.updateMatrix(); grass.setMatrixAt(n++,dummy.matrix);
+    dummy.rotation.set((Math.random()-0.5)*0.5, Math.random()*Math.PI, (Math.random()-0.5)*0.45);
+    dummy.scale.set(1,0.7+Math.random()*0.6,1);
+    dummy.updateMatrix(); grass.setMatrixAt(n,dummy.matrix);
+    grass.setColorAt(n, cLo.clone().lerp(cHi,Math.random()));
+    n++;
   }
-  grass.count=n; grass.castShadow=false; grass.receiveShadow=true; scene.add(grass);
+  grass.count=n; grass.castShadow=false; grass.receiveShadow=true;
+  if(grass.instanceColor) grass.instanceColor.needsUpdate=true;
+  scene.add(grass);
 }
 
 let petals=null, petalData=[];
@@ -472,7 +478,7 @@ function loop(){
     }
     // 地面に沿わせる（最低でも海面より少し上）
     const gy=Math.max(groundHeight(camera.position.x,camera.position.z), WATER_Y-0.5);
-    camera.position.y+=(gy+2.6-camera.position.y)*Math.min(1,dt*8);
+    camera.position.y+=(gy+3.2-camera.position.y)*Math.min(1,dt*8);
 
     // 時の鐘：近づくと鳴らせる
     bellCooldown-=dt;
