@@ -845,6 +845,14 @@ function tryProg(vs,fs){ try{ return makeProg(vs,fs); }catch(e){ return null; } 
 
 const FOG_NEAR=70, FOG_FAR=135;
 const FOGSTR=`clamp((d-${FOG_NEAR.toFixed(1)})/${(FOG_FAR-FOG_NEAR).toFixed(1)},0.0,1.0)`;
+/* ACES風フィルミックトーンマップ（シネマティックな色応答） */
+const ACES=`vec3 aces(vec3 x){x*=0.92;return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14),0.0,1.0);}`;
+/* 共有ノイズ（雲・星・地形ディテール用 fbm） */
+const GNOISE=`float hash21(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float vn(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);
+ float a=hash21(i),b=hash21(i+vec2(1.,0.)),c=hash21(i+vec2(0.,1.)),d=hash21(i+vec2(1.,1.));
+ return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);}
+float fbm2(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*vn(p);p=p*2.02+11.3;a*=.5;}return v;}`;
 
 /* 地形 ── 基本（頂点ライティング）を fallback に、画素単位の高品質版を試す */
 const TERRA_VS_BASE=
@@ -875,20 +883,32 @@ void main(){
 }`;
 const TERRA_FS=
 `precision mediump float;
+${ACES}
+${GNOISE}
 varying vec3 vAlb; varying vec3 vNrm; varying vec3 vWpos; varying float vFog;
 uniform vec3 uCam; uniform vec3 uLight; uniform vec3 uSun; uniform vec3 uAmb; uniform vec3 uFogCol;
 void main(){
   vec3 N=normalize(vNrm);
   vec3 L=normalize(uLight);
   vec3 V=normalize(uCam-vWpos);
+  float slope=1.0-clamp(N.y,0.0,1.0);
+  float alt=vWpos.y;
+  // 微細ディテール（テクスチャ無しで質感を出す fbm 陰影）
+  float det=fbm2(vWpos.xz*0.9)*0.16+fbm2(vWpos.xz*4.0)*0.06;
+  vec3 alb=vAlb*(0.92+det);
+  // 急斜面は岩肌
+  alb=mix(alb,alb*0.5+vec3(0.17,0.15,0.13),smoothstep(0.42,0.82,slope)*0.75);
+  // 高所は雪（急斜面には積もりにくい）
+  alb=mix(alb,vec3(0.95,0.96,1.0),smoothstep(9.0,12.5,alt)*(1.0-smoothstep(0.55,0.9,slope)));
   float diff=max(dot(N,L),0.0);
-  vec3 amb=uAmb*(0.74+0.26*N.y);            // ヘミスフィア環境光（空＝上が明るい）
+  float ao=clamp(0.5+0.5*N.y,0.0,1.0);                  // 擬似アンビエントオクルージョン
+  vec3 amb=uAmb*(0.74+0.26*N.y)*ao;                     // ヘミスフィア環境光×AO
   vec3 H=normalize(L+V);
-  float spec=pow(max(dot(N,H),0.0),18.0)*0.10*diff;   // ほんのり太陽スペキュラ
-  float rim=pow(1.0-max(dot(N,V),0.0),3.0)*0.12*diff; // 縁の空気感
-  vec3 col=vAlb*(amb+uSun*diff)+uSun*spec+uAmb*rim;
+  float spec=pow(max(dot(N,H),0.0),18.0)*0.10*diff;     // 太陽スペキュラ
+  float rim=pow(1.0-max(dot(N,V),0.0),3.0)*0.12*diff;   // 縁の空気感
+  vec3 col=alb*(amb+uSun*diff)+uSun*spec+uAmb*rim;
   col=mix(col,uFogCol,vFog);
-  gl_FragColor=vec4(col,1.0);
+  gl_FragColor=vec4(aces(col),1.0);
 }`;
 const terraProg=tryProg(TERRA_VS,TERRA_FS)||makeProg(TERRA_VS_BASE,TERRA_FS_BASE);
 
@@ -911,35 +931,43 @@ void main(){
 }`;
 const WATER_FS=
 `precision mediump float;
+${ACES}
+${GNOISE}
 varying vec2 vXZ;
 uniform float uT; uniform float uWL; uniform vec3 uCam; uniform vec3 uFogCol;
 uniform vec3 uWCol; uniform vec3 uWCol2; uniform vec3 uLight; uniform vec3 uSun;
 void main(){
   float x=vXZ.x, z=vXZ.y;
+  // 多重オクターブの波
   float w=sin(x*0.23+uT*1.4)+sin(z*0.19-uT*1.1)+sin((x+z)*0.11+uT*0.6);
   vec3 body=mix(uWCol,uWCol2,0.5+w*0.16);
-  // 波の勾配から法線（さざ波）
-  float dx=0.23*cos(x*0.23+uT*1.4)+0.11*cos((x+z)*0.11+uT*0.6)+0.5*cos(x*0.7+uT*2.3);
-  float dz=0.19*cos(z*0.19-uT*1.1)+0.11*cos((x+z)*0.11+uT*0.6)+0.5*cos(z*0.66-uT*2.0);
-  vec3 N=normalize(vec3(-dx*0.22,1.0,-dz*0.22));
+  // 波の勾配から法線（さざ波・複数周波数）
+  float dx=0.23*cos(x*0.23+uT*1.4)+0.11*cos((x+z)*0.11+uT*0.6)+0.5*cos(x*0.7+uT*2.3)+0.9*cos(x*1.7+uT*3.1);
+  float dz=0.19*cos(z*0.19-uT*1.1)+0.11*cos((x+z)*0.11+uT*0.6)+0.5*cos(z*0.66-uT*2.0)+0.9*cos(z*1.6-uT*2.7);
+  vec3 N=normalize(vec3(-dx*0.16,1.0,-dz*0.16));
   vec3 wp=vec3(x,uWL,z);
   vec3 V=normalize(uCam-wp);
   vec3 L=normalize(uLight);
   float fres=0.02+0.98*pow(1.0-max(dot(N,V),0.0),5.0);   // フレネル
   vec3 refl=uFogCol*1.06;                                 // 空の反射
-  vec3 c=mix(body,refl,clamp(fres*0.85,0.0,1.0));
+  vec3 c=mix(body,refl,clamp(fres*0.82,0.0,1.0));
+  // 流れる泡（fbmノイズ）
+  float foam=smoothstep(0.62,0.95,fbm2(vXZ*0.5+vec2(uT*0.05,-uT*0.04))+w*0.06);
+  c=mix(c,vec3(0.92,0.97,1.0),foam*0.35);
   vec3 H=normalize(L+V);
-  c+=uSun*pow(max(dot(N,H),0.0),140.0)*0.9;               // 太陽のきらめき
+  c+=uSun*pow(max(dot(N,H),0.0),160.0)*1.0;               // 太陽のきらめき
   float d=distance(wp,uCam);
   c=mix(c,uFogCol,${FOGSTR});
-  gl_FragColor=vec4(c,mix(0.74,0.94,fres));
+  gl_FragColor=vec4(aces(c),mix(0.76,0.95,fres));
 }`;
 const waterProg=tryProg(WATER_VS,WATER_FS)||makeProg(WATER_VS,WATER_FS_BASE);
 
-/* 空 ── 天頂→地平線グラデーション＋地平線の太陽グロー（フルスクリーン1パス・任意） */
-const skyProg=tryProg(
+/* 空 ── フルスクリーン1パス。視線レイで本格的な大気＋太陽＋流れる雲＋夜の星。
+   端末が未対応なら 単純グラデーション→描画スキップ の順にフォールバック。 */
+const SKY_VS=
 `attribute vec2 aPos; varying vec2 vUV;
-void main(){ gl_Position=vec4(aPos,0.999,1.0); vUV=aPos*0.5+0.5; }`,
+void main(){ gl_Position=vec4(aPos,0.999,1.0); vUV=aPos*0.5+0.5; }`;
+const SKY_FS_GRAD=
 `precision mediump float;
 varying vec2 vUV; uniform vec3 uTop; uniform vec3 uHorizon; uniform vec3 uSunGlow;
 void main(){
@@ -947,7 +975,40 @@ void main(){
   vec3 c=mix(uHorizon,uTop,pow(t,0.65));
   c+=uSunGlow*pow(1.0-t,3.0);
   gl_FragColor=vec4(c,1.0);
-}`);
+}`;
+const SKY_FS_ATMO=
+`precision mediump float;
+${ACES}
+${GNOISE}
+varying vec2 vUV;
+uniform vec3 uTop,uHorizon,uSunGlow,uSunDir,uSunCol;
+uniform vec3 uCamF,uCamR,uCamU; uniform float uTanHF,uAspect,uDayF,uTime;
+void main(){
+  vec2 ndc=vUV*2.0-1.0;
+  vec3 dir=normalize(uCamF+ndc.x*uAspect*uTanHF*uCamR+ndc.y*uTanHF*uCamU);
+  float h=clamp(dir.y,0.0,1.0);
+  vec3 sky=mix(uHorizon,uTop,pow(h,0.5));
+  // 太陽：ふんわりグロー＋鋭いディスク
+  float sd=max(dot(dir,normalize(uSunDir)),0.0);
+  sky+=uSunCol*(pow(sd,8.0)*0.35+pow(sd,400.0)*4.0);
+  sky+=uSunGlow*pow(1.0-h,3.0);
+  // 流れる雲（視線を空の平面へ投影して fbm）
+  float above=smoothstep(0.02,0.30,dir.y);
+  if(above>0.0){
+    vec2 cuv=dir.xz/(dir.y+0.18)*0.55+vec2(uTime*0.006,uTime*0.004);
+    float cl=smoothstep(0.52,0.92,fbm2(cuv*1.7))*above*uDayF;
+    vec3 cloudCol=mix(vec3(1.0),uSunCol*0.5+vec3(0.55),0.35);
+    sky=mix(sky,cloudCol,cl*0.85);
+  }
+  // 夜の星
+  float night=1.0-uDayF;
+  if(night>0.04&&dir.y>0.0){
+    vec2 suv=floor(dir.xz/(dir.y+0.12)*90.0);
+    sky+=vec3(step(0.992,hash21(suv))*night*smoothstep(0.0,0.2,dir.y))*1.2;
+  }
+  gl_FragColor=vec4(aces(sky),1.0);
+}`;
+const skyProg=tryProg(SKY_VS,SKY_FS_ATMO)||tryProg(SKY_VS,SKY_FS_GRAD);
 
 /* スプライト（絵文字・こっこちゃん） */
 const spriteProg=makeProg(
@@ -1011,8 +1072,66 @@ const sA={ pos:gl.getAttribLocation(spriteProg,'aPos'), uv:gl.getAttribLocation(
 const nU={ seed:gl.getUniformLocation(noiseProg,'uSeed') };
 const nA={ pos:gl.getAttribLocation(noiseProg,'aPos') };
 const skyU=skyProg?{ top:gl.getUniformLocation(skyProg,'uTop'), hor:gl.getUniformLocation(skyProg,'uHorizon'),
-  glow:gl.getUniformLocation(skyProg,'uSunGlow') }:null;
+  glow:gl.getUniformLocation(skyProg,'uSunGlow'), sunDir:gl.getUniformLocation(skyProg,'uSunDir'),
+  sunCol:gl.getUniformLocation(skyProg,'uSunCol'), camF:gl.getUniformLocation(skyProg,'uCamF'),
+  camR:gl.getUniformLocation(skyProg,'uCamR'), camU:gl.getUniformLocation(skyProg,'uCamU'),
+  tanHF:gl.getUniformLocation(skyProg,'uTanHF'), asp:gl.getUniformLocation(skyProg,'uAspect'),
+  dayF:gl.getUniformLocation(skyProg,'uDayF'), time:gl.getUniformLocation(skyProg,'uTime') }:null;
 const skyA=skyProg?{ pos:gl.getAttribLocation(skyProg,'aPos') }:null;
+const SKY_TANHF=Math.tan(65*Math.PI/180/2);
+
+/* ===== ポストプロセス（軽いブルーム＋彩度/コントラスト＋ビネット）=====
+   シーンをFBOに描いてから1パスで仕上げ。FBO/シェーダが使えない端末では
+   POST_OK=false となり、従来どおり直接描画にフォールバック（必ず動く）。 */
+let POST_OK=false, sceneFBO=null, sceneTex=null, sceneDepth=null, sceneW=0, sceneH=0;
+const postProg=tryProg(
+`attribute vec2 aPos; varying vec2 vUV;
+void main(){ gl_Position=vec4(aPos,0.0,1.0); vUV=aPos*0.5+0.5; }`,
+`precision mediump float;
+varying vec2 vUV; uniform sampler2D uScene; uniform vec2 uPx;
+void main(){
+  vec3 c=texture2D(uScene,vUV).rgb;
+  vec3 b=vec3(0.0);
+  for(int i=0;i<8;i++){
+    float a=float(i)*0.785398;
+    vec2 o=vec2(cos(a),sin(a))*uPx*4.0;
+    vec3 s=texture2D(uScene,vUV+o).rgb;
+    b+=s*smoothstep(0.6,1.0,max(max(s.r,s.g),s.b));
+  }
+  c+=b*0.06;                                   // 控えめなブルーム
+  float l=dot(c,vec3(0.299,0.587,0.114));
+  c=mix(vec3(l),c,1.12);                        // 彩度
+  c=(c-0.5)*1.06+0.5;                           // コントラスト
+  vec2 d=vUV-0.5;
+  c*=mix(0.80,1.0,smoothstep(0.9,0.3,length(d))); // ビネット
+  gl_FragColor=vec4(clamp(c,0.0,1.0),1.0);
+}`);
+const postU=postProg?{ scene:gl.getUniformLocation(postProg,'uScene'), px:gl.getUniformLocation(postProg,'uPx') }:null;
+const postA=postProg?{ pos:gl.getAttribLocation(postProg,'aPos') }:null;
+function ensureSceneFBO(){
+  if(!postProg){ POST_OK=false; return; }
+  if(sceneFBO&&sceneW===cv.width&&sceneH===cv.height) return;
+  sceneW=cv.width; sceneH=cv.height;
+  if(sceneW<1||sceneH<1){ POST_OK=false; return; }
+  if(!sceneTex) sceneTex=gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D,sceneTex);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,sceneW,sceneH,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  if(!sceneDepth) sceneDepth=gl.createRenderbuffer();
+  gl.bindRenderbuffer(gl.RENDERBUFFER,sceneDepth);
+  gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,sceneW,sceneH);
+  if(!sceneFBO) sceneFBO=gl.createFramebuffer();
+  gl.bindFramebuffer(gl.FRAMEBUFFER,sceneFBO);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,sceneTex,0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,sceneDepth);
+  POST_OK=(gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+  gl.bindTexture(gl.TEXTURE_2D,null);
+  gl.bindRenderbuffer(gl.RENDERBUFFER,null);
+}
 
 /* ===== 行列 ===== */
 const Mvp=new Float32Array(16), Mp=new Float32Array(16), Mv=new Float32Array(16);
@@ -2711,24 +2830,13 @@ window.addEventListener('resize',resize);
 function render(){
   resize();
   calcDayLight();
+  ensureSceneFBO();
+  gl.bindFramebuffer(gl.FRAMEBUFFER, POST_OK?sceneFBO:null);   // シーンはFBOへ（仕上げ用）
   gl.viewport(0,0,cv.width,cv.height);
   gl.clearColor(DL.sky[0],DL.sky[1],DL.sky[2],1);
   gl.enable(gl.DEPTH_TEST);
   gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
 
-  /* --- 空グラデーション（最初に全画面・深度書き込みなし） --- */
-  if(skyProg){
-    gl.useProgram(skyProg);
-    gl.disable(gl.DEPTH_TEST); gl.depthMask(false); gl.disable(gl.BLEND);
-    gl.uniform3fv(skyU.top,DL.skyTop);
-    gl.uniform3fv(skyU.hor,DL.skyHorizon);
-    gl.uniform3fv(skyU.glow,DL.sunGlow);
-    gl.bindBuffer(gl.ARRAY_BUFFER,quadBuf);
-    gl.enableVertexAttribArray(skyA.pos); gl.vertexAttribPointer(skyA.pos,2,gl.FLOAT,false,8,0);
-    gl.drawArrays(gl.TRIANGLES,0,6);
-    gl.disableVertexAttribArray(skyA.pos);
-    gl.depthMask(true); gl.enable(gl.DEPTH_TEST);
-  }
 
   let eye;
   if(G.phase==='title'){
@@ -2751,6 +2859,27 @@ function render(){
   camR=[Mv[0],Mv[4],Mv[8]];
   camU=[Mv[1],Mv[5],Mv[9]];
   camF=[-Mv[2],-Mv[6],-Mv[10]];
+
+  /* --- 空（視線レイの大気＋太陽＋雲＋星。全画面・深度書き込みなし） --- */
+  if(skyProg){
+    gl.useProgram(skyProg);
+    gl.disable(gl.DEPTH_TEST); gl.depthMask(false); gl.disable(gl.BLEND);
+    gl.uniform3fv(skyU.top,DL.skyTop); gl.uniform3fv(skyU.hor,DL.skyHorizon); gl.uniform3fv(skyU.glow,DL.sunGlow);
+    if(skyU.sunDir) gl.uniform3fv(skyU.sunDir,DL.light);
+    if(skyU.sunCol) gl.uniform3fv(skyU.sunCol,DL.sun);
+    if(skyU.camF) gl.uniform3fv(skyU.camF,camF);
+    if(skyU.camR) gl.uniform3fv(skyU.camR,camR);
+    if(skyU.camU) gl.uniform3fv(skyU.camU,camU);
+    if(skyU.tanHF) gl.uniform1f(skyU.tanHF,SKY_TANHF);
+    if(skyU.asp) gl.uniform1f(skyU.asp,W/H);
+    if(skyU.dayF) gl.uniform1f(skyU.dayF,DL.dayF);
+    if(skyU.time) gl.uniform1f(skyU.time,G.time);
+    gl.bindBuffer(gl.ARRAY_BUFFER,quadBuf);
+    gl.enableVertexAttribArray(skyA.pos); gl.vertexAttribPointer(skyA.pos,2,gl.FLOAT,false,8,0);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    gl.disableVertexAttribArray(skyA.pos);
+    gl.depthMask(true); gl.enable(gl.DEPTH_TEST);
+  }
 
   /* --- 地形 --- */
   gl.useProgram(terraProg);
@@ -2845,6 +2974,22 @@ function render(){
       gl.drawArrays(gl.TRIANGLES,0,sprN*6);
       gl.depthMask(true);
     }
+  }
+
+  /* --- 仕上げ（ポストプロセス）：FBOのシーンを画面へ1パス合成 --- */
+  if(POST_OK){
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+    gl.viewport(0,0,cv.width,cv.height);
+    gl.disable(gl.DEPTH_TEST); gl.depthMask(false); gl.disable(gl.BLEND);
+    gl.useProgram(postProg);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D,sceneTex);
+    gl.uniform1i(postU.scene,0);
+    gl.uniform2f(postU.px,1/sceneW,1/sceneH);
+    gl.bindBuffer(gl.ARRAY_BUFFER,quadBuf);
+    gl.enableVertexAttribArray(postA.pos); gl.vertexAttribPointer(postA.pos,2,gl.FLOAT,false,8,0);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    gl.disableVertexAttribArray(postA.pos);
+    gl.depthMask(true); gl.enable(gl.DEPTH_TEST);
   }
 
   /* --- レーダーマップ --- */
