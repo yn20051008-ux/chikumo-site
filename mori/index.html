@@ -647,6 +647,7 @@
     <div class="desc" style="max-width:380px;text-align:left;">
       ◆ <b>スマホ</b>：画面の<b>左半分</b>をドラッグで移動、<b>右半分</b>をドラッグで見まわす。<b>⬆ボタン</b>でジャンプ、右下の<b>アクションボタン</b>で目の前のものに ふれる！<br><br>
       ◆ <b>パソコン</b>：WASDで移動、画面クリックでマウス視点。<b>Eキー</b>か<b>クリック</b>でアクション、スペースでジャンプ。<br><br>
+      ◆ <b style="color:#bfe6ff;">🌀 空蹴り（からげり）</b>：乗り物に乗っていないとき、<b>空中でもう一度ジャンプ</b>すると 空気を蹴って <b>何段でも跳べる</b>！ ただし <b>酸素ゲージ</b>を消費。こっこは飛べないので、<b style="color:#ff7a7a;">高く昇って酸素ぎれ→落下すると 着地で大ダメージ（高いほど痛い！）</b>。酸素を残して 着地ぎわに空蹴りすると やわらかく降りられるよ。<br><br>
       ◆ できること：🌳<b>木をゆらす</b>と くだものが落ちる／🌼<b>花をつむ</b>／🦋<b>虫をつかまえる</b>/🪨<b>岩をたたく</b>と コインが出る／🐚<b>かいがらをひろう</b>／🐰🐻🐸<b>住民とおしゃべり</b>。<br><br>
       ◆ 島には <b>朝・ひる・夜</b> がある。夜は ✨ホタルが とぶよ。<br><br>
       ◆ <b style="color:#ff7a7a;">⚠ ブラックこっこ</b>に であうと…のどかな島が一変！<b>アクションボタン</b>で <b>たたかう</b>。<b>ジャンプ中の攻撃はクリティカル💥</b>、連続ヒットで <b>コンボ</b>！ つっこみ💢は <b>うごいて回避</b>。たおすと <b>札束💴どっさり</b>！ やられても <b>🚑救急車</b>がたすけてくれるよ。<br><br>
@@ -1486,6 +1487,27 @@ function damagePlayer(e){
   const hp=$('playerHP'); hp.classList.remove('hurt'); void hp.offsetWidth; hp.classList.add('hurt');
   if(G.hp<=0) playerKO();
 }
+/* 🌀 空蹴りのリスク：こっこは飛べない。高く昇って酸素ぎれ→落下すると、着地でダメージ。
+   gravity(P.vy-=24*dt)で加速した着地スピードが速いほど痛い。通常ジャンプは無傷。 */
+const FALL_SAFE=15, FALL_HARD=25;   // 着地スピードのしきい値（速いほど高所から落ちた）
+function landImpact(impact){
+  if(impact<FALL_SAFE) return;                 // 軽い着地は無傷（通常ジャンプ等）
+  if(G.vehicle!==''||G.invuln>0||G.ko) return; // 乗り物中・無敵中はノーダメ
+  const col=[0.85,0.8,0.7];                    // 着地の砂けむりリング
+  for(let i=0;i<16;i++){ const a=i/16*6.283, s=rnd(2.5,4.5);
+    parts.push({x:P.x,y:P.y+0.1,z:P.z,vx:Math.cos(a)*s,vy:rnd(0,0.8),vz:Math.sin(a)*s,
+      life:rnd(0.35,0.6),t:0,col,size:rnd(0.4,0.7),cell:2,grav:3}); }
+  fallDamage(impact>=FALL_HARD?10:5);
+}
+function fallDamage(n){
+  G.hp=Math.max(0,G.hp-n); G.invuln=1.2;
+  G.shake=Math.max(G.shake,1.1); G.hitStop=Math.max(G.hitStop,0.09);
+  G.combo=0; $('comboTag').classList.remove('show');
+  Sound.hurt(); updateHP();
+  const hp=$('playerHP'); hp.classList.remove('hurt'); void hp.offsetWidth; hp.classList.add('hurt');
+  showToast(n>=10?'💥 ついらく！ ‐10💔 たかすぎ！':'💥 ちゃくちダメージ ‐'+n+'💔');
+  if(G.hp<=0) playerKO();
+}
 function playerKO(){
   G.ko=true; G.koT=0; G.hp=0; updateHP();
   Sound.stopBattleBGM(); Sound.siren();
@@ -2130,7 +2152,7 @@ function update(dt){
   const fl=heightAt(P.x,P.z);
   if(P.y>fl+0.001||P.vy>0){
     P.vy-=24*dt; P.y+=P.vy*dt; P.onG=false;
-    if(P.y<=fl){ P.y=fl; P.vy=0; P.onG=true; }
+    if(P.y<=fl){ const impact=-P.vy; P.y=fl; P.vy=0; P.onG=true; landImpact(impact); }
   }else{ P.y=fl; P.onG=true; }
 
   /* 落としもの（くだもの・コイン） */
@@ -2277,7 +2299,19 @@ window.addEventListener('keydown',e=>{
 window.addEventListener('keyup',e=>{ input.keys[e.key.toLowerCase()]=false; });
 function doJump(){
   if(G.phase!=='play'||G.paused) return;
-  if(P.onG){ P.vy=8.4; P.onG=false; P.y+=0.02; Sound.jump(); }
+  if(P.onG){ P.vy=8.4; P.onG=false; P.y+=0.02; Sound.jump(); return; }
+  if(G.vehicle==='') airKick();   // 空中：空蹴り（乗り物に乗っていないときだけ）
+}
+/* 🌀 空蹴り（からげり）：空気を蹴って何段でもジャンプ。酸素ゲージぶんだけ使える。 */
+const AIR_COST=0.10, AIR_VY=8.0;
+function airKick(){
+  if(G.gauge<AIR_COST){ Sound.nope(); showToast('🫁 酸素ぎれ… 空蹴りできない！'); return; }
+  G.gauge-=AIR_COST; updateWazaUI();
+  P.vy=AIR_VY; P.onG=false; Sound.jump();
+  const col=[0.82,0.93,1];   // 足元から空気を蹴るパフッ
+  for(let i=0;i<10;i++){ const a=Math.random()*6.283, s=rnd(1.2,2.6);
+    parts.push({x:P.x,y:P.y+0.1,z:P.z,vx:Math.cos(a)*s,vy:rnd(-0.4,0.6),vz:Math.sin(a)*s,
+      life:rnd(0.3,0.55),t:0,col,size:rnd(0.3,0.5),cell:18,grav:2}); }
 }
 $('actBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); doAction(); });
 $('jumpBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); doJump(); });
