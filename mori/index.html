@@ -249,6 +249,10 @@
     box-shadow:0 0 10px rgba(120,220,255,.7);transition:width .14s ease;}
   #wazaGauge.full{border-color:#ffe27a;box-shadow:0 0 16px rgba(255,210,80,.7);}
   #wazaGauge.full #wazaGaugeFill{background:linear-gradient(90deg,#ffd24d,#fff1b0);}
+  /* 空蹴り発見ガイド：2回目から酸素ゲージをパルスして見せる */
+  #wazaBar.o2hi #wazaGauge{animation:o2pulse .7s ease-in-out infinite;border-color:#bfe6ff;}
+  #wazaBar.o2hi #wazaO2Lbl{animation:o2pulse .7s ease-in-out infinite;}
+  @keyframes o2pulse{0%,100%{box-shadow:0 0 6px rgba(120,210,255,.45);}50%{box-shadow:0 0 20px rgba(150,225,255,.95);}}
   #wazaBtns{display:flex;gap:11px;}
   .wazabtn{pointer-events:auto;width:60px;height:60px;border-radius:50%;cursor:pointer;position:relative;
     display:flex;align-items:center;justify-content:center;flex-direction:column;line-height:1;color:#fff;font-weight:900;
@@ -1767,8 +1771,11 @@ function buildWazaBtns(){
   updateWazaUI();
 }
 function updateWazaUI(){
-  const bar=$('wazaBar'), show=G.phase==='play'&&G.inBattle&&G.skills>0;
+  const reveal=(G.o2Reveal||0)>0;       // 空蹴りで一時的に酸素ゲージを表示
+  const inWaza=G.inBattle&&G.skills>0;
+  const bar=$('wazaBar'), show=G.phase==='play'&&(inWaza||reveal);
   bar.classList.toggle('on',show);
+  bar.classList.toggle('o2hi',reveal&&!inWaza);   // 発見ガイドのパルス（戦闘UI時は出さない）
   if(!show) return;
   $('wazaGaugeFill').style.width=(G.gauge*100).toFixed(0)+'%';
   $('wazaGauge').classList.toggle('full',G.gauge>=1);
@@ -2122,6 +2129,7 @@ function update(dt){
   if(G.wazaCD>0) G.wazaCD-=dt;
   if(G.swingT>0) G.swingT-=dt;
   if(G.invuln>0) G.invuln-=dt;
+  if(G.o2Reveal>0){ G.o2Reveal-=dt; updateWazaUI(); }   // 空蹴りで見せた酸素ゲージを時間でしまう
   if(G.comboT>0){ G.comboT-=dt; if(G.comboT<=0){ G.combo=0; $('comboTag').classList.remove('show'); } }
   // 戦闘外ではHPゆっくり回復（ほのぼの）
   if(!G.inBattle&&G.hp<G.maxHp){ G.regenT+=dt; if(G.regenT>=8){ G.regenT=0; G.hp++; updateHP(); } } else G.regenT=0;
@@ -2154,6 +2162,7 @@ function update(dt){
     P.vy-=24*dt; P.y+=P.vy*dt; P.onG=false;
     if(P.y<=fl){ const impact=-P.vy; P.y=fl; P.vy=0; P.onG=true; landImpact(impact); }
   }else{ P.y=fl; P.onG=true; }
+  if(P.onG) G.airKicks=0;   // 着地で空蹴りカウントをリセット
 
   /* 落としもの（くだもの・コイン） */
   for(let i=pickups.length-1;i>=0;i--){
@@ -2303,10 +2312,16 @@ function doJump(){
   if(G.vehicle==='') airKick();   // 空中：空蹴り（乗り物に乗っていないときだけ）
 }
 /* 🌀 空蹴り（からげり）：空気を蹴って何段でもジャンプ。酸素ゲージぶんだけ使える。 */
-const AIR_COST=0.10, AIR_VY=8.0;
+const AIR_COST=0.10, AIR_VY=8.0; let airHinted=false;
 function airKick(){
   if(G.gauge<AIR_COST){ Sound.nope(); showToast('🫁 酸素ぎれ… 空蹴りできない！'); return; }
-  G.gauge-=AIR_COST; updateWazaUI();
+  G.gauge-=AIR_COST;
+  G.airKicks=(G.airKicks||0)+1;
+  if(G.airKicks>=2){                    // 空蹴り2回目から酸素ゲージを見せる（初心者の発見導線）
+    G.o2Reveal=2.6;
+    if(!airHinted){ airHinted=true; showToast('🫁 酸素ゲージ ─ 空蹴りで へるよ！'); }
+  }
+  updateWazaUI();
   P.vy=AIR_VY; P.onG=false; Sound.jump();
   const col=[0.82,0.93,1];   // 足元から空気を蹴るパフッ
   for(let i=0;i<10;i++){ const a=Math.random()*6.283, s=rnd(1.2,2.6);
