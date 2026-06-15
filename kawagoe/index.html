@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>川越 ─ 江戸の海辺 ｜ 畜物語</title>
+<meta name="description" content="本格3D（three.js）で描く 江戸時代の海辺。海にたつ大鳥居、遠くの富士山、舞いちる桜。歩いて散策できる、スマホでも動く3Dの世界。">
+<meta name="theme-color" content="#0a0c14">
+<meta name="format-detection" content="telephone=no">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="川越 ─ 江戸の海辺">
+<meta property="og:description" content="本格3Dで描く 江戸時代の海辺。歩いて散策できる3Dの世界。">
+<meta property="og:image" content="https://chikumo.jp/ogp.png">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;}
+  html,body{height:100%;overflow:hidden;background:#0a0c14;font-family:'Hiragino Mincho ProN','Yu Mincho',serif;color:#f3efe2;}
+  #c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+  /* ロード */
+  #load{position:fixed;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(900px 600px at 50% 30%,#1a2236,#0a0c14 70%);transition:opacity .8s;}
+  #load .t{font-size:clamp(40px,13vw,96px);font-weight:900;letter-spacing:.2em;
+    background:linear-gradient(180deg,#fff3d8,#ffcf7a 55%,#d98a3a);-webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 8px 40px rgba(255,180,90,.25);}
+  #load .s{margin-top:14px;font-size:13px;letter-spacing:.3em;color:#bfb9d6;}
+  #load .bar{margin-top:26px;width:200px;height:4px;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden;}
+  #load .bar i{display:block;height:100%;width:30%;border-radius:4px;background:linear-gradient(90deg,#ffd98a,#ff9b5a);
+    animation:slide 1.1s ease-in-out infinite;}
+  @keyframes slide{0%{margin-left:-30%;}100%{margin-left:100%;}}
+  /* タイトル */
+  #title{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:linear-gradient(180deg,rgba(10,12,20,.15),rgba(10,12,20,.55));opacity:0;transition:opacity .9s;pointer-events:none;}
+  #title.on{opacity:1;pointer-events:auto;}
+  #title .jp{font-size:clamp(56px,17vw,150px);font-weight:900;letter-spacing:.16em;line-height:1;
+    background:linear-gradient(180deg,#fff7e6,#ffd98a 60%,#e6a84a);-webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 10px 50px rgba(0,0,0,.5);}
+  #title .sub{margin-top:16px;font-size:14px;letter-spacing:.34em;color:#efe6cf;text-shadow:0 2px 10px rgba(0,0,0,.7);}
+  #title .go{margin-top:40px;padding:15px 46px;border:none;border-radius:40px;font-family:inherit;font-size:19px;font-weight:900;
+    letter-spacing:.26em;color:#3a2606;cursor:pointer;background:linear-gradient(180deg,#ffe7a8,#f0b955);
+    box-shadow:0 12px 34px rgba(240,180,70,.45),inset 0 1px 0 rgba(255,255,255,.6);}
+  #title .go:active{transform:translateY(2px) scale(.98);}
+  #title .hint{margin-top:24px;font-size:12px;letter-spacing:.12em;color:#cfc8b6;opacity:.85;text-align:center;line-height:1.9;}
+  /* HUD */
+  #hud{position:fixed;inset:0;z-index:10;pointer-events:none;opacity:0;transition:opacity .6s;}
+  #hud.on{opacity:1;}
+  #clock{position:absolute;top:calc(12px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);
+    font-size:13px;letter-spacing:.22em;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.7);
+    background:rgba(20,18,34,.4);padding:6px 16px;border-radius:20px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+  #msg{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-size:clamp(20px,5vw,30px);font-weight:900;
+    letter-spacing:.1em;color:#fff;text-shadow:0 3px 16px rgba(0,0,0,.8);opacity:0;text-align:center;transition:opacity .5s;white-space:pre-line;}
+  #msg.on{opacity:1;}
+  /* スティック（左下：移動） */
+  #stick{position:absolute;left:calc(28px + env(safe-area-inset-left));bottom:calc(40px + env(safe-area-inset-bottom));
+    width:118px;height:118px;border-radius:50%;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.06);
+    pointer-events:auto;touch-action:none;}
+  #stick i{position:absolute;left:50%;top:50%;width:50px;height:50px;margin:-25px 0 0 -25px;border-radius:50%;
+    background:rgba(255,255,255,.32);box-shadow:0 2px 10px rgba(0,0,0,.4);}
+  #toTitle{position:absolute;top:calc(12px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));
+    pointer-events:auto;cursor:pointer;font-size:18px;color:#ffe6b0;background:rgba(20,18,34,.55);border:1px solid rgba(255,225,160,.4);
+    width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+  #err{position:fixed;inset:0;z-index:40;display:none;align-items:center;justify-content:center;padding:30px;text-align:center;
+    background:#0a0c14;color:#ffd0d0;font-size:14px;line-height:2;}
+  .credit{position:absolute;bottom:calc(10px + env(safe-area-inset-bottom));right:calc(14px + env(safe-area-inset-right));
+    font-size:10px;letter-spacing:.2em;color:#cfc8b6;opacity:.6;}
+  .credit a{color:inherit;}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="load"><div class="t">川越</div><div class="s">よみこみ中…</div><div class="bar"><i></i></div></div>
+
+<div id="title">
+  <div class="jp">川越</div>
+  <div class="sub">江 戸 ・ 海 辺 の 章</div>
+  <button class="go" id="go">は じ め る</button>
+  <div class="hint">スマホ：左下スティックで移動／画面ドラッグで見まわす<br>PC：WASDで移動／ドラッグで視点</div>
+</div>
+
+<div id="hud">
+  <div id="clock">夕 七つ刻</div>
+  <div id="msg"></div>
+  <div id="toTitle">⛩</div>
+  <div id="stick"><i></i></div>
+  <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+</div>
+
+<div id="err"></div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+const $=id=>document.getElementById(id);
+function fail(m){ const e=$('err'); e.style.display='flex'; e.textContent='よみこみに失敗しました。通信環境を確認して、ページを再読み込みしてください。\n('+m+')'; }
+window.addEventListener('error',e=>{ /* モジュール内の致命エラーを拾う */ });
+
+let Sky=null, Water=null, EffectComposer=null, RenderPass=null, UnrealBloomPass=null, OutputPass=null;
+// アドオンは個別に読み込み、失敗しても核となる描画は動かす
+async function loadAddons(){
+  const base='three/addons/';
+  try{ Sky=(await import(base+'objects/Sky.js')).Sky; }catch(e){}
+  try{ Water=(await import(base+'objects/Water.js')).Water; }catch(e){}
+  try{
+    EffectComposer=(await import(base+'postprocessing/EffectComposer.js')).EffectComposer;
+    RenderPass=(await import(base+'postprocessing/RenderPass.js')).RenderPass;
+    UnrealBloomPass=(await import(base+'postprocessing/UnrealBloomPass.js')).UnrealBloomPass;
+    OutputPass=(await import(base+'postprocessing/OutputPass.js')).OutputPass;
+  }catch(e){ EffectComposer=null; }
+}
+
+const cv=$('c');
+let renderer, scene, camera, composer=null, water=null, clock;
+let W=innerWidth, H=innerHeight;
+
+/* ===== かんたんノイズ（地形のうねり） ===== */
+function hash(x,z){ let h=Math.sin(x*127.1+z*311.7)*43758.5453; return h-Math.floor(h); }
+function noise(x,z){
+  const xi=Math.floor(x), zi=Math.floor(z), xf=x-xi, zf=z-zi;
+  const u=xf*xf*(3-2*xf), v=zf*zf*(3-2*zf);
+  const a=hash(xi,zi),b=hash(xi+1,zi),c=hash(xi,zi+1),d=hash(xi+1,zi+1);
+  return a*(1-u)*(1-v)+b*u*(1-v)+c*(1-u)*v+d*u*v;
+}
+const WATER_Y=0;                  // 海面の高さ
+function groundHeight(x,z){
+  // 海岸線：中心から遠いほど少し高い丘。中央付近は浜〜海。
+  let h = noise(x*0.012,z*0.012)*9 + noise(x*0.045,z*0.045)*2.2;
+  const beach = (Math.hypot(x,z)-46)*0.16;   // 浜辺へ向かってなだらかに下る
+  h += beach;
+  return h-3.0;
+}
+
+function init(){
+  renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(W,H,false);
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=0.95;
+
+  scene=new THREE.Scene();
+  scene.fog=new THREE.FogExp2(0xdcc6a8,0.0028);     // 黄金がかった霞
+
+  camera=new THREE.PerspectiveCamera(62,W/H,0.1,4000);
+  camera.position.set(0,3.5,40);
+
+  clock=new THREE.Clock();
+
+  // 夕方の太陽の向き
+  const sunDir=new THREE.Vector3().setFromSphericalCoords(1,THREE.MathUtils.degToRad(74),THREE.MathUtils.degToRad(150));
+
+  buildLights(sunDir);
+  buildSky(sunDir);
+  buildTerrain();
+  buildWater(sunDir);
+  buildFuji();
+  buildTorii();
+  buildLanterns();
+  buildHouses();
+  buildBridge();
+  buildSakura();
+  buildGrass();
+  buildPetals();
+  buildComposer();
+
+  window.addEventListener('resize',onResize);
+  setupControls();
+  renderer.setAnimationLoop(loop);
+}
+
+let sun, hemi;
+function buildLights(sunDir){
+  hemi=new THREE.HemisphereLight(0xbfd4ff,0x4a5535,0.55);
+  scene.add(hemi);
+  sun=new THREE.DirectionalLight(0xffd9a0,2.6);          // 夕日（暖色）
+  sun.position.copy(sunDir).multiplyScalar(120);
+  sun.castShadow=true;
+  sun.shadow.mapSize.set(2048,2048);
+  const s=70;
+  sun.shadow.camera.left=-s; sun.shadow.camera.right=s; sun.shadow.camera.top=s; sun.shadow.camera.bottom=-s;
+  sun.shadow.camera.near=1; sun.shadow.camera.far=400;
+  sun.shadow.bias=-0.0004;
+  scene.add(sun); scene.add(sun.target);
+}
+
+function buildSky(sunDir){
+  if(!Sky){ scene.background=new THREE.Color(0x9fc0e8); return; }
+  try{
+    const sky=new Sky(); sky.scale.setScalar(6000); scene.add(sky);
+    const u=sky.material.uniforms;
+    u['turbidity'].value=8; u['rayleigh'].value=2.2;
+    u['mieCoefficient'].value=0.006; u['mieDirectionalG'].value=0.85;
+    u['sunPosition'].value.copy(sunDir);
+  }catch(e){ scene.background=new THREE.Color(0x9fc0e8); }
+}
+
+function buildTerrain(){
+  const N=180, SIZE=700;
+  const geo=new THREE.PlaneGeometry(SIZE,SIZE,N,N);
+  geo.rotateX(-Math.PI/2);
+  const p=geo.attributes.position;
+  for(let i=0;i<p.count;i++){
+    const x=p.getX(i), z=p.getZ(i);
+    p.setY(i, groundHeight(x,z));
+  }
+  geo.computeVertexNormals();
+  // 高さで色を変える（浜＝砂、丘＝緑）
+  const colors=[]; const cGrass=new THREE.Color(0x6f9a4a), cSand=new THREE.Color(0xd8c89a), cDark=new THREE.Color(0x4f7236);
+  for(let i=0;i<p.count;i++){
+    const y=p.getY(i); const t=THREE.MathUtils.smoothstep(y,-2.4,0.2);
+    const c=cSand.clone().lerp(cGrass,t).lerp(cDark, Math.max(0,(y-4)/6));
+    colors.push(c.r,c.g,c.b);
+  }
+  geo.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));
+  const mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:0.96,metalness:0.0});
+  const ground=new THREE.Mesh(geo,mat);
+  ground.receiveShadow=true;
+  scene.add(ground);
+}
+
+function buildWater(sunDir){
+  const geo=new THREE.PlaneGeometry(4000,4000);
+  if(Water){
+    try{
+      const tex=new THREE.TextureLoader().load('https://cdn.jsdelivr.net/npm/three@0.160.0/examples/textures/waternormals.jpg',
+        t=>{ t.wrapS=t.wrapT=THREE.RepeatWrapping; });
+      water=new Water(geo,{
+        textureWidth:512,textureHeight:512,waterNormals:tex,
+        sunDirection:sunDir.clone(),sunColor:0xfff0d0,waterColor:0x224a63,
+        distortionScale:3.4,fog:true
+      });
+      water.rotation.x=-Math.PI/2; water.position.y=WATER_Y;
+      scene.add(water); return;
+    }catch(e){ water=null; }
+  }
+  // フォールバック：単純な反射なし水面
+  const m=new THREE.MeshStandardMaterial({color:0x2a526b,roughness:0.25,metalness:0.4,transparent:true,opacity:0.92});
+  const w=new THREE.Mesh(geo,m); w.rotation.x=-Math.PI/2; w.position.y=WATER_Y; scene.add(w);
+}
+
+function buildFuji(){
+  const g=new THREE.ConeGeometry(220,150,48,1,true);
+  const m=new THREE.MeshStandardMaterial({color:0x7c89a8,roughness:1,metalness:0,fog:true});
+  const fuji=new THREE.Mesh(g,m); fuji.position.set(-120,30,-620); scene.add(fuji);
+  // 雪冠
+  const sg=new THREE.ConeGeometry(86,52,48,1,true);
+  const sm=new THREE.MeshStandardMaterial({color:0xf2f4ff,roughness:1});
+  const snow=new THREE.Mesh(sg,sm); snow.position.set(-120,30+52,-620); scene.add(snow);
+}
+
+const woodRed=()=>new THREE.MeshStandardMaterial({color:0xb5322b,roughness:0.6,metalness:0.0});
+function buildTorii(){
+  const g=new THREE.Group();
+  const mat=woodRed();
+  const r=1.2, hh=15;
+  const pL=new THREE.Mesh(new THREE.CylinderGeometry(r,r*1.15,hh,18),mat); pL.position.set(-7,hh/2-2,0);
+  const pR=pL.clone(); pR.position.x=7;
+  // 笠木（上の横木・反り風に2段）
+  const top=new THREE.Mesh(new THREE.BoxGeometry(22,1.5,2.6),mat); top.position.set(0,hh-2.4,0);
+  const top2=new THREE.Mesh(new THREE.BoxGeometry(19,1.1,2.0),mat); top2.position.set(0,hh-4.2,0);
+  const nuki=new THREE.Mesh(new THREE.BoxGeometry(17,1.1,1.6),mat); nuki.position.set(0,hh-7,0);
+  [pL,pR,top,top2,nuki].forEach(m=>{ m.castShadow=true; m.receiveShadow=true; g.add(m); });
+  g.position.set(0,WATER_Y-1,8);     // 海ぎわに立てる
+  scene.add(g);
+}
+
+function buildLanterns(){
+  const stone=new THREE.MeshStandardMaterial({color:0x9a978c,roughness:1});
+  const fireMat=new THREE.MeshStandardMaterial({color:0xffd27a,emissive:0xff9b3a,emissiveIntensity:1.4});
+  const spots=[[14,12],[-15,14],[20,26],[-22,24],[6,30]];
+  for(const [x,z] of spots){
+    const y=groundHeight(x,z);
+    const g=new THREE.Group();
+    const base=new THREE.Mesh(new THREE.CylinderGeometry(0.7,0.9,1.2,8),stone); base.position.y=0.6;
+    const pole=new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.28,2.0,8),stone); pole.position.y=1.9;
+    const box=new THREE.Mesh(new THREE.BoxGeometry(1.3,1.2,1.3),stone); box.position.y=3.4;
+    const fire=new THREE.Mesh(new THREE.BoxGeometry(0.8,0.8,0.8),fireMat); fire.position.y=3.4;
+    const roof=new THREE.Mesh(new THREE.ConeGeometry(1.2,0.9,4),stone); roof.position.y=4.3; roof.rotation.y=Math.PI/4;
+    [base,pole,box,roof].forEach(m=>{m.castShadow=true;});
+    g.add(base,pole,box,fire,roof);
+    const light=new THREE.PointLight(0xffb05a,0.0,14,2); light.position.set(0,3.4,0); g.add(light); g.userData.light=light;
+    g.position.set(x,y,z); scene.add(g); lanternLights.push(light);
+  }
+}
+const lanternLights=[];
+
+function roofMat(){ return new THREE.MeshStandardMaterial({color:0x3a3f4a,roughness:0.9}); }
+function wallMat(){ return new THREE.MeshStandardMaterial({color:0x2c2c30,roughness:0.95}); }
+function buildHouse(x,z,rot){
+  const g=new THREE.Group();
+  const body=new THREE.Mesh(new THREE.BoxGeometry(8,5,6),wallMat()); body.position.y=2.5;
+  // 切妻屋根（黒瓦風）
+  const roof=new THREE.Mesh(new THREE.CylinderGeometry(0.001,5.6,3.4,4,1),roofMat());
+  roof.rotation.y=Math.PI/4; roof.position.y=6.4; roof.scale.set(1.0,1,1.45);
+  const base=new THREE.Mesh(new THREE.BoxGeometry(8.4,0.6,6.4),new THREE.MeshStandardMaterial({color:0x6b5a44,roughness:1}));
+  base.position.y=0.3;
+  [body,roof,base].forEach(m=>{m.castShadow=true;m.receiveShadow=true;});
+  g.add(base,body,roof);
+  g.position.set(x,groundHeight(x,z),z); g.rotation.y=rot; scene.add(g);
+}
+function buildHouses(){
+  buildHouse(-30,40,0.5); buildHouse(-38,52,0.2); buildHouse(28,46,-0.7); buildHouse(38,58,-0.4);
+  // 時の鐘（川越の象徴）：木の櫓
+  const g=new THREE.Group();
+  const wm=new THREE.MeshStandardMaterial({color:0x5a3f2a,roughness:0.9});
+  for(const dx of [-2.2,2.2]) for(const dz of [-2.2,2.2]){
+    const leg=new THREE.Mesh(new THREE.BoxGeometry(0.7,12,0.7),wm); leg.position.set(dx,6,dz); leg.castShadow=true; g.add(leg);
+  }
+  const top=new THREE.Mesh(new THREE.BoxGeometry(6,1.4,6),wm); top.position.y=12.4; top.castShadow=true; g.add(top);
+  const roof=new THREE.Mesh(new THREE.ConeGeometry(5.2,3.4,4),roofMat()); roof.rotation.y=Math.PI/4; roof.position.y=14.6; roof.castShadow=true; g.add(roof);
+  const bell=new THREE.Mesh(new THREE.CylinderGeometry(0.9,1.1,2.2,12),new THREE.MeshStandardMaterial({color:0x6e5a2e,roughness:0.5,metalness:0.6}));
+  bell.position.y=10.8; g.add(bell);
+  g.position.set(-46,groundHeight(-46,48),48); scene.add(g);
+  bellPos.set(-46,groundHeight(-46,48),48);
+}
+const bellPos=new THREE.Vector3();
+
+const petalGeoColors=[0xffd1e3,0xffc0d8,0xffe0ee];
+function buildSakura(){
+  const trunkMat=new THREE.MeshStandardMaterial({color:0x5a3a2a,roughness:1});
+  const spots=[[18,18],[-18,20],[24,34],[-26,30],[10,42],[-8,46],[34,26]];
+  for(const [x,z] of spots){
+    const y=groundHeight(x,z);
+    const g=new THREE.Group();
+    const trunk=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.9,6,8),trunkMat); trunk.position.y=3; trunk.castShadow=true; g.add(trunk);
+    for(let k=0;k<5;k++){
+      const c=petalGeoColors[k%petalGeoColors.length];
+      const blob=new THREE.Mesh(new THREE.IcosahedronGeometry(2.4+Math.random()*1.2,1),
+        new THREE.MeshStandardMaterial({color:c,roughness:0.85,flatShading:true}));
+      blob.position.set((Math.random()-0.5)*4,6+Math.random()*2.6,(Math.random()-0.5)*4);
+      blob.castShadow=true; g.add(blob);
+    }
+    g.position.set(x,y,z); g.scale.setScalar(0.9+Math.random()*0.5); scene.add(g);
+  }
+}
+
+let grass=null;
+function buildGrass(){
+  const blade=new THREE.PlaneGeometry(0.18,1.0); blade.translate(0,0.5,0);
+  const COUNT=4000;
+  const mat=new THREE.MeshStandardMaterial({color:0x6fa046,roughness:1,side:THREE.DoubleSide});
+  grass=new THREE.InstancedMesh(blade,mat,COUNT);
+  const dummy=new THREE.Object3D(); let n=0;
+  for(let i=0;i<COUNT;i++){
+    const x=(Math.random()-0.5)*120, z=(Math.random()-0.5)*120;
+    const y=groundHeight(x,z);
+    if(y<-1.2||y>7) continue;             // 浜の下や高所には生やさない
+    dummy.position.set(x,y,z);
+    dummy.rotation.y=Math.random()*Math.PI;
+    dummy.scale.set(1,0.7+Math.random()*0.9,1);
+    dummy.updateMatrix(); grass.setMatrixAt(n++,dummy.matrix);
+  }
+  grass.count=n; grass.castShadow=false; grass.receiveShadow=true; scene.add(grass);
+}
+
+let petals=null, petalData=[];
+function buildPetals(){
+  const N=420;
+  const geo=new THREE.BufferGeometry();
+  const pos=new Float32Array(N*3);
+  for(let i=0;i<N;i++){
+    const x=(Math.random()-0.5)*90, y=Math.random()*30, z=(Math.random()-0.5)*90;
+    pos[i*3]=x; pos[i*3+1]=y; pos[i*3+2]=z;
+    petalData.push({x,y,z,vy:-0.6-Math.random()*0.7,sw:Math.random()*6.28,sp:0.5+Math.random()});
+  }
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  const mat=new THREE.PointsMaterial({color:0xffd6e6,size:0.5,transparent:true,opacity:0.95,depthWrite:false});
+  petals=new THREE.Points(geo,mat); scene.add(petals);
+}
+
+function buildComposer(){
+  if(!EffectComposer||!UnrealBloomPass||!RenderPass||!OutputPass) return;
+  try{
+    composer=new EffectComposer(renderer);
+    composer.addPass(new RenderPass(scene,camera));
+    const bloom=new UnrealBloomPass(new THREE.Vector2(W,H),0.55,0.7,0.85);   // strength, radius, threshold
+    composer.addPass(bloom);
+    composer.addPass(new OutputPass());
+    composer.setPixelRatio(Math.min(devicePixelRatio,2));
+    composer.setSize(W,H);
+  }catch(e){ composer=null; }
+}
+
+/* ===== 操作 ===== */
+const keys={};
+let yaw=0, pitch=-0.05;
+const move=new THREE.Vector2();      // x:左右, y:前後（スティック）
+let lookId=null, lookPX=0, lookPY=0;
+let stickId=null, stickCX=0, stickCY=0;
+function setupControls(){
+  addEventListener('keydown',e=>{ keys[e.key.toLowerCase()]=true; });
+  addEventListener('keyup',e=>{ keys[e.key.toLowerCase()]=false; });
+
+  // 視点：スティック以外の画面ドラッグ
+  cv.addEventListener('pointerdown',e=>{ if(lookId===null){ lookId=e.pointerId; lookPX=e.clientX; lookPY=e.clientY; } });
+  addEventListener('pointermove',e=>{
+    if(e.pointerId===lookId){
+      yaw-=(e.clientX-lookPX)*0.0042; pitch-=(e.clientY-lookPY)*0.0042;
+      pitch=Math.max(-0.9,Math.min(0.55,pitch)); lookPX=e.clientX; lookPY=e.clientY;
+    }
+    if(e.pointerId===stickId){ stickMove(e.clientX,e.clientY); }
+  });
+  addEventListener('pointerup',e=>{ if(e.pointerId===lookId)lookId=null; if(e.pointerId===stickId){ stickId=null; move.set(0,0); resetKnob(); } });
+  addEventListener('pointercancel',e=>{ if(e.pointerId===lookId)lookId=null; if(e.pointerId===stickId){ stickId=null; move.set(0,0); resetKnob(); } });
+
+  const st=$('stick');
+  st.addEventListener('pointerdown',e=>{ e.stopPropagation(); stickId=e.pointerId; const r=st.getBoundingClientRect();
+    stickCX=r.left+r.width/2; stickCY=r.top+r.height/2; stickMove(e.clientX,e.clientY); });
+}
+function stickMove(px,py){
+  let dx=px-stickCX, dy=py-stickCY; const R=52, d=Math.hypot(dx,dy);
+  if(d>R){ dx=dx/d*R; dy=dy/d*R; }
+  $('stick').querySelector('i').style.transform=`translate(${dx}px,${dy}px)`;
+  move.set(dx/R, dy/R);
+}
+function resetKnob(){ $('stick').querySelector('i').style.transform='translate(0,0)'; }
+
+function onResize(){
+  W=innerWidth; H=innerHeight;
+  renderer.setSize(W,H,false);
+  camera.aspect=W/H; camera.updateProjectionMatrix();
+  if(composer) composer.setSize(W,H);
+}
+
+let started=false, t=0, bellCooldown=0;
+function loop(){
+  const dt=Math.min(clock.getDelta(),0.05); t+=dt;
+
+  if(started){
+    // 視点
+    camera.rotation.order='YXZ';
+    camera.rotation.y=yaw; camera.rotation.x=pitch;
+    // 移動（カメラの向きに合わせて）
+    const sp=15;
+    let fx=0,fz=0;
+    if(keys['w'])fz-=1; if(keys['s'])fz+=1; if(keys['a'])fx-=1; if(keys['d'])fx+=1;
+    fx+=move.x; fz+=move.y;
+    if(fx||fz){
+      const sinY=Math.sin(yaw), cosY=Math.cos(yaw);
+      const wx=(fx*cosY - fz*sinY), wz=(fx*sinY + fz*cosY);
+      const len=Math.hypot(wx,wz)||1;
+      camera.position.x+=wx/len*sp*dt; camera.position.z+=wz/len*sp*dt;
+    }
+    // 地面に沿わせる（最低でも海面より少し上）
+    const gy=Math.max(groundHeight(camera.position.x,camera.position.z), WATER_Y-0.5);
+    camera.position.y+=(gy+2.6-camera.position.y)*Math.min(1,dt*8);
+
+    // 時の鐘：近づくと鳴らせる
+    bellCooldown-=dt;
+    if(camera.position.distanceTo(bellPos)<10 && bellCooldown<=0){ bellCooldown=6; ringBell(); }
+  }
+
+  // 水面アニメ
+  if(water&&water.material&&water.material.uniforms&&water.material.uniforms['time'])
+    water.material.uniforms['time'].value+=dt;
+
+  // 花びら
+  if(petals){
+    const pos=petals.geometry.attributes.position.array;
+    for(let i=0;i<petalData.length;i++){
+      const d=petalData[i]; d.y+=d.vy*dt; d.sw+=dt*d.sp;
+      let px=d.x+Math.sin(d.sw)*2.2, pz=d.z+Math.cos(d.sw*0.8)*1.6;
+      if(d.y<0){ d.y=28+Math.random()*6; }
+      pos[i*3]=px+camera.position.x*0.0; pos[i*3+1]=d.y; pos[i*3+2]=pz;
+    }
+    petals.geometry.attributes.position.needsUpdate=true;
+  }
+
+  // 灯籠の灯り（うっすら点滅・常時ほのかに）
+  for(const l of lanternLights){ l.intensity=1.6+Math.sin(t*3+l.position.x)*0.3; }
+
+  if(composer) composer.render(); else renderer.render(scene,camera);
+}
+
+function ringBell(){
+  showMsg('ゴ―――ン……\n時の鐘が ひびいた');
+  try{
+    const ac=new (window.AudioContext||window.webkitAudioContext)();
+    const o=ac.createOscillator(), g=ac.createGain();
+    o.type='sine'; o.frequency.value=170; o.connect(g); g.connect(ac.destination);
+    g.gain.setValueAtTime(0.0001,ac.currentTime); g.gain.exponentialRampToValueAtTime(0.5,ac.currentTime+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,ac.currentTime+3.2);
+    o.start(); o.stop(ac.currentTime+3.3);
+  }catch(e){}
+}
+let msgTO=null;
+function showMsg(s){ const m=$('msg'); m.textContent=s; m.classList.add('on'); clearTimeout(msgTO); msgTO=setTimeout(()=>m.classList.remove('on'),2600); }
+
+/* ===== 起動 ===== */
+$('go').addEventListener('click',()=>{
+  started=true;
+  $('title').classList.remove('on');
+  $('hud').classList.add('on');
+  showMsg('海辺を 歩いてみよう\n⛩ 鳥居や 時の鐘へ');
+});
+$('toTitle').addEventListener('click',()=>{ started=false; $('hud').classList.remove('on'); $('title').classList.add('on'); });
+
+(async function(){
+  try{
+    await loadAddons();
+    init();
+    // ロード→タイトル
+    setTimeout(()=>{ const l=$('load'); l.style.opacity='0'; setTimeout(()=>l.style.display='none',800); $('title').classList.add('on'); },600);
+  }catch(e){ fail(e&&e.message?e.message:e); }
+})();
+</script>
+</body>
+</html>
