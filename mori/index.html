@@ -65,6 +65,10 @@
   #hudInv .it{transition:transform .15s;}
   #hudInv .it.pop{transform:scale(1.45);}
   #hudCoin{font-size:16px;color:#ffe07a;}
+  /* 常時表示の小さなHP（左上の状態表示にまとめる・操作や景色のじゃまにならない） */
+  #hpMini{display:flex;gap:1px;font-size:13px;line-height:1;margin-top:2px;white-space:nowrap;letter-spacing:.5px;
+    filter:drop-shadow(0 1px 3px rgba(0,0,0,.75));}
+  #hpMini .hp-lost{opacity:.22;filter:grayscale(1);}
   #saveFlash{position:absolute;top:calc(102px + env(safe-area-inset-top));right:calc(14px + env(safe-area-inset-right));
     font-size:12px;opacity:0;transition:opacity .4s;text-shadow:0 1px 4px rgba(0,0,0,.7);}
   #saveFlash.on{opacity:.85;}
@@ -520,6 +524,7 @@
         <span class="it" id="invShell">🐚 0</span>
         <span class="it" id="invFuel">⛽ 0</span>
       </div>
+      <div id="hpMini"></div>
     </div>
     <div id="saveFlash">💾 セーブしました</div>
     <div id="stickBase"></div><div id="stickKnob"></div>
@@ -1532,6 +1537,7 @@ function updateHP(){
   let s='';
   for(let i=0;i<G.maxHp;i++) s+='<span class="'+(i<G.hp?'':'hp-lost')+'">❤️</span>';
   $('playerHP').innerHTML=s;
+  $('hpMini').innerHTML=s;   // 常時表示の小さなHPも更新
 }
 let comboTO=null;
 function showCombo(){
@@ -2779,7 +2785,7 @@ function enterPlay(){
   parts=[]; pickups=[]; bflies=[]; bflyT=2;
   lastAct='?'; lastClock='';
   resetBattle();
-  hudInv(); hudClock(); hudAction(); updateRideBtn(); buildWazaBtns();
+  hudInv(); hudClock(); hudAction(); updateRideBtn(); buildWazaBtns(); updateHP();
   $('rankBtn').classList.add('on');
   show(null);
   Sound.startBGM();
