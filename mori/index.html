@@ -840,12 +840,14 @@ function makeProg(vs,fs){
   if(!gl.getProgramParameter(p,gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
   return p;
 }
+/* 高品質シェーダが端末で compile/link できなかった場合は基本シェーダへ自動フォールバック */
+function tryProg(vs,fs){ try{ return makeProg(vs,fs); }catch(e){ return null; } }
 
 const FOG_NEAR=70, FOG_FAR=135;
 const FOGSTR=`clamp((d-${FOG_NEAR.toFixed(1)})/${(FOG_FAR-FOG_NEAR).toFixed(1)},0.0,1.0)`;
 
-/* 地形 */
-const terraProg=makeProg(
+/* 地形 ── 基本（頂点ライティング）を fallback に、画素単位の高品質版を試す */
+const TERRA_VS_BASE=
 `attribute vec3 aPos; attribute vec3 aNrm; attribute vec3 aCol;
 uniform mat4 uVP; uniform vec3 uCam; uniform vec3 uLight; uniform vec3 uSun; uniform vec3 uAmb;
 varying vec3 vCol; varying float vFog;
@@ -855,16 +857,47 @@ void main(){
   vCol=aCol*(uAmb+uSun*dl);
   float d=distance(aPos,uCam);
   vFog=${FOGSTR};
-}`,
+}`;
+const TERRA_FS_BASE=
 `precision mediump float;
 varying vec3 vCol; varying float vFog; uniform vec3 uFogCol;
-void main(){ gl_FragColor=vec4(mix(vCol,uFogCol,vFog),1.0); }`);
+void main(){ gl_FragColor=vec4(mix(vCol,uFogCol,vFog),1.0); }`;
+/* 高品質版：画素単位ライティング＋ヘミスフィア環境光＋太陽スペキュラ＋大気フォグ */
+const TERRA_VS=
+`attribute vec3 aPos; attribute vec3 aNrm; attribute vec3 aCol;
+uniform mat4 uVP; uniform vec3 uCam;
+varying vec3 vAlb; varying vec3 vNrm; varying vec3 vWpos; varying float vFog;
+void main(){
+  gl_Position=uVP*vec4(aPos,1.0);
+  vAlb=aCol; vNrm=aNrm; vWpos=aPos;
+  float d=distance(aPos,uCam);
+  vFog=${FOGSTR};
+}`;
+const TERRA_FS=
+`precision mediump float;
+varying vec3 vAlb; varying vec3 vNrm; varying vec3 vWpos; varying float vFog;
+uniform vec3 uCam; uniform vec3 uLight; uniform vec3 uSun; uniform vec3 uAmb; uniform vec3 uFogCol;
+void main(){
+  vec3 N=normalize(vNrm);
+  vec3 L=normalize(uLight);
+  vec3 V=normalize(uCam-vWpos);
+  float diff=max(dot(N,L),0.0);
+  vec3 amb=uAmb*(0.74+0.26*N.y);            // ヘミスフィア環境光（空＝上が明るい）
+  vec3 H=normalize(L+V);
+  float spec=pow(max(dot(N,H),0.0),18.0)*0.10*diff;   // ほんのり太陽スペキュラ
+  float rim=pow(1.0-max(dot(N,V),0.0),3.0)*0.12*diff; // 縁の空気感
+  vec3 col=vAlb*(amb+uSun*diff)+uSun*spec+uAmb*rim;
+  col=mix(col,uFogCol,vFog);
+  gl_FragColor=vec4(col,1.0);
+}`;
+const terraProg=tryProg(TERRA_VS,TERRA_FS)||makeProg(TERRA_VS_BASE,TERRA_FS_BASE);
 
-/* 水面 */
-const waterProg=makeProg(
+/* 水面 ── 基本（単純な波色）を fallback に、フレネル反射＋太陽きらめき版を試す */
+const WATER_VS=
 `attribute vec2 aPos; uniform mat4 uVP; uniform mediump float uWL;
 varying vec2 vXZ;
-void main(){ gl_Position=uVP*vec4(aPos.x,uWL,aPos.y,1.0); vXZ=aPos; }`,
+void main(){ gl_Position=uVP*vec4(aPos.x,uWL,aPos.y,1.0); vXZ=aPos; }`;
+const WATER_FS_BASE=
 `precision mediump float;
 varying vec2 vXZ;
 uniform float uT; uniform float uWL; uniform vec3 uCam; uniform vec3 uFogCol;
@@ -875,6 +908,45 @@ void main(){
   float d=distance(vec3(vXZ.x,uWL,vXZ.y),uCam);
   c=mix(c,uFogCol,${FOGSTR});
   gl_FragColor=vec4(c,0.78);
+}`;
+const WATER_FS=
+`precision mediump float;
+varying vec2 vXZ;
+uniform float uT; uniform float uWL; uniform vec3 uCam; uniform vec3 uFogCol;
+uniform vec3 uWCol; uniform vec3 uWCol2; uniform vec3 uLight; uniform vec3 uSun;
+void main(){
+  float x=vXZ.x, z=vXZ.y;
+  float w=sin(x*0.23+uT*1.4)+sin(z*0.19-uT*1.1)+sin((x+z)*0.11+uT*0.6);
+  vec3 body=mix(uWCol,uWCol2,0.5+w*0.16);
+  // 波の勾配から法線（さざ波）
+  float dx=0.23*cos(x*0.23+uT*1.4)+0.11*cos((x+z)*0.11+uT*0.6)+0.5*cos(x*0.7+uT*2.3);
+  float dz=0.19*cos(z*0.19-uT*1.1)+0.11*cos((x+z)*0.11+uT*0.6)+0.5*cos(z*0.66-uT*2.0);
+  vec3 N=normalize(vec3(-dx*0.22,1.0,-dz*0.22));
+  vec3 wp=vec3(x,uWL,z);
+  vec3 V=normalize(uCam-wp);
+  vec3 L=normalize(uLight);
+  float fres=0.02+0.98*pow(1.0-max(dot(N,V),0.0),5.0);   // フレネル
+  vec3 refl=uFogCol*1.06;                                 // 空の反射
+  vec3 c=mix(body,refl,clamp(fres*0.85,0.0,1.0));
+  vec3 H=normalize(L+V);
+  c+=uSun*pow(max(dot(N,H),0.0),140.0)*0.9;               // 太陽のきらめき
+  float d=distance(wp,uCam);
+  c=mix(c,uFogCol,${FOGSTR});
+  gl_FragColor=vec4(c,mix(0.74,0.94,fres));
+}`;
+const waterProg=tryProg(WATER_VS,WATER_FS)||makeProg(WATER_VS,WATER_FS_BASE);
+
+/* 空 ── 天頂→地平線グラデーション＋地平線の太陽グロー（フルスクリーン1パス・任意） */
+const skyProg=tryProg(
+`attribute vec2 aPos; varying vec2 vUV;
+void main(){ gl_Position=vec4(aPos,0.999,1.0); vUV=aPos*0.5+0.5; }`,
+`precision mediump float;
+varying vec2 vUV; uniform vec3 uTop; uniform vec3 uHorizon; uniform vec3 uSunGlow;
+void main(){
+  float t=clamp(vUV.y,0.0,1.0);
+  vec3 c=mix(uHorizon,uTop,pow(t,0.65));
+  c+=uSunGlow*pow(1.0-t,3.0);
+  gl_FragColor=vec4(c,1.0);
 }`);
 
 /* スプライト（絵文字・こっこちゃん） */
@@ -928,7 +1000,8 @@ const tA={ pos:gl.getAttribLocation(terraProg,'aPos'), nrm:gl.getAttribLocation(
 const wU={ vp:gl.getUniformLocation(waterProg,'uVP'), wl:gl.getUniformLocation(waterProg,'uWL'),
   t:gl.getUniformLocation(waterProg,'uT'), cam:gl.getUniformLocation(waterProg,'uCam'),
   fog:gl.getUniformLocation(waterProg,'uFogCol'), c1:gl.getUniformLocation(waterProg,'uWCol'),
-  c2:gl.getUniformLocation(waterProg,'uWCol2') };
+  c2:gl.getUniformLocation(waterProg,'uWCol2'),
+  light:gl.getUniformLocation(waterProg,'uLight'), sun:gl.getUniformLocation(waterProg,'uSun') };
 const wA={ pos:gl.getAttribLocation(waterProg,'aPos') };
 const sU={ vp:gl.getUniformLocation(spriteProg,'uVP'), cam:gl.getUniformLocation(spriteProg,'uCam'),
   tex:gl.getUniformLocation(spriteProg,'uTex'), fog:gl.getUniformLocation(spriteProg,'uFogCol'),
@@ -937,6 +1010,9 @@ const sA={ pos:gl.getAttribLocation(spriteProg,'aPos'), uv:gl.getAttribLocation(
   col:gl.getAttribLocation(spriteProg,'aCol') };
 const nU={ seed:gl.getUniformLocation(noiseProg,'uSeed') };
 const nA={ pos:gl.getAttribLocation(noiseProg,'aPos') };
+const skyU=skyProg?{ top:gl.getUniformLocation(skyProg,'uTop'), hor:gl.getUniformLocation(skyProg,'uHorizon'),
+  glow:gl.getUniformLocation(skyProg,'uSunGlow') }:null;
+const skyA=skyProg?{ pos:gl.getAttribLocation(skyProg,'aPos') }:null;
 
 /* ===== 行列 ===== */
 const Mvp=new Float32Array(16), Mp=new Float32Array(16), Mv=new Float32Array(16);
@@ -1302,7 +1378,8 @@ function flashSave(){
 }
 
 /* ===== 昼夜サイクル ===== */
-const DL={sky:[0.55,0.78,0.95],light:[0.4,0.8,0.45],sun:[1,1,1],amb:[0.5,0.5,0.5],dayF:1,tint:[1,1,1]};
+const DL={sky:[0.55,0.78,0.95],light:[0.4,0.8,0.45],sun:[1,1,1],amb:[0.5,0.5,0.5],dayF:1,tint:[1,1,1],
+  skyTop:[0.27,0.50,0.90],skyHorizon:[0.74,0.87,0.98],sunGlow:[0,0,0]};
 function norm3(v){ const l=Math.hypot(v[0],v[1],v[2])||1; return [v[0]/l,v[1]/l,v[2]/l]; }
 function calcDayLight(){
   const h=G.tod*24;
@@ -1323,6 +1400,10 @@ function calcDayLight(){
   const ts=clamp(0.42+0.68*dayF+duskF*0.06,0,1.12);
   DL.sky=sky; DL.light=light; DL.sun=sun; DL.amb=amb; DL.dayF=dayF;
   DL.tint=[ts,ts*(1-duskF*0.08),ts*(1-duskF*0.16)];
+  // 空グラデーション用：天頂は濃いめ、地平線は明るめ＋夕方は橙
+  DL.skyTop=mix3(mix3([0.02,0.03,0.10],[0.27,0.50,0.90],dayF),[0.40,0.32,0.45],duskF*0.4*Math.max(dayF,0.2));
+  DL.skyHorizon=mix3(mix3([0.05,0.07,0.16],[0.74,0.87,0.98],dayF),[0.99,0.66,0.45],duskF*0.6*Math.max(dayF,0.25));
+  DL.sunGlow=[0.40*duskF*dayF,0.20*duskF*dayF,0.09*duskF*dayF];
 }
 function isDay(){ const h=G.tod*24; return h>=6.5&&h<18.5; }
 function isNight(){ const h=G.tod*24; return h>=19.5||h<4.5; }
@@ -2635,6 +2716,20 @@ function render(){
   gl.enable(gl.DEPTH_TEST);
   gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
 
+  /* --- 空グラデーション（最初に全画面・深度書き込みなし） --- */
+  if(skyProg){
+    gl.useProgram(skyProg);
+    gl.disable(gl.DEPTH_TEST); gl.depthMask(false); gl.disable(gl.BLEND);
+    gl.uniform3fv(skyU.top,DL.skyTop);
+    gl.uniform3fv(skyU.hor,DL.skyHorizon);
+    gl.uniform3fv(skyU.glow,DL.sunGlow);
+    gl.bindBuffer(gl.ARRAY_BUFFER,quadBuf);
+    gl.enableVertexAttribArray(skyA.pos); gl.vertexAttribPointer(skyA.pos,2,gl.FLOAT,false,8,0);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    gl.disableVertexAttribArray(skyA.pos);
+    gl.depthMask(true); gl.enable(gl.DEPTH_TEST);
+  }
+
   let eye;
   if(G.phase==='title'){
     const a=G.time*0.1;
@@ -2681,6 +2776,8 @@ function render(){
   gl.uniform1f(wU.t,G.time);
   gl.uniform3f(wU.cam,eye[0],eye[1],eye[2]);
   gl.uniform3fv(wU.fog,DL.sky);
+  gl.uniform3fv(wU.light,DL.light);
+  gl.uniform3fv(wU.sun,DL.sun);
   const wt=0.25+DL.dayF*0.75;
   gl.uniform3f(wU.c1,0.15*wt,0.45*wt,0.62*wt);
   gl.uniform3f(wU.c2,0.35*wt,0.68*wt,0.80*wt);
