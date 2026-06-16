@@ -34,7 +34,8 @@
     font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
     user-select:none;-webkit-user-select:none;color:#f4f8ef;touch-action:none;}
   #wrap{position:fixed;inset:0;}
-  canvas{display:block;width:100%;height:100%;}
+  canvas{display:block;width:100%;height:100%;pointer-events:none;}
+  canvas.play{pointer-events:auto;}
 
   .ctrlbtn{position:absolute;z-index:12;pointer-events:auto;border-radius:50%;
     display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;
@@ -2767,7 +2768,7 @@ function render(){
   gl.disableVertexAttribArray(wA.pos);
 
   /* --- 草（mori2: 単一バッファ描画） --- */
-  if(grassBuf2&&grassVCount2>0){
+  if(G.phase==='play'&&grassBuf2&&grassVCount2>0){
     gl.useProgram(grassProg);
     gl.uniformMatrix4fv(gU2.vp,false,Mvp);
     gl.uniform1f(gU2.t,G.time);
@@ -2881,6 +2882,7 @@ function resetBattle(){
   updateHP();
 }
 function enterPlay(){
+  cv.classList.add('play');
   G.phase='play'; G.paused=false; G.saveT=0;
   P.y=heightAt(P.x,P.z); P.vy=0; P.onG=true; P.flip=1;
   parts=[]; pickups=[]; bflies=[]; bflyT=2;
@@ -2932,6 +2934,7 @@ function startContinue(){
   showToast('🏝 おかえりなさい！ '+G.day+'日め');
 }
 function toTitle(){
+  cv.classList.remove('play');
   saveGame();
   G.phase='title'; G.paused=false;
   Sound.stopBGM(); Sound.stopBattleBGM();
