@@ -378,7 +378,7 @@
   .saveinfo{margin-top:14px;font-size:12px;letter-spacing:.08em;color:#ffe9ad;opacity:.9;
     background:rgba(255,255,255,.06);padding:8px 18px;border-radius:20px;}
   .btn{pointer-events:auto;margin-top:18px;padding:15px 44px;font-size:18px;font-weight:900;
-    letter-spacing:.14em;border:none;border-radius:40px;cursor:pointer;color:#1d3a14;
+    letter-spacing:.14em;border:none;border-radius:40px;cursor:pointer;color:#1d3a14;touch-action:manipulation;
     background:linear-gradient(180deg,#d8f7a8,#7fce5a);
     box-shadow:0 8px 26px rgba(110,210,80,.4),inset 0 1px 0 rgba(255,255,255,.6);transition:transform .08s;}
   .btn:active{transform:translateY(2px) scale(.98);}
@@ -2967,15 +2967,25 @@ function resumeGame(){ if(G.paused){ G.paused=false; if(G.inBattle&&!G.ko)Sound.
 document.addEventListener('visibilitychange',()=>{ if(document.hidden) pauseGame(); });
 window.addEventListener('beforeunload',()=>{ saveGame(); });
 
-/* ===== ボタン ===== */
-$('newBtn').addEventListener('click',()=>{
+/* ===== ボタン（タッチデバイスは pointerdown で即応） ===== */
+function onBtn(el,fn){
+  let handled=false;
+  el.addEventListener('pointerdown',e=>{
+    if(e.button&&e.button!==0) return;
+    e.stopPropagation();
+    handled=true; setTimeout(()=>handled=false,600);
+    fn(e);
+  });
+  el.addEventListener('click',e=>{ if(handled){e.stopPropagation();} });
+}
+onBtn($('newBtn'),()=>{
   Sound.init(); Sound.resume(); Sound.ui();
   if(loadSave()&&!confirm('いまの島のセーブデータは きえちゃうよ。\nほんとうに さいしょから はじめる？')) return;
   startNew();
 });
-$('contBtn').addEventListener('click',()=>{ Sound.init(); Sound.resume(); Sound.ui(); startContinue(); });
-$('howBtn').addEventListener('click',()=>{ Sound.ui(); show('howScreen'); });
-$('howBack').addEventListener('click',()=>{ Sound.ui(); show('titleScreen'); });
+onBtn($('contBtn'),()=>{ Sound.init(); Sound.resume(); Sound.ui(); startContinue(); });
+onBtn($('howBtn'),()=>{ Sound.ui(); show('howScreen'); });
+onBtn($('howBack'),()=>{ Sound.ui(); show('titleScreen'); });
 $('homeBtn').addEventListener('click',()=>{ Sound.ui(); Sound.save(); toTitle(); });
 let muted=false;
 $('muteBtn').addEventListener('click',()=>{ muted=!muted; Sound.init(); Sound.setMuted(muted);
@@ -2993,7 +3003,7 @@ $('shopClose').addEventListener('click',()=>{ Sound.ui(); closeShop(); });
 $('gymClose').addEventListener('click',()=>{ Sound.ui(); closeGym(); });
 $('travelClose').addEventListener('click',()=>{ Sound.ui(); closeTravel(); });
 $('rankBtn').addEventListener('click',()=>{ Sound.init(); Sound.resume(); openRank(); });
-$('rankTitleBtn').addEventListener('click',()=>{ Sound.ui(); openRank(); });
+onBtn($('rankTitleBtn'),()=>{ Sound.ui(); openRank(); });
 
 /* ===== 起動：セーブがあれば その島をタイトル背景に ===== */
 {
