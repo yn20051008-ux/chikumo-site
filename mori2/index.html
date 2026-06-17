@@ -2979,16 +2979,17 @@ function resumeGame(){ if(G.paused){ G.paused=false; if(G.inBattle&&!G.ko)Sound.
 document.addEventListener('visibilitychange',()=>{ if(document.hidden) pauseGame(); });
 window.addEventListener('beforeunload',()=>{ saveGame(); });
 
-/* ===== ボタン（タッチデバイスは pointerdown で即応） ===== */
+/* ===== ボタン結線：iOSで確実に効くよう click + touchend（ロックで二重発火防止） ===== */
 function onBtn(el,fn){
-  let handled=false;
-  el.addEventListener('pointerdown',e=>{
-    if(e.button&&e.button!==0) return;
-    e.stopPropagation();
-    handled=true; setTimeout(()=>handled=false,600);
+  if(!el) return;
+  let lock=false;
+  const fire=e=>{
+    if(lock) return; lock=true; setTimeout(()=>{lock=false;},500);
+    if(e) e.stopPropagation();
     fn(e);
-  });
-  el.addEventListener('click',e=>{ if(handled){e.stopPropagation();} });
+  };
+  el.addEventListener('click',fire);
+  el.addEventListener('touchend',e=>{ if(e.cancelable) e.preventDefault(); fire(e); },{passive:false});
 }
 onBtn($('newBtn'),()=>{
   Sound.init(); Sound.resume(); Sound.ui();
