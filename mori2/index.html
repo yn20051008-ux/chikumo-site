@@ -672,6 +672,18 @@
 
 <script>
 "use strict";
+/* 起動エラーを画面に表示（タイトルは出るのにボタンが無反応＝起動が静かに死ぬ問題の診断用。エラー時のみ表示） */
+window.addEventListener('error',function(ev){
+  try{
+    var m=(ev&&ev.message)||(ev&&ev.error&&ev.error.message)||String(ev);
+    var st=(ev&&ev.error&&ev.error.stack)||'';
+    var d=document.getElementById('bootErr');
+    if(!d){ d=document.createElement('div'); d.id='bootErr';
+      d.style.cssText='position:fixed;z-index:99999;left:0;right:0;bottom:0;max-height:52%;overflow:auto;background:rgba(130,10,10,.95);color:#fff;font:11px/1.55 ui-monospace,monospace;padding:12px 12px calc(12px + env(safe-area-inset-bottom));white-space:pre-wrap;-webkit-user-select:text;user-select:text;';
+      (document.body||document.documentElement).appendChild(d); }
+    d.textContent='⚠ 起動エラー（この画面を撮って送ってください）\n'+m+'\n'+(ev.filename?(ev.filename+':'+ev.lineno+':'+ev.colno):'')+'\n'+st;
+  }catch(_){}
+});
 (function(){
 const cv=document.getElementById('gl');
 const $=id=>document.getElementById(id);
