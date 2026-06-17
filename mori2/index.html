@@ -868,7 +868,7 @@ void main(){
   else shade=0.24;
   vCol=aCol*(uAmb+uSun*shade);
 }`,
-`precision mediump float;
+`precision highp float;
 varying vec3 vCol; varying float vFog; varying vec3 vNrm; varying vec3 vWPos;
 uniform vec3 uFogCol; uniform vec3 uSun; uniform vec3 uLight;
 void main(){
@@ -885,7 +885,7 @@ void main(){
 
 /* 水面 — 多重波 + フレネル + スペキュラー + 泡 */
 const waterProg=makeProg(
-`attribute vec2 aPos; uniform mat4 uVP; uniform mediump float uWL; uniform float uT;
+`attribute vec2 aPos; uniform mat4 uVP; uniform highp float uWL; uniform float uT;
 varying vec2 vXZ; varying float vWaveH; varying float vFog; varying vec3 vPos;
 uniform vec3 uCam;
 void main(){
@@ -899,7 +899,7 @@ void main(){
   vFog=${FOGSTR};
   gl_Position=uVP*vec4(pos,1.0);
 }`,
-`precision mediump float;
+`precision highp float;
 varying vec2 vXZ; varying float vWaveH; varying float vFog; varying vec3 vPos;
 uniform float uT; uniform float uWL; uniform vec3 uCam; uniform vec3 uFogCol;
 uniform vec3 uWCol; uniform vec3 uWCol2; uniform vec3 uSunDir; uniform vec3 uSunCol;
@@ -941,7 +941,7 @@ void main(){
   float d=distance(aPos,uCam);
   vFog=${FOGSTR};
 }`,
-`precision mediump float;
+`precision highp float;
 varying vec2 vUV; varying vec4 vCol; varying float vFog;
 uniform sampler2D uTex; uniform vec3 uFogCol; uniform vec3 uTint; uniform float uFogStr;
 void main(){
@@ -1045,7 +1045,7 @@ void main(){
   vH=aHR; vFog2=clamp((distance(pos,uCam)-55.)/55.,0.,1.);
   gl_Position=uVP*vec4(pos,1.);
 }`,
-`precision mediump float;
+`precision highp float;
 varying float vH; varying float vFog2;
 uniform vec3 uSun; uniform vec3 uFogCol; uniform float uDayF;
 void main(){
