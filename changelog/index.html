@@ -42,6 +42,7 @@
   .t-feat{background:rgba(110,180,255,.15);color:#a8d2ff;border:1px solid rgba(130,190,255,.32);}
   .t-imp{background:rgba(255,205,120,.15);color:#ffd98a;border:1px solid rgba(255,205,120,.3);}
   .t-fix{background:rgba(255,120,120,.14);color:#ff9a9a;border:1px solid rgba(255,120,120,.3);}
+  .t-end{background:rgba(150,150,160,.16);color:#cfcfd6;border:1px solid rgba(170,170,180,.34);}
   .day{margin-top:24px;position:relative;padding-left:20px;border-left:2px solid var(--line);}
   .day::before{content:"";position:absolute;left:-7px;top:4px;width:12px;height:12px;border-radius:50%;
     background:#ffd98a;box-shadow:0 0 0 4px rgba(255,217,138,.18);}
@@ -57,6 +58,25 @@
   .foot a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3);}
   .back{display:inline-block;margin-top:18px;font-size:12px;color:var(--soft);text-decoration:none;
     border:1px solid var(--line);border-radius:20px;padding:8px 18px;}
+  /* ===== Reload (こっこちゃん 更新ボタン) ===== */
+  .reload-btn{position:fixed;right:calc(1.2rem + env(safe-area-inset-right));bottom:calc(1.2rem + env(safe-area-inset-bottom));
+    width:60px;height:60px;z-index:48;display:flex;align-items:center;justify-content:center;border-radius:50%;
+    background:radial-gradient(circle at 50% 38%, rgba(40,30,70,0.8), rgba(10,12,28,0.78));
+    border:1px solid rgba(160,215,255,0.5);box-shadow:0 4px 18px rgba(0,0,0,0.5), 0 0 16px rgba(120,200,255,0.28);
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);cursor:pointer;padding:0;
+    animation:reload-bob 3s ease-in-out infinite;transition:box-shadow .2s, transform .15s;}
+  .reload-btn img{width:40px;height:40px;filter:drop-shadow(0 1px 4px rgba(255,200,120,0.55));pointer-events:none;}
+  .reload-btn::after{content:'↻';position:absolute;right:-2px;bottom:-2px;width:22px;height:22px;border-radius:50%;
+    background:linear-gradient(180deg,#ffe08a,#ff9e5b);color:#2a1605;font-size:14px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;box-shadow:0 1px 5px rgba(0,0,0,0.45);}
+  .reload-btn:hover, .reload-btn:focus-visible{box-shadow:0 6px 22px rgba(0,0,0,0.55), 0 0 22px rgba(140,210,255,0.55);
+    border-color:rgba(210,235,255,0.9);}
+  .reload-btn:active{transform:scale(0.92);}
+  .reload-btn.spinning{animation:reload-spin .7s linear infinite;}
+  .reload-btn.spinning img{opacity:.85;}
+  @keyframes reload-bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+  @keyframes reload-spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion: reduce){ .reload-btn{animation:none;} }
 </style>
 </head>
 <body>
@@ -70,12 +90,17 @@
       <span class="tag t-feat">✨ 新機能</span>
       <span class="tag t-imp">🔧 改善</span>
       <span class="tag t-fix">🐛 修正</span>
+      <span class="tag t-end">🙇 サービス終了</span>
     </div>
   </header>
   <main id="log"></main>
   <div style="text-align:center;"><a class="back" href="/">← トップへもどる</a></div>
   <div class="foot">畜物語 ─ <a href="/">chikumo.jp</a></div>
 </div>
+
+<button type="button" id="reloadBtn" class="reload-btn" aria-label="さいしんに更新（強制リロード）" title="さいしんに更新">
+  <img src="/chikumo.svg" alt="" width="40" height="40">
+</button>
 
 <script>
 "use strict";
@@ -88,6 +113,8 @@ var LOG=[
       "PCのWASD・矢印・スペース・マウス操作は従来どおり",
       "プレイヤー＝公式こっこちゃん、敵キーパー＝ブラックこっこちゃん"
     ]},
+    { tag:"imp", t:"畜史にも🔄強制更新ボタンを追加", d:"畜史（このページ）は反映に時間差が出ることがあったため、トップと同じ「さいしんに更新」ボタンを右下に設置。キャッシュ削除＋ServiceWorker解除＋キャッシュバスター付き再取得で、最新の更新履歴をすぐに確認できるように。" },
+    { tag:"end", t:"「島ぐらし2（こっこの森2 ／ /mori2/）」サービス終了のお知らせ", d:"いつも畜物語で遊んでくださり、本当にありがとうございます。誠に勝手ながら、このたび「島ぐらし2（こっこの森2）」のサービスを終了いたしました。楽しみにしてくださっていた皆さま、遊んでくださった皆さまには、心よりお詫び申し上げます。ごめんなさい。なお「島ぐらし（こっこの森 ／ /mori/）」はこれまで通りお楽しみいただけます。これからも畜物語をどうぞよろしくお願いいたします。" },
     { tag:"feat", t:"こっこダービー：島ぐらし由来の🫧酸素ゲージを追加", d:"島ぐらしの「酸素ゲージ」をサッカーに移植。シュートは酸素を消費する“必殺シュート”になり、ゲージが満ちているほど威力アップ（軌跡も光る）。酸素が切れるとへなちょこシュート（💨酸素ぎれ）に。酸素は時間でじわっと自然回復。ピッチには🫧酸素ボンベが定期出現し、先に触れた方が一気に満タン＝こっこ vs ブラックこっこの取り合いが熱い。両者にゲージHUD、シュートボタンには残量リング付き。", li:[
       "必殺シュート：威力＝酸素量に比例／1発ごとに消費",
       "🫧酸素ボンベ：ピッチに出現→触れて満タン回復（AIも酸素が減ると取りに来る）",
@@ -186,7 +213,7 @@ var LOG=[
 ];
 
 (function(){
-  var TAG={ new:['t-new','🆕 新ゲーム'], feat:['t-feat','✨ 新機能'], imp:['t-imp','🔧 改善'], fix:['t-fix','🐛 修正'] };
+  var TAG={ new:['t-new','🆕 新ゲーム'], feat:['t-feat','✨ 新機能'], imp:['t-imp','🔧 改善'], fix:['t-fix','🐛 修正'], end:['t-end','🙇 サービス終了'] };
   function esc(s){ return String(s).replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];}); }
   var html=LOG.map(function(day){
     var entries=day.items.map(function(it){
@@ -199,6 +226,27 @@ var LOG=[
     return '<section class="day"><div class="date">'+esc(day.date)+'</div>'+entries+'</section>';
   }).join('');
   document.getElementById('log').innerHTML=html;
+})();
+</script>
+
+<script>
+/* こっこちゃん 強制リロード: キャッシュ削除＋ServiceWorker解除→キャッシュバスター付きで最新を取得 */
+(function(){
+  var btn=document.getElementById('reloadBtn'); if(!btn) return;
+  var busy=false;
+  btn.addEventListener('click', function(){
+    if(busy) return; busy=true; btn.classList.add('spinning');
+    var done=false;
+    function go(){ if(done) return; done=true;
+      var u=location.pathname + '?r=' + Date.now() + (location.hash||'');
+      try{ location.replace(u); }catch(e){ location.href=u; } }
+    var tasks=[];
+    try{ if(window.caches && caches.keys) tasks.push(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })); }catch(e){}
+    try{ if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations)
+      tasks.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); })); }catch(e){}
+    if(tasks.length){ Promise.all(tasks).then(go).catch(go); setTimeout(go, 1500); }   // 失敗/遅延しても必ずリロード
+    else go();
+  });
 })();
 </script>
 </body>
