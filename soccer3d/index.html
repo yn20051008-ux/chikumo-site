@@ -2,14 +2,17 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
 <title>Soccer 3D ⚽</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
 :root{--bg:rgba(6,14,28,.82);--ac:#7fdfff;--gold:#ffd700;--bd:rgba(127,223,255,.22);}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{background:#000;overflow:hidden;font-family:'JetBrains Mono',monospace;cursor:crosshair;}
-canvas{display:block;width:100vw;height:100vh;}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{background:#000;overflow:hidden;font-family:'JetBrains Mono',monospace;cursor:crosshair;
+  user-select:none;-webkit-user-select:none;}
+canvas{display:block;width:100vw;height:100vh;touch-action:none;}
 
 #loading{position:fixed;inset:0;background:#030810;display:flex;flex-direction:column;
   align-items:center;justify-content:center;z-index:200;transition:opacity 1.2s;}
@@ -43,6 +46,28 @@ canvas{display:block;width:100vw;height:100vh;}
 #status{position:absolute;bottom:22px;left:24px;background:var(--bg);
   border:1px solid var(--bd);border-radius:11px;padding:13px 19px;
   backdrop-filter:blur(12px);font-size:.65rem;color:var(--ac);line-height:2;}
+
+/* ── TOUCH CONTROLS ─────────────────────────────────────── */
+#touch{position:fixed;inset:0;z-index:20;pointer-events:none;display:none;}
+body.touch #touch{display:block;}
+body.touch #hints{display:none;}
+#stickBase{position:absolute;left:calc(26px + env(safe-area-inset-left));
+  bottom:calc(30px + env(safe-area-inset-bottom));width:128px;height:128px;border-radius:50%;
+  background:rgba(6,14,28,.42);border:2px solid rgba(127,223,255,.3);
+  backdrop-filter:blur(8px);pointer-events:auto;touch-action:none;}
+#stickKnob{position:absolute;left:50%;top:50%;width:56px;height:56px;border-radius:50%;
+  transform:translate(-50%,-50%);
+  background:radial-gradient(circle at 38% 34%,#bfeeff,#5fb8e0);
+  border:2px solid rgba(255,255,255,.5);box-shadow:0 0 18px rgba(127,223,255,.5);
+  pointer-events:none;}
+#kickBtn{position:absolute;right:calc(28px + env(safe-area-inset-right));
+  bottom:calc(40px + env(safe-area-inset-bottom));width:108px;height:108px;border-radius:50%;
+  pointer-events:auto;touch-action:none;cursor:pointer;border:3px solid rgba(255,215,0,.6);
+  background:radial-gradient(circle at 40% 34%,rgba(255,160,60,.92),rgba(220,90,20,.92));
+  color:#fff;font-family:'Cinzel Decorative',cursive;font-size:1.1rem;font-weight:700;
+  letter-spacing:.04em;text-shadow:0 1px 4px rgba(0,0,0,.5);
+  box-shadow:0 0 24px rgba(255,140,40,.55);display:flex;align-items:center;justify-content:center;}
+#kickBtn:active{transform:scale(.92);background:radial-gradient(circle at 40% 34%,rgba(255,200,90,1),rgba(240,120,30,1));}
 </style>
 </head>
 <body>
@@ -74,6 +99,11 @@ canvas{display:block;width:100vw;height:100vh;}
     <div id="st-dist">⚽ --</div>
     <div id="st-kick">🦵 ready</div>
   </div>
+</div>
+
+<div id="touch">
+  <div id="stickBase"><div id="stickKnob"></div></div>
+  <button id="kickBtn" type="button">KICK</button>
 </div>
 
 <script type="importmap">
@@ -432,55 +462,86 @@ function resetBall(toCenter = true) {
   B.vel.set(0, 0, 0);
 }
 
-// ── CHARACTER BUILDER (toon style — 島ぐらし2 style) ─────
-function makeChar(bodyColor, shirtColor) {
+// ── COCCO SPRITE CHARACTERS (公式こっこちゃん chikumo.svg) ─
+// プレイヤー = こっこちゃん / 敵キーパー = ブラックこっこちゃん
+const COCCO_AR = 297.78 / 389.41; // 幅/高さ
+
+function makeCoccoTexture(black) {
+  const H = 512, W = Math.round(H * COCCO_AR);
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const cx = cv.getContext('2d');
+  const tex = new THREE.CanvasTexture(cv);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  tex.userData = { cv, cx, W, H, black };
+  return tex;
+}
+
+function paintCocco(tex, img) {
+  const { cv, cx, W, H, black } = tex.userData;
+  cx.clearRect(0, 0, W, H);
+  if (black) {
+    // シルエットをダークに染めて、わるい目をのせる（ブラックこっこちゃん）
+    cx.drawImage(img, 0, 0, W, H);
+    cx.globalCompositeOperation = 'source-atop';
+    cx.fillStyle = '#241d30'; cx.globalAlpha = 0.93; cx.fillRect(0, 0, W, H);
+    cx.globalAlpha = 1; cx.globalCompositeOperation = 'source-over';
+    const ex = p => p * W, ey = p => p * H;
+    cx.fillStyle = '#fff';
+    cx.beginPath();
+    cx.ellipse(ex(0.379), ey(0.347), ex(0.089), ey(0.076), 0, 0, Math.PI * 2);
+    cx.ellipse(ex(0.633), ey(0.347), ex(0.078), ey(0.068), 0, 0, Math.PI * 2);
+    cx.fill();
+    cx.fillStyle = '#1a0f28';
+    cx.beginPath();
+    cx.arc(ex(0.412), ey(0.364), ex(0.040), 0, Math.PI * 2);
+    cx.arc(ex(0.567), ey(0.364), ex(0.036), 0, Math.PI * 2);
+    cx.fill();
+    cx.strokeStyle = '#ff5d6c'; cx.lineWidth = ex(0.044); cx.lineCap = 'round';
+    cx.beginPath();
+    cx.moveTo(ex(0.279), ey(0.254)); cx.lineTo(ex(0.456), ey(0.297));
+    cx.moveTo(ex(0.733), ey(0.263)); cx.lineTo(ex(0.567), ey(0.297));
+    cx.stroke();
+  } else {
+    cx.drawImage(img, 0, 0, W, H);
+  }
+  tex.needsUpdate = true;
+}
+
+const coccoTex      = makeCoccoTexture(false);
+const blackCoccoTex = makeCoccoTexture(true);
+const coccoImg = new Image();
+coccoImg.crossOrigin = 'anonymous';
+coccoImg.onload = () => { paintCocco(coccoTex, coccoImg); paintCocco(blackCoccoTex, coccoImg); };
+coccoImg.src = '/chikumo.svg';
+
+const CH_H = 2.0, CH_W = CH_H * COCCO_AR;
+function makeCocco(tex) {
   const g = new THREE.Group();
-
-  const mk = (geo, col) => {
-    const m = new THREE.Mesh(geo, new THREE.MeshToonMaterial({ color: col }));
-    m.castShadow = true;
-    return m;
-  };
-
-  const body = mk(new THREE.CapsuleGeometry(0.28, 0.52, 8, 16), bodyColor);
-  body.position.y = 0.78; g.add(body);
-
-  const head = mk(new THREE.SphereGeometry(0.27, 16, 12), 0xffdaa0);
-  head.position.y = 1.52; g.add(head);
-
-  // Eyes
-  [-0.1, 0.1].forEach(ex => {
-    const eye = mk(new THREE.SphereGeometry(0.048, 8, 8), 0x222222);
-    eye.position.set(ex, 1.56, 0.23); g.add(eye);
-    const shine = new THREE.Mesh(
-      new THREE.SphereGeometry(0.018, 6, 6),
-      new THREE.MeshBasicMaterial({ color: 0xffffff })
-    );
-    shine.position.set(ex + .02, 1.575, .24); g.add(shine);
-  });
-
-  // Shirt
-  const shirt = mk(new THREE.CylinderGeometry(0.26, 0.28, 0.20, 12), shirtColor);
-  shirt.position.y = 0.66; g.add(shirt);
-
-  // Legs
-  [-0.12, 0.12].forEach(lx => {
-    const leg = mk(new THREE.CapsuleGeometry(0.085, 0.3, 6, 8), 0x222244);
-    leg.position.set(lx, 0.25, 0); g.add(leg);
-    const shoe = mk(new THREE.SphereGeometry(0.1, 8, 6), 0x111111);
-    shoe.scale.set(1, 0.55, 1.3);
-    shoe.position.set(lx, 0.06, 0.06); g.add(shoe);
-  });
-
+  const plane = new THREE.Mesh(
+    new THREE.PlaneGeometry(CH_W, CH_H),
+    new THREE.MeshBasicMaterial({ map: tex, transparent: true, alphaTest: 0.45, side: THREE.DoubleSide, depthWrite: true })
+  );
+  plane.position.y = CH_H / 2;
+  g.add(plane);
+  // やわらかい接地かげ
+  const sh = new THREE.Mesh(
+    new THREE.CircleGeometry(CH_W * 0.42, 18),
+    new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.32 })
+  );
+  sh.rotation.x = -Math.PI / 2; sh.position.y = 0.012;
+  g.add(sh);
+  g.userData.plane = plane;
   return g;
 }
 
-// Player (orange kit)
-const playerMesh = makeChar(0xff6b35, 0xff9944);
+// Player（こっこちゃん）
+const playerMesh = makeCocco(coccoTex);
 scene.add(playerMesh);
 
-// AI Goalkeeper (blue kit)
-const aiMesh = makeChar(0x2255cc, 0x4488ff);
+// AI Goalkeeper（ブラックこっこちゃん）
+const aiMesh = makeCocco(blackCoccoTex);
 scene.add(aiMesh);
 
 // ── PLAYER STATE ─────────────────────────────────────────
@@ -488,15 +549,17 @@ const P = {
   pos:        new THREE.Vector3(0, 0, -8),
   kickCooldown: 0,
   walkPhase:  0,
+  facing:     0,
 };
-playerMesh.position.copy(P.pos);
+playerMesh.position.set(P.pos.x, 0, P.pos.z);
 
 // ── AI STATE ─────────────────────────────────────────────
 const AI = {
   pos:        new THREE.Vector3(0, 0, FL / 2 - 3.5),
   kickCooldown: 0,
+  facing:     Math.PI,
 };
-aiMesh.position.copy(AI.pos);
+aiMesh.position.set(AI.pos.x, 0, AI.pos.z);
 
 // ── ORBIT CONTROLS ────────────────────────────────────────
 const controls = new OrbitControls(camera, canvas);
@@ -511,6 +574,49 @@ controls.target.set(0, 2, -8);
 const keys = {};
 window.addEventListener('keydown', e => { keys[e.code] = true;  if (e.code === 'Space') e.preventDefault(); });
 window.addEventListener('keyup',   e => { keys[e.code] = false; });
+
+// ── TOUCH / MOBILE CONTROLS ───────────────────────────────
+const IS_TOUCH = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+if (IS_TOUCH) document.body.classList.add('touch');
+const input = { kick: false };
+const touch = { active: false, id: -1, cx: 0, cy: 0, dx: 0, dy: 0 };
+
+const stickBase = document.getElementById('stickBase');
+const stickKnob = document.getElementById('stickKnob');
+const STICK_MAX = 46;
+function setKnob(dx, dy) {
+  stickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+}
+stickBase.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  touch.active = true; touch.id = e.pointerId;
+  const r = stickBase.getBoundingClientRect();
+  touch.cx = r.left + r.width / 2; touch.cy = r.top + r.height / 2;
+  try { stickBase.setPointerCapture(e.pointerId); } catch (err) {}
+});
+stickBase.addEventListener('pointermove', e => {
+  if (!touch.active || e.pointerId !== touch.id) return;
+  let dx = e.clientX - touch.cx, dy = e.clientY - touch.cy;
+  const d = Math.hypot(dx, dy);
+  if (d > STICK_MAX) { dx = dx / d * STICK_MAX; dy = dy / d * STICK_MAX; }
+  setKnob(dx, dy);
+  touch.dx = dx / STICK_MAX; touch.dy = dy / STICK_MAX;
+});
+function stickEnd(e) {
+  if (e.pointerId !== touch.id) return;
+  touch.active = false; touch.id = -1; touch.dx = 0; touch.dy = 0; setKnob(0, 0);
+}
+stickBase.addEventListener('pointerup', stickEnd);
+stickBase.addEventListener('pointercancel', stickEnd);
+
+const kickBtn = document.getElementById('kickBtn');
+kickBtn.addEventListener('pointerdown', e => {
+  e.preventDefault(); input.kick = true;
+  try { kickBtn.setPointerCapture(e.pointerId); } catch (err) {}
+});
+function kickEnd() { input.kick = false; }
+kickBtn.addEventListener('pointerup', kickEnd);
+kickBtn.addEventListener('pointercancel', kickEnd);
 
 // ── SCORE UI ──────────────────────────────────────────────
 let scoreYou = 0, scoreAI = 0;
@@ -662,17 +768,27 @@ function updatePlayer(dt) {
   if (keys['KeyA'] || keys['ArrowLeft'])  { move.addScaledVector(rgt, -PLAYER_SPD * dt); moving = true; }
   if (keys['KeyD'] || keys['ArrowRight']) { move.addScaledVector(rgt,  PLAYER_SPD * dt); moving = true; }
 
+  // Virtual joystick (mobile): up=forward, right=strafe
+  if (touch.active && Math.hypot(touch.dx, touch.dy) > 0.08) {
+    move.addScaledVector(fwd, -touch.dy * PLAYER_SPD * dt);
+    move.addScaledVector(rgt,  touch.dx * PLAYER_SPD * dt);
+    moving = true;
+  }
+  // Cap combined speed so keys + stick can't exceed walk speed
+  const maxStep = PLAYER_SPD * dt;
+  if (move.length() > maxStep) move.setLength(maxStep);
+
   P.pos.add(move);
   P.pos.x = Math.max(-FW / 2 + 0.4, Math.min(FW / 2 - 0.4, P.pos.x));
   P.pos.z = Math.max(-FL / 2 + 0.4, Math.min(FL / 2 - 0.4, P.pos.z));
 
-  // Face direction of movement
+  // Face direction of movement + walking bob
   if (moving && move.length() > 0.0005) {
-    const ta = Math.atan2(move.x, move.z);
-    playerMesh.rotation.y += (ta - playerMesh.rotation.y) * 0.18;
+    P.facing = Math.atan2(move.x, move.z);
     P.walkPhase += dt * 11;
-    playerMesh.children[0].position.y = 0.78 + Math.sin(P.walkPhase) * 0.045;
-    playerMesh.children[1].position.y = 1.52 + Math.sin(P.walkPhase) * 0.045;
+    playerMesh.userData.plane.position.y = CH_H / 2 + Math.abs(Math.sin(P.walkPhase)) * 0.13;
+  } else {
+    playerMesh.userData.plane.position.y += (CH_H / 2 - playerMesh.userData.plane.position.y) * 0.2;
   }
   playerMesh.position.set(P.pos.x, 0, P.pos.z);
 
@@ -693,9 +809,9 @@ function updatePlayer(dt) {
   }
 
   // Kick
-  if (keys['Space'] && dist < KICK_RANGE && P.kickCooldown <= 0) {
-    // Kick in direction player faces (WASD direction), biased toward ball
-    const facing = new THREE.Vector3(Math.sin(playerMesh.rotation.y), 0, Math.cos(playerMesh.rotation.y));
+  if ((keys['Space'] || input.kick) && dist < KICK_RANGE && P.kickCooldown <= 0) {
+    // Kick in direction player faces (move direction), biased toward ball
+    const facing = new THREE.Vector3(Math.sin(P.facing), 0, Math.cos(P.facing));
     const kickDir = toBall.normalize().multiplyScalar(0.55).add(facing.multiplyScalar(0.45)).normalize();
     B.vel.set(kickDir.x * KICK_H, KICK_V, kickDir.z * KICK_H);
     P.kickCooldown = 0.45;
@@ -739,8 +855,7 @@ function updateAI(dt) {
   // Face ball
   const toB2 = new THREE.Vector3(B.pos.x - AI.pos.x, 0, B.pos.z - AI.pos.z);
   if (toB2.length() > 0.05) {
-    const ta = Math.atan2(toB2.x, toB2.z);
-    aiMesh.rotation.y += (ta - aiMesh.rotation.y) * 0.12;
+    AI.facing = Math.atan2(toB2.x, toB2.z);
   }
 
   // AI kick when near ball
@@ -779,6 +894,12 @@ window.addEventListener('resize', () => {
 const clock = new THREE.Clock();
 let elapsed = 0;
 
+// Keep cocco sprite planes facing the camera (around Y)
+function billboard(g) {
+  const p = g.position;
+  g.userData.plane.rotation.y = Math.atan2(camera.position.x - p.x, camera.position.z - p.z);
+}
+
 function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(clock.getDelta(), 0.05);
@@ -787,6 +908,10 @@ function animate() {
   updateBall(dt);
   updatePlayer(dt);
   updateAI(dt);
+
+  // Billboard cocco sprites toward camera
+  billboard(playerMesh);
+  billboard(aiMesh);
 
   skyMat.uniforms.uTime.value = elapsed;
   controls.update();
