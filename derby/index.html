@@ -50,6 +50,18 @@
     background:rgba(8,22,14,.5);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:6px 14px;
     -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
   .clock.warn{color:#ff8a8a;border-color:rgba(255,120,120,.4);}
+  /* oxygen gauges */
+  .oxyRow{display:flex;justify-content:center;gap:14px;margin-top:7px;}
+  .oxy{display:flex;align-items:center;gap:5px;}
+  .oxy .o2ico{font-size:13px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6));}
+  .oxy .bar{width:104px;height:9px;border-radius:6px;background:rgba(4,16,9,.6);
+    border:1px solid rgba(255,255,255,.22);overflow:hidden;}
+  .oxy .bar i{display:block;height:100%;width:100%;border-radius:6px;transform-origin:left center;
+    transition:transform .12s linear;}
+  .oxy.foe .bar i{transform-origin:right center;}
+  .oxy.me .bar i{background:linear-gradient(90deg,#6fe0ff,#9ff7c4 60%,#eaffb0);}
+  .oxy.foe .bar i{background:linear-gradient(90deg,#caa6ff,#9b6bff);}
+  .oxy.low .bar i{background:linear-gradient(90deg,#ff8a6a,#ffb14d)!important;}
 
   /* ===== touch controls ===== */
   #kickBtn{position:absolute;right:calc(env(safe-area-inset-right) + 22px);
@@ -61,6 +73,21 @@
     touch-action:none;transition:transform .06s;}
   #kickBtn:active{transform:scale(.9);}
   #kickBtn.show{display:flex;}
+  #kickBtn .lbl{position:relative;z-index:2;}
+  #kickBtn .ring{position:absolute;inset:-6px;border-radius:50%;pointer-events:none;
+    background:conic-gradient(#7df0ff calc(var(--o2,1)*360deg), rgba(255,255,255,.16) 0);
+    -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 6px));
+    mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 6px));}
+  #kickBtn.ready .ring{background:conic-gradient(#a6ffd0 360deg,#a6ffd0 0);
+    filter:drop-shadow(0 0 6px rgba(120,240,160,.8));}
+
+  /* fleeting hint toast */
+  #toast{position:absolute;left:50%;top:18%;transform:translateX(-50%);z-index:24;
+    font-size:14px;font-weight:800;letter-spacing:.04em;color:#eafff0;
+    background:rgba(8,22,14,.72);border:1px solid rgba(255,255,255,.18);border-radius:20px;
+    padding:8px 16px;white-space:nowrap;opacity:0;pointer-events:none;
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);transition:opacity .2s;}
+  #toast.show{opacity:1;}
 
   /* ===== overlays ===== */
   .overlay{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -113,10 +140,15 @@
       <div class="clock" id="clock">1:30</div>
       <div class="side foe"><span class="num" id="scoreFoe">0</span><span class="chip" id="chipFoe"></span></div>
     </div>
+    <div class="oxyRow">
+      <div class="oxy me"><span class="o2ico">🫧</span><div class="bar"><i id="oxyMe"></i></div></div>
+      <div class="oxy foe"><div class="bar"><i id="oxyFoe"></i></div><span class="o2ico">🫧</span></div>
+    </div>
   </div>
 
-  <button id="kickBtn" aria-label="キック">シュート</button>
+  <button id="kickBtn" aria-label="シュート"><span class="ring" id="kickRing"></span><span class="lbl">シュート</span></button>
 
+  <div id="toast"></div>
   <div id="goalFx"><div class="g">GOAL!</div></div>
 
   <!-- title -->
@@ -128,7 +160,7 @@
     </div>
     <h1>こっこダービー</h1>
     <div class="en">COCCO&nbsp;DERBY</div>
-    <p class="desc">こっこちゃん vs ブラックこっこちゃん。<br>ドリブルで運んで、敵ゴールにシュート！<br>制限時間内に多く決めた方が勝ち。</p>
+    <p class="desc">こっこちゃん vs ブラックこっこちゃん。<br>ドリブルで運んで、敵ゴールにシュート！<br><b style="color:#9ff7c4;">🫧酸素</b>が満ちるほどシュートが強い。<br>切れたら へなちょこ…<b style="color:#9ff7c4;">🫧ボンベ</b>で一気に満タン！</p>
     <div class="diff" id="diff">
       <button data-d="0">やさしい</button>
       <button data-d="1" class="sel">ふつう</button>
@@ -154,6 +186,9 @@
 <script>
 'use strict';
 const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+if(!ctx.roundRect){ ctx.roundRect=function(x,y,w,h,r){ r=Math.min(r,Math.abs(w)/2,Math.abs(h)/2);
+  this.beginPath(); this.moveTo(x+r,y); this.arcTo(x+w,y,x+w,y+h,r); this.arcTo(x+w,y+h,x,y+h,r);
+  this.arcTo(x,y+h,x,y,r); this.arcTo(x,y,x+w,y,r); this.closePath(); return this; }; }
 const TAU=Math.PI*2;
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
 const lerp=(a,b,t)=>a+(b-a)*t;
@@ -218,13 +253,38 @@ const Sound=(()=>{
     whistle:()=>{ blip(1320,0.18,'sine',0.12); setTimeout(()=>blip(1620,0.22,'sine',0.12),120); },
     goal:()=>{ [523,659,784,1047].forEach((f,i)=>setTimeout(()=>blip(f,0.16,'triangle',0.14),i*80)); },
     select:()=>blip(660,0.08,'square',0.1),
+    superKick:()=>{ blip(160,0.16,'sawtooth',0.16); setTimeout(()=>blip(440,0.12,'square',0.12),40); },
+    bottle:()=>{ [660,880,1175].forEach((f,i)=>setTimeout(()=>blip(f,0.1,'sine',0.13),i*55)); },
   };
 })();
 
 /* ===== entities ===== */
-const ball={x:VW/2,y:VH/2,vx:0,vy:0,spin:0,rot:0};
-function mkChick(dark){ return {x:VW/2,y:0,vx:0,vy:0,dark:!!dark,face:1,bob:rnd(0,TAU),squash:0,kickAnim:0}; }
+const ball={x:VW/2,y:VH/2,vx:0,vy:0,spin:0,rot:0,hot:0};
+const trail=[];   // 必殺シュートの軌跡
+function mkChick(dark){ return {x:VW/2,y:0,vx:0,vy:0,dark:!!dark,face:1,bob:rnd(0,TAU),squash:0,kickAnim:0,oxy:1,puff:0,gasp:0}; }
 const me=mkChick(false), foe=mkChick(true);
+
+/* ===== 酸素（島ぐらし由来）: 撃つほど消費・時間で回復・🫧ボンベで満タン ===== */
+const OXY_COST=0.34;      // 必殺シュート1発の消費
+const OXY_MIN=0.16;       // これ未満だと へなちょこシュート
+const OXY_REGEN=0.085;    // 1秒あたりの自然回復
+// 🫧 酸素ボンベ（ピッチに出現する取り合いアイテム）
+const bottle={active:false, x:0, y:0, t:0, bob:0};
+let bottleTimer=7;        // 次の出現までの秒
+function spawnBottle(){
+  const side=Math.random()<0.5?-1:1;
+  bottle.x=clamp(VW/2+side*rnd(70,150), GXL, GXR);
+  bottle.y=clamp(VH/2+rnd(-70,70), PY0+120, PY1-120);
+  bottle.active=true; bottle.t=9; bottle.bob=0;
+}
+function takeBottle(c){
+  bottle.active=false; bottleTimer=rnd(9,13);
+  c.oxy=1; c.puff=1;
+  for(let i=0;i<16;i++){ const a=rnd(0,TAU),s=rnd(1.5,4);
+    dust.push({x:c.x,y:c.y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,col:'rgba(150,225,255,'}); }
+  Sound.bottle();
+  if(c===me) showHint('🫧 酸素まんタン！ 必殺シュートだ');
+}
 
 let scoreMe=0, scoreFoe=0;
 let state='title';          // title | countdown | play | goal | over
@@ -288,12 +348,18 @@ function tryKick(c){
   const pd=d||1; let px=dx/pd, py=dy/pd;
   let kx=ax*0.62+px*0.38, ky=ay*0.62+py*0.38;
   const km=Math.hypot(kx,ky)||1; kx/=km; ky/=km;
-  const power=(c===me?13.6:DIFF[diff].kick);
+  // 酸素：満ちているほど強い必殺シュート。足りなければ へなちょこシュート
+  const base=(c===me?10.5:DIFF[diff].kick-3);
+  const sup = c.oxy>=OXY_MIN;
+  const power = sup ? base + c.oxy*7.5 : base*0.62;
+  if(sup){ c.oxy=Math.max(0, c.oxy-OXY_COST); c.puff=1; }
+  else if(c===me){ c.gasp=0.6; showHint('🫁 酸素ぎれ… へなちょこシュート'); }
   ball.vx=kx*power + c.vx*0.5;
   ball.vy=ky*power + c.vy*0.5;
-  ball.spin=(Math.random()-0.5)*0.5;
+  ball.spin=(Math.random()-0.5)*(sup?0.7:0.4);
+  ball.hot = sup ? 1 : 0;       // 必殺シュートの軌跡フラグ
   c.kickAnim=1; c.squash=0.4;
-  Sound.kick();
+  sup? Sound.superKick() : Sound.kick();
   spawnDust(ball.x,ball.y);
 }
 
@@ -309,9 +375,10 @@ function spawnConfetti(){ const cols=['#ffe27a','#3be089','#5ec8ff','#ff7ab0','#
 /* ===== game control ===== */
 function placeKickoff(towardMe){
   // towardMe true: ball given to me side after foe scored (and vice versa)
-  ball.x=VW/2; ball.y=VH/2; ball.vx=0; ball.vy=0; ball.spin=0; ball.rot=0;
-  me.x=VW/2; me.y=VH*0.72; me.vx=0; me.vy=0; me.face=1;
-  foe.x=VW/2; foe.y=VH*0.28; foe.vx=0; foe.vy=0; foe.face=-1;
+  ball.x=VW/2; ball.y=VH/2; ball.vx=0; ball.vy=0; ball.spin=0; ball.rot=0; ball.hot=0;
+  me.x=VW/2; me.y=VH*0.72; me.vx=0; me.vy=0; me.face=1; me.oxy=1; me.puff=0; me.gasp=0;
+  foe.x=VW/2; foe.y=VH*0.28; foe.vx=0; foe.vy=0; foe.face=-1; foe.oxy=1; foe.puff=0; foe.gasp=0;
+  trail.length=0; bottle.active=false; bottleTimer=7;
 }
 function startMatch(){
   scoreMe=0; scoreFoe=0; timeLeft=matchTime; suddenDeath=false;
@@ -363,6 +430,10 @@ function updateHUD(){
   document.getElementById('scoreMe').textContent=scoreMe;
   document.getElementById('scoreFoe').textContent=scoreFoe;
 }
+let _hintT=0;
+function showHint(msg){ const el=document.getElementById('toast'); if(!el) return;
+  el.textContent=msg; el.classList.add('show'); _hintT=1.4; }
+function tickHint(dt){ if(_hintT>0){ _hintT-=dt; if(_hintT<=0) document.getElementById('toast').classList.remove('show'); } }
 
 /* ===== physics ===== */
 function moveChick(c,ix,iy,sp,f){
@@ -440,6 +511,14 @@ function foeAI(f){
   const distBall=Math.hypot(ball.x-foe.x, ball.y-foe.y);
   const meDist=Math.hypot(ball.x-me.x, ball.y-me.y);
   let tx, ty;
+  // 🫧 ボンベが近く＆酸素が減っていれば、寄り道して取りに行く
+  const bDist = bottle.active? Math.hypot(bottle.x-foe.x, bottle.y-foe.y) : 1e9;
+  if(bottle.active && foe.oxy<0.55 && bDist < distBall+90){
+    tx=bottle.x; ty=bottle.y;
+    let dx=tx-foe.x, dy=ty-foe.y; const dm=Math.hypot(dx,dy)||1;
+    foe._hx=lerp(foe._hx||0, dx/dm, D.react); foe._hy=lerp(foe._hy||0, dy/dm, D.react);
+    moveChick(foe, foe._hx, foe._hy, D.espeed, f); return;
+  }
   const ballInOwnHalf = ball.y < VH*0.5;
   if(ballInOwnHalf || (meDist<distBall-30 && ball.y<VH*0.62)){
     // DEFEND: stand between ball and own (top) goal
@@ -476,6 +555,7 @@ function loop(ts){
   let dt=(ts-last)/1000; last=ts; if(dt>0.05) dt=0.05;
   const f=dt*60;
   update(dt,f);
+  tickHint(dt);
   render();
 }
 function update(dt,f){
@@ -527,6 +607,35 @@ function update(dt,f){
     if(d<min && d>0){ const nx=dx/d, ny=dy/d, ov=(min-d)/2;
       me.x-=nx*ov; me.y-=ny*ov; foe.x+=nx*ov; foe.y+=ny*ov; } }
   stepBall(f);
+
+  // 酸素：自然回復＋演出タイマー
+  me.oxy=Math.min(1, me.oxy+OXY_REGEN*dt);
+  foe.oxy=Math.min(1, foe.oxy+OXY_REGEN*dt);
+  me.puff=Math.max(0,me.puff-2*dt); foe.puff=Math.max(0,foe.puff-2*dt);
+  me.gasp=Math.max(0,me.gasp-dt);  foe.gasp=Math.max(0,foe.gasp-dt);
+
+  // 🫧 酸素ボンベ：定期出現＆取り合い
+  if(bottle.active){ bottle.bob+=f; bottle.t-=dt; if(bottle.t<=0) bottle.active=false;
+    const rr=PR+22;
+    if(Math.hypot(me.x-bottle.x,me.y-bottle.y)<rr) takeBottle(me);
+    else if(bottle.active && Math.hypot(foe.x-bottle.x,foe.y-bottle.y)<rr) takeBottle(foe);
+  } else { bottleTimer-=dt; if(bottleTimer<=0) spawnBottle(); }
+
+  // 必殺シュートの軌跡
+  if(ball.hot>0){ ball.hot=Math.max(0,ball.hot-dt*1.6);
+    trail.push({x:ball.x,y:ball.y,life:1}); }
+  for(let i=trail.length-1;i>=0;i--){ trail[i].life-=dt*2.4; if(trail[i].life<=0) trail.splice(i,1); }
+
+  updateOxyHUD();
+}
+function updateOxyHUD(){
+  const mm=document.getElementById('oxyMe'), ff=document.getElementById('oxyFoe');
+  if(mm) mm.style.transform='scaleX('+me.oxy.toFixed(3)+')';
+  if(ff) ff.style.transform='scaleX('+foe.oxy.toFixed(3)+')';
+  mm&&mm.parentElement.parentElement.classList.toggle('low', me.oxy<OXY_MIN);
+  ff&&ff.parentElement.parentElement.classList.toggle('low', foe.oxy<OXY_MIN);
+  kickBtn.style.setProperty('--o2', me.oxy.toFixed(3));
+  kickBtn.classList.toggle('ready', me.oxy>=1-1e-3);
 }
 function updateClock(){
   const t=Math.ceil(timeLeft);
@@ -547,6 +656,11 @@ function render(){
   ctx.beginPath(); ctx.rect(-40,-40,VW+80,VH+80); ctx.clip();
 
   drawPitch();
+  if(bottle.active) drawBottle();
+  // super-shot trail
+  for(const tp of trail){ const a=clamp(tp.life,0,1);
+    ctx.fillStyle='rgba(125,240,255,'+(a*0.5)+')';
+    ctx.beginPath(); ctx.arc(tp.x,tp.y,BR*(0.5+a*0.6),0,TAU); ctx.fill(); }
   // shadows
   drawShadow(ball.x, ball.y, BR*1.05);
   drawShadow(me.x, me.y+PR*0.5, PR*0.9);
@@ -655,8 +769,33 @@ function drawGoalFront(gy){
     ctx.fillStyle='#dfe7f2'; ctx.fillRect(GXL-3, yBack-3, GW+6, 6);
   }
 }
+function drawBottle(){
+  const yb=Math.sin(bottle.bob*0.12)*4;
+  ctx.save(); ctx.translate(bottle.x, bottle.y+yb);
+  // glow halo (fades when about to vanish)
+  const a=clamp(bottle.t,0,1);
+  ctx.globalAlpha=0.5*a;
+  const g=ctx.createRadialGradient(0,0,4,0,0,32);
+  g.addColorStop(0,'rgba(150,230,255,0.9)'); g.addColorStop(1,'rgba(120,210,255,0)');
+  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,32,0,TAU); ctx.fill();
+  ctx.globalAlpha=a;
+  // tank body
+  ctx.fillStyle='#2fa9d8'; ctx.strokeStyle='#eafaff'; ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.roundRect(-11,-15,22,30,9); ctx.fill(); ctx.stroke();
+  ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.beginPath(); ctx.roundRect(-7,-11,5,16,3); ctx.fill();
+  ctx.fillStyle='#cfeffb'; ctx.fillRect(-5,-19,10,5);
+  ctx.font='900 13px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='#063047'; ctx.fillText('O₂',0,2);
+  // floating emoji marker
+  ctx.font='16px sans-serif'; ctx.fillText('🫧',0,-26);
+  ctx.restore();
+}
 function drawBall(){
   ctx.save(); ctx.translate(ball.x,ball.y); ctx.rotate(ball.rot);
+  if(ball.hot>0){ ctx.save(); ctx.rotate(-ball.rot); ctx.globalAlpha=clamp(ball.hot,0,1);
+    const hg=ctx.createRadialGradient(0,0,BR*0.4,0,0,BR*2.1);
+    hg.addColorStop(0,'rgba(130,240,255,0.85)'); hg.addColorStop(1,'rgba(130,240,255,0)');
+    ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(0,0,BR*2.1,0,TAU); ctx.fill(); ctx.restore(); }
   // white sphere
   const g=ctx.createRadialGradient(-BR*0.35,-BR*0.4,BR*0.2,0,0,BR);
   g.addColorStop(0,'#ffffff'); g.addColorStop(0.7,'#f0f2f6'); g.addColorStop(1,'#c8cdd6');
@@ -690,6 +829,13 @@ function drawChick(c){
   if(c.kickAnim>0.01){ ctx.globalAlpha=c.kickAnim*0.5; ctx.globalCompositeOperation='source-atop';
     ctx.fillStyle='#fff'; ctx.fillRect(-w/2,-h,w,h); ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1; }
   ctx.restore();
+  // 酸素演出：🫧チャージ泡 / 🫁酸素ぎれ
+  if(c.puff>0.02){ ctx.save(); ctx.globalAlpha=clamp(c.puff,0,1);
+    ctx.font='15px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('🫧', c.x-12, c.y-h*0.9 - (1-c.puff)*14);
+    ctx.fillText('🫧', c.x+10, c.y-h*0.7 - (1-c.puff)*20); ctx.restore(); }
+  if(c.gasp>0.02){ ctx.save(); ctx.globalAlpha=clamp(c.gasp/0.6,0,1);
+    ctx.font='15px sans-serif'; ctx.textAlign='center'; ctx.fillText('💨', c.x+14, c.y-h*0.8); ctx.restore(); }
 }
 
 /* ===== UI wiring ===== */
