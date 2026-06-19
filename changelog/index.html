@@ -42,6 +42,7 @@
   .t-feat{background:rgba(110,180,255,.15);color:#a8d2ff;border:1px solid rgba(130,190,255,.32);}
   .t-imp{background:rgba(255,205,120,.15);color:#ffd98a;border:1px solid rgba(255,205,120,.3);}
   .t-fix{background:rgba(255,120,120,.14);color:#ff9a9a;border:1px solid rgba(255,120,120,.3);}
+  .t-end{background:rgba(150,150,160,.16);color:#cfcfd6;border:1px solid rgba(170,170,180,.34);}
   .day{margin-top:24px;position:relative;padding-left:20px;border-left:2px solid var(--line);}
   .day::before{content:"";position:absolute;left:-7px;top:4px;width:12px;height:12px;border-radius:50%;
     background:#ffd98a;box-shadow:0 0 0 4px rgba(255,217,138,.18);}
@@ -70,6 +71,7 @@
       <span class="tag t-feat">✨ 新機能</span>
       <span class="tag t-imp">🔧 改善</span>
       <span class="tag t-fix">🐛 修正</span>
+      <span class="tag t-end">🙇 サービス終了</span>
     </div>
   </header>
   <main id="log"></main>
@@ -83,6 +85,7 @@
    tag: new(新ゲーム) / feat(新機能) / imp(改善) / fix(修正) */
 var LOG=[
   { date:"2026.06.19", items:[
+    { tag:"end", t:"「島ぐらし2（こっこの森2 ／ /mori2/）」サービス終了のお知らせ", d:"いつも畜物語で遊んでくださり、本当にありがとうございます。誠に勝手ながら、このたび「島ぐらし2（こっこの森2）」のサービスを終了いたしました。楽しみにしてくださっていた皆さま、遊んでくださった皆さまには、心よりお詫び申し上げます。ごめんなさい。なお「島ぐらし（こっこの森 ／ /mori/）」はこれまで通りお楽しみいただけます。これからも畜物語をどうぞよろしくお願いいたします。" },
     { tag:"feat", t:"こっこダービー：島ぐらし由来の🫧酸素ゲージを追加", d:"島ぐらしの「酸素ゲージ」をサッカーに移植。シュートは酸素を消費する“必殺シュート”になり、ゲージが満ちているほど威力アップ（軌跡も光る）。酸素が切れるとへなちょこシュート（💨酸素ぎれ）に。酸素は時間でじわっと自然回復。ピッチには🫧酸素ボンベが定期出現し、先に触れた方が一気に満タン＝こっこ vs ブラックこっこの取り合いが熱い。両者にゲージHUD、シュートボタンには残量リング付き。", li:[
       "必殺シュート：威力＝酸素量に比例／1発ごとに消費",
       "🫧酸素ボンベ：ピッチに出現→触れて満タン回復（AIも酸素が減ると取りに来る）",
@@ -181,7 +184,7 @@ var LOG=[
 ];
 
 (function(){
-  var TAG={ new:['t-new','🆕 新ゲーム'], feat:['t-feat','✨ 新機能'], imp:['t-imp','🔧 改善'], fix:['t-fix','🐛 修正'] };
+  var TAG={ new:['t-new','🆕 新ゲーム'], feat:['t-feat','✨ 新機能'], imp:['t-imp','🔧 改善'], fix:['t-fix','🐛 修正'], end:['t-end','🙇 サービス終了'] };
   function esc(s){ return String(s).replace(/[<>&]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;'}[c];}); }
   var html=LOG.map(function(day){
     var entries=day.items.map(function(it){
