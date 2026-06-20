@@ -79,6 +79,12 @@
     border-radius:50%;background:rgba(6,20,12,.5);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
     box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 0 2px rgba(150,230,120,.4),
       inset 0 0 16px rgba(120,230,110,.18),0 0 14px rgba(120,230,110,.22);}
+  /* いまいる島の名前（レーダーの真上に小さく） */
+  #hudIsland{position:absolute;z-index:10;pointer-events:none;
+    left:calc(12px + env(safe-area-inset-left));width:124px;text-align:center;
+    bottom:calc(150px + env(safe-area-inset-bottom));
+    font-size:11px;font-weight:800;letter-spacing:.03em;white-space:nowrap;color:#dff3cf;
+    text-shadow:0 1px 4px rgba(0,0,0,.75),0 0 8px rgba(120,230,110,.35);}
 
   /* 仮想スティック */
   #stickBase{position:absolute;z-index:9;width:96px;height:96px;border-radius:50%;pointer-events:none;display:none;
@@ -529,6 +535,7 @@
     </div>
     <div id="saveFlash">💾 セーブしました</div>
     <div id="stickBase"></div><div id="stickKnob"></div>
+    <div id="hudIsland">🏝 はじまり島</div>
     <canvas id="radar" width="124" height="124"></canvas>
   </div>
   <div class="actbtn hidden idle" id="actBtn"><span id="actIco">🤚</span><span id="actLbl">しらべる</span></div>
@@ -1413,6 +1420,7 @@ function genWorld(seed){
   airportSpot=findFlatNear(SPAWN.x,SPAWN.z,1.1,12,24,portSpot);
   gymSpot=findFlatNear(SPAWN.x,SPAWN.z,9,7,16,shopSpot);
   buildRadarLand();
+  updateIslandHud();
 }
 function findFlatNear(ox,oz,seedA,rmin,rmax,avoid){
   for(let r=rmin;r<=rmax;r+=1.5){
@@ -1465,6 +1473,7 @@ let shopSpot={x:6,z:0}, houseSpot={x:-6,z:0}, portSpot={x:0,z:8}, airportSpot={x
 const ISLAND_NAMES=['はじまり島','みどり島','こがね島','あらし島','まぼろし島','でんせつ島'];
 function islandSeed(i){ return i===0 ? (G.homeSeed>>>0) : ((G.homeSeed + Math.imul(i,0x9E3779B1)) >>> 0); }
 function islandName(i){ return ISLAND_NAMES[i] || ((i+1)+'番島'); }
+function updateIslandHud(){ const el=$('hudIsland'); if(el) el.textContent='🏝 '+islandName(G.island|0); }
 const FUEL_SHIP=2, FUEL_PLANE=3;   // 1回の移動でつかう燃料
 
 /* ===== セーブ（ブラウザ保存：絵文字の島は数値の配列だけで軽い！） ===== */
