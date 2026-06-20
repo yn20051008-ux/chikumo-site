@@ -355,6 +355,54 @@
   #wazaCut.go .wc-jp{animation:wcJpSlam .55s cubic-bezier(.18,1.7,.36,1) .06s both,wcJpShake .5s ease-in-out .6s;}
   @keyframes wcJpSlam{0%{opacity:0;transform:scale(2.6) skewX(-8deg);filter:blur(8px)}55%{opacity:1;transform:scale(.92) skewX(-3deg);filter:blur(0)}100%{transform:scale(1) skewX(-3deg)}}
   @keyframes wcJpShake{0%,100%{margin-right:0}25%{margin-right:6px}75%{margin-right:-6px}}
+  /* ===== そらわざ（空蹴りで高く昇るほど強い空中技） UI ===== */
+  /* 高度オーバーレイ：昇るほど 空が宇宙→月に近づく */
+  #skyVeil{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;transition:opacity .25s linear;
+    background:linear-gradient(180deg,rgba(4,8,30,0),rgba(2,4,20,.5) 58%,rgba(0,0,8,.78));}
+  #skyVeil .sv-stars{position:absolute;inset:0;opacity:0;transition:opacity .4s;
+    background-image:radial-gradient(1.6px 1.6px at 18% 28%,#fff,transparent),radial-gradient(1.4px 1.4px at 72% 18%,#fff,transparent),
+      radial-gradient(1px 1px at 42% 58%,#cfe,transparent),radial-gradient(1.6px 1.6px at 86% 48%,#fff,transparent),
+      radial-gradient(1px 1px at 56% 80%,#fff,transparent),radial-gradient(1.4px 1.4px at 12% 74%,#dff,transparent),
+      radial-gradient(1.2px 1.2px at 33% 12%,#fff,transparent),radial-gradient(1px 1px at 64% 64%,#cef,transparent);}
+  #skyVeil .sv-moon{position:absolute;top:8%;right:11%;font-size:62px;opacity:0;transform:scale(.6);
+    transition:opacity .5s,transform .5s;filter:drop-shadow(0 0 22px rgba(220,235,255,.85));}
+  /* 高度メーター＋いま放てるそらわざ（空中のみ表示） */
+  #skyHud{position:absolute;z-index:13;left:50%;top:calc(60px + env(safe-area-inset-top));transform:translateX(-50%);
+    display:none;flex-direction:column;align-items:center;gap:5px;pointer-events:none;}
+  #skyHud.on{display:flex;}
+  #skyAlt{font-size:12px;font-weight:900;letter-spacing:.07em;color:#dbeaff;text-shadow:0 1px 4px rgba(0,0,0,.85);}
+  #skyAlt b{font-size:17px;color:#fff;}
+  #skyLadder{display:flex;gap:3px;align-items:center;}
+  #skyLadder i{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.16);
+    border:1px solid rgba(170,210,255,.4);transition:background .15s,box-shadow .15s;font-style:normal;}
+  #skyLadder i.lit{background:linear-gradient(180deg,#bdf0ff,#5fc9ff);box-shadow:0 0 8px rgba(120,220,255,.85);}
+  #skyLadder i.top{width:10px;height:10px;}
+  #skyLadder i.top.lit{background:linear-gradient(180deg,#fff,#dfe9ff);box-shadow:0 0 13px rgba(230,240,255,1);}
+  #skyReady{pointer-events:auto;cursor:pointer;display:none;align-items:center;gap:6px;
+    padding:4px 12px;border-radius:16px;font-size:13px;font-weight:900;color:#fff;white-space:nowrap;
+    border:1.5px solid var(--sc,#9be3ff);background:rgba(10,22,40,.74);
+    box-shadow:0 0 14px color-mix(in srgb,var(--sc,#9be3ff) 55%,transparent),0 2px 8px rgba(0,0,0,.4);}
+  #skyReady.on{display:flex;animation:skyrdy 1s ease-in-out infinite;}
+  #skyReady.fired{animation:skyfire .3s ease-out;}
+  #skyReady .sr-ico{font-size:18px;}
+  #skyReady .sr-go{font-size:10px;opacity:.85;letter-spacing:.05em;color:#cfe6ff;}
+  @keyframes skyrdy{0%,100%{transform:scale(1);}50%{transform:scale(1.05);}}
+  @keyframes skyfire{0%{transform:scale(1.25);filter:brightness(2);}100%{transform:scale(1);filter:none;}}
+  /* 空中のそらわざ発射ボタン（タッチ） */
+  #skyBtn{display:none;right:calc(116px + env(safe-area-inset-right));bottom:calc(106px + env(safe-area-inset-bottom));
+    width:66px;height:66px;border-color:rgba(190,200,255,.7);
+    box-shadow:0 4px 16px rgba(0,0,0,.45),0 0 18px rgba(150,180,255,.45);}
+  #skyBtn.on{display:flex;animation:skyrdy 1s ease-in-out infinite;}
+  #skyBtn .sb-ico{font-size:28px;}
+  #skyBtn .sb-lbl{font-size:8px;margin-top:1px;letter-spacing:.03em;}
+  /* ジムの セクション見出し（ひっさつわざ／そらわざ） */
+  .gymSec{font-size:13px;font-weight:900;color:#ffd9a8;margin:8px 2px 0;padding-top:8px;
+    border-top:1px solid rgba(255,180,120,.22);display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;}
+  .gymSec:first-child{border-top:none;padding-top:0;margin-top:0;}
+  .gymSec span{font-size:10px;font-weight:700;color:#e9b89a;opacity:.85;letter-spacing:.02em;}
+  .gymSec.sky{color:#bfe0ff;border-top-color:rgba(150,200,255,.28);}
+  .gymSec.sky span{color:#a9c8ee;}
+
   /* ジム画面（赤い道場テーマ） */
   #gymScreen{position:absolute;inset:0;z-index:21;display:none;align-items:center;justify-content:center;padding:18px;
     background:radial-gradient(ellipse at 50% 30%,rgba(60,34,30,.6),rgba(16,6,6,.88));-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
@@ -585,6 +633,7 @@
   </div>
   <div class="actbtn hidden idle" id="actBtn"><span id="actIco">🤚</span><span id="actLbl">しらべる</span></div>
   <div class="actbtn hidden" id="jumpBtn">⬆</div>
+  <div class="actbtn" id="skyBtn"><span class="sb-ico">🌙</span><span class="sb-lbl">そらわざ</span></div>
   <div id="bubble"><span class="nm" id="bubbleName"></span><span id="bubbleText"></span></div>
   <div id="toast"></div>
   <div id="pauseOv"><div>タップで さいかい</div></div>
@@ -607,6 +656,13 @@
     <div id="wazaBtns"></div>
   </div>
   <div id="wazaBanner"></div>
+  <!-- そらわざ：高度オーバーレイ＆メーター（空中で 高く昇るほど 強い技） -->
+  <div id="skyVeil"><div class="sv-stars"></div><div class="sv-moon">🌙</div></div>
+  <div id="skyHud">
+    <div id="skyAlt">高度 <b>0</b> m</div>
+    <div id="skyLadder"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="top"></i></div>
+    <div id="skyReady"></div>
+  </div>
   <div id="fxFlash"></div>
   <!-- ひっさつわざ シネマティック・カットイン -->
   <div id="wazaCut">
@@ -866,6 +922,16 @@ const Sound=(function(){
       [392,523,659,784,1047,1319,1568].forEach((f,k)=>{ aTone(f,t+.08+k*.07,.3,'square',.12,0,1); aTone(f*2,t+.1+k*.07,.2,'triangle',.06,0,1); }); },
     o2(){ if(!ac||muted)return; const t=ac.currentTime; aNoise(t,.4,.12,1200); aTone(300,t,.4,'sine',.1,900,1); /* シューッと充填 */
       [784,1047,1319].forEach((f,k)=>aTone(f,t+.18+k*.06,.26,'triangle',.12,0,1)); },
+    /* そらわざ：上空シマー→降下→着弾（高度ほど派手）。月光レーザーは長い高音ビーム */
+    sky(i){ if(!ac||muted)return; const t=ac.currentTime; duck(.95);
+      aTone(880+i*120,t,.3,'triangle',.1,2200,1); aNoise(t,.16,.06,5000);
+      const tb=t+.16;
+      subDrop(tb,92,30,.45,.22); crunch(tb,.2,.16,300+i*40); aNoise(tb,.3,.14,600);
+      [523,659,784,988,1175].slice(0,3+Math.min(2,(i/4)|0)).forEach((f,k)=>aTone(f+i*4,tb+.05+k*.05,.3,'square',.1,0,1));
+      if(i>=SKY.length-1){ // 🌙月光レーザー
+        aTone(1760,t,.7,'sine',.12,420,1); aTone(2640,t+.05,.6,'sine',.06,520,1);
+        aNoise(t+.42,.5,.18,400); subDrop(t+.42,80,22,.7,.3);
+        [659,988,1319,1760].forEach((f,k)=>aTone(f,t+.5+k*.05,.5,'triangle',.12,0,1)); } },
     ui(){ tone(700,0.04,'triangle',0.14); } };
 })();
 
@@ -1505,6 +1571,8 @@ const G={phase:'title',time:0,tod:0.375,day:1,coins:0,paused:false,playSec:0,sav
   inBattle:false,battleT:0,atkCD:0,swingT:0,shake:0,hitStop:0,slow:0,zoom:0,regenT:0,ko:false,koT:0,
   /* ひっさつわざ（ジムで習得・ゲージで発動） */
   skills:0,gauge:1,wazaCD:0,
+  /* そらわざ（空中技：空蹴りで昇るほど強い・ジムで習得） */
+  skySkills:0,skyCD:0,airKicks:0,
   /* 暮らし（お金・お店・もちもの） */
   owned:{house:false,bike:false,car:false,sword:false,boots:false,heart:0,ship:false,plane:false,shield:false},
   vehicle:'',shopOpen:false,gymOpen:false,sleepT:0,
@@ -1532,7 +1600,7 @@ function saveGame(){
       day:G.day,tod:+G.tod.toFixed(4),
       px:+P.x.toFixed(1),pz:+P.z.toFixed(1),yaw:+cam.yaw.toFixed(2),pitch:+cam.pitch.toFixed(2),
       coins:G.coins,inv:G.inv,playSec:Math.round(G.playSec),def:G.defeated,
-      own:G.owned,skills:G.skills,
+      own:G.owned,skills:G.skills,sky:G.skySkills,
       hp:+G.hp.toFixed(2),gauge:+G.gauge.toFixed(3),   // 体力＆酸素ゲージも保存（ホームに戻っても回復しない）
       tr:trees.map(t=>t.fruitT>0?Math.ceil(t.fruitT):0),
       fl:flowers.map(f=>f.reT>0?Math.ceil(f.reT):0),
@@ -1896,6 +1964,31 @@ const WAZA=[
   {name:'メテオこっこ',sub:'METEO COCCO',ico:'☄️',col:'#ff5e7a',cost:1.0,learn:9800,
    desc:'奥義。とびあがって 落下！ 画面ぜんたいに 衝撃波。',fire(){ wazaMeteo(); }},
 ];
+/* ===== そらわざ（空中技）：空蹴りで高く昇るほど 強い技が放てる（ジムで習得） =====
+   酸素ゲージで空蹴り→高度をかせぎ、達した高度に応じて発動。🫧で酸素を継ぎ足せば もっと高く。
+   てっぺん（月）まで昇れば「月光レーザー」で 地上を一掃！ */
+const SKY=[
+  {alt:3,  name:'こずえキック', sub:'TREETOP',    ico:'🍃', col:'#8df0a8', learn:1500,  r:6,  dmg:4,
+   desc:'木のうえほどの 高さから 葉っぱを 巻き落とす。'},
+  {alt:7,  name:'はね蹴り',     sub:'FEATHER',    ico:'🪶', col:'#eaf4ff', learn:3000,  r:7,  dmg:5,
+   desc:'羽のように舞って 真下へ 急降下キック。'},
+  {alt:12, name:'にじ蹴り',     sub:'RAINBOW',    ico:'🌈', col:'#9be3ff', learn:5000,  r:8,  dmg:6,
+   desc:'虹をえがいて 着地、まわりへ 七色の衝撃。'},
+  {alt:18, name:'くも蹴り',     sub:'CLOUDSTEP',  ico:'☁️', col:'#bfe0ff', learn:8000,  r:9,  dmg:7,
+   desc:'雲を踏みつけて 真下を どすんと ふみつぶす。'},
+  {alt:26, name:'いかずち',     sub:'THUNDERFALL',ico:'⛈️', col:'#ffe24d', learn:12000, r:10, dmg:9,
+   desc:'雷雲から 落雷を おとす。広範囲に しびれ。'},
+  {alt:36, name:'たつまき',     sub:'TORNADO',    ico:'🌪', col:'#7dffce', learn:18000, r:11, dmg:10,
+   desc:'渦を巻いて 急降下、まきこんで なぎ払う。'},
+  {alt:50, name:'ほし蹴り',     sub:'STARFALL',   ico:'🌟', col:'#ffe08a', learn:26000, r:12, dmg:12,
+   desc:'星のかけらを まとって 流れ落ちる。'},
+  {alt:68, name:'りゅうせい群', sub:'METEORS',    ico:'☄️', col:'#ff9b5a', learn:38000, r:14, dmg:14,
+   desc:'成層圏から 流星群を よびおろす。'},
+  {alt:90, name:'オーロラ',     sub:'AURORA',     ico:'🌌', col:'#c79bff', learn:55000, r:16, dmg:16,
+   desc:'極光をまとって 大地を 染めあげる。'},
+  {alt:120,name:'月光レーザー', sub:'MOONLIGHT',  ico:'🌙', col:'#dfeaff', learn:90000, r:20, dmg:22,
+   desc:'月まで昇って 放つ 究極のレーザー。地上を 一掃！'},
+];
 function gainGauge(a){ if(G.gauge>=1)return; G.gauge=Math.min(1,G.gauge+a); updateWazaUI(); }
 function fwdVec(){ return [Math.sin(cam.yaw),-Math.cos(cam.yaw)]; }
 function hex2rgb(h){ return [parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255]; }
@@ -2059,6 +2152,91 @@ function useO2(){
   wazaRing(hex2rgb('#9be3ff'),24,5);
   showToast('🫧 酸素ボンベ！ ゲージ かいふく');
 }
+/* ===== そらわざ（空中技）：高度に応じて発動 ===== */
+function skyAlt(){ return Math.max(0, P.y-heightAt(P.x,P.z)); }   // 地面からの高さ(m)
+function skyTierAt(alt){ let t=-1; for(let i=0;i<SKY.length;i++){ if(alt>=SKY[i].alt) t=i; else break; } return t; }
+/* 空中で発射：習得済み かつ いまの高度に届いている 最上位のそらわざを放つ */
+function doSkyFire(){
+  if(G.phase!=='play'||G.paused||G.ko) return;
+  if(G.shopOpen||G.gymOpen||G.rankOpen||G.travelOpen) return;
+  if(P.onG||G.vehicle!=='') return;          // 空中・徒歩のときだけ
+  if(G.skyCD>0) return;
+  if(G.skySkills<=0){ Sound.nope(); showToast('🌙 ジムで「そらわざ」を おぼえよう'); return; }
+  const tier=Math.min(G.skySkills-1, skyTierAt(skyAlt()));
+  if(tier<0){ Sound.nope(); showToast('🌙 もっと 高く 昇ってから！'); return; }
+  G.skyCD=0.6;
+  const w=SKY[tier];
+  const b=$('skyReady'); if(b){ b.classList.remove('fired'); void b.offsetWidth; b.classList.add('fired'); }
+  playWazaCut(w);                            // ひっさつわざと共通の名乗りカットイン
+  screenFlash('rgba(255,255,255,.9)',0.3);
+  Sound.sky(tier);
+  fireSky(tier);
+}
+/* そらわざ本体：プレイヤーの真下の地面へ 降下ストライク（高度ほど ド派手＆広範囲） */
+function fireSky(tier){
+  const w=SKY[tier], col=hex2rgb(w.col);
+  G.shake=Math.max(G.shake,0.7+tier*0.12); G.hitStop=Math.max(G.hitStop,0.05+tier*0.012);
+  G.slow=Math.max(G.slow,0.2+tier*0.04); G.zoom=Math.max(G.zoom,1.6+tier*0.18);
+  const gx=P.x, gz=P.z, gy=heightAt(gx,gz), top=P.y+0.8;
+  // 降下ビーム（プレイヤー→地面）
+  const seg=20+tier*3;
+  for(let i=0;i<seg;i++){ const f=i/seg;
+    parts.push({x:gx+rnd(-0.5,0.5),y:top-(top-gy)*f,z:gz+rnd(-0.5,0.5),
+      vx:rnd(-0.5,0.5),vy:rnd(-7,-13),vz:rnd(-0.5,0.5),life:rnd(0.3,0.6),t:0,col,size:rnd(0.34,0.62),cell:18,grav:-3}); }
+  // 地面インパクト
+  shockRing(gx,gy+0.2,gz,[1,1,1],16+tier*2,7+tier*0.7);
+  shockRing(gx,gy+0.2,gz,col,12+tier*2,5+tier*0.6);
+  burst3(gx,gy+0.5,gz,col,18+tier*2,7+tier*0.5,27);
+  beam3(gx,gz,col,10+tier,4);
+  // 当たり：地面の半径r内の敵をまとめて
+  const r=w.r;
+  for(const e of enemies){ if(e.dead)continue;
+    const dx=e.x-gx, dz=e.z-gz, d=Math.hypot(dx,dz); if(d>r) continue;
+    wazaDamage(e, w.dmg, d>0.01?[dx/d,dz/d]:[0,1], 11+tier, 4+tier*0.5); }
+  if(tier>=SKY.length-1) moonLaser(gx,gy,gz);   // 🌙最上位：月光レーザー追加演出
+  // 放った直後は ふわっと留まる（達成感）
+  if(P.vy<0) P.vy*=0.3; P.vy=Math.max(P.vy,1.2);
+}
+function moonLaser(gx,gy,gz){
+  screenFlash('rgba(235,245,255,1)',0.55);
+  const col=[0.86,0.92,1];
+  for(let i=0;i<70;i++){ const f=i/70;
+    parts.push({x:gx+rnd(-0.7,0.7),y:gy+f*30,z:gz+rnd(-0.7,0.7),
+      vx:rnd(-0.3,0.3),vy:rnd(-10,-20),vz:rnd(-0.3,0.3),life:rnd(0.3,0.7),t:0,col,size:rnd(0.5,1.0),cell:18,grav:-4}); }
+  shockRing(gx,gy+0.2,gz,[1,1,1],56,15); shockRing(gx,gy+0.2,gz,col,40,10);
+  burst3(gx,gy+0.6,gz,[1,1,0.95],50,11,27);
+  G.shake=Math.max(G.shake,1.8); G.hitStop=Math.max(G.hitStop,0.14);
+}
+/* 高度オーバーレイ＆HUD（空中のみ）。毎フレーム update から呼ぶ */
+function updateSky(dt){
+  if(G.skyCD>0) G.skyCD-=dt;
+  const veil=$('skyVeil');
+  const airborne = G.phase==='play' && !P.onG && G.vehicle==='' && !G.ko && !G.paused;
+  if(!airborne){
+    if(G._skyOn){ G._skyOn=false; G._skyAvail=-2; G._skyReached=-2;
+      $('skyHud').classList.remove('on'); $('skyReady').classList.remove('on'); $('skyBtn').classList.remove('on');
+      veil.style.opacity='0'; veil.querySelector('.sv-stars').style.opacity='0'; veil.querySelector('.sv-moon').style.opacity='0'; }
+    return;
+  }
+  G._skyOn=true;
+  const alt=skyAlt(), reached=skyTierAt(alt), avail=Math.min(G.skySkills-1, reached);
+  // 宇宙オーバーレイ（昇るほど 暗く→星→月）
+  veil.style.opacity=clamp((alt-8)/120,0,0.8).toFixed(3);
+  veil.querySelector('.sv-stars').style.opacity=clamp((alt-28)/55,0,1).toFixed(2);
+  const mz=clamp((alt-SKY[SKY.length-1].alt*0.5)/(SKY[SKY.length-1].alt*0.5),0,1);
+  const mn=veil.querySelector('.sv-moon'); mn.style.opacity=mz.toFixed(2); mn.style.transform='scale('+(0.6+mz*0.7).toFixed(2)+')';
+  // HUD（変化したときだけ DOM 更新）
+  $('skyHud').classList.add('on');
+  const am=Math.round(alt); if(am!==G._skyAltShown){ G._skyAltShown=am; $('skyAlt').innerHTML='高度 <b>'+am+'</b> m'; }
+  if(reached!==G._skyReached){ G._skyReached=reached;
+    const lad=$('skyLadder').children; for(let i=0;i<lad.length;i++) lad[i].classList.toggle('lit', i<=reached); }
+  if(avail!==G._skyAvail){ G._skyAvail=avail; const rdy=$('skyReady');
+    if(avail>=0){ const w=SKY[avail]; rdy.style.setProperty('--sc',w.col);
+      rdy.innerHTML='<span class="sr-ico">'+w.ico+'</span>'+w.name+'<span class="sr-go">'+(IS_TOUCH?'タップ':'F')+'で放つ</span>';
+      rdy.classList.add('on'); $('skyBtn').classList.toggle('on',IS_TOUCH);
+      const sb=$('skyBtn').querySelector('.sb-ico'); if(sb) sb.textContent=w.ico;
+    }else{ rdy.classList.remove('on'); $('skyBtn').classList.remove('on'); } }
+}
 /* ===== ジム（わざの特訓） ===== */
 function openGym(){
   if(G.gymOpen) return;
@@ -2066,23 +2244,30 @@ function openGym(){
   renderGym(); $('gymScreen').classList.add('on');
 }
 function closeGym(){ G.gymOpen=false; $('gymScreen').classList.remove('on'); lastAct='?'; }
+function gymRow(w,got,next,attr,i,extra){
+  const can=G.coins>=w.learn;
+  let btn;
+  if(got) btn='<span class="gy-btn got">しゅうとく済 ✓</span>';
+  else if(next) btn='<button class="gy-btn'+(can?'':' no')+'" data-'+attr+'="'+i+'">💴'+w.learn.toLocaleString()+'</button>';
+  else btn='<span class="gy-btn got">？？？</span>';
+  const name=got||next?w.name:'？？？';
+  let desc=got||next?w.desc:'まえの わざを おぼえると あらわれる';
+  if((got||next)&&extra) desc=extra+' ・ '+desc;
+  return '<div class="gymItem'+(got?' got':'')+(!got&&!next?' lock':'')+'">'+
+    '<div class="gy-ico">'+(got||next?w.ico:'🔒')+'</div>'+
+    '<div class="gy-info"><div class="gy-name">'+name+'</div><div class="gy-desc">'+desc+'</div></div>'+btn+'</div>';
+}
 function renderGym(){
   $('gymMoney').textContent='💴 '+G.coins.toLocaleString();
-  let html='';
-  for(let i=0;i<WAZA.length;i++){ const w=WAZA[i];
-    const got=i<G.skills, next=i===G.skills, can=G.coins>=w.learn;
-    let btn;
-    if(got) btn='<span class="gy-btn got">しゅうとく済 ✓</span>';
-    else if(next) btn='<button class="gy-btn'+(can?'':' no')+'" data-learn="'+i+'">💴'+w.learn.toLocaleString()+'</button>';
-    else btn='<span class="gy-btn got">？？？</span>';
-    const name=got||next?w.name:'？？？', desc=got||next?w.desc:'まえの わざを おぼえると あらわれる';
-    html+='<div class="gymItem'+(got?' got':'')+(!got&&!next?' lock':'')+'">'+
-      '<div class="gy-ico">'+(got||next?w.ico:'🔒')+'</div>'+
-      '<div class="gy-info"><div class="gy-name">'+name+'</div><div class="gy-desc">'+desc+'</div></div>'+btn+'</div>';
-  }
-  if(G.skills>=WAZA.length) html+='<div class="tv-note">ぜんぶの わざを マスターした！ 💪✨</div>';
+  let html='<div class="gymSec">🥊 ひっさつわざ <span>たたかいで ゲージをためて 発動</span></div>';
+  for(let i=0;i<WAZA.length;i++) html+=gymRow(WAZA[i], i<G.skills, i===G.skills, 'learn', i);
+  if(G.skills>=WAZA.length) html+='<div class="tv-note">ぜんぶの ひっさつわざを マスターした！ 💪✨</div>';
+  html+='<div class="gymSec sky">🌙 そらわざ <span>空蹴りで 高く昇るほど 強い技！</span></div>';
+  for(let i=0;i<SKY.length;i++) html+=gymRow(SKY[i], i<G.skySkills, i===G.skySkills, 'sky', i, '高度'+SKY[i].alt+'m〜');
+  if(G.skySkills>=SKY.length) html+='<div class="tv-note">そらわざ ぜんぶ マスター！ 🌙✨ 月まで昇って ためそう</div>';
   $('gymList').innerHTML=html;
   $('gymList').querySelectorAll('[data-learn]').forEach(b=>b.addEventListener('click',()=>learnWaza(+b.getAttribute('data-learn'))));
+  $('gymList').querySelectorAll('[data-sky]').forEach(b=>b.addEventListener('click',()=>learnSky(+b.getAttribute('data-sky'))));
 }
 function learnWaza(i){
   if(i!==G.skills||i>=WAZA.length) return;
@@ -2092,6 +2277,17 @@ function learnWaza(i){
   hudInv('hudCoin'); renderGym(); buildWazaBtns(); saveGame();
   Sound.wazaLearn();
   const fx=$('gymTrainFx'); $('gymTrainTxt').innerHTML=w.ico+' 「'+w.name+'」<br>を おぼえた！';
+  fx.classList.remove('on'); void fx.offsetWidth; fx.classList.add('on');
+  setTimeout(()=>fx.classList.remove('on'),1800);
+}
+function learnSky(i){
+  if(i!==G.skySkills||i>=SKY.length) return;
+  const w=SKY[i];
+  if(G.coins<w.learn){ Sound.nope(); showToast('💴 おかねが たりないよ…'); return; }
+  G.coins-=w.learn; G.skySkills++;
+  hudInv('hudCoin'); renderGym(); saveGame();
+  Sound.wazaLearn();
+  const fx=$('gymTrainFx'); $('gymTrainTxt').innerHTML=w.ico+' 「'+w.name+'」<br>を おぼえた！ 高く昇って 放とう';
   fx.classList.remove('on'); void fx.offsetWidth; fx.classList.add('on');
   setTimeout(()=>fx.classList.remove('on'),1800);
 }
@@ -2439,10 +2635,13 @@ function update(dt){
   }
   const fl=heightAt(P.x,P.z);
   if(P.y>fl+0.001||P.vy>0){
-    P.vy-=24*dt; P.y+=P.vy*dt; P.onG=false;
+    // 酸素があるあいだは 空中で“浮遊”（低重力でふわり昇りやすい）。酸素ぎれで通常重力にもどり 落下→着地ダメージ
+    const floaty = G.vehicle==='' && G.airKicks>0 && G.gauge>0;
+    P.vy-=(floaty?13:24)*dt; P.y+=P.vy*dt; P.onG=false;
     if(P.y<=fl){ const impact=-P.vy; P.y=fl; P.vy=0; P.onG=true; landImpact(impact); }
   }else{ P.y=fl; P.onG=true; }
   if(P.onG) G.airKicks=0;   // 着地で空蹴りカウントをリセット
+  updateSky(dt);            // 高度メーター＆そらわざ表示
 
   /* 落としもの（くだもの・コイン） */
   for(let i=pickups.length-1;i>=0;i--){
@@ -2584,6 +2783,7 @@ window.addEventListener('keydown',e=>{
   if(k==='e'||k==='enter') doAction();
   if(k>='1'&&k<='4'){ Sound.init(); Sound.resume(); doWaza((+k)-1); }
   if(k==='q'){ Sound.init(); Sound.resume(); useO2(); }
+  if(k==='f'){ Sound.init(); Sound.resume(); doSkyFire(); }
 });
 window.addEventListener('keyup',e=>{ input.keys[e.key.toLowerCase()]=false; });
 function doJump(){
@@ -2611,6 +2811,8 @@ function airKick(){
 $('actBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); doAction(); });
 $('jumpBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); doJump(); });
 $('o2Btn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); useO2(); });
+$('skyBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); doSkyFire(); });
+$('skyReady').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); doSkyFire(); });
 
 /* ===== カメラ ===== */
 function camEye(){
@@ -3078,6 +3280,8 @@ function show(id){
   $('hud').classList.toggle('on',play);
   $('homeBtn').classList.toggle('on',play);
   ['actBtn','jumpBtn'].forEach(b=>$(b).classList.toggle('hidden',!play||!IS_TOUCH));
+  if(!play){ $('skyBtn').classList.remove('on'); $('skyHud').classList.remove('on'); $('skyReady').classList.remove('on');
+    const v=$('skyVeil'); v.style.opacity='0'; v.querySelector('.sv-stars').style.opacity='0'; v.querySelector('.sv-moon').style.opacity='0'; G._skyOn=false; }
 }
 function resetBattle(){
   G.hp=G.maxHp; G.invuln=0; G.combo=0; G.comboT=0; G.atkCD=0; G.swingT=0;
@@ -3097,7 +3301,9 @@ function resetBattle(){
 }
 function enterPlay(){
   G.phase='play'; G.paused=false; G.saveT=0;
+  G.skyCD=0; G.airKicks=0; G._skyOn=false; G._skyAvail=-2; G._skyReached=-2; G._skyAltShown=-1;
   P.y=heightAt(P.x,P.z); P.vy=0; P.onG=true; P.flip=1;
+  updateSky(0);   // 高度オーバーレイ・HUDを初期化（地上＝非表示）
   parts=[]; pickups=[]; bflies=[]; bflyT=2;
   lastAct='?'; lastClock='';
   resetBattle();
@@ -3115,7 +3321,7 @@ function startNew(){
   G.tod=0.375; G.day=1; G.coins=0; G.playSec=0; G.defeated=0;
   G.inv={fruit:0,flower:0,bug:0,shell:0,o2:0};
   G.owned={house:false,bike:false,car:false,sword:false,boots:false,heart:0,ship:false,plane:false,shield:false}; G.maxHp=5;
-  G.skills=0; G.gauge=1;
+  G.skills=0; G.gauge=1; G.skySkills=0;
   enterPlay();
   Sound.welcome();
   showToast('🏝 こっこ島へ ようこそ！');
@@ -3135,6 +3341,7 @@ function startContinue(){
   G.inv=Object.assign({fruit:0,flower:0,bug:0,shell:0,o2:0},s.inv);
   G.owned=Object.assign({house:false,bike:false,car:false,sword:false,boots:false,heart:0,ship:false,plane:false,shield:false},s.own);
   G.skills=Math.min(WAZA.length,s.skills||0);
+  G.skySkills=Math.min(SKY.length,s.sky||0);
   G.maxHp=5+(G.owned.heart||0);
   (s.tr||[]).forEach((v,i)=>{ if(trees[i])trees[i].fruitT=v; });
   (s.fl||[]).forEach((v,i)=>{ if(flowers[i])flowers[i].reT=v; });
