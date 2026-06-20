@@ -79,12 +79,12 @@
     border-radius:50%;background:rgba(6,20,12,.5);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
     box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 0 2px rgba(150,230,120,.4),
       inset 0 0 16px rgba(120,230,110,.18),0 0 14px rgba(120,230,110,.22);}
-  /* いまいる島の名前（レーダーの真上に小さく） */
+  /* いまいる島の名前（時計の真下に小さく・じゃまにならないように） */
   #hudIsland{position:absolute;z-index:10;pointer-events:none;
-    left:calc(12px + env(safe-area-inset-left));width:124px;text-align:center;
-    bottom:calc(150px + env(safe-area-inset-bottom));
-    font-size:11px;font-weight:800;letter-spacing:.03em;white-space:nowrap;color:#dff3cf;
-    text-shadow:0 1px 4px rgba(0,0,0,.75),0 0 8px rgba(120,230,110,.35);}
+    top:calc(31px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);white-space:nowrap;
+    font-size:11px;font-weight:800;letter-spacing:.03em;color:#dff3cf;
+    background:rgba(8,24,14,.45);padding:3px 10px;border-radius:12px;
+    text-shadow:0 1px 4px rgba(0,0,0,.75);}
 
   /* 仮想スティック */
   #stickBase{position:absolute;z-index:9;width:96px;height:96px;border-radius:50%;pointer-events:none;display:none;
@@ -396,6 +396,29 @@
     -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
   .screen.hidden{display:none;}
   .hidden{display:none;}
+  /* 強制更新ボタン（タイトル画面のみ。トップと同じ動作） */
+  .reload-btn{position:fixed;right:calc(14px + env(safe-area-inset-right));
+    bottom:calc(14px + env(safe-area-inset-bottom));width:54px;height:54px;z-index:30;
+    display:flex;align-items:center;justify-content:center;border-radius:50%;padding:0;cursor:pointer;
+    background:radial-gradient(circle at 50% 38%,rgba(30,60,40,.85),rgba(8,18,12,.82));
+    border:1px solid rgba(150,230,120,.55);
+    box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 14px rgba(120,230,110,.28);
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+    animation:reload-bob 3s ease-in-out infinite;transition:box-shadow .2s,transform .15s;}
+  .reload-btn img{width:34px;height:34px;pointer-events:none;
+    filter:drop-shadow(0 1px 4px rgba(255,200,120,.5));}
+  .reload-btn::after{content:'↻';position:absolute;right:-2px;bottom:-2px;width:20px;height:20px;
+    border-radius:50%;background:linear-gradient(180deg,#ffe08a,#ff9e5b);color:#2a1605;
+    font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;
+    box-shadow:0 1px 5px rgba(0,0,0,.45);}
+  .reload-btn:hover,.reload-btn:focus-visible{box-shadow:0 6px 20px rgba(0,0,0,.55),0 0 20px rgba(150,235,120,.5);
+    border-color:rgba(200,245,170,.9);}
+  .reload-btn:active{transform:scale(.92);}
+  .reload-btn.spinning{animation:reload-spin .7s linear infinite;}
+  .reload-btn.spinning img{opacity:.85;}
+  @keyframes reload-bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
+  @keyframes reload-spin{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion:reduce){.reload-btn{animation:none;}}
   .hero{width:min(34vw,128px);height:auto;margin-bottom:6px;
     filter:drop-shadow(0 8px 24px rgba(140,235,120,.45));animation:fl 3s ease-in-out infinite;}
   @keyframes fl{0%,100%{transform:translateY(0) rotate(-3deg);}50%{transform:translateY(-10px) rotate(3deg);}}
@@ -678,6 +701,7 @@
     </div>
     <a class="btn ghost" href="/letter/" id="letterLink" style="display:inline-block;text-decoration:none;">✉️ 正論蒔宿への手紙</a>
     <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+    <button type="button" id="reloadBtn" class="reload-btn" aria-label="さいしんに更新（強制リロード）" title="さいしんに更新"><img src="/chikumo.svg" alt="" width="34" height="34"></button>
   </div>
 
   <!-- HOW -->
@@ -3367,6 +3391,25 @@ requestAnimationFrame(frame);
     var bk=$('rankBack'); if(bk) bk.addEventListener('click', close);
   })();
   window.MoriRank={ open:open, close:close };
+})();
+
+/* 強制リロード（タイトル画面の🔄ボタン）：キャッシュ削除＋ServiceWorker解除→キャッシュバスター付きで最新を取得。セーブ(localStorage)は消えません。 */
+(function(){
+  var btn=document.getElementById('reloadBtn'); if(!btn) return;
+  var busy=false;
+  btn.addEventListener('click', function(){
+    if(busy) return; busy=true; btn.classList.add('spinning');
+    var done=false;
+    function go(){ if(done) return; done=true;
+      var u=location.pathname + '?r=' + Date.now() + (location.hash||'');
+      try{ location.replace(u); }catch(e){ location.href=u; } }
+    var tasks=[];
+    try{ if(window.caches && caches.keys) tasks.push(caches.keys().then(function(ks){ return Promise.all(ks.map(function(k){ return caches.delete(k); })); })); }catch(e){}
+    try{ if(navigator.serviceWorker && navigator.serviceWorker.getRegistrations)
+      tasks.push(navigator.serviceWorker.getRegistrations().then(function(rs){ return Promise.all(rs.map(function(r){ return r.unregister(); })); })); }catch(e){}
+    if(tasks.length){ Promise.all(tasks).then(go).catch(go); setTimeout(go, 1500); }
+    else go();
+  });
 })();
 </script>
 </body>
