@@ -3101,7 +3101,7 @@ function enterPlay(){
   parts=[]; pickups=[]; bflies=[]; bflyT=2;
   lastAct='?'; lastClock='';
   resetBattle();
-  hudInv(); hudClock(); hudAction(); updateRideBtn(); buildWazaBtns(); updateHP(); updateWazaUI();
+  hudInv(); hudClock(); hudAction(); updateRideBtn(); buildWazaBtns(); updateHP(); updateWazaUI(); updateIslandHud();
   $('rankBtn').classList.add('on');
   show(null);
   Sound.startBGM();
