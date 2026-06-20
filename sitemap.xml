@@ -91,12 +91,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://chikumo.jp/gyro/</loc>
-    <lastmod>2026-06-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://chikumo.jp/shake/</loc>
     <lastmod>2026-06-11</lastmod>
     <changefreq>weekly</changefreq>
