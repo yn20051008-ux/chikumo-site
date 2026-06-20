@@ -1533,6 +1533,7 @@ function saveGame(){
       px:+P.x.toFixed(1),pz:+P.z.toFixed(1),yaw:+cam.yaw.toFixed(2),pitch:+cam.pitch.toFixed(2),
       coins:G.coins,inv:G.inv,playSec:Math.round(G.playSec),def:G.defeated,
       own:G.owned,skills:G.skills,
+      hp:+G.hp.toFixed(2),gauge:+G.gauge.toFixed(3),   // 体力＆酸素ゲージも保存（ホームに戻っても回復しない）
       tr:trees.map(t=>t.fruitT>0?Math.ceil(t.fruitT):0),
       fl:flowers.map(f=>f.reT>0?Math.ceil(f.reT):0),
       ro:rocks.map(r=>r.cdT>0?Math.ceil(r.cdT):0),
@@ -3142,6 +3143,10 @@ function startContinue(){
   // ふかい水の上にロードされたら すくいあげる
   if(heightAt(P.x,P.z)<WL-0.3){ P.x=SPAWN.x; P.z=SPAWN.z; }
   enterPlay();
+  // 体力＆酸素ゲージは保存値から復元（ホームに戻っても回復しない。古いセーブは満タン扱い）
+  G.hp = (typeof s.hp==='number' && s.hp>0) ? Math.min(G.maxHp,s.hp) : G.maxHp;
+  G.gauge = (typeof s.gauge==='number') ? Math.max(0,Math.min(1,s.gauge)) : 1;
+  updateHP(); updateWazaUI();
   Sound.welcome();
   showToast('🏝 おかえりなさい！ '+G.day+'日め');
 }
