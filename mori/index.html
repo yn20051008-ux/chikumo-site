@@ -229,6 +229,28 @@
   .tv-btn:active{transform:translateY(1px);}
   .tv-btn.no{background:rgba(255,255,255,.1);color:#9fb6c4;box-shadow:none;}
   .tv-note{font-size:13px;line-height:1.7;color:#cfe2ee;opacity:.92;text-align:center;padding:14px 6px;}
+  /* 世界地図（航路マップ） */
+  .tv-map{display:flex;flex-direction:column;align-items:stretch;padding:2px;}
+  .tv-isle{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:16px;
+    border:1.5px solid rgba(130,200,235,.18);background:rgba(255,255,255,.04);transition:transform .05s;}
+  .tv-isle.lit{background:linear-gradient(180deg,rgba(120,200,150,.16),rgba(60,140,100,.08));border-color:rgba(120,220,150,.38);}
+  .tv-isle.cur{border-color:#ffd089;background:linear-gradient(180deg,rgba(255,210,130,.20),rgba(200,150,60,.10));
+    box-shadow:0 0 0 2px rgba(255,200,120,.5),0 0 18px rgba(255,190,90,.32);}
+  .tv-isle.go{cursor:pointer;color:#08202e;background:linear-gradient(180deg,#bfe8ff,#86c8ee);border-color:rgba(130,200,235,.6);
+    box-shadow:0 4px 14px rgba(80,170,230,.35);}
+  .tv-isle.go:active{transform:translateY(1px);}
+  .tv-isle.go.no{background:rgba(255,255,255,.1);color:#9fb6c4;box-shadow:none;border-color:rgba(130,200,235,.22);}
+  .tv-isle.dim{opacity:.42;}
+  .tv-ico{font-size:30px;flex:0 0 auto;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));}
+  .tv-meta{flex:1 1 auto;min-width:0;}
+  .tv-name{font-size:15px;font-weight:900;color:#eaf6ff;}
+  .tv-isle.go .tv-name{color:#08202e;}
+  .tv-sub{font-size:12px;opacity:.85;margin-top:2px;color:#cfe2ee;}
+  .tv-isle.go .tv-sub{color:#0a3550;opacity:.92;}
+  .tv-cost{flex:0 0 auto;font-size:14px;font-weight:900;color:#0a3550;background:rgba(255,255,255,.55);padding:4px 10px;border-radius:12px;}
+  .tv-isle.go.no .tv-cost{background:rgba(255,255,255,.14);color:#cfe2ee;}
+  .tv-link{width:3px;height:14px;margin:2px auto;
+    background:repeating-linear-gradient(180deg,rgba(130,200,235,.55) 0 5px,transparent 5px 9px);}
   #travelClose{margin-top:14px;align-self:center;}
   /* 移動演出（船・飛行機がスーッと） */
   #travelFx{position:absolute;inset:0;z-index:19;display:none;pointer-events:none;
@@ -2110,19 +2132,35 @@ function renderTravel(){
   if(!own){
     html='<div class="tv-note">'+(air?'✈️ ひこうきを もっていません。':'🚢 ふねを もっていません。')+'<br>お店（🏪）で 購入してね！</div>';
   }else{
-    const opts=[];
-    if(air){
-      G.visited.slice().sort((a,b)=>a-b).forEach(i=>{ if(i!==G.island) opts.push({i:i,label:'✈️ '+islandName(i)+'（'+strLabel(i)+'）'}); });
-      if(!opts.length) html='<div class="tv-note">まだ 行ったことのある島が ありません。<br>まずは 🚢ふねで となりの島へ！</div>';
-    }else{
-      opts.push({i:G.island+1,label:'🚢 つぎの島：'+islandName(G.island+1)+'（'+strLabel(G.island+1)+'・💴UP）'});
-      if(G.island>0) opts.push({i:G.island-1,label:'🚢 まえの島：'+islandName(G.island-1)+'（'+strLabel(G.island-1)+'）'});
+    // 世界地図：島を航路でつないで現在地・訪問済み・行ける島を見せる（未踏は ❔？？？で伏せる）
+    const maxV=Math.max(0,...G.visited), last=Math.max(5,G.island+1,maxV);
+    let anyReach=false, fuelShort=false, map='<div class="tv-map">';
+    for(let i=0;i<=last;i++){
+      const visited=G.visited.indexOf(i)>=0, cur=(i===G.island), known=visited||cur;
+      const reach=!cur && (air ? visited : (i===G.island+1||(i===G.island-1&&i>=0)));
+      if(reach) anyReach=true;
+      const canGo=reach && G.fuel>=cost; if(reach&&!canGo) fuelShort=true;
+      let cls='tv-isle';
+      if(cur) cls+=' cur'; else if(reach) cls+=' go'+(canGo?'':' no'); else if(visited) cls+=' lit'; else cls+=' dim';
+      let sub;
+      if(cur) sub='いまここ・'+strLabel(i);
+      else if(reach) sub=(visited?strLabel(i):'みしらぬ島へ…')+(air?'':'・💴'+(i>G.island?'UP':'DOWN'));
+      else if(visited) sub=strLabel(i)+'（行ったことある）';
+      else sub='？？？';
+      map+='<div class="'+cls+'"'+(reach?' data-go="'+i+'"':'')+'>'+
+        '<div class="tv-ico">'+(known?'🏝':'❔')+'</div>'+
+        '<div class="tv-meta"><div class="tv-name">'+(known?islandName(i):'？？？')+'</div><div class="tv-sub">'+sub+'</div></div>'+
+        (reach?'<div class="tv-cost">⛽'+cost+'</div>':'')+
+        '</div>';
+      if(i<last) map+='<div class="tv-link"></div>';
     }
-    html+=opts.map(o=>'<button class="tv-btn'+(G.fuel>=cost?'':' no')+'" data-go="'+o.i+'">'+o.label+'　<b>⛽'+cost+'</b></button>').join('');
-    if(opts.length&&G.fuel<cost) html+='<div class="tv-note">⛽ 燃料がたりない！ お店で「あぶら」を買おう</div>';
+    map+='</div>';
+    if(air && !anyReach) html='<div class="tv-note">まだ 行ったことのある島が ありません。<br>まずは 🚢ふねで となりの島へ！</div>';
+    else { html=map; if(fuelShort) html+='<div class="tv-note">⛽ 燃料がたりない！ お店で「あぶら」を買おう</div>'; }
   }
   $('travelList').innerHTML=html;
   $('travelList').querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click',()=>doTravel(+b.getAttribute('data-go'))));
+  const cu=$('travelList').querySelector('.tv-isle.cur'); if(cu) cu.scrollIntoView({block:'center'});
 }
 function doTravel(target){
   const air=G.travelKind==='air', cost=air?FUEL_PLANE:FUEL_SHIP;
