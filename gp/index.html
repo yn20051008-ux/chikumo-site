@@ -1272,7 +1272,13 @@ function update(dt){
   /* ── ステアリング(ジャイロ傾け) ── */
   tilt=readTilt();
   if(spinT>0){spinT-=rdt;}
-  else px+=tilt*dt*2.6*Math.min(1,spd/140+.15);
+  else{
+    /* 土の上は失速してもハンドルが効くよう操舵力を底上げ＋道側へ軽くアシスト */
+    let steerGain=Math.min(1,spd/140+.15);
+    if(offroad){steerGain=Math.max(steerGain,.85)*1.4;   /* コースアウト中は確実に切り返せる */
+      px-=Math.sign(px)*dt*.32;}                          /* 路肩の傾斜のように道へ引き戻す */
+    px+=tilt*dt*2.6*steerGain;
+  }
   const ci=Math.floor(dist/SEGL),cv0=curveAt(ci);
   px-=cv0*dt*1.7*Math.pow(Math.min(1,spd/320),2);   /* 遠心力: カーブに切り込め */
   px=Math.max(-1.45,Math.min(1.45,px));
