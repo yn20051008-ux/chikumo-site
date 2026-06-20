@@ -79,12 +79,12 @@
     border-radius:50%;background:rgba(6,20,12,.5);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
     box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 0 2px rgba(150,230,120,.4),
       inset 0 0 16px rgba(120,230,110,.18),0 0 14px rgba(120,230,110,.22);}
-  /* いまいる島の名前（レーダーの真上に小さく） */
+  /* いまいる島の名前（時計の真下に小さく・じゃまにならないように） */
   #hudIsland{position:absolute;z-index:10;pointer-events:none;
-    left:calc(12px + env(safe-area-inset-left));width:124px;text-align:center;
-    bottom:calc(150px + env(safe-area-inset-bottom));
-    font-size:11px;font-weight:800;letter-spacing:.03em;white-space:nowrap;color:#dff3cf;
-    text-shadow:0 1px 4px rgba(0,0,0,.75),0 0 8px rgba(120,230,110,.35);}
+    top:calc(31px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);white-space:nowrap;
+    font-size:11px;font-weight:800;letter-spacing:.03em;color:#dff3cf;
+    background:rgba(8,24,14,.45);padding:3px 10px;border-radius:12px;
+    text-shadow:0 1px 4px rgba(0,0,0,.75);}
 
   /* 仮想スティック */
   #stickBase{position:absolute;z-index:9;width:96px;height:96px;border-radius:50%;pointer-events:none;display:none;
