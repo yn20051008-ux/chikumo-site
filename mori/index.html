@@ -769,6 +769,7 @@
       ◆ <b style="color:#bfe6ff;">🌀 空蹴り（からげり）</b>：乗り物に乗っていないとき、<b>空中でもう一度ジャンプ</b>すると 空気を蹴って <b>何段でも跳べる</b>！ ただし <b>酸素ゲージ</b>を消費。こっこは飛べないので、<b style="color:#ff7a7a;">高く昇って酸素ぎれ→落下すると 着地で大ダメージ（高いほど痛い！）</b>。酸素を残して 着地ぎわに空蹴りすると やわらかく降りられるよ。<br><br>
       ◆ できること：🌳<b>木をゆらす</b>と くだものが落ちる／🌼<b>花をつむ</b>／🦋<b>虫をつかまえる</b>/🪨<b>岩をたたく</b>と コインが出る／🐚<b>かいがらをひろう</b>／🐰🐻🐸<b>住民とおしゃべり</b>。<br><br>
       ◆ 島には <b>朝・ひる・夜</b> がある。夜は ✨ホタルが とぶよ。<br><br>
+      ◆ <b style="color:#c8b6ff;">🌑 ひみつ</b>：<b>夜は🌙月</b>、<b>ひるは☀️太陽</b>まで空蹴りで昇りきると…？ <b style="color:#ff9b9b;">高いところでは 空飛ぶブラックこっこが 邪魔してくる！</b><br><br>
       ◆ <b style="color:#ff7a7a;">⚠ ブラックこっこ</b>に であうと…のどかな島が一変！<b>アクションボタン</b>で <b>たたかう</b>。<b>ジャンプ中の攻撃はクリティカル💥</b>、連続ヒットで <b>コンボ</b>！ つっこみ💢は <b>うごいて回避</b>。たおすと <b>札束💴どっさり</b>！ やられても <b>🚑救急車</b>がたすけてくれるよ。<br><br>
       ◆ <b style="color:#ff9b5a;">🏋️ こっこジム</b>（スポーン近く）で 💴特訓すると <b>ひっさつわざ</b>を おぼえる！（🌀つむじキック→🚀ロケットずつき→⚡かみなりラッシュ→☄️メテオこっこ）。<b>技ボタン</b>（PCは <b>1〜4キー</b>）で発動。<b style="color:#bfe6ff;">酸素ゲージ</b>は満タンスタートで、技をつかうと へる。<b>歩き回る</b>と じわじわ回復、<b>🫧酸素ボンベ</b>（お店で購入・Qキー）を つかえば いっきに満タン！ ゲージが満ちるほど 強い技が うてるよ。<br><br>
       ◆ <b style="color:#ffe07a;">🏪 こっこ商店</b>（スポーン近く）で 💴をつかって おかいもの！ <b>🏠おうち</b>（ねるとHP全回復＆あさに）、<b>🚲じてんしゃ</b>（のって高速移動）、<b>🚗マイカー</b>（自転車の4倍スピードで爆走！）、<b>⚔️つるぎ</b>（こうげき力UP）、<b>👟くつ</b>（はやあるき）、<b>💗ハートのうつわ</b>（最大HP UP）。買ったものは 島ぐらしで じっさいに使えるよ！<br><br>
@@ -1573,6 +1574,8 @@ const G={phase:'title',time:0,tod:0.375,day:1,coins:0,paused:false,playSec:0,sav
   skills:0,gauge:1,wazaCD:0,
   /* そらわざ（空中技：空蹴りで昇るほど強い・ジムで習得） */
   skySkills:0,skyCD:0,airKicks:0,
+  /* 🌑 隠しステージ：月と太陽に空蹴りでタッチ→「ブラックこっこの月」へ */
+  reachMoon:false,reachSun:false,inMoon:false,moonCleared:0,warpT:0,skyFoeT:0,
   /* 暮らし（お金・お店・もちもの） */
   owned:{house:false,bike:false,car:false,sword:false,boots:false,heart:0,ship:false,plane:false,shield:false},
   vehicle:'',shopOpen:false,gymOpen:false,sleepT:0,
@@ -1582,7 +1585,7 @@ const G={phase:'title',time:0,tod:0.375,day:1,coins:0,paused:false,playSec:0,sav
   prevTod:0.375,canRegister:false,rankOpen:false,regDay:0};
 const P={x:0,z:0,y:0,vy:0,moving:false,flip:1,onG:true};
 const cam={yaw:0,pitch:-0.32,dist:8.5};
-let parts=[], pickups=[], bflies=[], bflyT=4, enemies=[];
+let parts=[], pickups=[], bflies=[], bflyT=4, enemies=[], skyFoes=[], mBoss=null;
 let shopSpot={x:6,z:0}, houseSpot={x:-6,z:0}, portSpot={x:0,z:8}, airportSpot={x:0,z:-8}, gymSpot={x:-6,z:6};
 const ISLAND_NAMES=['はじまり島','みどり島','こがね島','あらし島','まぼろし島','でんせつ島'];
 function islandSeed(i){ return i===0 ? (G.homeSeed>>>0) : ((G.homeSeed + Math.imul(i,0x9E3779B1)) >>> 0); }
@@ -1601,6 +1604,7 @@ function saveGame(){
       px:+P.x.toFixed(1),pz:+P.z.toFixed(1),yaw:+cam.yaw.toFixed(2),pitch:+cam.pitch.toFixed(2),
       coins:G.coins,inv:G.inv,playSec:Math.round(G.playSec),def:G.defeated,
       own:G.owned,skills:G.skills,sky:G.skySkills,
+      mClr:G.moonCleared||0,rm:G.reachMoon?1:0,rs:G.reachSun?1:0,   // 🌑 隠しステージ進捗
       hp:+G.hp.toFixed(2),gauge:+G.gauge.toFixed(3),   // 体力＆酸素ゲージも保存（ホームに戻っても回復しない）
       tr:trees.map(t=>t.fruitT>0?Math.ceil(t.fruitT):0),
       fl:flowers.map(f=>f.reT>0?Math.ceil(f.reT):0),
@@ -1769,6 +1773,11 @@ function playerSwing(){
     hitEnemy(e,crit,d>0.01?[dx/d,dz/d]:[0,1]);
     hitAny=true;
   }
+  // 🌑 隠しボス：低空にいる王を 近接で叩く（ジャンプ攻撃はクリティカル）
+  if(G.inMoon&&mBoss){
+    const bx=mBoss.x-P.x, bz=mBoss.z-P.z, bd=Math.hypot(bx,bz), by=Math.abs(mBoss.y-(P.y+1));
+    if(bd<ATK_RANGE+1.4 && by<3.4){ hurtMoonBoss(crit?4:2); hitAny=true; }
+  }
   if(hitAny){
     G.hitStop=Math.max(G.hitStop,crit?0.08:0.045);
     G.shake=Math.max(G.shake,crit?0.7:0.4);
@@ -1843,6 +1852,7 @@ function fallDamage(n){
   if(G.hp<=0) playerKO();
 }
 function playerKO(){
+  if(G.inMoon) exitMoon(false);   // 🌑 隠しステージで力つきたら 島へもどる
   G.ko=true; G.koT=0; G.hp=0; updateHP();
   Sound.stopBattleBGM(); Sound.siren();
   for(const e of enemies) e.aggro=false;
@@ -1881,6 +1891,7 @@ function hitNum(x,y,z,dmg,crit){
     col:crit?[1,0.85,0.2]:[1,1,1],size:crit?0.9:0.6,cell:crit?27:18,grav:6});
 }
 function updateBoss(){
+  if(G.inMoon) return;   // 🌑 隠しステージのボスHUDは updateMoon が管理
   const e=nearestAggro();
   if(e&&G.inBattle){
     $('bossWrap').classList.add('on');
@@ -1892,6 +1903,7 @@ function updateBoss(){
 }
 /* 敵の更新（道端AI＋バトル） */
 function updateEnemies(dt){
+  if(G.inMoon){ for(const e of enemies){ e.aggro=false; } return; }   // 🌑 隠しステージ中は島の敵を凍結
   let aggroNow=false;
   for(const e of enemies){
     if(e.dead){
@@ -2182,6 +2194,7 @@ function fireSky(tier){
   const lockR=moon?1e9:(20+tier*8);
   let cx=P.x, cz=P.z, best=null, bd=lockR;
   for(const e of enemies){ if(e.dead)continue; const d=Math.hypot(e.x-P.x,e.z-P.z); if(d<bd){ bd=d; best=e; } }
+  if(G.inMoon&&mBoss){ best={x:mBoss.x,z:mBoss.z}; }   // 🌑 隠しステージでは 王めがけて降らせる
   if(best){ cx=best.x; cz=best.z; }
   const gy=heightAt(cx,cz), top=gy+Math.max(9,P.y-gy);
   // 天からの降下ビーム（標的の真上→標的）
@@ -2199,8 +2212,13 @@ function fireSky(tier){
   for(const e of enemies){ if(e.dead)continue;
     const dx=e.x-cx, dz=e.z-cz, d=Math.hypot(dx,dz); if(!moon && d>r) continue;
     wazaDamage(e, w.dmg, d>0.01?[dx/d,dz/d]:[0,1], 11+tier, 4+tier*0.5); hit++; }
+  // 🌑 隠しボス：そらわざが王の真下に着弾すれば 大ダメージ（月光レーザーは必中）
+  if(G.inMoon&&mBoss){
+    const bx=mBoss.x-cx, bz=mBoss.z-cz;
+    if(moon || Math.hypot(bx,bz)<=r+3){ hurtMoonBoss(w.dmg+2); hit++; }
+  }
   if(moon) moonLaser(cx,gy,cz);   // 🌙最上位：月光レーザー追加演出
-  if(hit===0) showToast('🌙 とどく範囲に 敵がいない！');
+  if(hit===0 && !G.inMoon) showToast('🌙 とどく範囲に 敵がいない！');
   // 急降下：標的へ swoop して 着弾を見せる（高所からの落下ぶん 着地ダメージは無効）
   G.invuln=Math.max(G.invuln, clamp(1.1+(P.y-gy)*0.04, 1.1, 5));
   if(best){ const dx=cx-P.x, dz=cz-P.z, d=Math.hypot(dx,dz)||1, step=Math.min(d,3.5+tier);
@@ -2223,9 +2241,10 @@ function updateSky(dt){
   const veil=$('skyVeil');
   const airborne = G.phase==='play' && !P.onG && G.vehicle==='' && !G.ko && !G.paused;
   if(!airborne){
+    if(!G.inMoon && skyFoes.length) skyFoes.length=0;   // 着地したら 空飛ぶ妨害は消える
     if(G._skyOn){ G._skyOn=false; G._skyAvail=-2; G._skyReached=-2;
       $('skyHud').classList.remove('on'); $('skyReady').classList.remove('on'); $('skyBtn').classList.remove('on');
-      veil.style.opacity='0'; veil.querySelector('.sv-stars').style.opacity='0'; veil.querySelector('.sv-moon').style.opacity='0'; }
+      if(!G.inMoon){ veil.style.opacity='0'; veil.querySelector('.sv-stars').style.opacity='0'; veil.querySelector('.sv-moon').style.opacity='0'; } }
     return;
   }
   G._skyOn=true;
@@ -2246,6 +2265,156 @@ function updateSky(dt){
       rdy.classList.add('on'); $('skyBtn').classList.toggle('on',IS_TOUCH);
       const sb=$('skyBtn').querySelector('.sb-ico'); if(sb) sb.textContent=w.ico;
     }else{ rdy.classList.remove('on'); $('skyBtn').classList.remove('on'); } }
+  // 🌑 月/太陽タッチ＆高高度の妨害（隠しステージ中は updateMoon 側でさばく）
+  if(!G.inMoon){
+    // 高高度を昇っているあいだだけ 空飛ぶブラックこっこが 邪魔をしてくる
+    if(alt>=FOE_ALT){
+      G.skyFoeT-=dt;
+      if(G.skyFoeT<=0 && skyFoes.length<4){ G.skyFoeT=rnd(0.9,1.8); spawnSkyFoe(false); }
+    }
+    updateSkyFoes(dt);
+    // 月（よる）／太陽（ひるま）に空蹴りでタッチ → 両方そろえば 隠しステージへ
+    if(alt>=SPACE_ALT){
+      if(isNight()&&!G.reachMoon){ G.reachMoon=true; celestialTouch('🌙','月'); }
+      else if(isDay()&&!G.reachSun){ G.reachSun=true; celestialTouch('☀️','太陽'); }
+      if(G.reachMoon&&G.reachSun) enterMoon();
+    }
+  }
+}
+/* ===== 🌑 隠しステージ「ブラックこっこの月」 =====
+   月（よる高高度）と太陽（ひるま高高度）の両方に空蹴りでタッチすると解放。
+   空飛ぶ巨大ブラックこっこの王とのボス戦。そらわざ・ジャンプ攻撃でHPを削る。 */
+const SPACE_ALT=SKY[SKY.length-1].alt;   // この高度＝月/太陽にとどく（最上位そらわざと同じ）
+const FOE_ALT=55;                        // この高度から 空飛ぶブラックこっこが 妨害
+function celestialTouch(ico,name){
+  Sound.wazaLearn(); screenFlash('rgba(255,255,255,0.5)',0.4);
+  G.shake=Math.max(G.shake,0.6);
+  const other=name==='月'?'太陽':'月', got=(G.reachMoon&&G.reachSun);
+  showToast(ico+' '+name+'に とどいた！'+(got?'':' のこるは '+other+'…'));
+  saveGame();
+}
+function spawnSkyFoe(fromBoss){
+  let x,y,z;
+  if(fromBoss&&mBoss){ x=mBoss.x+rnd(-3,3); y=mBoss.y+rnd(-1,1); z=mBoss.z+rnd(-3,3); }
+  else { const a=Math.random()*TAU, d=rnd(6,12);   // プレイヤーの周囲・少し上から
+    x=P.x+Math.cos(a)*d; z=P.z+Math.sin(a)*d; y=P.y+rnd(2,7); }
+  skyFoes.push({x,y,z,t:0,ph:rnd(0,TAU),spd:rnd(3.6,5.4),life:rnd(5,8),flip:1});
+}
+function updateSkyFoes(dt){
+  for(let i=skyFoes.length-1;i>=0;i--){
+    const f=skyFoes[i]; f.t+=dt;
+    const dx=P.x-f.x, dy=(P.y+1)-f.y, dz=P.z-f.z, d=Math.hypot(dx,dy,dz)||1;
+    f.x+=dx/d*f.spd*dt; f.y+=dy/d*f.spd*dt; f.z+=dz/d*f.spd*dt;
+    f.flip=dx<0?-1:1;
+    if(d<1.5){
+      if(!G.ko&&G.invuln<=0){
+        G.gauge=Math.max(0,G.gauge-0.34); G.o2Reveal=2.0; updateWazaUI();   // 酸素をうばう＝高く昇りにくく
+        P.vy=Math.min(P.vy,-2.5); G.shake=Math.max(G.shake,0.5); Sound.hurt();
+        burst3(f.x,f.y,f.z,[0.2,0.05,0.12],12,4,27);
+      }
+      skyFoes.splice(i,1); continue;
+    }
+    f.life-=dt; if(f.life<=0) skyFoes.splice(i,1);
+  }
+}
+function enterMoon(){
+  if(G.inMoon||G.warpT>0) return;
+  G.warpT=2.0;
+  $('travelFxIco').textContent='🌑';
+  $('travelFxTxt').textContent='隠しステージ『ブラックこっこの月』';
+  $('travelFx').classList.remove('on'); void $('travelFx').offsetWidth; $('travelFx').classList.add('on');
+  Sound.sleep(); screenFlash('rgba(18,14,38,1)',0.6);
+  setTimeout(setupMoon,950);
+}
+function setupMoon(){
+  G.inMoon=true; G.reachMoon=false; G.reachSun=false;   // 再挑戦は また両方タッチから
+  for(const e of enemies) e.aggro=false;
+  G.inBattle=false; G.combo=0; G.comboT=0; skyFoes.length=0;
+  P.x=SPAWN.x; P.z=SPAWN.z; P.y=heightAt(P.x,P.z); P.vy=0; P.onG=true; G.airKicks=0;
+  cam.yaw=0; cam.pitch=-0.2;
+  G.hp=G.maxHp; G.gauge=1; updateHP(); updateWazaUI();   // 満タンで挑戦
+  const mh=120+(G.island|0)*30;
+  mBoss={x:SPAWN.x,z:SPAWN.z-14,y:heightAt(SPAWN.x,SPAWN.z-14)+9,hp:mh,maxHp:mh,
+    t:0,flash:0,flip:1,state:'hover',stT:rnd(1.6,2.6),atkCD:rnd(3,4),hov:9};
+  Sound.battleStart(); Sound.startBattleBGM();
+  $('battleVig').classList.add('on'); $('playerHP').classList.add('on');
+  $('bossName').textContent='🌑 ブラックこっこの王';
+  $('bossWrap').classList.add('on');
+  $('bossBarFill').style.width='100%';
+  showBanner('🌑 ブラックこっこの王 が たちはだかる！');
+}
+function exitMoon(win){
+  if(!G.inMoon) return;
+  G.inMoon=false; mBoss=null; skyFoes.length=0;
+  G.inBattle=false; G.combo=0; G.comboT=0;
+  Sound.stopBattleBGM(); if(!muted&&!G.paused) Sound.startBGM();
+  $('battleVig').classList.remove('on'); $('bossWrap').classList.remove('on'); $('playerHP').classList.remove('on');
+  const veil=$('skyVeil'); veil.style.opacity='0';
+  veil.querySelector('.sv-stars').style.opacity='0'; veil.querySelector('.sv-moon').style.opacity='0';
+  G._skyOn=false; G._skyAvail=-2; G._skyReached=-2;
+  P.x=SPAWN.x; P.z=SPAWN.z; P.y=heightAt(P.x,P.z); P.vy=0; P.onG=true;
+  if(win){
+    G.moonCleared=(G.moonCleared||0)+1;
+    const prize=8000*(1+(G.island|0));
+    G.coins+=prize; hudInv('hudCoin');
+    showBanner('🏆 ブラックこっこの王を たおした！');
+    showToast('🏆 隠しボスを げきは！ 💴'+prize.toLocaleString()+' ゲット！'+(G.moonCleared>1?'（'+G.moonCleared+'かいめ）':''));
+  }
+  saveGame();
+}
+function hurtMoonBoss(dmg){
+  const b=mBoss; if(!b||!G.inMoon) return;
+  b.hp-=dmg; b.flash=0.2; Sound.hitEnemy();
+  burst3(b.x,b.y,b.z,[0.15,0.05,0.1],10,4,27); sparks3(b.x,b.y,b.z,6);
+  hitNum(b.x,b.y+0.9,b.z,dmg,true);
+  G.combo++; G.comboT=2.6; if(G.combo>G.bestCombo)G.bestCombo=G.combo; showCombo();
+  if(b.hp<=0) defeatMoonBoss();
+}
+function defeatMoonBoss(){
+  const b=mBoss; if(!b) return;
+  Sound.enemyDefeat(); G.shake=Math.max(G.shake,1.6); G.hitStop=Math.max(G.hitStop,0.16);
+  screenFlash('rgba(255,255,255,0.7)',0.45);
+  for(let i=0;i<46;i++){ const a=Math.random()*TAU, s=rnd(3,8);
+    parts.push({x:b.x,y:b.y,z:b.z,vx:Math.cos(a)*s,vy:rnd(1,6),vz:Math.sin(a)*s,
+      life:rnd(0.5,1.1),t:0,col:[0.2,0.05,0.12],size:rnd(0.4,0.9),cell:27,grav:5}); }
+  hearts3(b.x,b.y+1,b.z);
+  G.combo=0; mBoss=null;
+  setTimeout(()=>exitMoon(true),260);
+}
+function updateMoon(dt){
+  // 月の世界＝つねに宇宙（星＋月を全面に）
+  const veil=$('skyVeil');
+  veil.style.opacity='0.86'; veil.querySelector('.sv-stars').style.opacity='1';
+  const mn=veil.querySelector('.sv-moon'); mn.style.opacity='1'; mn.style.transform='scale(1.3)';
+  const b=mBoss; if(!b) return;
+  b.t+=dt; if(b.flash>0) b.flash-=dt;
+  b.flip=(P.x-b.x)<0?-1:1;
+  const gy=heightAt(b.x,b.z);
+  if(b.state==='hover'){
+    b.x+=(P.x-b.x)*0.7*dt; b.z+=((P.z-9)-b.z)*0.7*dt;
+    b.y=gy+b.hov+Math.sin(b.t*1.6)*1.3;
+    b.stT-=dt; if(b.stT<=0){ b.state='warn'; b.stT=0.8; }
+  } else if(b.state==='warn'){
+    b.x+=(P.x-b.x)*2.6*dt; b.z+=(P.z-b.z)*2.6*dt;
+    b.y=gy+b.hov+Math.sin(b.t*9)*0.4;
+    b.stT-=dt; if(b.stT<=0){ b.state='dive'; Sound.swing(); }
+  } else if(b.state==='dive'){
+    b.y-=26*dt;
+    if(b.y<=gy+1.4){ b.y=gy+1.4; b.state='recover'; b.stT=1.0; G.shake=Math.max(G.shake,0.9);
+      shockRing(b.x,gy+0.2,b.z,[0.8,0.12,0.22],15,7); burst3(b.x,gy+0.6,b.z,[0.2,0.05,0.1],18,5,27); }
+  } else {   // recover：上空へもどる
+    b.y+=15*dt; if(b.y>=gy+b.hov){ b.y=gy+b.hov; b.state='hover'; b.stT=rnd(1.4,2.6); }
+  }
+  // 接触：プレイヤーが下から飛びこめば反撃／突進中の王に当たれば こっちが被弾
+  const dx=P.x-b.x, dz=P.z-b.z, dh=Math.hypot(dx,dz), dy=Math.abs((P.y+1)-b.y);
+  if(dh<2.6 && dy<2.6){
+    if(P.vy>2 && !P.onG && b.flash<=0){ hurtMoonBoss(2); P.vy=6; }   // ジャンプ／空蹴りで体当たり（連続多段は無敵で防止）
+    else if((b.state==='dive'||b.state==='recover') && G.invuln<=0 && !G.ko) damagePlayer(b);
+  }
+  // ときどき 子分（空飛ぶブラックこっこ）を放つ
+  b.atkCD-=dt; if(b.atkCD<=0){ b.atkCD=rnd(3.5,5.5); spawnSkyFoe(true); }
+  updateSkyFoes(dt);
+  const f=$('bossBarFill'); if(f){ f.style.width=Math.max(0,b.hp/b.maxHp*100)+'%'; f.classList.toggle('flash',b.flash>0.05); }
 }
 /* ===== ジム（わざの特訓） ===== */
 function openGym(){
@@ -2656,6 +2825,8 @@ function update(dt){
   if(G.shopOpen||G.gymOpen||G.rankOpen||G.travelOpen){ updateFx(dt); return; }
   /* 移動（船・飛行機）演出中は 世界を止める */
   if(G.travelT>0){ G.travelT-=dt; updateFx(dt); if(G.travelT<=0){ $('travelFx').classList.remove('on'); showToast('🏝 '+islandName(G.island)+' に とうちゃく！'); } return; }
+  /* 🌑 隠しステージへのワープ演出中は 世界を止める */
+  if(G.warpT>0){ G.warpT-=dt; updateFx(dt); if(G.warpT<=0) $('travelFx').classList.remove('on'); return; }
   /* ねむっている間（おうち）は 世界を止める */
   if(G.sleepT>0){ G.sleepT-=dt; updateFx(dt); if(G.sleepT<=0){ $('sleepOv').classList.remove('on'); showToast('🌅 ぐっすり ねむった！ げんきに かいふく'); } return; }
   G.playSec+=dt;
@@ -2705,11 +2876,12 @@ function update(dt){
   }else{ P.y=fl; P.onG=true; }
   if(P.onG) G.airKicks=0;   // 着地で空蹴りカウントをリセット
   // 🌊 空蹴りで海わたり：空中で 世界地図の東西の縁を越えたら となりの島へ（右＝次／左＝前）
-  if(!G.seaCrossing&&!P.onG&&G.vehicle===''&&!G.ko){
+  if(!G.seaCrossing&&!P.onG&&G.vehicle===''&&!G.ko&&!G.inMoon){
     if(P.x>SEA_EDGE) seaCross(+1);
     else if(P.x<-SEA_EDGE) seaCross(-1);
   }
   updateSky(dt);            // 高度メーター＆そらわざ表示
+  if(G.inMoon) updateMoon(dt);   // 🌑 隠しステージ：ボス戦
 
   /* 落としもの（くだもの・コイン） */
   for(let i=pickups.length-1;i>=0;i--){
@@ -2999,6 +3171,26 @@ function buildSprites(){
       spriteBB(e.x,by,e.z,bw+0.12,0.32,CELL_BAR,0.05,0.0,0.02,0.85);
       spriteBB(e.x-(bw*(1-ratio))/2,by,e.z,bw*ratio,0.2,CELL_BAR,1,0.25,0.2,1);
     }
+  }
+  /* 🌑 隠しボス：巨大ブラックこっこの王 */
+  if(G.inMoon&&mBoss){
+    const b=mBoss, bgy=heightAt(b.x,b.z);
+    shadow(b.x,bgy,b.z,3.6,clamp(0.55-(b.y-bgy)*0.05,0.1,0.55));
+    let r,g,bl;
+    if(b.flash>0){ r=g=bl=1; }
+    else if(b.state==='dive'){ const p=0.6+Math.sin(G.time*30)*0.25; r=p; g=0.05; bl=0.12; }
+    else if(b.state==='warn'){ const p=0.5+Math.sin(G.time*22)*0.3; r=p; g=0.06; bl=0.14; }
+    else { r=0.16; g=0.08; bl=0.14; }
+    const sz=5.4;
+    sprite(b.x,b.y+sz*0.32,b.z,sz,sz/AR,0,r,g,bl,1,b.flip<0);
+    spriteBB(b.x,b.y+sz*0.42,b.z,2.2,2.2,2,1,0.08,0.08,b.flash>0?0:0.32);   // 赤い目の威圧グロー
+  }
+  /* 空飛ぶブラックこっこ（高高度の妨害／隠しボスの子分） */
+  for(const f of skyFoes){
+    if(!visible(f.x,f.z)) continue;
+    const sz=1.7;
+    sprite(f.x,f.y,f.z,sz,sz/AR,0,0.18,0.08,0.16,1,f.flip<0);
+    spriteBB(f.x,f.y+0.15,f.z,1.1,1.1,2,1,0.1,0.1,0.24);
   }
   /* 木＋実 */
   for(const t of trees){
@@ -3406,6 +3598,7 @@ function startNew(){
   G.inv={fruit:0,flower:0,bug:0,shell:0,o2:0};
   G.owned={house:false,bike:false,car:false,sword:false,boots:false,heart:0,ship:false,plane:false,shield:false}; G.maxHp=5;
   G.skills=0; G.gauge=1; G.skySkills=0;
+  G.reachMoon=false; G.reachSun=false; G.inMoon=false; G.moonCleared=0; G.warpT=0; mBoss=null; skyFoes.length=0;
   enterPlay();
   Sound.welcome();
   showToast('🏝 こっこ島へ ようこそ！');
@@ -3426,6 +3619,8 @@ function startContinue(){
   G.owned=Object.assign({house:false,bike:false,car:false,sword:false,boots:false,heart:0,ship:false,plane:false,shield:false},s.own);
   G.skills=Math.min(WAZA.length,s.skills||0);
   G.skySkills=Math.min(SKY.length,s.sky||0);
+  G.moonCleared=s.mClr||0; G.reachMoon=!!s.rm; G.reachSun=!!s.rs;
+  G.inMoon=false; G.warpT=0; mBoss=null; skyFoes.length=0;
   G.maxHp=5+(G.owned.heart||0);
   (s.tr||[]).forEach((v,i)=>{ if(trees[i])trees[i].fruitT=v; });
   (s.fl||[]).forEach((v,i)=>{ if(flowers[i])flowers[i].reT=v; });
