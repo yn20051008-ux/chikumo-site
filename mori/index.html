@@ -1577,7 +1577,7 @@ const G={phase:'title',time:0,tod:0.375,day:1,coins:0,paused:false,playSec:0,sav
   owned:{house:false,bike:false,car:false,sword:false,boots:false,heart:0,ship:false,plane:false,shield:false},
   vehicle:'',shopOpen:false,gymOpen:false,sleepT:0,
   /* 諸島めぐり（船・飛行機・燃料） */
-  homeSeed:0,island:0,visited:[0],fuel:0,travelOpen:false,travelKind:'',travelT:0,
+  homeSeed:0,island:0,visited:[0],fuel:0,travelOpen:false,travelKind:'',travelT:0,seaCrossing:false,
   /* ランキング（朝7時に総資産を登録） */
   prevTod:0.375,canRegister:false,rankOpen:false,regDay:0};
 const P={x:0,z:0,y:0,vy:0,moving:false,flip:1,onG:true};
@@ -1846,6 +1846,7 @@ function playerKO(){
   G.ko=true; G.koT=0; G.hp=0; updateHP();
   Sound.stopBattleBGM(); Sound.siren();
   for(const e of enemies) e.aggro=false;
+  $('koAmb').textContent='🚑'; $('koText').textContent='救急車で はこばれた…';
   $('koOverlay').classList.remove('on'); void $('koOverlay').offsetWidth; $('koOverlay').classList.add('on');
 }
 function reviveFromKO(){
@@ -2417,6 +2418,54 @@ function performTravel(target,air){
   $('battleVig').classList.remove('on'); $('bossWrap').classList.remove('on'); $('playerHP').classList.remove('on');
   hudInv(); saveGame();
 }
+/* ===== 🌊 空蹴りで海わたり（隠し）：酸素ためて空蹴りし続け、世界地図の東西の縁を越えて となりの島へ ===== */
+const SEA_EDGE=HALF-4;                 // この沖まで飛び出したら 渡航成立
+function seaCross(dir){                 // dir:+1=東(右＝次の島) -1=西(左＝前の島)
+  const target=G.island+dir;
+  if(target<0) return;                  // 西の端：これ以上 島はない（ただの大海原）
+  G.seaCrossing=true;
+  G.travelT=2.2;
+  $('travelFxIco').textContent='🏊';
+  $('travelFxTxt').textContent=islandName(target)+' に たどり着いた！';
+  $('travelFx').classList.remove('on'); void $('travelFx').offsetWidth; $('travelFx').classList.add('on');
+  Sound.sleep();
+  setTimeout(()=>arriveBySea(target,dir),1000);
+}
+function findBeach(sideSign){           // sideSign:-1=西の浜 +1=東の浜（縁から内側へ最初の陸地）
+  const x0=sideSign*(HALF-8);
+  for(let inset=0;inset<HALF*1.4;inset+=2){
+    const x=x0-sideSign*inset;
+    for(const z of [0,-12,12,-24,24,-36,36,-48,48]){
+      if(heightAt(x,z)>WL+0.4&&slopeAt(x,z)<0.5) return {x:clamp(x,-HALF+4,HALF-4),z};
+    }
+  }
+  return {x:SPAWN.x,z:SPAWN.z};
+}
+function arriveBySea(target,dir){
+  const newOne=G.visited.indexOf(target)<0;
+  G.island=target; if(newOne) G.visited.push(target);
+  genWorld(islandSeed(target));
+  const land=findBeach(dir>0?-1:1);     // 東へ来た=西の浜／西へ来た=東の浜に着地
+  P.x=land.x; P.z=land.z; P.y=heightAt(P.x,P.z); P.vy=0; P.onG=true;
+  cam.yaw=0; cam.pitch=-0.32;
+  parts=[]; pickups=[]; bflies=[];
+  G.inBattle=false; G.combo=0; G.comboT=0; G.shake=0; G.airKicks=0; G.seaCrossing=false;
+  Sound.stopBattleBGM();
+  $('battleVig').classList.remove('on'); $('bossWrap').classList.remove('on'); $('playerHP').classList.remove('on');
+  hudInv(); saveGame();
+}
+/* 🌊 ふかい海に落ちた：こっこは泳げない→沈む→🚁レスキューヘリでスポーンへ */
+function seaDrown(){
+  if(G.ko) return;
+  G.ko=true; G.koT=0; G.seaCrossing=false;
+  Sound.stopBattleBGM(); Sound.siren();
+  for(const e of enemies) e.aggro=false;
+  for(let i=0;i<22;i++){ const a=Math.random()*6.283, s=rnd(0.6,2.4);   // 沈むしぶき
+    parts.push({x:P.x,y:WL,z:P.z,vx:Math.cos(a)*s,vy:rnd(0.4,1.6),vz:Math.sin(a)*s,
+      life:rnd(0.4,0.9),t:0,col:[0.72,0.9,1],size:rnd(0.3,0.6),cell:18,grav:1.4}); }
+  $('koAmb').textContent='🚁'; $('koText').textContent='ヘリコプターで はこばれた…';
+  $('koOverlay').classList.remove('on'); void $('koOverlay').offsetWidth; $('koOverlay').classList.add('on');
+}
 function renderShop(){
   $('shopTitle').textContent='🏪 '+islandName(G.island)+' 商店（物価×'+priceMult()+'）';
   $('shopMoney').textContent='💴 '+G.coins.toLocaleString();
@@ -2576,6 +2625,8 @@ function collideObjects(){
   P.z=clamp(P.z,-HALF+2,HALF-2);
 }
 function tryMove(dx,dz){
+  // 🌊 空中なら海の上も飛べる（酸素ためて空蹴りで海わたり）。着地中はふかい水でせきとめ
+  if(!P.onG){ P.x+=dx; P.z+=dz; return; }
   // ふかい水はすすめない（軸ごとにためしてスライド）
   const ok=(x,z)=>heightAt(x,z)>WL-0.45;
   if(ok(P.x+dx,P.z+dz)){ P.x+=dx; P.z+=dz; }
@@ -2647,9 +2698,17 @@ function update(dt){
     // 酸素があるあいだは 空中で“浮遊”（低重力でふわり昇りやすい）。酸素ぎれで通常重力にもどり 落下→着地ダメージ
     const floaty = G.vehicle==='' && G.airKicks>0 && G.gauge>0;
     P.vy-=(floaty?13:24)*dt; P.y+=P.vy*dt; P.onG=false;
-    if(P.y<=fl){ const impact=-P.vy; P.y=fl; P.vy=0; P.onG=true; landImpact(impact); }
+    if(P.y<=fl){ const impact=-P.vy; P.y=fl; P.vy=0; P.onG=true;
+      if(fl<WL-0.4) seaDrown();          // 🌊 ふかい海に着水＝こっこは泳げない→🚁救助
+      else landImpact(impact);
+    }
   }else{ P.y=fl; P.onG=true; }
   if(P.onG) G.airKicks=0;   // 着地で空蹴りカウントをリセット
+  // 🌊 空蹴りで海わたり：空中で 世界地図の東西の縁を越えたら となりの島へ（右＝次／左＝前）
+  if(!G.seaCrossing&&!P.onG&&G.vehicle===''&&!G.ko){
+    if(P.x>SEA_EDGE) seaCross(+1);
+    else if(P.x<-SEA_EDGE) seaCross(-1);
+  }
   updateSky(dt);            // 高度メーター＆そらわざ表示
 
   /* 落としもの（くだもの・コイン） */
@@ -3096,6 +3155,22 @@ function drawRadar(){
     rcx.restore();
   }
   rcx.restore(); // クリップ解除
+  // 🌊 となりの島への「海わたり出口」：右(東)＝次の島／左(西)＝前の島（空蹴りで渡れる方向のヒント）
+  const pulseE=0.55+0.45*Math.sin(G.time*3);
+  function edgeIsle(side,idx){          // side:+1=右(東) -1=左(西)
+    if(idx<0) return;
+    const ex=cx+side*(R-1), ey=cy, known=G.visited.indexOf(idx)>=0;
+    rcx.save();
+    rcx.fillStyle='rgba(150,235,255,'+(0.55+0.4*pulseE).toFixed(3)+')';
+    rcx.beginPath();                    // 外向きシェブロン
+    rcx.moveTo(ex+side*4,ey); rcx.lineTo(ex-side*3,ey-4.5); rcx.lineTo(ex-side*3,ey+4.5); rcx.closePath(); rcx.fill();
+    rcx.fillStyle='rgba(190,245,255,.95)'; rcx.font='900 7px sans-serif';
+    rcx.textAlign=side>0?'right':'left'; rcx.textBaseline='middle';
+    rcx.fillText(known?islandName(idx):'？？？',ex-side*6,ey-8.5);
+    rcx.restore();
+  }
+  edgeIsle(+1,G.island+1);
+  edgeIsle(-1,G.island-1);
   // N（北）インジケータ
   rcx.fillStyle='rgba(200,245,170,.92)'; rcx.font='900 10px sans-serif';
   rcx.textAlign='center'; rcx.textBaseline='middle';
