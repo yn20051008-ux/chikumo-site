@@ -2172,30 +2172,39 @@ function doSkyFire(){
   Sound.sky(tier);
   fireSky(tier);
 }
-/* そらわざ本体：プレイヤーの真下の地面へ 降下ストライク（高度ほど ド派手＆広範囲） */
+/* そらわざ本体：いちばん近い敵にロックオンして 天から降下ストライク（高度ほど 広く狙える＆ド派手） */
 function fireSky(tier){
-  const w=SKY[tier], col=hex2rgb(w.col);
+  const w=SKY[tier], col=hex2rgb(w.col), moon=(tier>=SKY.length-1);
   G.shake=Math.max(G.shake,0.7+tier*0.12); G.hitStop=Math.max(G.hitStop,0.05+tier*0.012);
   G.slow=Math.max(G.slow,0.2+tier*0.04); G.zoom=Math.max(G.zoom,1.6+tier*0.18);
-  const gx=P.x, gz=P.z, gy=heightAt(gx,gz), top=P.y+0.8;
-  // 降下ビーム（プレイヤー→地面）
-  const seg=20+tier*3;
+  // ロックオン：いちばん近い敵を中心に降らせる（高いほど広く狙える／月光レーザーは全体）。敵がいなければ真下
+  const lockR=moon?1e9:(20+tier*8);
+  let cx=P.x, cz=P.z, best=null, bd=lockR;
+  for(const e of enemies){ if(e.dead)continue; const d=Math.hypot(e.x-P.x,e.z-P.z); if(d<bd){ bd=d; best=e; } }
+  if(best){ cx=best.x; cz=best.z; }
+  const gy=heightAt(cx,cz), top=gy+Math.max(9,P.y-gy);
+  // 天からの降下ビーム（標的の真上→標的）
+  const seg=22+tier*3;
   for(let i=0;i<seg;i++){ const f=i/seg;
-    parts.push({x:gx+rnd(-0.5,0.5),y:top-(top-gy)*f,z:gz+rnd(-0.5,0.5),
-      vx:rnd(-0.5,0.5),vy:rnd(-7,-13),vz:rnd(-0.5,0.5),life:rnd(0.3,0.6),t:0,col,size:rnd(0.34,0.62),cell:18,grav:-3}); }
-  // 地面インパクト
-  shockRing(gx,gy+0.2,gz,[1,1,1],16+tier*2,7+tier*0.7);
-  shockRing(gx,gy+0.2,gz,col,12+tier*2,5+tier*0.6);
-  burst3(gx,gy+0.5,gz,col,18+tier*2,7+tier*0.5,27);
-  beam3(gx,gz,col,10+tier,4);
-  // 当たり：地面の半径r内の敵をまとめて
-  const r=w.r;
+    parts.push({x:cx+rnd(-0.5,0.5),y:top-(top-gy)*f,z:cz+rnd(-0.5,0.5),
+      vx:rnd(-0.5,0.5),vy:rnd(-8,-15),vz:rnd(-0.5,0.5),life:rnd(0.3,0.6),t:0,col,size:rnd(0.34,0.62),cell:18,grav:-3}); }
+  // 着弾インパクト
+  shockRing(cx,gy+0.2,cz,[1,1,1],16+tier*2,7+tier*0.7);
+  shockRing(cx,gy+0.2,cz,col,12+tier*2,5+tier*0.6);
+  burst3(cx,gy+0.5,cz,col,18+tier*2,7+tier*0.5,27);
+  beam3(cx,cz,col,10+tier,4);
+  // 当たり：標的を中心に 半径r内の敵すべて（月光レーザーは画面ぜんたい一掃）
+  const r=w.r; let hit=0;
   for(const e of enemies){ if(e.dead)continue;
-    const dx=e.x-gx, dz=e.z-gz, d=Math.hypot(dx,dz); if(d>r) continue;
-    wazaDamage(e, w.dmg, d>0.01?[dx/d,dz/d]:[0,1], 11+tier, 4+tier*0.5); }
-  if(tier>=SKY.length-1) moonLaser(gx,gy,gz);   // 🌙最上位：月光レーザー追加演出
-  // 放った直後は ふわっと留まる（達成感）
-  if(P.vy<0) P.vy*=0.3; P.vy=Math.max(P.vy,1.2);
+    const dx=e.x-cx, dz=e.z-cz, d=Math.hypot(dx,dz); if(!moon && d>r) continue;
+    wazaDamage(e, w.dmg, d>0.01?[dx/d,dz/d]:[0,1], 11+tier, 4+tier*0.5); hit++; }
+  if(moon) moonLaser(cx,gy,cz);   // 🌙最上位：月光レーザー追加演出
+  if(hit===0) showToast('🌙 とどく範囲に 敵がいない！');
+  // 急降下：標的へ swoop して 着弾を見せる（高所からの落下ぶん 着地ダメージは無効）
+  G.invuln=Math.max(G.invuln, clamp(1.1+(P.y-gy)*0.04, 1.1, 5));
+  if(best){ const dx=cx-P.x, dz=cz-P.z, d=Math.hypot(dx,dz)||1, step=Math.min(d,3.5+tier);
+    tryMove(dx/d*step, dz/d*step); P.flip=dx<0?-1:1; }
+  P.vy=-12;
 }
 function moonLaser(gx,gy,gz){
   screenFlash('rgba(235,245,255,1)',0.55);
