@@ -160,7 +160,7 @@
     </div>
     <h1>こっこダービー</h1>
     <div class="en">COCCO&nbsp;DERBY</div>
-    <p class="desc">こっこちゃん vs ブラックこっこちゃん。<br>ドリブルで運んで、敵ゴールにシュート！<br><b style="color:#9ff7c4;">🫧酸素</b>が満ちるほどシュートが強い。<br>切れたら へなちょこ…<b style="color:#9ff7c4;">🫧ボンベ</b>で一気に満タン！</p>
+    <p class="desc">こっこちゃん vs ブラックこっこちゃん。<br>ドリブルで運んで、敵ゴールにシュート！<br><b style="color:#9ff7c4;">🫧酸素</b>が満ちるほどシュートが強い。<br>切れたら へなちょこ…<b style="color:#9ff7c4;">🫧ボンベ</b>で一気に満タン！<br><b style="color:#b98bff;">⚪キーパー</b>が左右に動いて守る。すき間をねらえ！</p>
     <div class="diff" id="diff">
       <button data-d="0">やさしい</button>
       <button data-d="1" class="sel">ふつう</button>
@@ -203,6 +203,8 @@ const GXL=(VW-GW)/2, GXR=(VW+GW)/2;      // goal mouth x range
 const GD=30;                             // goal depth (behind line)
 const BR=15;                             // ball radius
 const PR=27;                             // player body radius (physics)
+const KR=11;                             // goalkeeper radius (smaller than ball)
+const KEEP_SPEED=3.4;                    // keeper max horizontal speed (px/frame) — beatable by super-shots
 // top goal (y=PY0) is the FOE's goal -> player scores there (attack up)
 // bottom goal (y=PY1) is the PLAYER's goal -> foe scores there
 
@@ -263,6 +265,12 @@ const ball={x:VW/2,y:VH/2,vx:0,vy:0,spin:0,rot:0,hot:0};
 const trail=[];   // 必殺シュートの軌跡
 function mkChick(dark){ return {x:VW/2,y:0,vx:0,vy:0,dark:!!dark,face:1,bob:rnd(0,TAU),squash:0,kickAnim:0,oxy:1,puff:0,gasp:0}; }
 const me=mkChick(false), foe=mkChick(true);
+/* ===== ゴールキーパー（左右に自動で動く小さな丸）===== */
+// top goal(PY0)=敵ゴール→敵キーパー(紫) / bottom goal(PY1)=自ゴール→味方キーパー(黄)
+const keepers=[
+  {x:VW/2, y:PY0+30, vx:0, save:0, foe:true},
+  {x:VW/2, y:PY1-30, vx:0, save:0, foe:false},
+];
 
 /* ===== 酸素（島ぐらし由来）: 撃つほど消費・時間で回復・🫧ボンベで満タン ===== */
 const OXY_COST=0.34;      // 必殺シュート1発の消費
@@ -379,6 +387,7 @@ function placeKickoff(towardMe){
   me.x=VW/2; me.y=VH*0.72; me.vx=0; me.vy=0; me.face=1; me.oxy=1; me.puff=0; me.gasp=0;
   foe.x=VW/2; foe.y=VH*0.28; foe.vx=0; foe.vy=0; foe.face=-1; foe.oxy=1; foe.puff=0; foe.gasp=0;
   trail.length=0; bottle.active=false; bottleTimer=7;
+  for(const k of keepers){ k.x=VW/2; k.vx=0; k.save=0; }
 }
 function startMatch(){
   scoreMe=0; scoreFoe=0; timeLeft=matchTime; suddenDeath=false;
@@ -498,6 +507,36 @@ function stepBall(f){
   ball.rot += (ball.vx*0.04+ball.spin*0.4)*f;
 }
 
+/* ===== ゴールキーパー：ボールのx位置を速度制限つきで自動追尾＆セーブ ===== */
+function stepKeepers(f){
+  for(const k of keepers){
+    // 追尾先（ゴール枠内）。ボールが自陣側に近いほどキビキビ寄る
+    const tx=clamp(ball.x, GXL+KR+4, GXR-KR-4);
+    const near = Math.abs(ball.y - k.y) < 240;
+    const sp = KEEP_SPEED*(near?1:0.55);
+    const dx=tx-k.x;
+    const step=clamp(dx, -sp*f, sp*f);
+    k.x+=step; k.vx=step/(f||1);
+    k.save=Math.max(0,k.save-0.08*f);
+    // ボールとの衝突＝セーブ
+    const bx=ball.x-k.x, by=ball.y-k.y, d=Math.hypot(bx,by), min=KR+BR;
+    if(d<min){
+      const nx=bx/(d||1), ny=by/(d||1);
+      ball.x=k.x+nx*min; ball.y=k.y+ny*min;
+      const dot=ball.vx*nx+ball.vy*ny;
+      if(dot<0){ ball.vx-=2*dot*nx*0.9; ball.vy-=2*dot*ny*0.9; }
+      ball.vx=ball.vx*0.9+k.vx*1.1;
+      // フィールド内側へ確実に押し戻す（上キーパーは下へ／下キーパーは上へ）
+      const away = k.foe? 1 : -1;
+      if(ball.vy*away<1.4) ball.vy = away*Math.max(1.4, Math.abs(ball.vy)*0.6);
+      ball.spin += k.vx*0.05;
+      ball.hot=0;                 // 必殺シュートもセーブで鎮火
+      k.save=1; shake=Math.max(shake,4);
+      if(Math.abs(dot)>5) Sound.wall();
+    }
+  }
+}
+
 /* ===== AI (foe) ===== */
 function foeAI(f){
   const D=DIFF[diff];
@@ -607,6 +646,7 @@ function update(dt,f){
     if(d<min && d>0){ const nx=dx/d, ny=dy/d, ov=(min-d)/2;
       me.x-=nx*ov; me.y-=ny*ov; foe.x+=nx*ov; foe.y+=ny*ov; } }
   stepBall(f);
+  stepKeepers(f);
 
   // 酸素：自然回復＋演出タイマー
   me.oxy=Math.min(1, me.oxy+OXY_REGEN*dt);
@@ -669,6 +709,8 @@ function render(){
   const ents=[{t:'c',o:me},{t:'c',o:foe},{t:'b'}];
   ents.sort((a,b)=> (a.t==='b'?ball.y:a.o.y) - (b.t==='b'?ball.y:b.o.y));
   for(const e of ents){ if(e.t==='b') drawBall(); else drawChick(e.o); }
+  // goalkeepers (small auto-sliding circles guarding each goal)
+  for(const k of keepers) drawKeeper(k);
   // goal nets on top (front goal posts overlay)
   drawGoalFront(PY1); // bottom goal posts in front
 
@@ -788,6 +830,20 @@ function drawBottle(){
   ctx.fillStyle='#063047'; ctx.fillText('O₂',0,2);
   // floating emoji marker
   ctx.font='16px sans-serif'; ctx.fillText('🫧',0,-26);
+  ctx.restore();
+}
+function drawKeeper(k){
+  drawShadow(k.x, k.y+KR*0.6, KR*1.0);
+  ctx.save(); ctx.translate(k.x,k.y);
+  if(k.save>0.02){ ctx.globalAlpha=clamp(k.save,0,1);
+    const sg=ctx.createRadialGradient(0,0,KR*0.4,0,0,KR*2);
+    sg.addColorStop(0,'rgba(255,255,255,0.7)'); sg.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(0,0,KR*2,0,TAU); ctx.fill(); ctx.globalAlpha=1; }
+  const col=k.foe?'#b98bff':'#ffd24d', edge=k.foe?'#6f3fce':'#d98914';
+  const g=ctx.createRadialGradient(-KR*0.32,-KR*0.4,KR*0.2,0,0,KR);
+  g.addColorStop(0,'#ffffff'); g.addColorStop(0.45,col); g.addColorStop(1,edge);
+  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,KR,0,TAU); ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.85)'; ctx.lineWidth=2; ctx.stroke();
   ctx.restore();
 }
 function drawBall(){
