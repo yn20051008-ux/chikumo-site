@@ -177,7 +177,7 @@
     </div>
     <h1>こっこダービー</h1>
     <div class="en">COCCO&nbsp;DERBY</div>
-    <p class="desc">こっこちゃん vs ブラックこっこちゃん。<br>ドリブルで運んで、敵ゴールにシュート！<br><b style="color:#9ff7c4;">🫧酸素</b>が満ちるほどシュートが強い。<br>切れたら へなちょこ…<b style="color:#9ff7c4;">🫧ボンベ</b>で一気に満タン！<br><b style="color:#b98bff;">⚪キーパー</b>が左右に動いて守る。すき間をねらえ！</p>
+    <p class="desc">こっこちゃん vs ブラックこっこちゃん。<br>ドリブルで運んで、敵ゴールにシュート！<br><b style="color:#9ff7c4;">🫧酸素</b>が多いほど速く走れてシュートも強い。<br>酸素は<b>立ち止まる</b>か<b style="color:#9ff7c4;">🫧ボンベ</b>で回復（動くと回復しない）。<br><b style="color:#b98bff;">⚪キーパー</b>が左右に動いて守る。すき間をねらえ！</p>
     <div class="diff" id="diff">
       <button data-d="0">やさしい</button>
       <button data-d="1" class="sel">ふつう</button>
@@ -291,10 +291,14 @@ const keepers=[
   {x:VW/2, y:PY1-30, vx:0, save:0, foe:false},
 ];
 
-/* ===== 酸素（島ぐらし由来）: 撃つほど消費・時間で回復・🫧ボンベで満タン ===== */
+/* ===== 酸素（島ぐらし由来）: 撃つほど消費・止まると回復・🫧ボンベで満タン。走る速さにも影響 ===== */
 const OXY_COST=0.34;      // 必殺シュート1発の消費
 const OXY_MIN=0.16;       // これ未満だと へなちょこシュート
-const OXY_REGEN=0.085;    // 1秒あたりの自然回復
+const OXY_REGEN=0.30;     // 立ち止まっている間の1秒あたりの回復（動くと回復しない）
+const OXY_STILL=0.7;      // この速さ未満なら「止まっている」とみなして回復
+const SPD_MIN=3.0;        // 酸素ゼロのときの走る速さ
+const SPD_MAX=6.4;        // 酸素まんタンのときの走る速さ
+const oxySpeed=(o)=> SPD_MIN + clamp(o,0,1)*(SPD_MAX-SPD_MIN);
 // 🫧 酸素ボンベ（ピッチに出現する取り合いアイテム）
 const bottle={active:false, x:0, y:0, t:0, bob:0};
 let bottleTimer=7;        // 次の出現までの秒
@@ -517,8 +521,12 @@ function tickHint(dt){ if(_hintT>0){ _hintT-=dt; if(_hintT<=0) document.getEleme
 function moveChick(c,ix,iy,sp,f){
   // ix,iy desired direction (-1..1); accelerate toward target velocity
   const tvx=ix*sp, tvy=iy*sp;
-  c.vx=lerp(c.vx,tvx,1-Math.pow(0.0001,f/60)); // smooth
-  c.vy=lerp(c.vy,tvy,1-Math.pow(0.0001,f/60));
+  // 入力中はキビキビ加速、離したらスーッと減速して滑らかに（フレームレート非依存）
+  const moving = (ix!==0 || iy!==0);
+  const rate = moving ? 0.26 : 0.14;          // 1フレームあたりの追従率
+  const t = 1-Math.pow(1-rate, f);
+  c.vx=lerp(c.vx,tvx,t);
+  c.vy=lerp(c.vy,tvy,t);
   c.x+=c.vx*f; c.y+=c.vy*f;
   // keep inside pitch (a bit beyond into goal area allowed)
   c.x=clamp(c.x, PX0+PR*0.5, PX1-PR*0.5);
@@ -631,6 +639,7 @@ function stepKeepers(f){
 /* ===== AI (foe) ===== */
 function foeAI(f){
   const D=DIFF[diff];
+  const espd=D.espeed*(0.6+clamp(foe.oxy,0,1)*0.4); // 敵も酸素が減ると減速
   const ownGoalY=PY1, foeGoalY=PY0; // foe defends bottom, attacks top? -> NO.
   // foe defends TOP? Let's set: foe's goal is TOP (PY0)? We decided top=foe goal.
   // foe attacks DOWN toward bottom (PY1) which is player's goal.
@@ -647,7 +656,7 @@ function foeAI(f){
     tx=bottle.x; ty=bottle.y;
     let dx=tx-foe.x, dy=ty-foe.y; const dm=Math.hypot(dx,dy)||1;
     foe._hx=lerp(foe._hx||0, dx/dm, D.react); foe._hy=lerp(foe._hy||0, dy/dm, D.react);
-    moveChick(foe, foe._hx, foe._hy, D.espeed, f); return;
+    moveChick(foe, foe._hx, foe._hy, espd, f); return;
   }
   const ballInOwnHalf = ball.y < VH*0.5;
   if(ballInOwnHalf || (meDist<distBall-30 && ball.y<VH*0.62)){
@@ -672,7 +681,7 @@ function foeAI(f){
   // ease toward desired heading by reaction (lower = sluggish)
   foe._hx=lerp(foe._hx||0, ix, D.react);
   foe._hy=lerp(foe._hy||0, iy, D.react);
-  moveChick(foe, foe._hx, foe._hy, D.espeed, f);
+  moveChick(foe, foe._hx, foe._hy, espd, f);
   // foe auto-shoots when close to ball and roughly behind it on attack
   const bd=Math.hypot(ball.x-foe.x, ball.y-foe.y);
   if(bd<PR+BR+22 && foe.y<ball.y && ball.y>VH*0.42 && Math.random()<0.06){ tryKick(foe); }
@@ -732,7 +741,8 @@ function update(dt,f){
   if(keys['KeyD']||keys['ArrowRight']) ix+=1;
   if(ix||iy){ const m=Math.hypot(ix,iy); ix/=m; iy/=m; }
   if(joyId!==null){ ix=joyX; iy=joyY; const m=Math.hypot(ix,iy); if(m>1){ix/=m;iy/=m;} }
-  moveChick(me, ix, iy, 5.2, f);
+  // 酸素が多いほど速く、少ないほど遅く走る
+  moveChick(me, ix, iy, oxySpeed(me.oxy), f);
 
   foeAI(f);
   chickBallCollide(me,f);
@@ -744,9 +754,9 @@ function update(dt,f){
   stepBall(f);
   stepKeepers(f);
 
-  // 酸素：自然回復＋演出タイマー
-  me.oxy=Math.min(1, me.oxy+OXY_REGEN*dt);
-  foe.oxy=Math.min(1, foe.oxy+OXY_REGEN*dt);
+  // 酸素：動きを止めている間だけ自然チャージ（動いている間は回復しない／ボンベは別途満タン）
+  if(Math.hypot(me.vx,me.vy) < OXY_STILL)  me.oxy=Math.min(1, me.oxy+OXY_REGEN*dt);
+  if(Math.hypot(foe.vx,foe.vy) < OXY_STILL) foe.oxy=Math.min(1, foe.oxy+OXY_REGEN*dt);
   me.puff=Math.max(0,me.puff-2*dt); foe.puff=Math.max(0,foe.puff-2*dt);
   me.gasp=Math.max(0,me.gasp-dt);  foe.gasp=Math.max(0,foe.gasp-dt);
 
