@@ -163,7 +163,7 @@
   </div>
 
   <button id="kickBtn" aria-label="シュート"><span class="ring" id="kickRing"></span><span class="lbl">シュート</span></button>
-  <button id="spBtn" aria-label="必殺技"><span class="lbl">必殺<br>パワー</span></button>
+  <button id="spBtn" aria-label="必殺技"><span class="lbl">必殺技</span></button>
 
   <div id="toast"></div>
   <div id="goalFx"><div class="g">GOAL!</div></div>
@@ -282,7 +282,7 @@ const Sound=(()=>{
 /* ===== entities ===== */
 const ball={x:VW/2,y:VH/2,vx:0,vy:0,spin:0,rot:0,hot:0,power:0};
 const trail=[];   // 必殺シュートの軌跡
-function mkChick(dark){ return {x:VW/2,y:0,vx:0,vy:0,dark:!!dark,face:1,bob:rnd(0,TAU),squash:0,kickAnim:0,oxy:1,puff:0,gasp:0}; }
+function mkChick(dark){ return {x:VW/2,y:0,vx:0,vy:0,dark:!!dark,face:1,bob:rnd(0,TAU),squash:0,kickAnim:0,oxy:1,puff:0,gasp:0,sp:0}; }
 const me=mkChick(false), foe=mkChick(true);
 /* ===== ゴールキーパー（左右に自動で動く小さな丸）===== */
 // top goal(PY0)=敵ゴール→敵キーパー(紫) / bottom goal(PY1)=自ゴール→味方キーパー(黄)
@@ -408,15 +408,25 @@ function fireSpecial(c){
   let ax=gx-ball.x, ay=goalY-ball.y; const am=Math.hypot(ax,ay)||1; ax/=am; ay/=am;
   const pd=d||1; let px=dx/pd, py=dy/pd;
   let kx=ax*0.7+px*0.3, ky=ay*0.7+py*0.3; const km=Math.hypot(kx,ky)||1; kx/=km; ky/=km;
-  const power=22.5;
+  const power=90;                 // 通常必殺の4倍速！ド級のパワーシュート
   ball.vx=kx*power + c.vx*0.4;
   ball.vy=ky*power + c.vy*0.4;
   ball.spin=(Math.random()-0.5)*0.5;
   ball.hot=1; ball.power=SP_POWER_BOUNCES;
-  c.oxy=0; c.puff=1; c.kickAnim=1; c.squash=0.55;
-  shake=Math.max(shake,8);
-  Sound.superKick(); setTimeout(()=>Sound.superKick(),70); spawnDust(ball.x,ball.y);
-  if(c===me) showHint('⚡ パワーシュート！ パチンコ弾だ');
+  c.oxy=0; c.puff=1; c.kickAnim=1; c.squash=0.75; c.sp=1;   // こっこ必殺オーラ全開
+  // ===== ド派手演出 =====
+  shake=Math.max(shake,20);
+  flash=0.85; spBannerT=1.4;
+  const aura=c.dark?'200,150,255':'255,215,120';
+  spawnShock(c.x, c.y-PR*0.4, aura, 13);                 // 足元からの気
+  spawnShock(ball.x, ball.y, '255,225,150', 20);          // ボール爆発リング
+  setTimeout(()=>{ if(state==='play') spawnShock(ball.x,ball.y,'150,225,255',24); },60);
+  spawnSparks(ball.x, ball.y, 40, '255,200,90', 12);
+  spawnSparks(ball.x, ball.y, 16, '150,225,255', 14);
+  spawnSparks(c.x, c.y-PR*0.6, 22, aura, 7);
+  Sound.superKick(); setTimeout(()=>Sound.superKick(),70); setTimeout(()=>Sound.goal(),120);
+  spawnDust(ball.x,ball.y);
+  if(c===me) showHint('⚡⚡ 必殺！ パワーシュート ⚡⚡');
   return true;
 }
 
@@ -428,14 +438,23 @@ const confetti=[];
 function spawnConfetti(){ const cols=['#ffe27a','#3be089','#5ec8ff','#ff7ab0','#c79bff','#fff'];
   for(let i=0;i<70;i++) confetti.push({x:rnd(0,VW),y:rnd(-60,-4),vx:rnd(-1.4,1.4),vy:rnd(2,5),
     r:rnd(3,7),rot:rnd(0,TAU),vr:rnd(-0.3,0.3),col:cols[(Math.random()*cols.length)|0],life:1}); }
+/* ===== 必殺技エフェクト：衝撃波リング・火花/電撃・画面フラッシュ・バナー ===== */
+const shocks=[];   // 拡がる衝撃波リング
+const sparks=[];   // 火花・電撃の飛び散り
+let flash=0;       // 画面フラッシュ強度
+let spBannerT=0;   // 「必殺技」バナー表示タイマー
+function spawnShock(x,y,col,vr){ shocks.push({x,y,r:8,life:1,col:col||'255,205,110',vr:vr||16,w:5}); }
+function spawnSparks(x,y,n,col,spd){ for(let i=0;i<n;i++){ const a=rnd(0,TAU),s=rnd(1.2,spd||7);
+  sparks.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,len:rnd(3,9),col:col||'255,190,90'}); } }
 
 /* ===== game control ===== */
 function placeKickoff(towardMe){
   // towardMe true: ball given to me side after foe scored (and vice versa)
   ball.x=VW/2; ball.y=VH/2; ball.vx=0; ball.vy=0; ball.spin=0; ball.rot=0; ball.hot=0; ball.power=0;
-  me.x=VW/2; me.y=VH*0.72; me.vx=0; me.vy=0; me.face=1; me.oxy=1; me.puff=0; me.gasp=0;
-  foe.x=VW/2; foe.y=VH*0.28; foe.vx=0; foe.vy=0; foe.face=-1; foe.oxy=1; foe.puff=0; foe.gasp=0;
+  me.x=VW/2; me.y=VH*0.72; me.vx=0; me.vy=0; me.face=1; me.oxy=1; me.puff=0; me.gasp=0; me.sp=0;
+  foe.x=VW/2; foe.y=VH*0.28; foe.vx=0; foe.vy=0; foe.face=-1; foe.oxy=1; foe.puff=0; foe.gasp=0; foe.sp=0;
   trail.length=0; bottle.active=false; bottleTimer=7;
+  shocks.length=0; sparks.length=0; flash=0; spBannerT=0;
   for(const k of keepers){ k.x=VW/2; k.vx=0; k.save=0; }
 }
 function startMatch(){
@@ -526,36 +545,53 @@ function chickBallCollide(c,f){
   }
 }
 function stepBall(f){
-  ball.x+=ball.vx*f; ball.y+=ball.vy*f;
   // パワーシュート中は失速しない（パチンコ弾）。それ以外は通常の摩擦
   if(ball.power<=0){ const fr=Math.pow(0.985,f); ball.vx*=fr; ball.vy*=fr; }
-  // 壁/ポストに当たるたび残り回数を消費。0になったら通常の物理に戻る
-  const REST=()=> ball.power>0?1:0.72;
-  const pBounce=()=>{ if(ball.power>0){ ball.power--; if(ball.power<=0){ ball.hot=0.5; Sound.kick(); } } };
   // spin curves the ball slightly
   const sp=ball.spin*0.5;
   const tvx=ball.vx, tvy=ball.vy;
   ball.vx += -tvy*sp*0.04*f; ball.vy += tvx*sp*0.04*f;
   ball.spin*=Math.pow(0.95,f);
-  // side walls
-  if(ball.x<PX0+BR){ ball.x=PX0+BR; ball.vx=Math.abs(ball.vx)*REST(); pBounce(); if(Math.abs(ball.vx)>1)Sound.wall(); }
-  if(ball.x>PX1-BR){ ball.x=PX1-BR; ball.vx=-Math.abs(ball.vx)*REST(); pBounce(); if(Math.abs(ball.vx)>1)Sound.wall(); }
-  // top / bottom: goal mouth -> score, else bounce
-  if(ball.y<PY0+BR){
-    if(ball.x>GXL+BR*0.2 && ball.x<GXR-BR*0.2){
-      if(ball.y<PY0-2){ scoreGoal(true); return; }   // player scores in top goal
-    } else { ball.y=PY0+BR; ball.vy=Math.abs(ball.vy)*REST(); pBounce(); if(Math.abs(ball.vy)>1)Sound.wall(); }
-  }
-  if(ball.y>PY1-BR){
-    if(ball.x>GXL+BR*0.2 && ball.x<GXR-BR*0.2){
-      if(ball.y>PY1+2){ scoreGoal(false); return; }   // foe scores in bottom goal
-    } else { ball.y=PY1-BR; ball.vy=-Math.abs(ball.vy)*REST(); pBounce(); if(Math.abs(ball.vy)>1)Sound.wall(); }
-  }
-  // goal post collisions (rounded posts at mouth corners)
-  for(const py of [PY0,PY1]) for(const px of [GXL,GXR]){
-    const dx=ball.x-px, dy=ball.y-py, d=Math.hypot(dx,dy), rr=BR+5;
-    if(d<rr){ const nx=dx/(d||1), ny=dy/(d||1); ball.x=px+nx*rr; ball.y=py+ny*rr;
-      const e=ball.power>0?1:0.8; const dot=ball.vx*nx+ball.vy*ny; ball.vx-=2*dot*nx*e; ball.vy-=2*dot*ny*e; pBounce(); Sound.wall(); }
+  // 壁/ポストに当たるたび残り回数を消費。0になったら通常の物理に戻る
+  const REST=()=> ball.power>0?1:0.72;
+  const pBounce=()=>{ if(ball.power>0){ ball.power--; if(ball.power<=0){ ball.hot=0.5; Sound.kick(); } } };
+  // 4倍速のパワーシュートでも壁/ゴールをすり抜けないよう、移動を小分け（サブステップ）して判定
+  const dist=Math.hypot(ball.vx,ball.vy)*f;
+  const steps=Math.max(1, Math.min(16, Math.ceil(dist/9)));
+  const sf=f/steps;
+  for(let s=0;s<steps;s++){
+    ball.x+=ball.vx*sf; ball.y+=ball.vy*sf;
+    // side walls
+    if(ball.x<PX0+BR){ ball.x=PX0+BR; ball.vx=Math.abs(ball.vx)*REST(); pBounce(); if(Math.abs(ball.vx)>1)Sound.wall(); }
+    if(ball.x>PX1-BR){ ball.x=PX1-BR; ball.vx=-Math.abs(ball.vx)*REST(); pBounce(); if(Math.abs(ball.vx)>1)Sound.wall(); }
+    // top / bottom: goal mouth -> score, else bounce
+    if(ball.y<PY0+BR){
+      if(ball.x>GXL+BR*0.2 && ball.x<GXR-BR*0.2){
+        if(ball.y<PY0-2){ scoreGoal(true); return; }   // player scores in top goal
+      } else { ball.y=PY0+BR; ball.vy=Math.abs(ball.vy)*REST(); pBounce(); if(Math.abs(ball.vy)>1)Sound.wall(); }
+    }
+    if(ball.y>PY1-BR){
+      if(ball.x>GXL+BR*0.2 && ball.x<GXR-BR*0.2){
+        if(ball.y>PY1+2){ scoreGoal(false); return; }   // foe scores in bottom goal
+      } else { ball.y=PY1-BR; ball.vy=-Math.abs(ball.vy)*REST(); pBounce(); if(Math.abs(ball.vy)>1)Sound.wall(); }
+    }
+    // goal post collisions (rounded posts at mouth corners)
+    for(const py of [PY0,PY1]) for(const px of [GXL,GXR]){
+      const dx=ball.x-px, dy=ball.y-py, d=Math.hypot(dx,dy), rr=BR+5;
+      if(d<rr){ const nx=dx/(d||1), ny=dy/(d||1); ball.x=px+nx*rr; ball.y=py+ny*rr;
+        const e=ball.power>0?1:0.8; const dot=ball.vx*nx+ball.vy*ny; ball.vx-=2*dot*nx*e; ball.vy-=2*dot*ny*e; pBounce(); Sound.wall(); }
+    }
+    // パワーシュート中はキーパーも全速ですり抜けず弾く（サブステップ判定）
+    if(ball.power>0){
+      for(const k of keepers){
+        const bx=ball.x-k.x, by=ball.y-k.y, dd=Math.hypot(bx,by), mn=KR+BR;
+        if(dd<mn){ const nx=bx/(dd||1), ny=by/(dd||1); ball.x=k.x+nx*mn; ball.y=k.y+ny*mn;
+          const dot=ball.vx*nx+ball.vy*ny; if(dot<0){ ball.vx-=2*dot*nx; ball.vy-=2*dot*ny; }
+          ball.power--; k.save=1; shake=Math.max(shake,6); Sound.wall();
+          spawnSparks(ball.x,ball.y,10,'255,210,120',8);
+          if(ball.power<=0){ ball.hot=0.5; break; } }
+      }
+    }
   }
   // ball rotation for render
   ball.rot += (ball.vx*0.04+ball.spin*0.4)*f;
@@ -572,25 +608,20 @@ function stepKeepers(f){
     const step=clamp(dx, -sp*f, sp*f);
     k.x+=step; k.vx=step/(f||1);
     k.save=Math.max(0,k.save-0.08*f);
-    // ボールとの衝突＝セーブ
+    // ボールとの衝突＝セーブ（パワーシュート中はstepBall側のサブステップ判定に任せる）
+    if(ball.power>0) continue;
     const bx=ball.x-k.x, by=ball.y-k.y, d=Math.hypot(bx,by), min=KR+BR;
     if(d<min){
       const nx=bx/(d||1), ny=by/(d||1);
       ball.x=k.x+nx*min; ball.y=k.y+ny*min;
       const dot=ball.vx*nx+ball.vy*ny;
-      if(ball.power>0){
-        // パワーシュートはキーパーにも弾かれて全速で跳ね返る（パチンコ）。1バウンド消費
-        if(dot<0){ ball.vx-=2*dot*nx; ball.vy-=2*dot*ny; }
-        ball.power--; if(ball.power<=0) ball.hot=0.5;
-      } else {
-        if(dot<0){ ball.vx-=2*dot*nx*0.9; ball.vy-=2*dot*ny*0.9; }
-        ball.vx=ball.vx*0.9+k.vx*1.1;
-        // フィールド内側へ確実に押し戻す（上キーパーは下へ／下キーパーは上へ）
-        const away = k.foe? 1 : -1;
-        if(ball.vy*away<1.4) ball.vy = away*Math.max(1.4, Math.abs(ball.vy)*0.6);
-        ball.spin += k.vx*0.05;
-        ball.hot=0;               // 通常の必殺シュートはセーブで鎮火
-      }
+      if(dot<0){ ball.vx-=2*dot*nx*0.9; ball.vy-=2*dot*ny*0.9; }
+      ball.vx=ball.vx*0.9+k.vx*1.1;
+      // フィールド内側へ確実に押し戻す（上キーパーは下へ／下キーパーは上へ）
+      const away = k.foe? 1 : -1;
+      if(ball.vy*away<1.4) ball.vy = away*Math.max(1.4, Math.abs(ball.vy)*0.6);
+      ball.spin += k.vx*0.05;
+      ball.hot=0;               // 通常の必殺シュートはセーブで鎮火
       k.save=1; shake=Math.max(shake,4);
       if(Math.abs(dot)>5) Sound.wall();
     }
@@ -659,9 +690,14 @@ function loop(ts){
 }
 function update(dt,f){
   shake=Math.max(0,shake-12*dt);
+  flash=Math.max(0,flash-2.2*dt); spBannerT=Math.max(0,spBannerT-dt);
+  me.sp=Math.max(0,me.sp-1.5*dt); foe.sp=Math.max(0,foe.sp-1.5*dt);
   // particles
   for(let i=dust.length-1;i>=0;i--){ const p=dust[i]; p.x+=p.vx*f; p.y+=p.vy*f; p.vx*=0.9; p.vy*=0.9; p.life-=0.05*f; if(p.life<=0)dust.splice(i,1); }
   for(let i=confetti.length-1;i>=0;i--){ const p=confetti[i]; p.x+=p.vx*f; p.y+=p.vy*f; p.vy+=0.06*f; p.rot+=p.vr*f; p.life-=0.006*f; if(p.y>VH+20||p.life<=0)confetti.splice(i,1); }
+  // 必殺技FX：衝撃波リング＆火花
+  for(let i=shocks.length-1;i>=0;i--){ const s=shocks[i]; s.r+=s.vr*f; s.life-=0.045*f; if(s.life<=0)shocks.splice(i,1); }
+  for(let i=sparks.length-1;i>=0;i--){ const p=sparks[i]; p.x+=p.vx*f; p.y+=p.vy*f; p.vx*=0.9; p.vy=p.vy*0.9+0.12*f; p.life-=0.028*f; if(p.life<=0)sparks.splice(i,1); }
 
   if(state==='countdown'){
     countdown-=dt;
@@ -721,8 +757,10 @@ function update(dt,f){
     else if(bottle.active && Math.hypot(foe.x-bottle.x,foe.y-bottle.y)<rr) takeBottle(foe);
   } else { bottleTimer-=dt; if(bottleTimer<=0) spawnBottle(); }
 
-  // 必殺シュートの軌跡（パワーシュート中は光り続ける）
-  if(ball.power>0) ball.hot=1;
+  // 必殺シュートの軌跡（パワーシュート中は光り続ける＆火花を撒く）
+  if(ball.power>0){ ball.hot=1;
+    spawnSparks(ball.x,ball.y,2,'255,205,100',4);
+    if(Math.random()<0.5) spawnSparks(ball.x,ball.y,1,'150,225,255',5); }
   if(ball.hot>0){ if(ball.power<=0) ball.hot=Math.max(0,ball.hot-dt*1.6);
     trail.push({x:ball.x,y:ball.y,life:1}); }
   for(let i=trail.length-1;i>=0;i--){ trail[i].life-=dt*2.4; if(trail[i].life<=0) trail.splice(i,1); }
@@ -759,11 +797,20 @@ function render(){
 
   drawPitch();
   if(bottle.active) drawBottle();
-  // super-shot trail（パワーシュートは炎色）
-  const tcol = ball.power>0? '255,150,60' : '125,240,255';
-  for(const tp of trail){ const a=clamp(tp.life,0,1);
-    ctx.fillStyle='rgba('+tcol+','+(a*0.5)+')';
-    ctx.beginPath(); ctx.arc(tp.x,tp.y,BR*(0.5+a*0.6),0,TAU); ctx.fill(); }
+  // super-shot trail（パワーシュートは炎のコメット）
+  const pw = ball.power>0;
+  if(pw){ ctx.save(); ctx.globalCompositeOperation='lighter';
+    for(const tp of trail){ const a=clamp(tp.life,0,1);
+      ctx.fillStyle='rgba(255,120,30,'+(a*0.5)+')';
+      ctx.beginPath(); ctx.arc(tp.x,tp.y,BR*(1.0+a*1.1),0,TAU); ctx.fill();
+      ctx.fillStyle='rgba(255,230,150,'+(a*0.7)+')';
+      ctx.beginPath(); ctx.arc(tp.x,tp.y,BR*(0.4+a*0.55),0,TAU); ctx.fill(); }
+    ctx.restore();
+  } else {
+    for(const tp of trail){ const a=clamp(tp.life,0,1);
+      ctx.fillStyle='rgba(125,240,255,'+(a*0.5)+')';
+      ctx.beginPath(); ctx.arc(tp.x,tp.y,BR*(0.5+a*0.6),0,TAU); ctx.fill(); }
+  }
   // shadows
   drawShadow(ball.x, ball.y, BR*1.05);
   drawShadow(me.x, me.y+PR*0.5, PR*0.9);
@@ -779,10 +826,37 @@ function render(){
 
   // dust
   for(const p of dust){ ctx.fillStyle=p.col+clamp(p.life,0,1)+')'; ctx.beginPath(); ctx.arc(p.x,p.y,2+ (1-p.life)*2,0,TAU); ctx.fill(); }
+  // 必殺技：衝撃波リング＆火花（加算合成でギラッと）
+  if(shocks.length||sparks.length){ ctx.save(); ctx.globalCompositeOperation='lighter';
+    for(const s of shocks){ const a=clamp(s.life,0,1);
+      ctx.strokeStyle='rgba('+s.col+','+(a*0.85)+')'; ctx.lineWidth=s.w+(1-a)*6;
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,TAU); ctx.stroke();
+      ctx.strokeStyle='rgba(255,255,255,'+(a*0.4)+')'; ctx.lineWidth=1.5;
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,TAU); ctx.stroke(); }
+    for(const p of sparks){ const a=clamp(p.life,0,1); const m=Math.hypot(p.vx,p.vy)||1;
+      ctx.strokeStyle='rgba('+p.col+','+a+')'; ctx.lineWidth=2.2;
+      ctx.beginPath(); ctx.moveTo(p.x,p.y); ctx.lineTo(p.x-p.vx/m*p.len, p.y-p.vy/m*p.len); ctx.stroke(); }
+    ctx.restore(); }
   // confetti
   for(const p of confetti){ ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot); ctx.globalAlpha=clamp(p.life,0,1);
     ctx.fillStyle=p.col; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*0.6); ctx.restore(); }
   ctx.globalAlpha=1;
+
+  // 必殺技バナー「⚡必殺技⚡ パワーシュート」
+  if(spBannerT>0){ const a=clamp(spBannerT/1.4,0,1); const pop=1+(1-a)*(1-a)*0.6;
+    ctx.save(); ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.globalAlpha=Math.min(1,spBannerT*4);
+    ctx.translate(VW/2, VH*0.33); ctx.rotate((1-a)* -0.05); ctx.scale(pop,pop);
+    ctx.font='900 58px sans-serif';
+    ctx.lineWidth=9; ctx.lineJoin='round'; ctx.strokeStyle='rgba(40,0,80,0.85)'; ctx.strokeText('⚡必殺技⚡',0,0);
+    const g=ctx.createLinearGradient(0,-34,0,34);
+    g.addColorStop(0,'#fff7c4'); g.addColorStop(.5,'#ffd24d'); g.addColorStop(1,'#ff7a3d');
+    ctx.shadowColor='rgba(255,180,60,0.9)'; ctx.shadowBlur=24;
+    ctx.fillStyle=g; ctx.fillText('⚡必殺技⚡',0,0); ctx.shadowBlur=0;
+    ctx.font='900 27px sans-serif'; ctx.lineWidth=6; ctx.strokeStyle='rgba(40,0,80,0.8)';
+    ctx.strokeText('パワーシュート',0,46);
+    ctx.fillStyle='#ffe9a8'; ctx.fillText('パワーシュート',0,46);
+    ctx.restore(); }
 
   // countdown number
   if(state==='countdown'){
@@ -795,6 +869,12 @@ function render(){
     ctx.fillText(t, VW/2, VH/2); ctx.restore();
   }
   ctx.restore();
+
+  // 必殺技 発動の画面フラッシュ（スクリーン全体・加算）
+  if(flash>0.01){ ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.globalAlpha=clamp(flash,0,1)*0.55;
+    const fg=ctx.createRadialGradient(W/2,H*0.45,0,W/2,H*0.45,Math.max(W,H)*0.75);
+    fg.addColorStop(0,'rgba(255,235,180,1)'); fg.addColorStop(0.5,'rgba(255,170,70,0.7)'); fg.addColorStop(1,'rgba(255,120,40,0)');
+    ctx.fillStyle=fg; ctx.fillRect(0,0,W,H); ctx.restore(); }
 }
 function drawShadow(x,y,r){ ctx.save(); ctx.translate(x,y); ctx.scale(1,0.34); ctx.globalAlpha=0.26;
   ctx.fillStyle='#000'; ctx.beginPath(); ctx.arc(0,0,r,0,TAU); ctx.fill(); ctx.restore(); }
@@ -910,13 +990,18 @@ function drawKeeper(k){
   ctx.restore();
 }
 function drawBall(){
+  const pw = ball.power>0;
   ctx.save(); ctx.translate(ball.x,ball.y); ctx.rotate(ball.rot);
   if(ball.hot>0){ ctx.save(); ctx.rotate(-ball.rot); ctx.globalAlpha=clamp(ball.hot,0,1);
-    const c0=ball.power>0?'rgba(255,170,70,0.9)':'rgba(130,240,255,0.85)';
-    const c1=ball.power>0?'rgba(255,120,40,0)':'rgba(130,240,255,0)';
-    const hg=ctx.createRadialGradient(0,0,BR*0.4,0,0,BR*2.1);
-    hg.addColorStop(0,c0); hg.addColorStop(1,c1);
-    ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(0,0,BR*2.1,0,TAU); ctx.fill(); ctx.restore(); }
+    if(pw) ctx.globalCompositeOperation='lighter';
+    const puls = pw? (1+0.18*Math.sin(performance.now()*0.04)) : 1;
+    const c0=pw?'rgba(255,205,110,0.95)':'rgba(130,240,255,0.85)';
+    const c1=pw?'rgba(255,110,30,0)':'rgba(130,240,255,0)';
+    const R=BR*(pw?3.0:2.1)*puls;
+    const hg=ctx.createRadialGradient(0,0,BR*0.3,0,0,R);
+    hg.addColorStop(0,c0); hg.addColorStop(pw?0.45:1,pw?'rgba(255,150,50,0.5)':c1); if(pw) hg.addColorStop(1,c1);
+    ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(0,0,R,0,TAU); ctx.fill();
+    ctx.restore(); }
   // white sphere
   const g=ctx.createRadialGradient(-BR*0.35,-BR*0.4,BR*0.2,0,0,BR);
   g.addColorStop(0,'#ffffff'); g.addColorStop(0.7,'#f0f2f6'); g.addColorStop(1,'#c8cdd6');
@@ -928,6 +1013,16 @@ function drawBall(){
     ctx.save(); ctx.translate(x,y); ctx.rotate(a);
     ctx.beginPath(); ctx.ellipse(0,0,BR*0.16,BR*0.10,0,0,TAU); ctx.fill(); ctx.restore(); }
   ctx.strokeStyle='rgba(0,0,0,0.12)'; ctx.lineWidth=1; ctx.beginPath(); ctx.arc(0,0,BR-0.5,0,TAU); ctx.stroke();
+  // パワーシュート：稲妻アーク＆白熱コア
+  if(pw){ ctx.save(); ctx.rotate(-ball.rot); ctx.globalCompositeOperation='lighter';
+    ctx.strokeStyle='rgba(190,235,255,0.95)'; ctx.lineWidth=2; ctx.lineJoin='round';
+    for(let k=0;k<5;k++){ const a0=rnd(0,TAU); ctx.beginPath(); ctx.moveTo(0,0);
+      for(let j=1;j<=3;j++){ const rr=BR*(0.7*j)+rnd(-2,4); const aa=a0+rnd(-0.5,0.5);
+        ctx.lineTo(Math.cos(aa)*rr, Math.sin(aa)*rr); } ctx.stroke(); }
+    const cg=ctx.createRadialGradient(0,0,0,0,0,BR*0.7);
+    cg.addColorStop(0,'rgba(255,255,255,0.95)'); cg.addColorStop(1,'rgba(255,230,150,0)');
+    ctx.fillStyle=cg; ctx.beginPath(); ctx.arc(0,0,BR*0.7,0,TAU); ctx.fill();
+    ctx.restore(); }
   ctx.restore();
 }
 function drawChick(c){
@@ -936,18 +1031,39 @@ function drawChick(c){
   const h=PR*2.7, w=h*AR;
   const sq=c.squash; const sx=1-sq*0.35, sy=1+sq*0.4;
   const bob=Math.sin(c.bob)*2.5;
+  // ===== 必殺技オーラ（こっこの足元から立ち昇る気＋稲妻リング）=====
+  if(c.sp>0.02){ const a=clamp(c.sp,0,1); const aura=c.dark?'200,150,255':'255,215,120';
+    const cx=c.x, cy=c.y-PR*0.2; ctx.save(); ctx.globalCompositeOperation='lighter';
+    // 立ち昇る楕円オーラ
+    const R=PR*(2.6+(1-a)*1.4);
+    const ag=ctx.createRadialGradient(cx,cy,PR*0.3,cx,cy,R);
+    ag.addColorStop(0,'rgba('+aura+','+(0.55*a)+')'); ag.addColorStop(1,'rgba('+aura+',0)');
+    ctx.fillStyle=ag; ctx.save(); ctx.translate(cx,cy); ctx.scale(1,1.35);
+    ctx.beginPath(); ctx.arc(0,0,R,0,TAU); ctx.fill(); ctx.restore();
+    // 回転する稲妻リング
+    ctx.globalAlpha=a; ctx.font='900 17px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    const t=performance.now()*0.013;
+    for(let i=0;i<7;i++){ const aa=t+i/7*TAU; ctx.fillText('⚡', cx+Math.cos(aa)*PR*1.9, cy+Math.sin(aa)*PR*1.9*0.8); }
+    // 上向きの気の柱
+    const col=ctx.createLinearGradient(cx,cy-h,cx,cy);
+    col.addColorStop(0,'rgba('+aura+',0)'); col.addColorStop(1,'rgba('+aura+','+(0.5*a)+')');
+    ctx.fillStyle=col; ctx.beginPath(); ctx.moveTo(cx-PR*0.7,cy); ctx.lineTo(cx+PR*0.7,cy);
+    ctx.lineTo(cx+PR*0.2,cy-h*1.3); ctx.lineTo(cx-PR*0.2,cy-h*1.3); ctx.closePath(); ctx.fill();
+    ctx.restore(); }
   ctx.save();
   ctx.translate(c.x, c.y+PR*0.5 + bob);
   ctx.scale(c.face*sx, sy);
+  if(c.sp>0.02){ ctx.shadowColor=c.dark?'rgba(200,150,255,0.95)':'rgba(255,210,110,0.95)'; ctx.shadowBlur=22+c.sp*16; }
   if(ready){
     if(c.dark){ ctx.shadowColor='rgba(190,150,255,0.9)'; ctx.shadowBlur=18;
       ctx.drawImage(img,-w/2,-h, w,h); ctx.shadowBlur=4; ctx.drawImage(img,-w/2,-h,w,h); ctx.shadowBlur=0; }
-    else { ctx.drawImage(img,-w/2,-h, w,h); }
+    else { ctx.drawImage(img,-w/2,-h, w,h); ctx.shadowBlur=0; }
   } else {
     ctx.fillStyle=c.dark?'#2a1840':'#f5e8c6'; ctx.beginPath(); ctx.arc(0,-h*0.5,w*0.4,0,TAU); ctx.fill();
   }
-  // kick flash
-  if(c.kickAnim>0.01){ ctx.globalAlpha=c.kickAnim*0.5; ctx.globalCompositeOperation='source-atop';
+  // kick flash（必殺中はより強く白熱）
+  const kf=Math.max(c.kickAnim, c.sp);
+  if(kf>0.01){ ctx.globalAlpha=kf*(c.sp>0.01?0.75:0.5); ctx.globalCompositeOperation='source-atop';
     ctx.fillStyle='#fff'; ctx.fillRect(-w/2,-h,w,h); ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1; }
   ctx.restore();
   // 酸素演出：🫧チャージ泡 / 🫁酸素ぎれ
