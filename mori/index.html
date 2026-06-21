@@ -3902,6 +3902,16 @@ requestAnimationFrame(frame);
     else go();
   });
 })();
+
+/* Service Worker 登録：このゲームを直接ひらいても オフライン保存が効くように
+   （sw.js は scope='/' なので 一度の登録でサイト全体＝島ぐらしも キャッシュ対象になる） */
+(function(){
+  if('serviceWorker' in navigator && location.protocol!=='file:'){
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('/sw.js').catch(function(){ /* silent */ });
+    });
+  }
+})();
 </script>
 </body>
 </html>

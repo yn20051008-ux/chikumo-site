@@ -1,10 +1,15 @@
 /* Service Worker — 畜物語 */
-const CACHE = 'chikumonogatari-v63';
+const CACHE = 'chikumonogatari-v64';
 const ASSETS = [
   './',
   './index.html',
   './chikumo.svg',
-  './manifest.json'
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  // 🏝 島ぐらし（こっこの森）はオフラインでも遊べるよう先読みキャッシュ
+  './mori/',
+  './mori/index.html'
 ];
 
 self.addEventListener('install', (event) => {
@@ -46,7 +51,13 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE).then((c) => c.put(req, clone));
         }
         return res;
-      }).catch(() => caches.match('./index.html'));
+      }).catch(() =>
+        // オフラインで取得できないサブリソース（例：Firebase SDK）は、HTMLを代返せず
+        // 空レスポンスを返す。ゲーム側は firebase 未読込を検知してランキングだけ無効化し続行する。
+        caches.match('./index.html').then((idx) =>
+          (req.destination === 'document') ? idx : new Response('', { status: 504, statusText: 'offline' })
+        )
+      );
     })
   );
 });
