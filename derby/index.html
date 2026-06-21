@@ -38,24 +38,24 @@
 
   /* ===== HUD ===== */
   #hud{position:absolute;left:0;right:0;top:0;z-index:10;pointer-events:none;
-    padding:calc(env(safe-area-inset-top) + 8px) 14px 0;}
+    padding:calc(env(safe-area-inset-top) + 8px) 14px 0;opacity:.86;}
   .score{display:flex;align-items:center;justify-content:center;gap:14px;}
-  .side{display:flex;align-items:center;gap:8px;background:rgba(8,22,14,.5);
-    border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:6px 12px;
+  .side{display:flex;align-items:center;gap:8px;background:rgba(8,22,14,.28);
+    border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:6px 12px;
     -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
   .side .chip{width:22px;height:28px;background:#fff;border-radius:7px 7px 6px 6px;background-size:cover;}
   .side .num{font-size:26px;font-weight:900;letter-spacing:.02em;min-width:24px;text-align:center;}
   .side.me{color:#ffe27a;} .side.foe{color:#c79bff;}
   .clock{font-size:24px;font-weight:900;letter-spacing:.06em;font-variant-numeric:tabular-nums;
-    background:rgba(8,22,14,.5);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:6px 14px;
+    background:rgba(8,22,14,.28);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:6px 14px;
     -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
   .clock.warn{color:#ff8a8a;border-color:rgba(255,120,120,.4);}
   /* oxygen gauges */
   .oxyRow{display:flex;justify-content:center;gap:14px;margin-top:7px;}
   .oxy{display:flex;align-items:center;gap:5px;}
   .oxy .o2ico{font-size:13px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6));}
-  .oxy .bar{width:104px;height:9px;border-radius:6px;background:rgba(4,16,9,.6);
-    border:1px solid rgba(255,255,255,.22);overflow:hidden;}
+  .oxy .bar{width:104px;height:9px;border-radius:6px;background:rgba(4,16,9,.34);
+    border:1px solid rgba(255,255,255,.18);overflow:hidden;}
   .oxy .bar i{display:block;height:100%;width:100%;border-radius:6px;transform-origin:left center;
     transition:transform .12s linear;}
   .oxy.foe .bar i{transform-origin:right center;}
@@ -70,7 +70,7 @@
     background:radial-gradient(circle at 38% 32%,#ffe98a,#ff9e3d 70%,#e0701a);
     border:3px solid rgba(255,255,255,.7);box-shadow:0 8px 22px rgba(0,0,0,.45),inset 0 2px 6px rgba(255,255,255,.5);
     color:#5a2a00;font-weight:900;font-size:19px;letter-spacing:.04em;text-shadow:0 1px 0 rgba(255,255,255,.4);
-    touch-action:none;transition:transform .06s;}
+    touch-action:none;transition:transform .06s;opacity:.8;}
   #kickBtn:active{transform:scale(.9);}
   #kickBtn.show{display:flex;}
   #kickBtn .lbl{position:relative;z-index:2;}
@@ -80,6 +80,22 @@
     mask:radial-gradient(farthest-side,transparent calc(100% - 6px),#000 calc(100% - 6px));}
   #kickBtn.ready .ring{background:conic-gradient(#a6ffd0 360deg,#a6ffd0 0);
     filter:drop-shadow(0 0 6px rgba(120,240,160,.8));}
+
+  /* 必殺技ボタン（酸素満タン時のみ発動可） */
+  #spBtn{position:absolute;right:calc(env(safe-area-inset-right) + 130px);
+    bottom:calc(env(safe-area-inset-bottom) + 44px);width:78px;height:78px;border-radius:50%;
+    z-index:20;display:none;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 38% 32%,#e6ccff,#a06bff 68%,#6a37c4);
+    border:3px solid rgba(255,255,255,.55);box-shadow:0 8px 22px rgba(0,0,0,.45),inset 0 2px 6px rgba(255,255,255,.4);
+    color:#fff;font-weight:900;font-size:16px;letter-spacing:.04em;text-shadow:0 1px 2px rgba(60,0,110,.6);
+    touch-action:none;opacity:.35;filter:grayscale(.55);
+    transition:transform .06s,opacity .2s,filter .2s,box-shadow .2s;}
+  #spBtn.show{display:flex;}
+  #spBtn:active{transform:scale(.9);}
+  #spBtn.ready{opacity:.92;filter:none;
+    box-shadow:0 0 20px rgba(180,120,255,.95),0 8px 22px rgba(0,0,0,.4),inset 0 2px 6px rgba(255,255,255,.5);
+    animation:spPulse 1.1s ease-in-out infinite;}
+  @keyframes spPulse{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
 
   /* fleeting hint toast */
   #toast{position:absolute;left:50%;top:18%;transform:translateX(-50%);z-index:24;
@@ -147,6 +163,7 @@
   </div>
 
   <button id="kickBtn" aria-label="シュート"><span class="ring" id="kickRing"></span><span class="lbl">シュート</span></button>
+  <button id="spBtn" aria-label="必殺技"><span class="lbl">必殺<br>パワー</span></button>
 
   <div id="toast"></div>
   <div id="goalFx"><div class="g">GOAL!</div></div>
@@ -167,7 +184,7 @@
       <button data-d="2">つよい</button>
     </div>
     <button class="btn" id="startBtn">キックオフ</button>
-    <p class="hint">スマホ：左ドラッグで移動／右ボタンでシュート　PC：WASD・矢印で移動／スペースでシュート</p>
+    <p class="hint">スマホ：左ドラッグで移動／右ボタンでシュート／🟣必殺ボタン　PC：WASD・矢印で移動／スペースでシュート／K(Shift)で必殺<br>🫧酸素まんタンで必殺技「⚡パワーシュート」発動！</p>
   </div>
 
   <!-- result -->
@@ -215,7 +232,9 @@ function resize(){
   cv.width=Math.floor(W*DPR); cv.height=Math.floor(H*DPR);
   scale=Math.min(W/VW,H/VH); offx=(W-VW*scale)/2; offy=(H-VH*scale)/2;
   isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
-  kickBtn.classList.toggle('show', isTouch && state==='play');
+  const showBtns = isTouch && state==='play';
+  kickBtn.classList.toggle('show', showBtns);
+  spBtn.classList.toggle('show', showBtns);
 }
 window.addEventListener('resize',resize);
 window.addEventListener('orientationchange',()=>setTimeout(resize,80));
@@ -261,7 +280,7 @@ const Sound=(()=>{
 })();
 
 /* ===== entities ===== */
-const ball={x:VW/2,y:VH/2,vx:0,vy:0,spin:0,rot:0,hot:0};
+const ball={x:VW/2,y:VH/2,vx:0,vy:0,spin:0,rot:0,hot:0,power:0};
 const trail=[];   // 必殺シュートの軌跡
 function mkChick(dark){ return {x:VW/2,y:0,vx:0,vy:0,dark:!!dark,face:1,bob:rnd(0,TAU),squash:0,kickAnim:0,oxy:1,puff:0,gasp:0}; }
 const me=mkChick(false), foe=mkChick(true);
@@ -316,6 +335,7 @@ window.addEventListener('keydown',e=>{
   keys[e.code]=true;
   if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code)) e.preventDefault();
   if(e.code==='Space'){ tryKick(me); }
+  if(e.code==='KeyK'||e.code==='ShiftLeft'||e.code==='ShiftRight'){ fireSpecial(me); }
 },{passive:false});
 window.addEventListener('keyup',e=>{ keys[e.code]=false; });
 
@@ -340,6 +360,10 @@ window.addEventListener('pointercancel',endJoy);
 const kickBtn=document.getElementById('kickBtn');
 const kb=(e)=>{ e.preventDefault(); e.stopPropagation(); Sound.init(); Sound.resume(); tryKick(me); };
 kickBtn.addEventListener('pointerdown',kb);
+
+const spBtn=document.getElementById('spBtn');
+const sb=(e)=>{ e.preventDefault(); e.stopPropagation(); Sound.init(); Sound.resume(); fireSpecial(me); };
+spBtn.addEventListener('pointerdown',sb);
 
 /* ===== kick ===== */
 function tryKick(c){
@@ -371,6 +395,31 @@ function tryKick(c){
   spawnDust(ball.x,ball.y);
 }
 
+/* ===== 必殺技：酸素まんタンで発動。第一弾＝パワーシュート（壁に当たっても失速しないパチンコ弾） ===== */
+const SP_POWER_BOUNCES=5;      // この回数だけ壁バウンドしても失速しない
+function fireSpecial(c){
+  if(state!=='play') return false;
+  if(c.oxy < 1-1e-3){ if(c===me) showHint('🫧 酸素まんタンで必殺技！'); return false; }
+  const dx=ball.x-c.x, dy=ball.y-c.y, d=Math.hypot(dx,dy);
+  if(d>PR+BR+34){ if(c===me) showHint('⚽ ボールに近づいて必殺技！'); return false; }
+  // aim toward target goal, blended with push direction
+  const goalY = c.dark? PY1 : PY0;
+  const gx = clamp(ball.x, GXL+20, GXR-20);
+  let ax=gx-ball.x, ay=goalY-ball.y; const am=Math.hypot(ax,ay)||1; ax/=am; ay/=am;
+  const pd=d||1; let px=dx/pd, py=dy/pd;
+  let kx=ax*0.7+px*0.3, ky=ay*0.7+py*0.3; const km=Math.hypot(kx,ky)||1; kx/=km; ky/=km;
+  const power=22.5;
+  ball.vx=kx*power + c.vx*0.4;
+  ball.vy=ky*power + c.vy*0.4;
+  ball.spin=(Math.random()-0.5)*0.5;
+  ball.hot=1; ball.power=SP_POWER_BOUNCES;
+  c.oxy=0; c.puff=1; c.kickAnim=1; c.squash=0.55;
+  shake=Math.max(shake,8);
+  Sound.superKick(); setTimeout(()=>Sound.superKick(),70); spawnDust(ball.x,ball.y);
+  if(c===me) showHint('⚡ パワーシュート！ パチンコ弾だ');
+  return true;
+}
+
 /* ===== particles ===== */
 const dust=[];
 function spawnDust(x,y){ for(let i=0;i<8;i++){ const a=rnd(0,TAU),s=rnd(1,3.5);
@@ -383,7 +432,7 @@ function spawnConfetti(){ const cols=['#ffe27a','#3be089','#5ec8ff','#ff7ab0','#
 /* ===== game control ===== */
 function placeKickoff(towardMe){
   // towardMe true: ball given to me side after foe scored (and vice versa)
-  ball.x=VW/2; ball.y=VH/2; ball.vx=0; ball.vy=0; ball.spin=0; ball.rot=0; ball.hot=0;
+  ball.x=VW/2; ball.y=VH/2; ball.vx=0; ball.vy=0; ball.spin=0; ball.rot=0; ball.hot=0; ball.power=0;
   me.x=VW/2; me.y=VH*0.72; me.vx=0; me.vy=0; me.face=1; me.oxy=1; me.puff=0; me.gasp=0;
   foe.x=VW/2; foe.y=VH*0.28; foe.vx=0; foe.vy=0; foe.face=-1; foe.oxy=1; foe.puff=0; foe.gasp=0;
   trail.length=0; bottle.active=false; bottleTimer=7;
@@ -396,6 +445,7 @@ function startMatch(){
   document.getElementById('result').classList.add('hide');
   document.getElementById('hud').classList.remove('hide');
   kickBtn.classList.toggle('show', isTouch);
+  spBtn.classList.toggle('show', isTouch);
   state='countdown'; countdown=3; Sound.whistle();
 }
 function scoreGoal(byMe){
@@ -422,7 +472,7 @@ function afterGoal(){
 function endMatch(){
   state='over';
   document.getElementById('goalFx').style.opacity='0';
-  kickBtn.classList.remove('show');
+  kickBtn.classList.remove('show'); spBtn.classList.remove('show');
   const win = scoreMe>scoreFoe? 1 : scoreMe<scoreFoe? -1 : 0;
   const r=document.getElementById('result'), rt=document.getElementById('resultText');
   document.getElementById('finalScore').textContent = scoreMe+' - '+scoreFoe;
@@ -477,31 +527,35 @@ function chickBallCollide(c,f){
 }
 function stepBall(f){
   ball.x+=ball.vx*f; ball.y+=ball.vy*f;
-  const fr=Math.pow(0.985,f); ball.vx*=fr; ball.vy*=fr;
+  // パワーシュート中は失速しない（パチンコ弾）。それ以外は通常の摩擦
+  if(ball.power<=0){ const fr=Math.pow(0.985,f); ball.vx*=fr; ball.vy*=fr; }
+  // 壁/ポストに当たるたび残り回数を消費。0になったら通常の物理に戻る
+  const REST=()=> ball.power>0?1:0.72;
+  const pBounce=()=>{ if(ball.power>0){ ball.power--; if(ball.power<=0){ ball.hot=0.5; Sound.kick(); } } };
   // spin curves the ball slightly
   const sp=ball.spin*0.5;
   const tvx=ball.vx, tvy=ball.vy;
   ball.vx += -tvy*sp*0.04*f; ball.vy += tvx*sp*0.04*f;
   ball.spin*=Math.pow(0.95,f);
   // side walls
-  if(ball.x<PX0+BR){ ball.x=PX0+BR; ball.vx=Math.abs(ball.vx)*0.72; if(Math.abs(ball.vx)>1)Sound.wall(); }
-  if(ball.x>PX1-BR){ ball.x=PX1-BR; ball.vx=-Math.abs(ball.vx)*0.72; if(Math.abs(ball.vx)>1)Sound.wall(); }
+  if(ball.x<PX0+BR){ ball.x=PX0+BR; ball.vx=Math.abs(ball.vx)*REST(); pBounce(); if(Math.abs(ball.vx)>1)Sound.wall(); }
+  if(ball.x>PX1-BR){ ball.x=PX1-BR; ball.vx=-Math.abs(ball.vx)*REST(); pBounce(); if(Math.abs(ball.vx)>1)Sound.wall(); }
   // top / bottom: goal mouth -> score, else bounce
   if(ball.y<PY0+BR){
     if(ball.x>GXL+BR*0.2 && ball.x<GXR-BR*0.2){
       if(ball.y<PY0-2){ scoreGoal(true); return; }   // player scores in top goal
-    } else { ball.y=PY0+BR; ball.vy=Math.abs(ball.vy)*0.72; if(Math.abs(ball.vy)>1)Sound.wall(); }
+    } else { ball.y=PY0+BR; ball.vy=Math.abs(ball.vy)*REST(); pBounce(); if(Math.abs(ball.vy)>1)Sound.wall(); }
   }
   if(ball.y>PY1-BR){
     if(ball.x>GXL+BR*0.2 && ball.x<GXR-BR*0.2){
       if(ball.y>PY1+2){ scoreGoal(false); return; }   // foe scores in bottom goal
-    } else { ball.y=PY1-BR; ball.vy=-Math.abs(ball.vy)*0.72; if(Math.abs(ball.vy)>1)Sound.wall(); }
+    } else { ball.y=PY1-BR; ball.vy=-Math.abs(ball.vy)*REST(); pBounce(); if(Math.abs(ball.vy)>1)Sound.wall(); }
   }
   // goal post collisions (rounded posts at mouth corners)
   for(const py of [PY0,PY1]) for(const px of [GXL,GXR]){
     const dx=ball.x-px, dy=ball.y-py, d=Math.hypot(dx,dy), rr=BR+5;
     if(d<rr){ const nx=dx/(d||1), ny=dy/(d||1); ball.x=px+nx*rr; ball.y=py+ny*rr;
-      const dot=ball.vx*nx+ball.vy*ny; ball.vx-=2*dot*nx*0.8; ball.vy-=2*dot*ny*0.8; Sound.wall(); }
+      const e=ball.power>0?1:0.8; const dot=ball.vx*nx+ball.vy*ny; ball.vx-=2*dot*nx*e; ball.vy-=2*dot*ny*e; pBounce(); Sound.wall(); }
   }
   // ball rotation for render
   ball.rot += (ball.vx*0.04+ball.spin*0.4)*f;
@@ -524,13 +578,19 @@ function stepKeepers(f){
       const nx=bx/(d||1), ny=by/(d||1);
       ball.x=k.x+nx*min; ball.y=k.y+ny*min;
       const dot=ball.vx*nx+ball.vy*ny;
-      if(dot<0){ ball.vx-=2*dot*nx*0.9; ball.vy-=2*dot*ny*0.9; }
-      ball.vx=ball.vx*0.9+k.vx*1.1;
-      // フィールド内側へ確実に押し戻す（上キーパーは下へ／下キーパーは上へ）
-      const away = k.foe? 1 : -1;
-      if(ball.vy*away<1.4) ball.vy = away*Math.max(1.4, Math.abs(ball.vy)*0.6);
-      ball.spin += k.vx*0.05;
-      ball.hot=0;                 // 必殺シュートもセーブで鎮火
+      if(ball.power>0){
+        // パワーシュートはキーパーにも弾かれて全速で跳ね返る（パチンコ）。1バウンド消費
+        if(dot<0){ ball.vx-=2*dot*nx; ball.vy-=2*dot*ny; }
+        ball.power--; if(ball.power<=0) ball.hot=0.5;
+      } else {
+        if(dot<0){ ball.vx-=2*dot*nx*0.9; ball.vy-=2*dot*ny*0.9; }
+        ball.vx=ball.vx*0.9+k.vx*1.1;
+        // フィールド内側へ確実に押し戻す（上キーパーは下へ／下キーパーは上へ）
+        const away = k.foe? 1 : -1;
+        if(ball.vy*away<1.4) ball.vy = away*Math.max(1.4, Math.abs(ball.vy)*0.6);
+        ball.spin += k.vx*0.05;
+        ball.hot=0;               // 通常の必殺シュートはセーブで鎮火
+      }
       k.save=1; shake=Math.max(shake,4);
       if(Math.abs(dot)>5) Sound.wall();
     }
@@ -661,8 +721,9 @@ function update(dt,f){
     else if(bottle.active && Math.hypot(foe.x-bottle.x,foe.y-bottle.y)<rr) takeBottle(foe);
   } else { bottleTimer-=dt; if(bottleTimer<=0) spawnBottle(); }
 
-  // 必殺シュートの軌跡
-  if(ball.hot>0){ ball.hot=Math.max(0,ball.hot-dt*1.6);
+  // 必殺シュートの軌跡（パワーシュート中は光り続ける）
+  if(ball.power>0) ball.hot=1;
+  if(ball.hot>0){ if(ball.power<=0) ball.hot=Math.max(0,ball.hot-dt*1.6);
     trail.push({x:ball.x,y:ball.y,life:1}); }
   for(let i=trail.length-1;i>=0;i--){ trail[i].life-=dt*2.4; if(trail[i].life<=0) trail.splice(i,1); }
 
@@ -676,6 +737,7 @@ function updateOxyHUD(){
   ff&&ff.parentElement.parentElement.classList.toggle('low', foe.oxy<OXY_MIN);
   kickBtn.style.setProperty('--o2', me.oxy.toFixed(3));
   kickBtn.classList.toggle('ready', me.oxy>=1-1e-3);
+  spBtn.classList.toggle('ready', me.oxy>=1-1e-3);
 }
 function updateClock(){
   const t=Math.ceil(timeLeft);
@@ -697,9 +759,10 @@ function render(){
 
   drawPitch();
   if(bottle.active) drawBottle();
-  // super-shot trail
+  // super-shot trail（パワーシュートは炎色）
+  const tcol = ball.power>0? '255,150,60' : '125,240,255';
   for(const tp of trail){ const a=clamp(tp.life,0,1);
-    ctx.fillStyle='rgba(125,240,255,'+(a*0.5)+')';
+    ctx.fillStyle='rgba('+tcol+','+(a*0.5)+')';
     ctx.beginPath(); ctx.arc(tp.x,tp.y,BR*(0.5+a*0.6),0,TAU); ctx.fill(); }
   // shadows
   drawShadow(ball.x, ball.y, BR*1.05);
@@ -849,8 +912,10 @@ function drawKeeper(k){
 function drawBall(){
   ctx.save(); ctx.translate(ball.x,ball.y); ctx.rotate(ball.rot);
   if(ball.hot>0){ ctx.save(); ctx.rotate(-ball.rot); ctx.globalAlpha=clamp(ball.hot,0,1);
+    const c0=ball.power>0?'rgba(255,170,70,0.9)':'rgba(130,240,255,0.85)';
+    const c1=ball.power>0?'rgba(255,120,40,0)':'rgba(130,240,255,0)';
     const hg=ctx.createRadialGradient(0,0,BR*0.4,0,0,BR*2.1);
-    hg.addColorStop(0,'rgba(130,240,255,0.85)'); hg.addColorStop(1,'rgba(130,240,255,0)');
+    hg.addColorStop(0,c0); hg.addColorStop(1,c1);
     ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(0,0,BR*2.1,0,TAU); ctx.fill(); ctx.restore(); }
   // white sphere
   const g=ctx.createRadialGradient(-BR*0.35,-BR*0.4,BR*0.2,0,0,BR);
