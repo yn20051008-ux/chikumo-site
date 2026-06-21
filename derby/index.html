@@ -408,7 +408,7 @@ function fireSpecial(c){
   let ax=gx-ball.x, ay=goalY-ball.y; const am=Math.hypot(ax,ay)||1; ax/=am; ay/=am;
   const pd=d||1; let px=dx/pd, py=dy/pd;
   let kx=ax*0.7+px*0.3, ky=ay*0.7+py*0.3; const km=Math.hypot(kx,ky)||1; kx/=km; ky/=km;
-  const power=90;                 // 通常必殺の4倍速！ド級のパワーシュート
+  const power=270;                // 超ド級！ パワーシュート（さらに3倍速）
   ball.vx=kx*power + c.vx*0.4;
   ball.vy=ky*power + c.vy*0.4;
   ball.spin=(Math.random()-0.5)*0.5;
@@ -557,7 +557,7 @@ function stepBall(f){
   const pBounce=()=>{ if(ball.power>0){ ball.power--; if(ball.power<=0){ ball.hot=0.5; Sound.kick(); } } };
   // 4倍速のパワーシュートでも壁/ゴールをすり抜けないよう、移動を小分け（サブステップ）して判定
   const dist=Math.hypot(ball.vx,ball.vy)*f;
-  const steps=Math.max(1, Math.min(16, Math.ceil(dist/9)));
+  const steps=Math.max(1, Math.min(48, Math.ceil(dist/9)));
   const sf=f/steps;
   for(let s=0;s<steps;s++){
     ball.x+=ball.vx*sf; ball.y+=ball.vy*sf;
