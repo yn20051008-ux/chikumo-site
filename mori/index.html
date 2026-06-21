@@ -1635,13 +1635,13 @@ function calcDayLight(){
   let light,sun;
   if(dayF>0.02){
     light=norm3([Math.cos(ang)*0.6,Math.max(0.18,Math.sin(ang)),0.35]);
-    sun=mix3([dayF*0.88,dayF*0.85,dayF*0.79],[1,0.6,0.35],duskF*0.5);
+    sun=mix3([dayF*0.76,dayF*0.74,dayF*0.69],[1,0.6,0.35],duskF*0.5);
   }else{
     light=norm3([0.3,0.8,0.4]);
     sun=[0.10,0.12,0.20];
   }
-  const amb=[0.22+0.28*dayF,0.24+0.28*dayF,0.33+0.22*dayF];
-  const ts=clamp(0.42+0.50*dayF+duskF*0.06,0,1.12);
+  const amb=[0.22+0.20*dayF,0.24+0.20*dayF,0.33+0.16*dayF];
+  const ts=clamp(0.42+0.44*dayF+duskF*0.06,0,1.12);
   DL.sky=sky; DL.light=light; DL.sun=sun; DL.amb=amb; DL.dayF=dayF;
   DL.tint=[ts,ts*(1-duskF*0.08),ts*(1-duskF*0.16)];
   // 空グラデーション用：天頂は濃いめ、地平線は明るめ＋夕方は橙
