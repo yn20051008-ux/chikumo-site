@@ -226,9 +226,9 @@
   <div class="screen hidden" id="howScreen">
     <div class="logo small">あそびかた</div>
     <div class="desc" style="max-width:380px;text-align:left;">
-      ◆ 画面を <b>タップ</b> でジャンプ。空中でもう一度タップで <b>2段ジャンプ</b>（くるっと回る！）。<br><br>
+      ◆ 画面を <b>タップ</b> でジャンプ。空中でタップするたび <b>空蹴り</b>（くるっと回る！）で <b>酸素がある限り何段でも</b> 跳べる。<br><br>
       ◆ <b>長押し</b> するとふわっと高く跳べる。車両のすき間と障害物をかわそう。<br><br>
-      ◆ <b style="color:#7fd8ff;">🫧酸素ゲージ</b> ── 2段ジャンプと長押しふわっとは <b>酸素</b> を使う。屋根を走っているあいだに回復、<b>フィーバー</b>中は満タン。酸素ぎれだと2段ジャンプできないので気をつけて！<br><br>
+      ◆ <b style="color:#7fd8ff;">🫧酸素ゲージ</b> ── 空蹴りと長押しふわっとは <b>酸素</b> を使う。屋根を走っているあいだに回復、<b>フィーバー</b>中は満タン。酸素ぎれだと空蹴りできないので気をつけて！<br><br>
       ◆ <b style="color:#ff8aa6;">❤️体力は3つ</b> ── 障害物に当たったり 落ちたりすると <b>1つ減る</b>（少しのあいだ点滅して無敵）。落ちても<b>🚁レスキュー</b>で次の屋根へ。体力が <b>0</b> でしゅっきん失敗。<br><br>
       ◆ <b>たまご</b> を連続で集めるとコンボ＆ゲージUP。MAXで <b>フィーバー</b>！ 無敵で障害物を粉砕、たまご2倍。<br><br>
       ◆ ❤️を大事に、酸素をやりくりして、今日はどこまで行ける？
@@ -425,17 +425,17 @@ function tryJump(){
   if(G.grounded||G.coyote>0){
     G.vy=-860; G.grounded=false; G.coyote=0; G.airJumps=1;
     G.sx=0.78; G.sy=1.24; Sound.jump(); dust(6);
-  }else if(G.airJumps>0 && G.o2>=O2_JUMP){
-    G.o2=Math.max(0,G.o2-O2_JUMP);            // 🫧2段ジャンプは酸素を使う
-    G.airJumps--; G.vy=-800; G.flip=0.001;
+  }else if(G.o2>=O2_JUMP){                     // 🫧酸素がある限り 何度でも空蹴り（島ぐらしと同じ）
+    G.o2=Math.max(0,G.o2-O2_JUMP);             // 空蹴り1回ぶんの酸素を使う
+    G.airJumps=Math.max(0,G.airJumps-1); G.vy=-800; G.flip=0.001;
     Sound.flip();
     for(let i=0;i<10;i++){ const a=rnd(0,TAU); parts.push({x:PX(),y:G.py-HH,vx:Math.cos(a)*3,vy:Math.sin(a)*3,life:.4,max:.4,r:rnd(2,4),col:'140,220,255'}); }
     parts.push({x:PX(),y:G.py-HH,vx:0,vy:0,life:.3,max:.3,r:40,ring:1,col:'140,220,255'});
-  }else if(G.airJumps>0){                      // 酸素ぎれ→2段ジャンプできない
+  }else{                                        // 酸素ぎれ→空蹴りできない
     if(!G._o2warn||G.time-G._o2warn>1){ G._o2warn=G.time; Sound.nope();
       floats.push({t:'🫁 酸素ぎれ！',x:PX(),y:G.py-HH*2-6,col:'#9fd8ff',life:.7,max:.7,size:15}); }
     G.buffer=0.12;
-  }else{ G.buffer=0.12; }
+  }
 }
 function dust(n){ for(let i=0;i<n;i++) parts.push({x:PX()+rnd(-12,8),y:G.py,vx:rnd(-3,-1),vy:rnd(-2,0.4),life:rnd(.25,.5),max:.5,r:rnd(2,4.5),col:'200,200,215'}); }
 
@@ -760,13 +760,13 @@ function render(){
       ctx.fillStyle=gg; rrect(gx+1.5,gy+1.5,(gw-3)*G.gauge,7,3.5); ctx.fill(); }
     ctx.font='700 9px sans-serif'; ctx.textAlign='center'; ctx.fillStyle='rgba(255,255,255,.7)';
     ctx.fillText(fv?'FEVER!!':'FEVER',W/2,gy+13);
-    // ❤️体力（右上・被弾中は点滅）
+    // ❤️体力（左カラム・駅名の下／被弾中は点滅。iOSステータスバーと重ならない位置）
     if(!(G.invul>0 && Math.floor(G.time*12)%2)){
-      ctx.textAlign='right'; ctx.textBaseline='top'; ctx.font='18px sans-serif';
+      ctx.textAlign='left'; ctx.textBaseline='top'; ctx.font='18px sans-serif';
       let hs=''; for(let i=0;i<G.maxHp;i++) hs+=(i<G.hp?'❤️':'🤍');
-      ctx.fillText(hs,W-14,14+st);
+      ctx.fillText(hs,14,90+st);
     }
-    // 🫧酸素ゲージ（右上・ハートの下）
+    // 🫧酸素ゲージ（右上）
     const ow=120, ox2=W-14-ow, oy=44+st;
     ctx.fillStyle='rgba(0,0,0,.35)'; rrect(ox2,oy,ow,8,4); ctx.fill();
     if(G.o2>0){ const og=ctx.createLinearGradient(ox2,0,ox2+ow,0);
