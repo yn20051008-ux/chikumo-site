@@ -1,8 +1,8 @@
 # ランキング（結果発表）DB セットアップ & セキュリティ手順
 
-対象ゲーム：コッコリンク（/link/）・コッコ救出（/rescue/）・こっこの森（/mori/ 総資産ランキング）
+対象ゲーム：コッコリンク（/link/）・コッコ救出（/rescue/）・こっこの森（/mori/ 総資産ランキング）・コッコスプラット3D（/splat3d/）
 保存先：既存 Firebase プロジェクト `chikumonogatarikiroku` の Realtime Database
-ノード：リンク=`rankings/link` ／ 救出=`rankings/rescue` ／ こっこの森=`rankings/mori`（**新規DBは不要**）
+ノード：リンク=`rankings/link` ／ 救出=`rankings/rescue` ／ こっこの森=`rankings/mori` ／ スプラット3D=`rankings/splat3d`（**新規DBは不要**）
 
 ---
 
@@ -75,6 +75,18 @@
           "ts":    { ".validate": "newData.isNumber()" },
           "$other": { ".validate": false }
         }
+      },
+      "splat3d": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && (!data.exists() || newData.child('score').val() >= data.child('score').val())",
+          ".validate": "newData.hasChildren(['name','score'])",
+          "name":  { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "flag":  { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999999" },
+          "rescued": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99999" },
+          "ts":    { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        }
       }
     },
     "letters": {
@@ -127,6 +139,13 @@
 - 登録できるのは **島の時刻 あさ7時（7:00〜9:00）** のあいだだけ（🏠おうちで「ねる」とあさになり登録できる）。
 - 閲覧は **🏆ボタン（プレイ中／タイトル）からいつでも** 可能。
 - ゲームの進行データはこれまで通り **ブラウザ保存（localStorage）**、ランキングだけ **サーバー保存（Firebase）**。
+
+## コッコスプラット3D（/splat3d/）について
+- **スコア 世界ランキング**：1プレイのスコアの自己ベストを登録（1端末1枠・最高スコアのみ保持）。
+- 登録は **リザルト画面**（CLEAR! / TIME UP…）から、名前＋国旗を入れて「🏆 登録」。
+- 閲覧は **タイトルの「🏆 世界ランキング」ボタン** からいつでも可能。
+- 登録すると「◯位にランクイン！」の結果発表演出が出る。
+- ゲームのベストスコアはこれまで通り **ブラウザ保存（localStorage）**、世界ランキングだけ **サーバー保存（Firebase）**。
 
 ## 動作テスト
 1. （上記2ステップ実施後）https://chikumo.jp/link/ ・ /rescue/ ・ /mori/ をプレイ → /mori/ はあさ7時に🏆から名前を入れて「登録」
