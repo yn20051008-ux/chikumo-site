@@ -28,6 +28,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="コッコ・インベーダー">
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{width:100%;height:100%;overflow:hidden;background:#000;
@@ -79,6 +82,133 @@
   a{pointer-events:auto;}
   .blink{animation:bl 1s steps(2) infinite;}
   @keyframes bl{0%,50%{opacity:1}51%,100%{opacity:.15}}
+
+  /* ===== 🏆 世界ランキング ===== */
+  .btn.small{padding:11px 18px;font-size:14px;margin-top:0;}
+  .btn.sub{background:rgba(124,255,176,.06);color:#bfffd9;border:2px solid rgba(124,255,176,.45);box-shadow:none;
+    font-size:14px;padding:12px 26px;margin-top:12px;}
+  .rankbox{margin-top:14px;width:100%;max-width:360px;}
+  .rankentry{display:flex;gap:8px;justify-content:center;align-items:center;}
+  .rankentry input{flex:1;min-width:0;padding:10px 12px;border-radius:8px;border:2px solid rgba(124,255,176,.5);
+    background:rgba(6,18,12,.6);color:#dfffec;font-size:15px;text-align:center;outline:none;pointer-events:auto;
+    user-select:text;-webkit-user-select:text;}
+  .rankentry input::placeholder{color:rgba(190,255,217,.4);}
+  .rankflag{flex:none;padding:9px 10px;border-radius:8px;border:2px solid rgba(124,255,176,.5);
+    background:rgba(6,18,12,.6);color:#fff;font-size:20px;outline:none;cursor:pointer;line-height:1;pointer-events:auto;}
+  .flagpicker{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:18px;
+    pointer-events:auto;background:rgba(0,0,0,.74);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
+  .flagpicker.hidden{display:none;}
+  .flagpicker-inner{width:min(94vw,420px);max-height:84vh;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;overscroll-behavior:contain;text-align:center;
+    background:rgba(6,18,12,.97);border:1px solid rgba(124,255,176,.35);border-radius:12px;padding:18px 16px 16px;}
+  .flagpicker-title{font-size:16px;font-weight:800;color:#7CFFB0;letter-spacing:.14em;margin-bottom:12px;}
+  .flaggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:6px;margin-bottom:12px;}
+  .flaggrid.hidden{display:none;}
+  .flagopt{font-size:24px;line-height:1;padding:8px 0;border-radius:8px;border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.05);cursor:pointer;color:#fff;}
+  .flagopt:active{transform:scale(.9);} .flagopt.sel{border-color:#7CFFB0;background:rgba(124,255,176,.18);}
+  .rankmsg{min-height:15px;margin-top:8px;font-size:12px;color:#7CFFB0;letter-spacing:.05em;}
+  .ranktitle{margin-top:14px;font-size:14px;font-weight:800;color:#7CFFB0;letter-spacing:.12em;}
+  .ranktitle.big{font-size:22px;margin-bottom:12px;margin-top:0;}
+  .ranklist{list-style:none;margin:8px auto 0;padding:0;width:100%;max-width:360px;text-align:left;max-height:32vh;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;overscroll-behavior:contain;pointer-events:auto;}
+  .ranklist li{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:6px;
+    background:rgba(124,255,176,.07);margin-bottom:5px;font-variant-numeric:tabular-nums;font-size:14px;}
+  .ranklist li:nth-child(1){background:rgba(255,200,80,.20);}
+  .ranklist li:nth-child(2){background:rgba(210,220,255,.13);}
+  .ranklist li:nth-child(3){background:rgba(255,170,120,.13);}
+  .ranklist .rk{width:30px;flex:none;text-align:center;font-weight:800;}
+  .ranklist .rn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#dffeea;}
+  .ranklist .rs{flex:none;font-weight:800;color:#ffe07a;}
+  .rankempty{justify-content:center;opacity:.6;}
+  #rankScreen .ranklist{max-height:54vh;}
+  /* ===== 結果発表「◯位にランクイン！」 ===== */
+  .rankin-ov{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;pointer-events:auto;
+    background:radial-gradient(ellipse at 50% 44%,rgba(8,40,24,.62),rgba(0,0,0,.85));
+    -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);animation:rankinFade .25s ease;}
+  .rankin-ov.out{animation:rankinFadeOut .42s ease forwards;pointer-events:none;}
+  @keyframes rankinFade{from{opacity:0}to{opacity:1}}
+  @keyframes rankinFadeOut{to{opacity:0}}
+  .rankin-card{position:relative;text-align:center;animation:rankinPop .5s cubic-bezier(.2,1.4,.4,1);}
+  @keyframes rankinPop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+  .rankin-rays{position:absolute;left:50%;top:46%;width:200vmax;height:200vmax;transform:translate(-50%,-50%) scale(.2);
+    opacity:0;pointer-events:none;
+    background:repeating-conic-gradient(from 0deg,rgba(255,225,140,.16) 0deg 7deg,rgba(255,225,140,0) 7deg 14deg);}
+  .rankin-ov.reveal .rankin-rays{animation:rankinRays .6s ease-out forwards,rankinSpin 14s linear infinite .6s;}
+  @keyframes rankinRays{to{opacity:.9;transform:translate(-50%,-50%) scale(1)}}
+  @keyframes rankinSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+  .rankin-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;}
+  .rankin-ov.reveal .rankin-flash{animation:rankinFlash .5s ease-out;}
+  @keyframes rankinFlash{0%{opacity:.85}100%{opacity:0}}
+  .rankin-sub{font-size:15px;letter-spacing:.5em;color:#ffd76e;font-weight:800;margin-bottom:4px;text-shadow:0 0 12px rgba(255,210,90,.7);}
+  .rankin-ov.reveal .rankin-sub{animation:rankinShine 1.3s ease-in-out infinite;}
+  .rankin-rank{position:relative;display:flex;align-items:baseline;justify-content:center;gap:6px;line-height:1;max-width:96vw;}
+  .rankin-ring{position:absolute;left:50%;top:50%;width:30px;height:30px;border-radius:50%;
+    border:4px solid rgba(255,220,120,.9);transform:translate(-50%,-50%) scale(0);opacity:0;}
+  .rankin-ov.reveal .rankin-ring{animation:rankinRing .7s ease-out forwards;}
+  @keyframes rankinRing{0%{opacity:.9;transform:translate(-50%,-50%) scale(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(14)}}
+  .rankin-num{font-size:min(24vw,150px);font-weight:900;font-style:italic;font-variant-numeric:tabular-nums;
+    white-space:nowrap;padding:0 .06em;line-height:1;
+    background:linear-gradient(180deg,#fff7cf 0%,#ffd24d 38%,#ff9a3c 72%,#ff5d6c 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 4px 18px rgba(255,160,60,.6));}
+  .rankin-ov.rolling .rankin-num{animation:rankinThrob .25s ease-in-out infinite;}
+  @keyframes rankinThrob{0%,100%{transform:scale(.94)}50%{transform:scale(1.04)}}
+  .rankin-ov.reveal .rankin-num{animation:rankinSlam .55s cubic-bezier(.18,1.6,.4,1) both;}
+  @keyframes rankinSlam{0%{transform:scale(2.4);opacity:0;filter:blur(6px) drop-shadow(0 4px 18px rgba(255,160,60,.6))}55%{transform:scale(.86);opacity:1;filter:blur(0) drop-shadow(0 4px 18px rgba(255,160,60,.6))}100%{transform:scale(1)}}
+  .rankin-pos{font-size:11vw;font-weight:900;color:#ffe07a;text-shadow:0 0 14px rgba(255,200,90,.8);}
+  .rankin-msg{margin-top:2px;font-size:8vw;font-weight:900;color:#fff;letter-spacing:.06em;opacity:0;
+    text-shadow:0 0 16px rgba(255,210,120,.9),0 2px 0 rgba(0,0,0,.35);}
+  .rankin-msg b{color:#ffd24d;}
+  .rankin-ov.reveal .rankin-msg{animation:rankinMsgIn .4s ease-out .25s forwards,rankinShine 1.4s ease-in-out infinite .65s;}
+  @keyframes rankinMsgIn{from{opacity:0;transform:translateY(10px) scale(.9)}to{opacity:1;transform:none}}
+  @keyframes rankinShine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.5)}}
+  .rankin-total{margin-top:12px;font-size:14px;color:#bfffd6;opacity:0;letter-spacing:.1em;}
+  .rankin-ov.reveal .rankin-total{animation:rankinMsgIn .4s ease-out .45s forwards;}
+  .rankin-conf{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+  .rankin-conf i{position:absolute;top:-16px;width:10px;height:15px;border-radius:2px;opacity:.96;animation:rankinConf 2.6s linear forwards;}
+  @keyframes rankinConf{0%{top:-16px}100%{top:112%}}
+  .rankin-fws{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+  .rankin-fw{position:absolute;width:0;height:0;}
+  .rankin-fw i{position:absolute;left:0;top:0;width:7px;height:7px;border-radius:50%;opacity:1;
+    box-shadow:0 0 8px currentColor;animation:rankinFw .9s ease-out forwards;}
+  @keyframes rankinFw{0%{opacity:1;transform:translate(0,0) scale(1.1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)}}
+  .rankin-cocco{position:absolute;left:50%;top:-16vh;width:min(20vw,116px);height:auto;transform:translateX(-50%) scale(.3);opacity:0;
+    pointer-events:none;filter:drop-shadow(0 6px 16px rgba(255,200,90,.6));}
+  .rankin-ov.reveal .rankin-cocco{animation:coccoIn .5s cubic-bezier(.2,1.6,.4,1) .12s forwards,coccoBob 1s ease-in-out 1.1s infinite;}
+  @keyframes coccoIn{from{opacity:0;transform:translateX(-50%) translateY(24px) scale(.3)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+  @keyframes coccoBob{0%,100%{transform:translateX(-50%) translateY(0) rotate(-5deg)}50%{transform:translateX(-50%) translateY(-14px) rotate(5deg)}}
+  .rankin-ov.t-champ{background:radial-gradient(ellipse at 50% 44%,rgba(95,62,8,.72),rgba(10,4,0,.9));}
+  .rankin-ov.t-champ .rankin-rays{background:repeating-conic-gradient(from 0deg,rgba(255,218,100,.26) 0deg 6deg,rgba(255,218,100,0) 6deg 12deg);}
+  .rankin-ov.t-champ .rankin-num{background:linear-gradient(180deg,#fffbe0 0%,#ffe680 32%,#ffc83c 62%,#ff9a1c 100%);
+    -webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 4px 26px rgba(255,200,40,.95));}
+  .rankin-ov.t-champ .rankin-sub{color:#ffe680;letter-spacing:.32em;font-size:17px;text-shadow:0 0 18px rgba(255,215,90,.95);}
+  .rankin-crown{font-size:min(20vw,120px);line-height:1;margin-bottom:-2vh;
+    filter:drop-shadow(0 0 26px rgba(255,215,80,.95));
+    animation:crownDrop .8s cubic-bezier(.2,1.5,.5,1) .15s both,crownFloat 1.6s ease-in-out 1s infinite;}
+  @keyframes crownDrop{from{transform:translateY(-70vh) rotate(-35deg) scale(1.6);opacity:0}
+    60%{transform:translateY(2vh) rotate(6deg) scale(.95);opacity:1}to{transform:translateY(0) rotate(0) scale(1)}}
+  @keyframes crownFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
+  .rankin-shine{position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(115deg,transparent 32%,rgba(255,246,200,.4) 50%,transparent 68%);
+    background-size:280% 100%;animation:shineSweep 1.5s ease-in-out .4s infinite;}
+  @keyframes shineSweep{0%{background-position:130% 0}100%{background-position:-130% 0}}
+  .rankin-ov.t-second .rankin-num{background:linear-gradient(180deg,#ffffff 0%,#e6ecf6 35%,#aebfd6 70%,#7e90ac 100%);
+    -webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 4px 20px rgba(200,220,255,.85));}
+  .rankin-ov.t-second .rankin-sub{color:#dfe9f6;text-shadow:0 0 14px rgba(200,220,255,.8);}
+  .rankin-ov.t-second .rankin-rays{background:repeating-conic-gradient(from 0deg,rgba(210,225,255,.15) 0deg 7deg,rgba(210,225,255,0) 7deg 14deg);}
+  .rankin-ov.t-third .rankin-num{background:linear-gradient(180deg,#ffe9cd 0%,#eeae72 40%,#cd7d3c 75%,#9c5822 100%);
+    -webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 4px 18px rgba(230,150,80,.85));}
+  .rankin-ov.t-third .rankin-sub{color:#ffd2a8;text-shadow:0 0 12px rgba(240,170,100,.8);}
+  .rankin-ov.t-miss{background:radial-gradient(ellipse at 50% 44%,rgba(16,40,28,.74),rgba(0,4,2,.88));}
+  .rankin-ov.t-miss .rankin-rays,.rankin-ov.t-miss .rankin-ring,.rankin-ov.t-miss .rankin-flash{display:none;}
+  .rankin-ov.t-miss .rankin-num{background:linear-gradient(180deg,#cfead8 0%,#8fc0a0 60%,#588c6a 100%);
+    -webkit-background-clip:text;background-clip:text;filter:none;animation-duration:.7s;}
+  .rankin-ov.t-miss .rankin-sub{color:#9fccb0;text-shadow:none;animation:none;}
+  .rankin-ov.t-miss .rankin-msg{text-shadow:0 0 10px rgba(140,200,160,.5);}
+  .rankin-ov.t-miss .rankin-cocco{filter:grayscale(.35) drop-shadow(0 6px 14px rgba(120,190,140,.45));}
+  .rankin-retry{margin-top:10px;font-size:16px;font-weight:900;color:#ffb35a;letter-spacing:.1em;opacity:0;
+    text-shadow:0 0 14px rgba(255,150,60,.9);animation:retryIn .5s ease-out .9s forwards,retryBurn 1.1s ease-in-out 1.5s infinite;}
+  @keyframes retryIn{from{opacity:0;transform:translateY(14px) scale(.8)}to{opacity:1;transform:none}}
+  @keyframes retryBurn{0%,100%{filter:brightness(1)}50%{filter:brightness(1.7)}}
 </style>
 </head>
 <body>
@@ -94,7 +224,14 @@
     <div class="desc">隊列で迫る <b>侵略者</b> を撃ち落とせ。<br>こっこちゃんが地上の最後の砲台だ。</div>
     <button class="btn" id="startBtn">あそぶ</button>
     <button class="btn ghost" id="howBtn">あそびかた</button>
+    <button class="btn ghost" id="rankBtn">🏆 世界ランキング</button>
     <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+  </div>
+
+  <div class="screen hidden" id="rankScreen">
+    <div class="ranktitle big">🏆 世界ランキング</div>
+    <ol class="ranklist" id="rankListTitle"><li class="rankempty">読み込み中…</li></ol>
+    <button class="btn" id="rankBack">もどる</button>
   </div>
 
   <div class="screen hidden" id="howScreen">
@@ -116,12 +253,33 @@
     <div class="stat2" id="statLine">ウェーブ 1 ／ 撃墜 0</div>
     <div class="nb" id="newBest">★ ハイスコア更新！ ★</div>
     <div class="score-final" style="font-size:11px;opacity:.75;margin-top:8px;">HI-SCORE <span id="bestLine" style="font-size:18px">0</span></div>
+    <div class="rankbox">
+      <div class="rankentry" id="rankEntry">
+        <button type="button" id="rankFlagBtn" class="rankflag" aria-label="国旗をえらぶ">🇯🇵</button>
+        <input id="rankName" maxlength="10" placeholder="なまえ" autocomplete="off" spellcheck="false">
+        <button class="btn small" id="rankSubmit">🏆 登録</button>
+      </div>
+      <div class="rankmsg" id="rankMsg"></div>
+      <div class="ranktitle">🏆 世界ランキング</div>
+      <ol class="ranklist" id="rankList"><li class="rankempty">…</li></ol>
+    </div>
     <div class="btn-row">
       <button class="btn" id="retryBtn">もう一度</button>
       <button class="btn ghost" id="shareBtn">スコアを共有</button>
     </div>
     <div class="hint">タップですぐ再挑戦</div>
     <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+  </div>
+
+  <!-- 国旗ピッカー -->
+  <div id="flagPicker" class="flagpicker hidden">
+    <div class="flagpicker-inner">
+      <div class="flagpicker-title">国旗をえらぶ</div>
+      <div class="flaggrid" id="flagGridMajor"></div>
+      <button type="button" class="btn sub" id="flagMoreBtn">🏳️ その他をすべて表示</button>
+      <div class="flaggrid all hidden" id="flagGridAll"></div>
+      <button type="button" class="btn small" id="flagPickerClose">とじる</button>
+    </div>
   </div>
 </div>
 <div id="crt"></div>
@@ -667,7 +825,7 @@ window.addEventListener('keyup',e=>{
 // ---- screens / buttons ----
 function $(id){ return document.getElementById(id); }
 function showScreen(id){
-  ['titleScreen','howScreen','overScreen'].forEach(s=>{ const el=$(s); if(el){ if(s===id) el.classList.remove('hidden'); else el.classList.add('hidden'); } });
+  ['titleScreen','howScreen','overScreen','rankScreen'].forEach(s=>{ const el=$(s); if(el){ if(s===id) el.classList.remove('hidden'); else el.classList.add('hidden'); } });
 }
 function showOver(){
   const fs=$('finalScore'); if(fs) fs.textContent=G.score;
@@ -676,12 +834,15 @@ function showOver(){
   const nb=$('newBest'); if(nb) nb.style.opacity=G.newBest?'1':'0';
   const ot=$('overTitle'); if(ot) ot.textContent='GAME OVER';
   showScreen('overScreen');
+  try{ if(window.CoccoRank) window.CoccoRank.onGameOver(G.score,G.wave); }catch(e){}   /* ランキング読み込み＋登録準備 */
 }
 (function bindUI(){
   const sb=$('startBtn'); if(sb) sb.onclick=()=>start();
   const rb=$('retryBtn'); if(rb) rb.onclick=()=>start();
   const hb=$('howBtn'); if(hb) hb.onclick=()=>showScreen('howScreen');
   const hbk=$('howBack'); if(hbk) hbk.onclick=()=>showScreen('titleScreen');
+  const rkb=$('rankBtn'); if(rkb) rkb.onclick=()=>{ showScreen('rankScreen'); try{ if(window.CoccoRank) window.CoccoRank.onShowRanking(); }catch(e){} };
+  const rkbk=$('rankBack'); if(rkbk) rkbk.onclick=()=>showScreen('titleScreen');
   const mb=$('muteBtn'); if(mb) mb.onclick=()=>{ audioOn=!audioOn; mb.textContent=audioOn?'🔊':'🔇'; mb.classList.toggle('off',!audioOn); };
   const fb=$('fsBtn'); if(fb) fb.onclick=()=>{ try{ if(!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }catch(e){} };
   const shb=$('shareBtn'); if(shb) shb.onclick=()=>{
@@ -749,6 +910,206 @@ window.__invaders={
     try{ if(navigator.serviceWorker&&navigator.serviceWorker.getRegistrations) tasks.push(navigator.serviceWorker.getRegistrations().then(function(rs){return Promise.all(rs.map(function(r){return r.unregister();}));})); }catch(e){}
     if(tasks.length){ Promise.all(tasks).then(go).catch(go); setTimeout(go,1500); } else go();
   });
+})();
+</script>
+
+<script>
+/* ===== 世界ランキング（Firebase Realtime Database・invaders専用ノード rankings/invaders） ===== */
+(function(){
+  if(typeof firebase==='undefined') return;                 // SDK未読込（オフライン等）なら無効化してゲームは続行
+  try{ if(!firebase.apps||!firebase.apps.length) firebase.initializeApp({
+    apiKey:"AIzaSyBw5-6oAuOmgYC_7G27Z0Qavwn78ZrkhdQ",
+    authDomain:"chikumonogatarikiroku.firebaseapp.com",
+    databaseURL:"https://chikumonogatarikiroku-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:"chikumonogatarikiroku",
+    storageBucket:"chikumonogatarikiroku.firebasestorage.app",
+    messagingSenderId:"725202431277",
+    appId:"1:725202431277:web:c49c911cfcae26d63ab7a4"
+  }); }catch(e){}
+  var db; try{ db=firebase.database(); }catch(e){ return; }
+  var ref=db.ref('rankings/invaders');
+  var SCORE_CAP=9999999;   // 現実的上限（異常値登録を弾く・ルールでも同値を強制）
+  var NAME_KEY='coccoInvadersName', UID_KEY='coccoInvadersUid', FLAG_KEY='coccoInvadersFlag';
+  var selFlag='🇯🇵';
+  function flagOf(cc){ return cc.replace(/./g,function(c){ return String.fromCodePoint(0x1F1E6+c.charCodeAt(0)-65); }); }
+  var MAJOR=('JP US GB CA AU KR CN TW HK TH VN PH ID MY SG IN FR DE IT ES PT NL SE BR MX AR RU UA TR EG ZA SA NZ').split(' ').map(flagOf);
+  var ALL_CC=('AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW').split(' ');
+  var ALL=['🏳️','🏴','🏁','🇺🇳','🇪🇺'].concat(ALL_CC.map(flagOf));
+  var $=function(id){return document.getElementById(id);};
+  var pending=null, lastSubmitTs=0;
+  var myUid=null, authReady=false, authDone=false;
+  function ensureAuth(){ if(!firebase.auth){ authDone=true; return; } var a; try{ a=firebase.auth(); }catch(e){ authDone=true; return; }
+    a.onAuthStateChanged(function(u){ if(u){ myUid=u.uid; authReady=true; authDone=true; } });
+    if(!a.currentUser){ a.signInAnonymously().catch(function(){ authDone=true; }); } }
+  ensureAuth();
+  function localUid(){ var u; try{ u=localStorage.getItem(UID_KEY); }catch(e){}
+    if(!u){ u='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); try{ localStorage.setItem(UID_KEY,u); }catch(e){} } return u; }
+  function uid(){ return myUid || localUid(); }
+  function esc(s){ return String(s).replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; }); }
+  function fmtName(s){ s=(s||'').replace(/\s+/g,' ').trim().slice(0,10); return s||'ななし'; }
+  function renderInto(elId, rows){
+    var el=$(elId); if(!el) return;
+    if(!rows||!rows.length){ el.innerHTML='<li class="rankempty">まだ記録がありません</li>'; return; }
+    el.innerHTML=rows.map(function(r,i){
+      var medal=['🥇','🥈','🥉'][i]||((i+1)+'.');
+      var fl=r.flag?esc(r.flag)+' ':'';
+      var w=(r.wave!=null)?' <span style="opacity:.55;font-size:11px">W'+r.wave+'</span>':'';
+      return '<li><span class="rk">'+medal+'</span><span class="rn">'+fl+esc(r.name)+w+'</span><span class="rs">'+Number(r.score).toLocaleString()+'</span></li>';
+    }).join('');
+  }
+  function loadTop(targets, after){
+    ref.orderByChild('score').limitToLast(10000).once('value').then(function(snap){
+      var rows=[]; snap.forEach(function(c){ var v=c.val()||{}; rows.push({uid:c.key,name:v.name,flag:v.flag,score:+v.score||0,wave:(v.wave!=null?+v.wave:null)}); });
+      rows.sort(function(a,b){return b.score-a.score;});
+      targets.forEach(function(t){ renderInto(t,rows); });
+      if(after) after(rows);
+    }).catch(function(e){ targets.forEach(function(t){ var el=$(t); if(el) el.innerHTML='<li class="rankempty">読み込めませんでした</li>'; }); });
+  }
+  function vib(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+  function celebrate(rank, total){
+    var old=document.getElementById('rankinOv'); if(old&&old.parentNode) old.parentNode.removeChild(old);
+    var ov=document.createElement('div'); ov.id='rankinOv'; ov.className='rankin-ov';
+    ov.innerHTML='<div class="rankin-flash"></div><div class="rankin-rays"></div><div class="rankin-fws"></div><div class="rankin-conf"></div>'
+      +'<div class="rankin-card">'
+      +'<img class="rankin-cocco" src="/chikumo.svg" alt="">'
+      +'<div class="rankin-sub" id="riSub">結果発表</div>'
+      +'<div class="rankin-rank"><span class="rankin-ring"></span><span class="rankin-num" id="riNum">?</span><span class="rankin-pos">位</span></div>'
+      +'<div class="rankin-msg" id="riMsg">…</div>'
+      +'<div class="rankin-total" id="riTot"></div></div>';
+    document.body.appendChild(ov);
+    setTimeout(function(){ if(ov.parentNode){ ov.classList.add('out');
+      setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },450); } }, 15000);
+    var numEl=ov.querySelector('#riNum'), subEl=ov.querySelector('#riSub'),
+        msgEl=ov.querySelector('#riMsg'), totEl=ov.querySelector('#riTot'), confEl=ov.querySelector('.rankin-conf'),
+        fwsEl=ov.querySelector('.rankin-fws');
+    var killed=false, revealed=false, fwTimer=0;
+    function firework(){ var fw=document.createElement('div'); fw.className='rankin-fw';
+      fw.style.left=(12+Math.random()*76)+'%'; fw.style.top=(12+Math.random()*44)+'%';
+      var hue=Math.floor(Math.random()*360), n=14, html='';
+      for(var i=0;i<n;i++){ var a=(i/n)*6.283, d=44+Math.random()*46;
+        html+='<i style="--dx:'+Math.round(Math.cos(a)*d)+'px;--dy:'+Math.round(Math.sin(a)*d)+'px;background:hsl('+(hue+Math.floor(Math.random()*50))+',100%,64%)"></i>'; }
+      fw.innerHTML=html; fwsEl.appendChild(fw); setTimeout(function(){ if(fw.parentNode) fw.parentNode.removeChild(fw); },950); }
+    var kill=function(){ if(killed)return; killed=true; if(fwTimer) clearInterval(fwTimer); ov.classList.add('out'); setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },420); };
+    var roll=setInterval(function(){ numEl.textContent=Math.floor(Math.random()*Math.max(total,9))+1; }, 68);
+    var revealT;
+    function doReveal(){
+      if(revealed)return; revealed=true; clearInterval(roll); clearTimeout(revealT);
+      setTimeout(kill, rank===1?8500 : rank===2?6300 : rank===3?5700 : rank<=10?4600 : 4300);
+      try{
+      numEl.textContent=rank;
+      var dg=String(rank).length;
+      numEl.style.fontSize = dg<=1?'min(34vw,200px)' : dg===2?'min(26vw,156px)' : dg===3?'min(20vw,118px)' : 'min(15vw,92px)';
+      var tier = rank===1?'champ' : rank===2?'second' : rank===3?'third' : rank<=10?'top10' : 'miss';
+      ov.classList.add('reveal','t-'+tier);
+      if(tier==='champ'){
+        var card=ov.querySelector('.rankin-card');
+        if(card&&card.insertAdjacentHTML){
+          card.insertAdjacentHTML('afterbegin','<div class="rankin-crown">👑</div>');
+          ov.insertAdjacentHTML('beforeend','<div class="rankin-shine"></div>');
+        }
+        subEl.textContent='👑 WORLD CHAMPION 👑';
+        msgEl.innerHTML='<b>優勝！！</b>世界の頂点だ！';
+      }else if(tier==='second'){
+        subEl.textContent='🥈 SILVER 🥈';
+        msgEl.innerHTML='<b>準優勝！</b>頂点まであと一歩！';
+      }else if(tier==='third'){
+        subEl.textContent='🥉 BRONZE 🥉';
+        msgEl.innerHTML='<b>表彰台！</b>3位入賞！';
+      }else if(tier==='top10'){
+        subEl.textContent='★ おめでとう ★';
+        msgEl.innerHTML='<b>TOP10入り！</b>ランクイン！';
+      }else{
+        subEl.textContent='— RESULT —';
+        msgEl.innerHTML='😢 TOP10 ならず…';
+        var card2=ov.querySelector('.rankin-card');
+        if(card2&&card2.insertAdjacentHTML)
+          card2.insertAdjacentHTML('beforeend','<div class="rankin-retry">🔥 つぎこそ TOP10 だ！！</div>');
+      }
+      if(total) totEl.textContent = tier==='miss'
+        ? '全 '+total+' 人中 ／ TOP10まで あと '+(rank-10)+'人'
+        : '全 '+total+' 人中';
+      var pal = tier==='champ'?['#ffd24d','#ffe680','#fff7cf','#ffb31c','#ff9a3c','#fff']
+        : tier==='second'?['#ffffff','#e6ecf6','#b8c6dd','#9fb0c8','#7ce0ff']
+        : tier==='third'?['#ffd2a0','#eeae72','#cd7d3c','#ffb86e','#fff']
+        : tier==='miss'?['#7aa68a','#5a8a6a','#9fc8b0']
+        : ['#7CFFB0','#ffd24d','#7ce0ff','#b15bff','#9affc0','#ff9a3c','#fff7cf'];
+      var N = tier==='champ'?120 : tier==='second'?72 : tier==='third'?58 : tier==='miss'?12 : 48;
+      var html='';
+      for(var i=0;i<N;i++){ html+='<i style="left:'+(Math.random()*100)+'%;background:'+pal[i%pal.length]
+        +';animation-delay:'+(Math.random()*0.35).toFixed(2)+'s;animation-duration:'+((tier==='miss'?3.2:2.0)+Math.random()*1.6).toFixed(2)
+        +'s;transform:rotate('+Math.floor(Math.random()*360)+'deg)"></i>'; }
+      confEl.innerHTML=html;
+      if(tier!=='miss'){
+        firework();
+        fwTimer=setInterval(firework, tier==='champ'?190 : tier==='second'?330 : tier==='third'?430 : 420);
+      }
+      vib(tier==='champ'?[0,60,40,60,40,160] : tier==='miss'?[0,30] : [0,40,40,90]);
+      }catch(e){ kill(); }
+    }
+    vib(30);
+    ov.classList.add('rolling');
+    revealT=setTimeout(doReveal, 1050);
+    ov.addEventListener('click', function(){ try{ if(!revealed){ doReveal(); return; } }catch(e){} kill(); });
+  }
+  function celebrateMine(rows){
+    var my=uid(), idx=-1; for(var i=0;i<rows.length;i++){ if(rows[i].uid===my){ idx=i; break; } }
+    if(idx>=0) celebrate(idx+1, rows.length);
+  }
+  function submit(){
+    if(!pending) return;
+    var msg=$('rankMsg'), btn=$('rankSubmit');
+    if(!myUid && !authDone){ if(msg) msg.textContent='接続中…数秒後にもう一度押してね'; ensureAuth(); return; }
+    var now=Date.now(); if(now-lastSubmitTs<1500) return; lastSubmitTs=now;
+    var name=fmtName($('rankName')&&$('rankName').value);
+    var flag=selFlag||'🇯🇵';
+    try{ localStorage.setItem(NAME_KEY,name); localStorage.setItem(FLAG_KEY,flag); }catch(e){}
+    var score=Math.max(0,Math.min(SCORE_CAP,Math.floor(pending.score||0)));
+    var wave=Math.max(0,Math.min(99999,Math.floor(pending.wave||0)));
+    if(btn) btn.disabled=true;
+    // 1端末1枠・自己ベストのみ保持
+    ref.child(uid()).transaction(function(cur){
+      if(cur && (cur.score||0)>=score){ cur.name=name; cur.flag=flag; return cur; }
+      return { name:name, flag:flag, score:score, wave:wave, ts:now };
+    }).then(function(res){
+      var kept = res && res.snapshot && (res.snapshot.val()||{}).score>score;
+      if(msg){ msg.textContent = kept ? '自己ベスト('+Number((res.snapshot.val()||{}).score).toLocaleString()+')を表示中🏆' : '登録しました！🏆'; }
+      pending=null; loadTop(['rankList'], celebrateMine);
+    }).catch(function(e){ if(msg){ msg.textContent='登録に失敗しました（接続を確認）'; } if(btn) btn.disabled=false; });
+  }
+  function onGameOver(score, wave){
+    pending={score:score, wave:wave};
+    var msg=$('rankMsg'); if(msg) msg.textContent='';
+    var btn=$('rankSubmit'); if(btn) btn.disabled=false;
+    var nm=$('rankName'); if(nm){ try{ nm.value=localStorage.getItem(NAME_KEY)||''; }catch(e){} }
+    setFlag(selFlag);
+    loadTop(['rankList']);
+    var entry=$('rankEntry'); var sc=Math.max(0,Math.floor(score||0));
+    if(!uid()){ if(entry) entry.style.display=''; if(msg) msg.textContent='なまえを入れて登録できます🏆'; return; }
+    ref.child(uid()).once('value').then(function(snap){
+      var best = snap.exists() ? (+( (snap.val()||{}).score )||0) : -1;
+      var canReg = (best<0) || (sc>best);
+      if(entry) entry.style.display = canReg ? '' : 'none';
+      if(btn) btn.disabled = !canReg;
+      if(msg) msg.textContent = canReg ? (best<0?'初登録できます！🏆':'自己ベスト更新！登録できます🎉')
+                                       : 'ハイスコア '+best.toLocaleString()+'（今回は更新ならず）';
+    }).catch(function(){ if(entry) entry.style.display=''; });
+  }
+  function setFlag(f){ selFlag=f; var b=$('rankFlagBtn'); if(b) b.textContent=f; try{ localStorage.setItem(FLAG_KEY,f); }catch(e){} }
+  function buildGrid(elId, flags){ var el=$(elId); if(!el||el._built) return; el._built=true;
+    el.innerHTML=flags.map(function(f){ return '<button type="button" class="flagopt'+(f===selFlag?' sel':'')+'" data-f="'+f+'">'+f+'</button>'; }).join('');
+    el.addEventListener('click', function(e){ var t=e.target&&e.target.closest?e.target.closest('.flagopt'):null; if(!t)return; setFlag(t.getAttribute('data-f')); closePicker(); }); }
+  function openPicker(){ buildGrid('flagGridMajor', MAJOR); var p=$('flagPicker'); if(p) p.classList.remove('hidden'); }
+  function closePicker(){ var p=$('flagPicker'); if(p) p.classList.add('hidden'); }
+  function showAllFlags(){ buildGrid('flagGridAll', ALL); var g=$('flagGridAll'); if(g) g.classList.remove('hidden'); var b=$('flagMoreBtn'); if(b) b.classList.add('hidden'); }
+  (function(){ try{ var sv=localStorage.getItem(FLAG_KEY); if(sv) selFlag=sv; }catch(e){} setFlag(selFlag);
+    var fb=$('rankFlagBtn'); if(fb) fb.addEventListener('click', openPicker);
+    var mb=$('flagMoreBtn'); if(mb) mb.addEventListener('click', showAllFlags);
+    var pc=$('flagPickerClose'); if(pc) pc.addEventListener('click', closePicker);
+    var pov=$('flagPicker'); if(pov) pov.addEventListener('click', function(e){ if(e.target===pov) closePicker(); });
+  })();
+  var sb=$('rankSubmit'); if(sb) sb.addEventListener('click', submit);
+  var ni=$('rankName'); if(ni) ni.addEventListener('keydown', function(e){ if(e.key==='Enter') submit(); });
+  window.CoccoRank={ onGameOver:onGameOver, onShowRanking:function(){ loadTop(['rankListTitle']); }, submit:submit, celebrate:celebrate };
 })();
 </script>
 </body>
