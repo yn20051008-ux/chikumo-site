@@ -606,16 +606,29 @@ function drawCar(sx,y,w){
 }
 function drawObst(sx,o){
   ctx.save();
+  ctx.lineCap='round'; ctx.lineJoin='round';
   if(o.type==='panto'){ // パンタグラフ
-    ctx.strokeStyle='#1d2638'; ctx.lineWidth=4; ctx.lineCap='round';
+    // 暗いハロー（明るい空でも輪郭が出る）
+    ctx.strokeStyle='rgba(12,15,26,.85)'; ctx.lineWidth=8;
     ctx.beginPath(); ctx.moveTo(sx+4,o.y); ctx.lineTo(sx+o.w/2,o.y-o.h+6); ctx.lineTo(sx+o.w-4,o.y); ctx.stroke();
-    ctx.strokeStyle='#3d4a66'; ctx.lineWidth=5;
     ctx.beginPath(); ctx.moveTo(sx-6,o.y-o.h+4); ctx.lineTo(sx+o.w+6,o.y-o.h+4); ctx.stroke();
-    ctx.fillStyle='#ffd24d'; ctx.beginPath(); ctx.arc(sx+o.w/2,o.y-o.h+4,3.5,0,TAU); ctx.fill();
+    // 明るい本体（暗い空でも沈まない）
+    ctx.strokeStyle='#c7d2ea'; ctx.lineWidth=4;
+    ctx.beginPath(); ctx.moveTo(sx+4,o.y); ctx.lineTo(sx+o.w/2,o.y-o.h+6); ctx.lineTo(sx+o.w-4,o.y); ctx.stroke();
+    ctx.strokeStyle='#9fb0d0'; ctx.lineWidth=5;
+    ctx.beginPath(); ctx.moveTo(sx-6,o.y-o.h+4); ctx.lineTo(sx+o.w+6,o.y-o.h+4); ctx.stroke();
+    // 接点の警告ランプ
+    ctx.fillStyle='#ffd24d'; ctx.shadowColor='#ffae3d'; ctx.shadowBlur=8;
+    ctx.beginPath(); ctx.arc(sx+o.w/2,o.y-o.h+4,4,0,TAU); ctx.fill(); ctx.shadowBlur=0;
   }else{ // ダクト
-    ctx.fillStyle='#46506b'; rrect(sx,o.y-o.h,o.w,o.h,5); ctx.fill();
-    ctx.fillStyle='rgba(255,255,255,.15)'; ctx.fillRect(sx,o.y-o.h,o.w,4);
-    ctx.fillStyle='#2c3346'; for(let i=1;i<4;i++) ctx.fillRect(sx+4,o.y-o.h+6+i*8,o.w-8,3);
+    // 暗いハロー
+    ctx.fillStyle='rgba(12,15,26,.85)'; rrect(sx-3,o.y-o.h-3,o.w+6,o.h+5,7); ctx.fill();
+    // 明るい本体
+    ctx.fillStyle='#7e8aac'; rrect(sx,o.y-o.h,o.w,o.h,5); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,.35)'; ctx.fillRect(sx,o.y-o.h,o.w,4);
+    // 警告ストライプ
+    ctx.fillStyle='#ffce4d'; ctx.fillRect(sx+3,o.y-o.h+6,o.w-6,3);
+    ctx.fillStyle='#3a4258'; for(let i=1;i<4;i++) ctx.fillRect(sx+4,o.y-o.h+6+i*8,o.w-8,3);
   }
   ctx.restore();
 }
