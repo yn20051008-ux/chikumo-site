@@ -210,7 +210,7 @@
     <img class="hero" src="/chikumo.svg" alt="こっこちゃん">
     <div class="logo">COCCO RUSH</div>
     <div class="sub">通勤特急コッコラッシュ</div>
-    <div class="desc">朝の3分、<b>指1本</b>。<br>特急の屋根を駆けて <b>たまご</b> を集めろ。<br>ゲージMAXで <b>フィーバー</b>！</div>
+    <div class="desc">朝の3分、<b>指1本</b>。<br>特急の屋根を駆けて <b>たまご</b> を集めろ。<br><b style="color:#ff8aa6;">❤️体力3つ</b> ＆ <b style="color:#7fd8ff;">🫧酸素ゲージ</b>でやりくり。<br>ゲージMAXで <b>フィーバー</b>！</div>
     <button class="btn" id="startBtn">しゅっきん</button>
     <button class="btn ghost" id="howBtn">あそびかた</button>
     <button class="btn ghost" id="rankBtn">🏆 世界ランキング</button>
@@ -228,8 +228,10 @@
     <div class="desc" style="max-width:380px;text-align:left;">
       ◆ 画面を <b>タップ</b> でジャンプ。空中でもう一度タップで <b>2段ジャンプ</b>（くるっと回る！）。<br><br>
       ◆ <b>長押し</b> するとふわっと高く跳べる。車両のすき間と障害物をかわそう。<br><br>
+      ◆ <b style="color:#7fd8ff;">🫧酸素ゲージ</b> ── 2段ジャンプと長押しふわっとは <b>酸素</b> を使う。屋根を走っているあいだに回復、<b>フィーバー</b>中は満タン。酸素ぎれだと2段ジャンプできないので気をつけて！<br><br>
+      ◆ <b style="color:#ff8aa6;">❤️体力は3つ</b> ── 障害物に当たったり 落ちたりすると <b>1つ減る</b>（少しのあいだ点滅して無敵）。落ちても<b>🚁レスキュー</b>で次の屋根へ。体力が <b>0</b> でしゅっきん失敗。<br><br>
       ◆ <b>たまご</b> を連続で集めるとコンボ＆ゲージUP。MAXで <b>フィーバー</b>！ 無敵で障害物を粉砕、たまご2倍。<br><br>
-      ◆ 落ちたり障害物に当たったら出勤失敗。今日はどこまで行ける？
+      ◆ ❤️を大事に、酸素をやりくりして、今日はどこまで行ける？
     </div>
     <button class="btn" id="howBack">もどる</button>
   </div>
@@ -342,6 +344,8 @@ const Sound=(function(){
       tone(sc[Math.min(n,10)]*2,0.05,'sine',0.06); },
     feverGo(){ [523,659,784,1047,1319,1568].forEach((f,i)=>setTimeout(()=>tone(f,0.16,'square',0.22),i*70)); noise(.4,.2,7000); },
     smash(){ noise(.18,.4,2800); tone(160,0.18,'sawtooth',0.25,60); },
+    hurt(){ noise(.18,.35,1400); tone(200,0.18,'sawtooth',0.22,70); },
+    nope(){ tone(190,0.12,'square',0.12,120); },
     die(){ noise(.5,.6,1200); tone(220,0.5,'sawtooth',0.3,40); },
     best(){ [523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>tone(f,0.15,'sine',0.3),i*90)); },
     cheer(lv){ const base=[523,587,659,784,880,1047]; for(let i=0;i<4+Math.min(lv,4);i++) setTimeout(()=>tone(base[i%base.length]*(i<6?1:2),0.14,'sine',0.28),i*60);
@@ -357,9 +361,14 @@ const AR=298/390;
 const G={ state:'title', score:0, best:0, dist:0, eggs:0, combo:0, comboT:0, maxCombo:0,
   spd:0, time:0, py:0, vy:0, grounded:false, airJumps:0, coyote:0, buffer:0, holding:false,
   flip:0, sx:1, sy:1, gauge:0, fever:0, feverCount:0, shake:0, flash:0, flashCol:'255,255,255',
+  maxHp:3, hp:3, invul:0, o2:1, maxO2:1,
   slow:1, newBest:false, deadT:0, runPhase:0, debugAuto:false };
 const PX=()=>W*0.30;           // 画面上の自機x
 const HW=15, HH=24;            // 当たり判定半身
+/* 🫧酸素ルール（島ぐらし準拠）：空中アクションで消費・屋根を走ると回復・フィーバーで満タン */
+const O2_JUMP=0.34;            // 2段ジャンプ1回の酸素コスト
+const O2_FLOAT=0.5;            // 長押しふわっと中の酸素消費/秒
+const O2_REGEN=0.6;            // 屋根を走っているときの酸素回復/秒
 let segs=[], obst=[], eggsA=[], parts=[], floats=[], trail=[], clouds=[], poles=[], cityA=[], cityB=[];
 let camX=0, genX=0, baseY=0;
 
@@ -404,6 +413,7 @@ function newGame(){
   camX=0; genX=-300;
   Object.assign(G,{state:'play',score:0,dist:0,eggs:0,combo:0,comboT:0,maxCombo:0,
     spd:300,time:0,vy:0,grounded:true,airJumps:0,coyote:0,buffer:0,holding:false,deathBy:'',
+    maxHp:3,hp:3,invul:0,o2:1,maxO2:1,
     flip:0,sx:1,sy:1,gauge:0,fever:0,feverCount:0,shake:0,flash:0,slow:1,newBest:false,deadT:0,runPhase:0,stIdx:0});
   segs.push({x:-300,w:900,y:baseY}); genX=600; G.py=baseY;
   genWorld(); hideScreens();
@@ -415,11 +425,16 @@ function tryJump(){
   if(G.grounded||G.coyote>0){
     G.vy=-860; G.grounded=false; G.coyote=0; G.airJumps=1;
     G.sx=0.78; G.sy=1.24; Sound.jump(); dust(6);
-  }else if(G.airJumps>0){
+  }else if(G.airJumps>0 && G.o2>=O2_JUMP){
+    G.o2=Math.max(0,G.o2-O2_JUMP);            // 🫧2段ジャンプは酸素を使う
     G.airJumps--; G.vy=-800; G.flip=0.001;
     Sound.flip();
-    for(let i=0;i<10;i++){ const a=rnd(0,TAU); parts.push({x:PX(),y:G.py-HH,vx:Math.cos(a)*3,vy:Math.sin(a)*3,life:.4,max:.4,r:rnd(2,4),col:'255,225,120'}); }
-    parts.push({x:PX(),y:G.py-HH,vx:0,vy:0,life:.3,max:.3,r:40,ring:1,col:'255,225,120'});
+    for(let i=0;i<10;i++){ const a=rnd(0,TAU); parts.push({x:PX(),y:G.py-HH,vx:Math.cos(a)*3,vy:Math.sin(a)*3,life:.4,max:.4,r:rnd(2,4),col:'140,220,255'}); }
+    parts.push({x:PX(),y:G.py-HH,vx:0,vy:0,life:.3,max:.3,r:40,ring:1,col:'140,220,255'});
+  }else if(G.airJumps>0){                      // 酸素ぎれ→2段ジャンプできない
+    if(!G._o2warn||G.time-G._o2warn>1){ G._o2warn=G.time; Sound.nope();
+      floats.push({t:'🫁 酸素ぎれ！',x:PX(),y:G.py-HH*2-6,col:'#9fd8ff',life:.7,max:.7,size:15}); }
+    G.buffer=0.12;
   }else{ G.buffer=0.12; }
 }
 function dust(n){ for(let i=0;i<n;i++) parts.push({x:PX()+rnd(-12,8),y:G.py,vx:rnd(-3,-1),vy:rnd(-2,0.4),life:rnd(.25,.5),max:.5,r:rnd(2,4.5),col:'200,200,215'}); }
@@ -472,6 +487,7 @@ function hexToRgb(h){ h=h.replace('#',''); const v=parseInt(h,16); return ((v>>1
 /* ===== Update ===== */
 function update(dt){
   G.time+=dt;
+  if(G.invul>0) G.invul=Math.max(0,G.invul-dt);   // 被弾後の無敵（点滅）
   const fv=G.fever>0;
   G.spd=Math.min(300+G.time*9,760)*(fv?1.18:1);
   camX+=G.spd*dt; G.dist+=G.spd*dt;
@@ -480,8 +496,10 @@ function update(dt){
   genWorld();
   const wx=camX+PX();
 
-  // 物理（長押しでふわっと＝上昇中は重力弱）
-  const grav=(G.holding&&G.vy<0)?1430:2600;
+  // 物理（長押しでふわっと＝上昇中は重力弱。🫧酸素がある間だけふわっと＝酸素を消費）
+  const floating=(G.holding&&G.vy<0&&G.o2>0);
+  if(floating) G.o2=Math.max(0,G.o2-O2_FLOAT*dt);
+  const grav=floating?1430:2600;
   G.vy=Math.min(G.vy+grav*dt,1500);
   G.py+=G.vy*dt;
   if(G.coyote>0)G.coyote-=dt;
@@ -495,6 +513,7 @@ function update(dt){
       if(dy>=-26&&dy<=26){ G.py=seg.y; }          // 小さな段差は追従
       else if(dy>26){ G.grounded=false; G.coyote=0.09; }  // 低い屋根へ→落下開始
       else if(fv){ G.py=seg.y; }                  // フィーバー中は駆け上がる
+      else if(G.invul>0){ G.py=seg.y; }           // 被弾無敵中はすり抜けて屋根へ
       else { crash(); return; }                   // 高い車両の壁に激突
     }else if(G.vy>=0 && G.py>=seg.y && (G.py-G.vy*dt<=seg.y+26 || fv)){
       // 着地（フィーバー中は屋根に救済スナップ＝無敵感）
@@ -507,7 +526,7 @@ function update(dt){
         G.py=seg.y; G.vy=0; G.grounded=true; G.airJumps=0; G.flip=0;
         G.sx=1.22; G.sy=0.78; Sound.land(); dust(8);
         if(G.buffer>0){ G.buffer=0; tryJump(); }
-      } else { crash(); return; }
+      } else if(G.invul<=0){ crash(); return; }
     }
   }else{ if(G.grounded){ G.grounded=false; G.coyote=0.09; } }
 
@@ -515,7 +534,7 @@ function update(dt){
   if(fv && G.py>H*0.92 && G.vy>0){ G.vy=-1000;
     parts.push({x:PX(),y:G.py-HH,vx:0,vy:0,life:.4,max:.4,r:60,ring:1,col:'255,225,120'});
     Sound.flip(); }
-  else if(G.py>H+90){ die(); return; }
+  else if(G.py>H+90){ G.hp--; if(G.hp<=0){ G.deathBy='fall'; die(); return; } rescueAfterFall(); return; }
 
   // 障害物
   for(const o of obst){ if(o.dead)continue;
@@ -523,7 +542,7 @@ function update(dt){
     if(sx>-60&&sx<W+60){
       const px=PX(), pyc=G.py-HH;
       if(px+HW>sx && px-HW<sx+o.w && pyc+HH>o.y-o.h && pyc-HH<o.y){
-        if(fv){ o.dead=true; smash(o); } else { crash(); return; }
+        if(fv){ o.dead=true; smash(o); } else if(G.invul<=0){ crash(); return; }
       }
     }
   }
@@ -539,6 +558,10 @@ function update(dt){
 
   // コンボ減衰
   if(G.comboT>0){ G.comboT-=dt; if(G.comboT<=0)G.combo=0; }
+
+  // 🫧酸素：屋根を走っているあいだ回復（島ぐらしの「立ち止まる/歩くと回復」と同じ）。フィーバー中は満タン。
+  if(fv) G.o2=G.maxO2;
+  else if(G.grounded) G.o2=Math.min(G.maxO2,G.o2+O2_REGEN*dt);
 
   // フィーバー
   if(G.fever>0){ G.fever-=dt; G.gauge=clamp(G.fever/7.5,0,1);
@@ -585,9 +608,27 @@ function smash(o){
   for(let i=0;i<22;i++){ const a=rnd(0,TAU),s=rnd(2,8); parts.push({x:sx,y:sy,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.4,.9),max:.9,r:rnd(2,5),col:'255,160,80'}); }
   parts.push({x:sx,y:sy,vx:0,vy:0,life:.4,max:.4,r:70,ring:1,col:'255,160,80'});
 }
-function crash(){ if(G.state!=='play')return; G.deathBy='crash';
+function crash(){ if(G.state!=='play'||G.invul>0||G.fever>0)return;
   for(let i=0;i<14;i++) parts.push({x:PX(),y:G.py-HH,vx:rnd(-7,-2),vy:rnd(-5,2),life:rnd(.3,.8),max:.8,r:rnd(2,5),col:'255,120,90'});
-  die();
+  G.hp--; G.deathBy='crash'; G.flash=0.5; G.flashCol='255,90,140'; G.shake=Math.max(G.shake,16); Sound.hurt();
+  if(G.hp<=0){ die(); return; }
+  // 体力が残っていれば のけぞって続行（短いあいだ無敵＝点滅）
+  G.invul=1.2; G.vy=-560; G.grounded=false; G.airJumps=1;
+  floats.push({t:'-1 ❤',x:PX(),y:G.py-HH*2-10,col:'#ff6a8a',life:.7,max:.7,size:18});
+}
+/* 🚁 転落レスキュー：体力が残っていれば、次の屋根の上に運んでもらって続行（島ぐらしのレスキューヘリと同じ思想） */
+function rescueAfterFall(){
+  G.deathBy='fall';
+  let target=null;
+  for(const s of segs){ if(s.x+s.w>camX+PX()+20){ target=s; break; } }
+  if(!target){ genWorld(); for(const s of segs){ if(s.x+s.w>camX+PX()+20){ target=s; break; } } }
+  if(!target){ die(); return; }
+  camX=target.x+24-PX();
+  G.py=target.y; G.vy=0; G.grounded=true; G.airJumps=0; G.flip=0; G.holding=false;
+  G.invul=1.6; G.o2=Math.max(G.o2,0.6);
+  G.flash=0.45; G.flashCol='150,200,255'; G.shake=Math.max(G.shake,12); Sound.land();
+  for(let i=0;i<16;i++){ const a=rnd(0,TAU),s=rnd(2,6); parts.push({x:PX(),y:G.py-HH,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:rnd(.3,.7),max:.7,r:rnd(2,5),col:'150,200,255'}); }
+  floats.push({t:'🚁 -1 ❤ レスキュー',x:PX(),y:G.py-HH*2-10,col:'#7fc8ff',life:.9,max:.9,size:16});
 }
 function die(){ if(G.state!=='play')return; if(!G.deathBy)G.deathBy='fall'; G.state='over'; Sound.stopBGM(); Sound.setFever(false); Sound.die();
   G.flash=0.7; G.flashCol='255,90,140'; G.shake=24; G.slow=0.25;
@@ -719,6 +760,20 @@ function render(){
       ctx.fillStyle=gg; rrect(gx+1.5,gy+1.5,(gw-3)*G.gauge,7,3.5); ctx.fill(); }
     ctx.font='700 9px sans-serif'; ctx.textAlign='center'; ctx.fillStyle='rgba(255,255,255,.7)';
     ctx.fillText(fv?'FEVER!!':'FEVER',W/2,gy+13);
+    // ❤️体力（右上・被弾中は点滅）
+    if(!(G.invul>0 && Math.floor(G.time*12)%2)){
+      ctx.textAlign='right'; ctx.textBaseline='top'; ctx.font='18px sans-serif';
+      let hs=''; for(let i=0;i<G.maxHp;i++) hs+=(i<G.hp?'❤️':'🤍');
+      ctx.fillText(hs,W-14,14+st);
+    }
+    // 🫧酸素ゲージ（右上・ハートの下）
+    const ow=120, ox2=W-14-ow, oy=44+st;
+    ctx.fillStyle='rgba(0,0,0,.35)'; rrect(ox2,oy,ow,8,4); ctx.fill();
+    if(G.o2>0){ const og=ctx.createLinearGradient(ox2,0,ox2+ow,0);
+      og.addColorStop(0,'#7fe9ff'); og.addColorStop(1,'#3aa0ff');
+      ctx.fillStyle=og; rrect(ox2+1.5,oy+1.5,(ow-3)*clamp(G.o2,0,1),5,2.5); ctx.fill(); }
+    ctx.font='13px sans-serif'; ctx.textAlign='right'; ctx.textBaseline='middle';
+    ctx.fillStyle='rgba(255,255,255,.9)'; ctx.fillText('🫧',ox2-3,oy+4);
     // コンボ
     if(G.combo>=3){ const a=clamp(G.comboT/4,0,1); ctx.globalAlpha=0.5+0.5*a;
       ctx.fillStyle=G.combo>=50?'#ff7be0':G.combo>=20?'#ffe14d':'#ffd9a0';
