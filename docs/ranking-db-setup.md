@@ -1,8 +1,8 @@
 # ランキング（結果発表）DB セットアップ & セキュリティ手順
 
-対象ゲーム：コッコリンク（/link/）・コッコ救出（/rescue/）・こっこの森（/mori/ 総資産ランキング）・コッコスプラット3D（/splat3d/）・こっこダービー（/derby/ 通算勝ち点ランキング）・コッコグレイズ（/graze/ 弾幕回避スコアランキング）・コッコ・インベーダー（/invaders/ 迎撃スコアランキング）
+対象ゲーム：コッコリンク（/link/）・コッコ救出（/rescue/）・こっこの森（/mori/ 総資産ランキング）・コッコスプラット3D（/splat3d/）・こっこダービー（/derby/ 通算勝ち点ランキング）・コッコグレイズ（/graze/ 弾幕回避スコアランキング）・コッコ・インベーダー（/invaders/ 迎撃スコアランキング）・コッコラッシュ（/rush/ 通勤ランスコアランキング）
 保存先：既存 Firebase プロジェクト `chikumonogatarikiroku` の Realtime Database
-ノード：リンク=`rankings/link` ／ 救出=`rankings/rescue` ／ こっこの森=`rankings/mori` ／ スプラット3D=`rankings/splat3d` ／ ダービー=`rankings/derby` ／ グレイズ=`rankings/graze` ／ インベーダー=`rankings/invaders`（**新規DBは不要**）
+ノード：リンク=`rankings/link` ／ 救出=`rankings/rescue` ／ こっこの森=`rankings/mori` ／ スプラット3D=`rankings/splat3d` ／ ダービー=`rankings/derby` ／ グレイズ=`rankings/graze` ／ インベーダー=`rankings/invaders` ／ ラッシュ=`rankings/rush`（**新規DBは不要**）
 
 ---
 
@@ -123,6 +123,18 @@
           "ts":    { ".validate": "newData.isNumber()" },
           "$other": { ".validate": false }
         }
+      },
+      "rush": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && (!data.exists() || newData.child('score').val() >= data.child('score').val())",
+          ".validate": "newData.hasChildren(['name','score'])",
+          "name":  { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "flag":  { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99999999" },
+          "eggs":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999999" },
+          "ts":    { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        }
       }
     },
     "letters": {
@@ -200,6 +212,12 @@
 - 登録は **GAME OVER画面**から、名前＋国旗を入れて「🏆 登録」。閲覧は **タイトルの「🏆 世界ランキング」ボタン** からいつでも可能。
 - 登録すると「◯位にランクイン！」の結果発表演出が出る。
 - ハイスコアは **ブラウザ保存（localStorage）**、世界ランキングだけ **サーバー保存（Firebase）**。
+
+## コッコラッシュ（/rush/）について
+- **スコア 世界ランキング**：1プレイのスコアの自己ベストを登録（1端末1枠・最高スコアのみ保持）。`score`=スコア、`eggs`=集めたたまご数。
+- 登録は **しゅっきん失敗（GAME OVER）画面**から、名前＋国旗を入れて「🏆 登録」。閲覧は **タイトルの「🏆 世界ランキング」ボタン** からいつでも可能。
+- 登録すると「◯位にランクイン！」の結果発表演出が出る。
+- ベストスコアは **ブラウザ保存（localStorage）**、世界ランキングだけ **サーバー保存（Firebase）**。
 
 ## 動作テスト
 1. （上記2ステップ実施後）https://chikumo.jp/link/ ・ /rescue/ ・ /mori/ をプレイ → /mori/ はあさ7時に🏆から名前を入れて「登録」
