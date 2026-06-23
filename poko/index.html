@@ -287,7 +287,7 @@ const holes=[];
 function layout(){
   const r=Math.max(26,Math.min(W,H)*0.085);
   const colX=[0.18,0.5,0.82].map(f=>W*f);
-  const rowY=[0.34,0.60,0.86].map(f=>H*f);
+  const rowY=[0.42,0.61,0.80].map(f=>H*f);
   let idx=0;
   for(const y of rowY){
     for(const x of colX){
@@ -432,7 +432,7 @@ const state={playing:false,score:0,combo:0,maxCombo:0,hearts:3,caught:0,
 let best=+localStorage.getItem('poko-best')||0;
 let lastTimeTick=-1;
 const RISE=0.14, FALL=0.16;
-const parts=[],pops=[],confetti=[];
+const parts=[],pops=[],confetti=[],rings=[];
 const clouds=[];
 for(let i=0;i<5;i++) clouds.push({x:Math.random(),y:0.08+Math.random()*0.16,s:0.6+Math.random()*0.8,sp:0.4+Math.random()*0.5});
 
@@ -452,7 +452,8 @@ function spawnDirt(x,y){
     parts.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-0.6,life:0.6,h:32,r:Math.random()*2.5+1.5,g:0.12,dirt:true});
   }
 }
-function spawnPop(x,y,txt,col,size){ pops.push({x,y,txt,col,size,life:1}); }
+function spawnPop(x,y,txt,col,size,big){ pops.push({x,y,txt,col,size,life:1,age:0,big}); }
+function spawnRing(x,y,col,maxR){ rings.push({x,y,col,maxR,life:1}); }
 function spawnConfettiBurst(n){
   for(let i=0;i<n;i++){
     confetti.push({x:Math.random()*W,y:-10,vx:(Math.random()-0.5)*70,vy:60+Math.random()*60,
@@ -559,13 +560,27 @@ function hitHole(i){
   if(state.combo>0 && state.combo%10===0){
     const tier=state.combo/10;
     state.comboBonusAcc=Math.min(state.comboBonusAcc+0.025,0.25);
-    const palette=['#ffae5c','#9ad1ff','#ff8fd1','#8de87a','#ffe066'];
-    const col=palette[(tier-1)%palette.length];
-    const size=Math.min(26+tier*2.5,50);
-    spawnPop(W/2,H*0.32,tier*10+' COMBO!',col,size);
-    spawnBurst(W/2,H*0.32,Math.min(14+tier*3,46),Math.random()*360,3.0,'normal');
-    state.shake=Math.max(state.shake,Math.min(4+tier*0.8,12));
-    if(navigator.vibrate) navigator.vibrate(Math.min(15+tier*3,40));
+    const COMBO_TIERS=[
+      {hex:'#ffae5c',rgb:'255,174,92',hue:28},
+      {hex:'#9ad1ff',rgb:'154,209,255',hue:205},
+      {hex:'#ff8fd1',rgb:'255,143,209',hue:330},
+      {hex:'#8de87a',rgb:'141,232,122',hue:100},
+      {hex:'#ffe066',rgb:'255,224,102',hue:48},
+    ];
+    const pal=COMBO_TIERS[(tier-1)%COMBO_TIERS.length];
+    const size=Math.min(30+tier*3,58);
+    const ccx=W/2, ccy=H*0.30;
+    spawnRing(ccx,ccy,pal.hex,Math.min(70+tier*16,300));
+    spawnRing(ccx,ccy,'#fff',Math.min(40+tier*10,200));
+    spawnPop(ccx,ccy,tier*10+' COMBO!',pal.hex,size,true);
+    const bursts=Math.min(2+Math.floor(tier/2),6);
+    for(let k=0;k<bursts;k++) setTimeout(()=>{
+      spawnBurst(ccx+(Math.random()-0.5)*W*0.55,ccy+(Math.random()-0.5)*H*0.14,Math.min(12+tier*2,32),pal.hue,3.4);
+      spawnConfettiBurst(Math.min(5+tier,16));
+    },k*90);
+    state.shake=Math.max(state.shake,Math.min(5+tier,14));
+    state.flash=Math.max(state.flash,0.4); state.flashCol=pal.rgb;
+    if(navigator.vibrate) navigator.vibrate(Math.min(18+tier*4,60));
     sfxComboMilestone(tier);
   }
 }
@@ -576,12 +591,15 @@ function updateParticles(dt){
     p.x+=p.vx; p.y+=p.vy; p.vy+=p.g; p.life-=dt*(p.dirt?2.2:0.9);
     if(p.life<=0) parts.splice(i,1);
   }
-  for(let i=pops.length-1;i>=0;i--){ const p=pops[i]; p.life-=dt*1.4; p.y-=dt*58;
+  for(let i=pops.length-1;i>=0;i--){ const p=pops[i]; p.age+=dt; p.life-=dt*1.4; p.y-=dt*58;
     if(p.life<=0) pops.splice(i,1);
   }
   for(let i=confetti.length-1;i>=0;i--){ const c=confetti[i];
     c.x+=c.vx*dt; c.y+=c.vy*dt; c.vy+=140*dt; c.rot+=c.vr*dt; c.life-=dt*0.5;
     if(c.life<=0||c.y>H+30) confetti.splice(i,1);
+  }
+  for(let i=rings.length-1;i>=0;i--){ const r=rings[i]; r.life-=dt*1.6;
+    if(r.life<=0) rings.splice(i,1);
   }
 }
 function update(dt){
@@ -692,12 +710,24 @@ function drawParticles(){
   }
   cx.globalAlpha=1;
 }
+function drawRings(){
+  for(const r of rings){
+    const p=1-clamp(r.life,0,1);
+    cx.globalAlpha=clamp(r.life,0,1)*0.85;
+    cx.lineWidth=Math.max(1,7*r.life);
+    cx.strokeStyle=r.col;
+    cx.beginPath(); cx.arc(r.x,r.y,r.maxR*p,0,TAU); cx.stroke();
+  }
+  cx.globalAlpha=1;
+}
 function drawPops(){
   for(const p of pops){
     cx.globalAlpha=clamp(p.life,0,1);
-    cx.font=`bold ${p.size}px sans-serif`;
+    const scale=p.big?(1.8-0.8*clamp(p.age/0.16,0,1)):1;
+    cx.font=`bold ${Math.round(p.size*scale)}px sans-serif`;
     cx.textAlign='center'; cx.fillStyle=p.col;
-    cx.shadowColor=p.col; cx.shadowBlur=10;
+    cx.shadowColor=p.col; cx.shadowBlur=p.big?20:10;
+    if(p.big){ cx.lineWidth=Math.max(2,p.size*0.1); cx.strokeStyle='rgba(20,10,0,0.5)'; cx.strokeText(p.txt,p.x,p.y); }
     cx.fillText(p.txt,p.x,p.y);
     cx.shadowBlur=0;
   }
@@ -770,6 +800,7 @@ function draw(dt){
   for(const h of holes) drawHole(h);
   for(const h of holes) if(h.target) drawTarget(h,h.target);
   drawParticles();
+  drawRings();
   drawPops();
   cx.restore();
   drawConfetti();
