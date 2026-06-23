@@ -240,8 +240,9 @@
       ◆ 画面を <b>左右にドラッグ</b> してこっこ砲台を動かす。<br><br>
       ◆ 弾は <b>自動連射</b>。狙いを定めて避けながら撃つだけ。<br><br>
       ◆ 上段の侵略者ほど <b>高得点</b>。たまに横切る <b>UFO</b> はボーナス。<br><br>
+      ◆ ときどき隊列から <b>急降下</b> してくる侵略者に注意！ 弧を描いて舞い降りてくるので、避けるか撃ち落とそう。<br><br>
       ◆ 全滅させると次のウェーブ。隊列は減るほど <b>速く</b> なる。<br><br>
-      ◆ トーチカ（バリア）に隠れて敵弾をしのげ。ミス3回で終了。
+      ◆ トーチカ（バリア）に隠れて敵弾をしのげ。体力（ミス）は <b>4回</b> まで。
     </div>
     <div class="hint" style="opacity:.7">PCは ← → で移動、スペースで発射</div>
     <button class="btn" id="howBack">もどる</button>
@@ -395,7 +396,7 @@ const G={ state:'title', score:0, best:+(safeGet(BEST_KEY)||0), lives:3, wave:1,
 let invaders=[], pBullets=[], eBullets=[], particles=[], bunkers=[], ufo=null;
 const player={ x:0, vx:0, invul:0, dead:0 };
 let form={ x:0, y:0, dir:1, beat:0, beatMax:0.6 };
-let bombTimer=1.2, ufoTimer=12, clearTimer=0, fireCooldown=0;
+let bombTimer=1.2, ufoTimer=12, clearTimer=0, fireCooldown=0, diveTimer=4;
 let stars=[];
 
 function safeGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
@@ -445,17 +446,18 @@ function newWave(w){
   buildInvaders();
   form.dir=1; form.beat=0;
   form.x=SM + cellW*0.10;
-  form.y=topHUD + safeTop + 18 + Math.min(w-1,7)*cellH*0.5;
-  bombTimer=Math.max(0.5, 1.4-w*0.08);
+  form.y=topHUD + safeTop + 18 + Math.min(w-1,6)*cellH*0.40;
+  bombTimer=Math.max(0.9, 1.9-w*0.06);
   ufoTimer=8+Math.random()*10;   // fresh mystery-ship delay each wave
+  diveTimer=Math.max(2.0, 4.6-w*0.15);   // 急降下のはじまりまでの間
   ufo=null;
   layoutBunkers(); // refresh barriers each wave for fairness
 }
 function reset(){
-  G.score=0; G.lives=3; G.kills=0; G.newBest=false; G.wave=1;
+  G.score=0; G.lives=4; G.kills=0; G.newBest=false; G.wave=1;
   pBullets=[]; eBullets=[]; particles=[]; ufo=null;
-  player.x=W/2; player.invul=1.0; player.dead=0;
-  fireCooldown=0; ufoTimer=10+Math.random()*8; clearTimer=0;
+  player.x=W/2; player.invul=1.2; player.dead=0;
+  fireCooldown=0; ufoTimer=10+Math.random()*8; clearTimer=0; diveTimer=4;
   newWave(1);
 }
 function start(){
@@ -518,28 +520,28 @@ function invY(a){ return form.y + a.row*cellH; }
 function firePlayer(force){
   if(!force){
     if(fireCooldown>0) return;
-    if(pBullets.length>=2) return;
+    if(pBullets.length>=3) return;
   }
   pBullets.push({ x:player.x, y:playerY-2, vy:-Math.max(620, H*0.95) });
-  fireCooldown=0.28; sndShoot();
+  fireCooldown=0.20; sndShoot();
 }
 function dropBomb(a, x, y){
-  const speed=Math.max(170, H*0.26)*(1+G.wave*0.03);
+  const speed=Math.max(130, H*0.19)*(1+G.wave*0.02);
   const zig = Math.random()<0.5;
   eBullets.push({ x:x, y:y, vy:speed, zig:zig, t:0 });
 }
 function enemyFire(){
   // cap simultaneous bombs like the original cabinet, so the late game stays
   // dodge-able with one thumb instead of becoming an unavoidable barrage.
-  const maxBombs = G.wave<=1 ? 1 : Math.min(3, Math.ceil(G.wave/2)+1);
+  const maxBombs = G.wave<=2 ? 1 : Math.min(3, Math.ceil(G.wave/3)+1);
   if(eBullets.length>=maxBombs) return;
-  // pick a random column, fire from its lowest alive invader
+  // pick a random column, fire from its lowest alive invader（急降下中はフォーメーション外なので除外）
   const colOrder=[]; for(let c=0;c<COLS;c++) colOrder.push(c);
   for(let tries=0;tries<COLS;tries++){
     const c=colOrder[Math.floor(Math.random()*colOrder.length)];
     let low=null;
     for(let i=0;i<invaders.length;i++){ const a=invaders[i];
-      if(a.alive&&a.col===c&&(!low||a.row>low.row)) low=a; }
+      if(a.alive&&!a.diving&&a.col===c&&(!low||a.row>low.row)) low=a; }
     if(low){ dropBomb(low, invX(low)+invBox/2, invY(low)+invBox); return; }
   }
 }
@@ -556,7 +558,34 @@ function hitPlayer(force){
   G.lives--; sndHit();
   spawnBurst(player.x, playerY+playerH/2, '#FFC65A');
   if(G.lives<=0){ gameOver(); }
-  else { player.invul=1.6; }
+  else { player.invul=2.0; }
+}
+function invPos(a){ return a.diving ? {x:a.diving.x, y:a.diving.y} : {x:invX(a), y:invY(a)}; }
+/* 急降下（スウープ）攻撃：隊列から1体が弧を描いてこっこちゃんへ舞い降り、また隊列へ戻る（直進だけにしない） */
+function startDive(){
+  const cands=[]; for(let i=0;i<invaders.length;i++){ const a=invaders[i]; if(a.alive&&!a.diving) cands.push(a); }
+  if(!cands.length) return;
+  const a=cands[(Math.random()*cands.length)|0];
+  const cx=invX(a)+invBox/2;
+  a.diving={ t:0, dur:2.2+Math.random()*0.8, side:(cx<player.x?1:-1),
+    amp:W*0.14+Math.random()*W*0.10, wiggle:invBox*0.7, depthFrac:0.68+Math.random()*0.16,
+    x:invX(a), y:invY(a), rot:0 };
+  if(typeof sndUfo==='function') sndUfo();
+}
+function updateDivers(dt){
+  for(let i=0;i<invaders.length;i++){ const a=invaders[i]; if(!a.alive||!a.diving) continue;
+    const d=a.diving; d.t+=dt; const u=d.t/d.dur;
+    if(u>=1){ a.diving=null; continue; }     // 戻りきったら隊列へ復帰
+    const fx=invX(a), fy=invY(a);
+    const depth=(invasionY-fy)*d.depthFrac;
+    d.y=fy + Math.sin(u*Math.PI)*depth;
+    d.x=fx + Math.sin(u*Math.PI)*d.amp*d.side + Math.sin(u*Math.PI*2)*d.wiggle*d.side;
+    d.x=Math.max(SM, Math.min(W-SM-invBox, d.x));
+    d.rot=Math.sin(u*Math.PI*2)*0.4*d.side;
+    // こっこちゃんに接触したらミス（無敵中は無効）
+    if(player.invul<=0 && Math.abs(d.x+invBox/2-player.x) < (invBox*0.46+playerW*0.42)
+       && d.y+invBox>=playerY && d.y<=playerY+playerH){ a.diving=null; hitPlayer(false); }
+  }
 }
 function invade(){
   // formation touched the ground: lose a life, clear bombs, push the column
@@ -620,7 +649,7 @@ function update(dt){
     G.state='clear'; clearTimer=1.3; eBullets=[]; return;
   }
   const frac=alive/TOTAL;
-  form.beatMax=Math.max(0.07, (0.62*frac+0.05) - G.wave*0.010);
+  form.beatMax=Math.max(0.13, (0.7*frac+0.09) - G.wave*0.008);
   form.beat-=dt;
   if(form.beat<=0){
     form.beat=form.beatMax;
@@ -634,7 +663,7 @@ function update(dt){
     let drop=false;
     if(form.dir>0 && rightPx+stepX > W-SM) drop=true;
     else if(form.dir<0 && leftPx-stepX < SM) drop=true;
-    if(drop){ form.y+=cellH*0.42; form.dir*=-1; }
+    if(drop){ form.y+=cellH*0.32; form.dir*=-1; }
     else { form.x+=stepX*form.dir; }
     // invasion: reaching the ground costs ONE life and shoves the formation
     // back up — no more "they touched down, instant game over" sudden death.
@@ -642,10 +671,22 @@ function update(dt){
       if(a.alive && invY(a)+invBox>=invasionY){ invade(); return; } }
   }
 
+  // 急降下（スウープ）攻撃：直進する隊列だけでなく、ときどき1〜2体が弧を描いて舞い降りる
+  if(alive>2){
+    diveTimer-=dt;
+    if(diveTimer<=0){
+      const maxDivers=Math.min(2, 1+Math.floor((G.wave-1)/2));
+      let nd=0; for(let i=0;i<invaders.length;i++){ if(invaders[i].alive&&invaders[i].diving) nd++; }
+      if(nd<maxDivers) startDive();
+      diveTimer=Math.max(1.5, 3.4 - G.wave*0.12) * (0.7+Math.random()*0.7);
+    }
+  }
+  updateDivers(dt);
+
   // enemy bombs
   bombTimer-=dt;
   if(bombTimer<=0){ enemyFire();
-    bombTimer=Math.max(0.55, (1.45 - G.wave*0.05)*(0.5+0.8*frac)) * (0.7+Math.random()*0.7); }
+    bombTimer=Math.max(0.85, (1.8 - G.wave*0.04)*(0.55+0.8*frac)) * (0.8+Math.random()*0.7); }
 
   // ufo — the cabinet suppresses the mystery ship once the formation is tiny;
   // pause the timer there too so it doesn't bank up and fire instantly later.
@@ -670,9 +711,9 @@ function stepBullets(dt){
     if(ufo && b.x>ufo.x-ufo.w/2 && b.x<ufo.x+ufo.w/2 && b.y<=ufo.y+ufo.h/2 && py0>=ufo.y-ufo.h/2){
       G.score+=ufo.pts; spawnBurst(ufo.x,ufo.y,'#FF5AA0'); sweep(1600,400,0.3,'square',0.2); ufo=null; pBullets.splice(i,1); continue;
     }
-    // invaders (swept)
+    // invaders (swept；急降下中はスウープ位置で判定)
     for(let j=0;j<invaders.length;j++){ const a=invaders[j]; if(!a.alive) continue;
-      const ax=invX(a), ay=invY(a);
+      const pp=invPos(a), ax=pp.x, ay=pp.y;
       if(b.x>=ax && b.x<=ax+invBox && b.y<=ay+invBox && py0>=ay){
         destroyInvader(a); gone=true; break; } }
     if(gone){ pBullets.splice(i,1); continue; }
@@ -724,10 +765,15 @@ function draw(){
   ctx.strokeStyle='rgba(124,255,176,0.25)'; ctx.lineWidth=1;
   ctx.beginPath(); ctx.moveTo(SM, topHUD); ctx.lineTo(W-SM, topHUD); ctx.stroke();
 
-  // invaders
+  // invaders（急降下中は弧を描く位置で・少し傾けて描く）
   for(let i=0;i<invaders.length;i++){ const a=invaders[i]; if(!a.alive) continue;
     const k=KIND[a.kind]; ctx.fillStyle=k.col;
-    drawSprite(k.bmp[G.animFrame||0], invX(a), invY(a)+invBox*0.06, invBox); }
+    if(a.diving){ const d=a.diving;
+      ctx.save(); ctx.translate(d.x+invBox/2, d.y+invBox*0.06+invBox/2); ctx.rotate(d.rot||0);
+      drawSprite(k.bmp[G.animFrame||0], -invBox/2, -invBox/2, invBox); ctx.restore();
+    } else {
+      drawSprite(k.bmp[G.animFrame||0], invX(a), invY(a)+invBox*0.06, invBox);
+    } }
 
   // ufo
   if(ufo){ ctx.fillStyle='#FF5AA0';
