@@ -393,6 +393,11 @@ function sfxClick(){ if(muted)return; const t=ensureAudio().currentTime; tone(70
 function sfxTimeTick(n){ if(muted)return; const t=ensureAudio().currentTime;
   tone(880+(10-(n||0))*30,t,.07,'square',.16,sfxg);
 }
+function sfxComboMilestone(tier){ if(muted)return; const t=ensureAudio().currentTime;
+  const k=Math.pow(1.0594631,Math.min(tier,10));
+  [659,784,988].forEach((f,i)=>tone(f*k,t+i*.05,.14,'square',.15,sfxg));
+  noiseFx(t,.12,.05,3000,sfxg);
+}
 
 /* 中毒BGM: 8bitループ — fever中はテンポUP&キーUP */
 const BASS=[196,196,262,262,294,294,196,294];
@@ -423,7 +428,7 @@ function stopBgm(){ clearTimeout(bgmTimer); bgmTimer=null; }
 /* ───────── ゲーム状態 ───────── */
 const TIME_LIMIT=60;
 const state={playing:false,score:0,combo:0,maxCombo:0,hearts:3,caught:0,
-  fever:0,spawnT:0.6,shake:0,flash:0,flashCol:'255,255,255',t:0,hue:0,timeLeft:TIME_LIMIT};
+  fever:0,spawnT:0.6,shake:0,flash:0,flashCol:'255,255,255',t:0,hue:0,timeLeft:TIME_LIMIT,comboBonusAcc:0};
 let best=+localStorage.getItem('poko-best')||0;
 let lastTimeTick=-1;
 const RISE=0.14, FALL=0.16;
@@ -465,6 +470,7 @@ function startGame(){
   ensureAudio();
   state.playing=true; state.score=0; state.combo=0; state.maxCombo=0; state.hearts=3; state.caught=0;
   state.fever=0; state.spawnT=0.5; state.shake=0; state.flash=0; state.timeLeft=TIME_LIMIT;
+  state.comboBonusAcc=0;
   lastTimeTick=-1;
   parts.length=0; pops.length=0; confetti.length=0;
   for(const h of holes) h.target=null;
@@ -502,7 +508,7 @@ function trySpawn(){
   if(r<0.08) type='gold';
   else if(r<0.08+blackChance) type='black';
   else type='normal';
-  const acc=Math.min(state.caught*0.012,0.45);
+  const acc=Math.min(state.caught*0.012+state.comboBonusAcc,0.6);
   const showDur=Math.max(0.26,Math.max(0.5,1.05-state.score/5500)*(fv?0.5:1)*(1-acc));
   holes[i].target={type,phase:'rise',age:0,showDur,hit:false};
   sfxPopUp();
@@ -550,6 +556,18 @@ function hitHole(i){
       for(let k=0;k<6;k++) setTimeout(()=>spawnConfettiBurst(10),k*150);
     }
   }
+  if(state.combo>0 && state.combo%10===0){
+    const tier=state.combo/10;
+    state.comboBonusAcc=Math.min(state.comboBonusAcc+0.025,0.25);
+    const palette=['#ffae5c','#9ad1ff','#ff8fd1','#8de87a','#ffe066'];
+    const col=palette[(tier-1)%palette.length];
+    const size=Math.min(26+tier*2.5,50);
+    spawnPop(W/2,H*0.32,tier*10+' COMBO!',col,size);
+    spawnBurst(W/2,H*0.32,Math.min(14+tier*3,46),Math.random()*360,3.0,'normal');
+    state.shake=Math.max(state.shake,Math.min(4+tier*0.8,12));
+    if(navigator.vibrate) navigator.vibrate(Math.min(15+tier*3,40));
+    sfxComboMilestone(tier);
+  }
 }
 
 /* ───────── 更新 ───────── */
@@ -587,7 +605,7 @@ function update(dt){
   if(state.spawnT<=0){
     trySpawn();
     const fv=state.fever>0;
-    const acc=Math.min(state.caught*0.012,0.45);
+    const acc=Math.min(state.caught*0.012+state.comboBonusAcc,0.6);
     const interval=Math.max(0.16,Math.max(0.40,0.95-state.score/7000)*(fv?0.5:1)*(1-acc));
     state.spawnT=interval*(0.75+Math.random()*0.5);
   }
