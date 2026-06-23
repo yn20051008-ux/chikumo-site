@@ -462,18 +462,24 @@ function drawHole(h){
   cx.fillStyle=g2;
   cx.beginPath(); cx.ellipse(h.x,h.y,rx*0.62,ry*0.62,0,0,TAU); cx.fill();
 }
-function drawTarget(h,tg){
+function targetGeom(h,tg){
   let p;
   if(tg.phase==='rise') p=Math.sin(clamp(tg.age/RISE,0,1)*Math.PI/2);
   else if(tg.phase==='show') p=1;
   else p=1-Math.sin(clamp(tg.age/FALL,0,1)*Math.PI/2);
-  if(p<=0.02) return;
   const lift=h.r*1.55*p;
   const sy=clamp(0.35+0.65*p,0.35,1);
-  cx.save();
-  cx.translate(h.x, h.y-lift*0.92);
-  cx.scale(1,sy);
   const w=h.r*2.05, hh=w*1.307;
+  const ty=h.y-lift*0.92;
+  return {p,sy,w,hh,ty,x:h.x,y:ty-0.36*sy*hh};
+}
+function drawTarget(h,tg){
+  const gm=targetGeom(h,tg);
+  if(gm.p<=0.02) return;
+  const w=gm.w, hh=gm.hh;
+  cx.save();
+  cx.translate(h.x, gm.ty);
+  cx.scale(1,gm.sy);
   const img=!coccoReady?null:(tg.type==='black'?darkCanvas:tg.type==='gold'?goldCanvas:cocco);
   if(img){
     if(tg.type==='black'){ cx.shadowColor='rgba(255,50,50,0.95)'; cx.shadowBlur=22; }
@@ -576,7 +582,9 @@ cv.addEventListener('pointerdown',e=>{
   let bestIdx=-1, bestD=Infinity;
   for(let i=0;i<holes.length;i++){
     const h=holes[i]; if(!h.target) continue;
-    const d=Math.hypot(x-h.x,y-h.y);
+    const gm=targetGeom(h,h.target);
+    if(gm.p<=0.02) continue;
+    const d=Math.hypot(x-gm.x,y-gm.y);
     if(d<h.r*1.7 && d<bestD){ bestD=d; bestIdx=i; }
   }
   if(bestIdx>=0) hitHole(bestIdx);
