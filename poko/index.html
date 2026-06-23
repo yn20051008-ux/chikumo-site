@@ -502,7 +502,8 @@ function trySpawn(){
   if(r<0.08) type='gold';
   else if(r<0.08+blackChance) type='black';
   else type='normal';
-  const showDur=Math.max(0.5,1.05-state.score/5500)*(fv?0.8:1);
+  const acc=Math.min(state.caught*0.012,0.45);
+  const showDur=Math.max(0.26,Math.max(0.5,1.05-state.score/5500)*(fv?0.5:1)*(1-acc));
   holes[i].target={type,phase:'rise',age:0,showDur,hit:false};
   sfxPopUp();
   spawnDirt(holes[i].x,holes[i].y);
@@ -586,7 +587,8 @@ function update(dt){
   if(state.spawnT<=0){
     trySpawn();
     const fv=state.fever>0;
-    const interval=Math.max(0.40,0.95-state.score/7000)*(fv?0.55:1);
+    const acc=Math.min(state.caught*0.012,0.45);
+    const interval=Math.max(0.16,Math.max(0.40,0.95-state.score/7000)*(fv?0.5:1)*(1-acc));
     state.spawnT=interval*(0.75+Math.random()*0.5);
   }
   for(const h of holes){
