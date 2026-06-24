@@ -403,6 +403,23 @@ var PADS=[
 ];
 var pads=[{},{},{},{}];
 
+/* 公式こっこちゃんSVGを読み込み、4色に染め分けてプリレンダー（koro/match と同じ source-atop 方式） */
+var PAD_TINT=['rgba(255,221,74,0.40)','rgba(141,232,122,0.50)','rgba(79,195,236,0.54)','rgba(255,143,196,0.50)'];
+var cocco=new Image(), coccoReady=false, coccoW=298, coccoH=390;
+var padCanvas=[null,null,null,null];
+cocco.onload=function(){
+  coccoReady=true;
+  coccoW=cocco.naturalWidth||298; coccoH=cocco.naturalHeight||390;
+  for(var t=0;t<4;t++){
+    var c=document.createElement('canvas'); c.width=coccoW; c.height=coccoH;
+    var g=c.getContext('2d'); g.drawImage(cocco,0,0,coccoW,coccoH);
+    g.globalCompositeOperation='source-atop'; g.fillStyle=PAD_TINT[t]; g.fillRect(0,0,coccoW,coccoH);
+    g.globalCompositeOperation='source-over';
+    padCanvas[t]=c;
+  }
+};
+cocco.src='/chikumo.svg';
+
 /* ===== 状態 ===== */
 var GAME_SEC=60;
 var state='idle';            // idle/count/call/echo/over
@@ -609,30 +626,20 @@ function resize(){
   cx.setTransform(DPR,0,0,DPR,0,0);
   layout();
 }
-function drawCocco(x,y,r,col,lit){
-  // 丸いからだ＋目＋くちばし＋ほっぺ
+function drawPadCocco(k,x,y,boxW,lit){
+  if(!coccoReady || !padCanvas[k]){ // 読み込み前のフォールバック
+    cx.fillStyle=lit>0.05?PADS[k].hue:PADS[k].dk;
+    cx.beginPath(); cx.arc(x,y,boxW*0.3,0,TAU); cx.fill(); return;
+  }
+  var ar=coccoW/coccoH;          // 公式SVGは縦長(≈0.765)
+  var ch=boxW*0.86, cw=ch*ar;
   cx.save();
   cx.translate(x,y);
-  var s=1+lit*0.06;
+  var s=1+lit*0.09;
   cx.scale(s,s);
-  cx.fillStyle=col;
-  cx.beginPath(); cx.arc(0,0,r,0,TAU); cx.fill();
-  // ほっぺ
-  cx.fillStyle='rgba(255,120,150,'+(0.35+lit*0.3)+')';
-  cx.beginPath(); cx.arc(-r*0.45,r*0.18,r*0.16,0,TAU); cx.fill();
-  cx.beginPath(); cx.arc(r*0.45,r*0.18,r*0.16,0,TAU); cx.fill();
-  // 目（歌うとき＝＾＾、ふだん●）
-  cx.fillStyle='#22323a'; cx.lineWidth=Math.max(2,r*0.09); cx.strokeStyle='#22323a'; cx.lineCap='round';
-  if(lit>0.5){
-    cx.beginPath(); cx.arc(-r*0.32,-r*0.06,r*0.2,Math.PI*1.15,Math.PI*1.85); cx.stroke();
-    cx.beginPath(); cx.arc(r*0.32,-r*0.06,r*0.2,Math.PI*1.15,Math.PI*1.85); cx.stroke();
-  }else{
-    cx.beginPath(); cx.arc(-r*0.3,-r*0.04,r*0.115,0,TAU); cx.fill();
-    cx.beginPath(); cx.arc(r*0.3,-r*0.04,r*0.115,0,TAU); cx.fill();
-  }
-  // くちばし
-  cx.fillStyle='#ff9f3c';
-  cx.beginPath(); cx.moveTo(-r*0.16,r*0.22); cx.lineTo(r*0.16,r*0.22); cx.lineTo(0,r*0.4); cx.closePath(); cx.fill();
+  if(lit>0.05){ cx.shadowColor=PADS[k].hue; cx.shadowBlur=16+lit*36; }
+  cx.globalAlpha=0.56+lit*0.44;   // ふだんは少し沈めて、歌う/正解で明るく
+  cx.drawImage(padCanvas[k],-cw/2,-ch/2,cw,ch);
   cx.restore();
 }
 function hudBar(){
@@ -684,7 +691,7 @@ function frame(now){
   for(var k=0;k<4;k++){
     var p=pads[k]; if(!p.w) continue;
     var lit=p.lit||0;
-    var cxp=p.x+p.w/2, cyp=p.y+p.h/2, r=Math.min(p.w,p.h)/2;
+    var cxp=p.x+p.w/2, cyp=p.y+p.h/2;
     // 枠
     cx.save();
     if(lit>0.05){ cx.shadowColor=PADS[k].hue; cx.shadowBlur=30+lit*40; }
@@ -693,8 +700,7 @@ function frame(now){
     cx.restore();
     cx.lineWidth=2; cx.strokeStyle='rgba(255,255,255,'+(0.12+lit*0.5)+')';
     cx.beginPath(); cx.roundRect(p.x,p.y,p.w,p.h,p.w*0.16); cx.stroke();
-    var col=lit>0.05?PADS[k].hue:PADS[k].dk;
-    drawCocco(cxp,cyp,r*0.6,col,lit);
+    drawPadCocco(k,cxp,cyp,Math.min(p.w,p.h),lit);
   }
   cx.restore();
 
