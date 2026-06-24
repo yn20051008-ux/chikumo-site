@@ -491,7 +491,7 @@ function startRound(){
   if(state==='over') return;
   state='call'; echoPos=0; banner='🎵 きいてね'; bannerSub='こっこの うた'; bannerT=1;
   clearSeq();
-  var step=clamp(60/bpm,0.30,0.62); // 1拍1音
+  var step=clamp(60/bpm,0.16,0.62); // 1拍1音（高bpmで本当に速くなるよう下限を下げる）
   for(var i=0;i<motif.length;i++){
     (function(idx,pos){
       seq.push(setTimeout(function(){
@@ -512,15 +512,15 @@ function roundWin(){
   var bonus=120*motif.length + Math.min(combo,30)*15;
   score+=bonus;
   sfxWin(motif.length);
-  // 加速：成功するたびに速くなり、連続成功(コンボ)が続くほど加速率がアップ
-  var inc=2 + Math.min(combo-1,12)*0.8;
-  bpm=clamp(bpm+inc,96,184);
-  banner='✓ ナイス！'; bannerSub='♪+1  ⚡'+(combo>=2?'コンボ×'+combo:''); bannerT=1;
+  // 加速：成功するたびに大きく速くなり、連続成功(コンボ)が続くほど加速率がアップ
+  var inc=5 + Math.min(combo-1,15)*1.4;
+  bpm=clamp(bpm+inc,96,220);
+  banner='✓ ナイス！'; bannerSub='♪+1  ⚡'+Math.round(bpm)+'BPM'+(combo>=2?' コンボ×'+combo:''); bannerT=1;
   // 節を1つ伸ばす（出だしは同じまま＝耳に残る）。上限でフレーズ更新
   if(motif.length>=8){
-    phrase++; bpm=clamp(bpm+4,96,184);
+    phrase++; bpm=clamp(bpm+8,96,220);
     motif=newPhraseSeed(3);
-    banner='✨ あたらしいフレーズ'; bannerSub='フレーズ '+phrase; bannerT=1;
+    banner='✨ あたらしいフレーズ'; bannerSub='フレーズ '+phrase+'  ⚡'+Math.round(bpm)+'BPM'; bannerT=1;
     sfxPhrase();
   }else{
     motif=motif.concat([(Math.random()*4)|0]);   // ＋1音
@@ -528,7 +528,8 @@ function roundWin(){
   if(motif.length>maxLen){ maxLen=motif.length; bestPhrase=motif.slice(); } // 最長フレーズを保持
   updateLayers();
   clearSeq();
-  seq.push(setTimeout(startRound, 700));
+  var gap=clamp(Math.round(60000/bpm*0.9),300,640);   // テンポが上がるほど次のコールまで詰まる
+  seq.push(setTimeout(startRound, gap));
 }
 function roundMiss(){
   state='miss'; combo=0; flashMiss=1; shakeT=1;
@@ -659,7 +660,7 @@ function hudBar(){
   cx.fillStyle= timeLeft<=10?'#ff6b7a':'rgba(255,255,255,.9)';
   cx.fillText(Math.ceil(timeLeft)+'s', W/2, ty);
   cx.textAlign='right'; cx.fillStyle='#9ee6f2'; cx.font='800 16px Helvetica Neue,Arial,sans-serif';
-  cx.fillText('🎶Lv.'+motif.length, W-pad, ty);
+  cx.fillText('🎶Lv.'+motif.length+'  ⚡'+Math.round(bpm), W-pad, ty);
   // コンボ（中央・バーの下に小さく）
   if(combo>=2){
     cx.textAlign='center'; cx.fillStyle= combo>=4?'#ffe14d':'#bfe9f2'; cx.font='800 14px Helvetica Neue,Arial,sans-serif';
