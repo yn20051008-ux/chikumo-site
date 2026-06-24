@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>畜学 ─ 畜物語の設計哲学</title>
+<meta name="description" content="畜物語（chikumo.jp）の設計哲学「畜学（ちくがく）」。なぜ・どう作るかの七つの信条。既視感の禁止／短く激しく必ず終わる中毒／終わりが商品／同時多発の正気／親子／敵は逆縁のみ／一ファイル完結。">
+<meta name="theme-color" content="#0a0c14">
+<meta name="format-detection" content="telephone=no">
+<link rel="canonical" href="https://chikumo.jp/chikugaku/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chikumo.jp/chikugaku/">
+<meta property="og:title" content="畜学 ─ 畜物語の設計哲学">
+<meta property="og:description" content="なぜ・どう作るかの七つの信条。">
+<meta property="og:image" content="https://chikumo.jp/icon-192.png">
+<meta property="og:site_name" content="畜物語">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.json">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  :root{--ink:#f1eee2;--soft:#b7b2cf;--line:rgba(255,255,255,.12);--gold:#ffd98a;}
+  html,body{min-height:100%;}
+  body{font-family:'Hiragino Kaku Gothic ProN','Yu Gothic','Helvetica Neue',Arial,sans-serif;color:var(--ink);
+    background:radial-gradient(1200px 700px at 50% -8%,#1a1838 0%,#0c0b18 46%,#060509 100%) fixed;min-height:100vh;
+    padding:calc(env(safe-area-inset-top) + 22px) 16px calc(env(safe-area-inset-bottom) + 44px);-webkit-font-smoothing:antialiased;}
+  body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.45;
+    background-image:radial-gradient(1.4px 1.4px at 18% 28%,#fff,transparent),radial-gradient(1.2px 1.2px at 72% 16%,#cfe2ff,transparent),
+      radial-gradient(1.5px 1.5px at 44% 60%,#fff,transparent),radial-gradient(1.1px 1.1px at 86% 72%,#ffe9c0,transparent),
+      radial-gradient(1.3px 1.3px at 10% 82%,#fff,transparent),radial-gradient(1.2px 1.2px at 62% 92%,#dfeaff,transparent);}
+  .wrap{max-width:620px;margin:0 auto;}
+  header{text-align:center;margin-bottom:6px;}
+  .ic{width:62px;height:62px;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.5);}
+  h1{font-size:clamp(24px,7vw,34px);font-weight:900;letter-spacing:.1em;margin-top:10px;
+    background:linear-gradient(180deg,#fff7e6,#ffd98a 60%,#e6a84a);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sub{margin-top:8px;font-size:12.5px;color:var(--soft);letter-spacing:.05em;line-height:1.7;}
+  .lead{margin:20px auto 4px;max-width:560px;background:rgba(20,18,34,.6);border:1px solid rgba(255,255,255,.08);
+    border-radius:14px;padding:15px 16px;font-size:13px;line-height:1.9;color:#e9e3ff;}
+  .lead b{color:var(--gold);}
+  .lead .src{display:block;margin-top:8px;font-size:11px;color:var(--soft);opacity:.8;letter-spacing:.03em;}
+  .creeds{margin-top:22px;}
+  .creed{position:relative;background:rgba(20,18,34,.72);border:1px solid rgba(255,255,255,.08);border-radius:15px;
+    padding:16px 16px 16px 64px;margin-bottom:13px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+    box-shadow:0 4px 16px rgba(0,0,0,.28);}
+  .creed .no{position:absolute;left:14px;top:15px;width:38px;height:38px;border-radius:11px;
+    display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;color:#2a1605;
+    background:linear-gradient(180deg,#ffe6a8,#ffae5e);box-shadow:0 3px 10px rgba(255,160,80,.4);}
+  .creed h2{font-size:16.5px;font-weight:900;letter-spacing:.03em;color:#fff;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .creed h2 .em{font-size:18px;}
+  .creed p{margin-top:7px;font-size:13px;line-height:1.85;color:var(--soft);}
+  .creed p b{color:var(--gold);}
+  .creed .bad{color:#ff9a9a;font-weight:700;}
+  .creed .good{color:#bdf08a;font-weight:700;}
+  .creed.enemy{border-color:rgba(180,120,255,.4);box-shadow:0 0 22px rgba(120,70,200,.18);}
+  .creed.enemy .no{background:linear-gradient(180deg,#caa6ff,#7a4ad0);color:#fff;}
+
+  .check{margin-top:26px;background:rgba(16,14,28,.7);border:1px solid var(--line);border-radius:15px;padding:16px;}
+  .check h3{font-size:14px;font-weight:900;color:var(--gold);letter-spacing:.06em;margin-bottom:10px;}
+  .check ul{list-style:none;}
+  .check li{font-size:12.5px;line-height:1.7;color:var(--soft);padding:6px 0 6px 26px;position:relative;border-bottom:1px dashed rgba(255,255,255,.06);}
+  .check li::before{content:"☐";position:absolute;left:4px;top:6px;color:var(--gold);font-size:14px;}
+  .check li:last-child{border-bottom:none;}
+
+  .first{margin-top:26px;text-align:center;background:linear-gradient(180deg,rgba(40,30,70,.6),rgba(20,18,34,.6));
+    border:1px solid rgba(255,217,138,.3);border-radius:15px;padding:18px 16px;}
+  .first .lbl{font-size:11px;letter-spacing:.24em;color:var(--gold);}
+  .first .nm{font-size:20px;font-weight:900;margin:6px 0 4px;color:#fff;}
+  .first .ds{font-size:12px;color:var(--soft);line-height:1.7;}
+  .first a.play{display:inline-block;margin-top:12px;font-size:14px;font-weight:800;color:#2a1605;
+    background:linear-gradient(180deg,#ffe6a8,#ffae5e);border-radius:999px;padding:11px 28px;text-decoration:none;
+    box-shadow:0 6px 18px rgba(255,160,80,.4);}
+
+  .links{margin-top:26px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .links a{font-size:12px;color:var(--soft);text-decoration:none;border:1px solid var(--line);border-radius:20px;padding:9px 18px;}
+  .foot{margin-top:30px;text-align:center;font-size:11px;letter-spacing:.16em;color:var(--soft);opacity:.7;}
+  .foot a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img class="ic" src="/icon-192.png" alt="コッコちゃん">
+    <h1>畜　学</h1>
+    <div class="sub">ちくがく ─ 畜物語（chikumo.jp）の 設計哲学<br>畜史が「何を作ったか」なら、畜学は「なぜ・どう作るか」</div>
+  </header>
+
+  <div class="lead">
+    記憶を持たないClaudeでも、毎回これを読めば畜物語の魂に沿って作れるよう、
+    <b>哲学をコードとして外部化</b>したもの。新しいこっこゲームを設計する前に、必ずこの七つを読む。
+    <span class="src">起源：2026-06-24、正論蒔宿との対話で言語化／正典は <b>/docs/畜学.md</b>、要点は <b>CLAUDE.md</b> に常駐／第一弾は <b>コッコキズナ（/kizuna/）</b></span>
+  </div>
+
+  <div class="creeds">
+
+    <div class="creed">
+      <div class="no">壱</div>
+      <h2><span class="em">🚫</span>既視感の禁止</h2>
+      <p>ありきたりな既存ジャンルの焼き直しは、<b>もう作らない</b>。マッチ3・落ち物・もぐらたたき・タワー・ランナー…は制覇済み。それらの「こっこ版」を増やすのではない。目指すのは「<b>この世にまだ無い遊び</b>」の発明。ジャンル名で呼びにくいほどよい。</p>
+    </div>
+
+    <div class="creed">
+      <div class="no">弐</div>
+      <h2><span class="em">🔥</span>中毒の「形」を選ぶ</h2>
+      <p>中毒そのものは敵ではない。悪いのは<b>形</b>だ。<br>
+      <span class="bad">❌ 底なしの微温の中毒（ショート動画的）</span>＝弱い快感を延々と垂れ流し、静かに人生を奪う。最もタチが悪い。<br>
+      <span class="good">⭕ 短く・激しく・必ず終わる超中毒</span>。<b>60秒で焼き切る</b>。底（終わり）を必ず設計する。無限ループ＝底なし＝禁忌。</p>
+    </div>
+
+    <div class="creed">
+      <div class="no">参</div>
+      <h2><span class="em">🌙</span>「終わり」が商品</h2>
+      <p>本体はプレイ中ではなく、<b>終わった瞬間</b>にある。ドーパミンが引く瞬間に「人生に向き合う」火花が散る──その瞬間を、<b>設計で強制的に発火</b>させる。終わりの無音・余韻こそが商品。向き合う瞬間を<b>罰ではなく祝福</b>として演出する。</p>
+    </div>
+
+    <div class="creed">
+      <div class="no">四</div>
+      <h2><span class="em">🌏</span>同時多発の正気</h2>
+      <p>世界ランキングは順位争いの道具ではなく、<b>祭壇</b>。世界中が同じ短い儀式を終え、<b>同時に顔を上げる</b>──その「正気の同時多発」を可視化する。（インフラは既存Firebase <b>rankings/&lt;ゲーム名&gt;</b> に相乗り。）</p>
+    </div>
+
+    <div class="creed">
+      <div class="no">五</div>
+      <h2><span class="em">👨‍👧</span>ターゲットは親子</h2>
+      <p>遊び手は「親子」。一瞬こっこと遊ぶたび、<b>親子関係と向き合う</b>作品にする。だからエフェクト・効果音・BGMは飾りではない。<b>その一瞬を「二人の濃い記憶」に変える本体</b>として全振りする。</p>
+    </div>
+
+    <div class="creed enemy">
+      <div class="no">六</div>
+      <h2><span class="em">🖤</span>敵は逆縁のみ ─ ブラックこっこ</h2>
+      <p>敵は<b>ブラックこっこ</b>＝自分の影＝十六式でいう<b>逆縁要素</b>だけ。（逆縁要素＝縁を・関係を・繋がりを断ち切ろうとする「私」。）<br>
+      <b>父でも母でも、息子でも娘でもない。唯一の敵は、自分自身のズレ。</b><br>
+      相手プレイヤーを攻撃対象にする要素を入れてはならない。倒すべきは常に「自分の中の切ろうとする力」。</p>
+    </div>
+
+    <div class="creed">
+      <div class="no">七</div>
+      <h2><span class="em">📄</span>一ファイル自己完結</h2>
+      <p>HTML＋インラインJS＋Web Audio API＋Canvas で<b>1ファイル完結</b>。音・BGM・演出はその場生成。外部依存は世界ランキングのFirebaseのみ。大きなインラインJSを編集したら必ず <b>node --check</b> で構文確認する。</p>
+    </div>
+
+  </div>
+
+  <div class="check">
+    <h3>🧭 新作を出す前に自問する</h3>
+    <ul>
+      <li>それは「この世にまだ無い遊び」か？ 既存ジャンルの焼き直しになっていないか？（壱）</li>
+      <li><b>底（終わり）</b>があるか？ 無限に垂れ流していないか？ 60秒級で焼き切れるか？（弐）</li>
+      <li>終わった瞬間の<b>無音・余韻</b>を、祝福として設計したか？（参）</li>
+      <li>世界ランキングで「同時に顔を上げる」体験になっているか？（四）</li>
+      <li><b>親子</b>が一緒に遊べるか？ 音と光はその記憶を濃くしているか？（五）</li>
+      <li>敵は<b>ブラックこっこ（逆縁＝自分の影）だけ</b>か？ 相手を敵にしていないか？（六）</li>
+      <li>1ファイル自己完結か？ <b>node --check</b> を通したか？（七）</li>
+    </ul>
+  </div>
+
+  <div class="first">
+    <div class="lbl">畜学 第一弾</div>
+    <div class="nm">コッコキズナ ─ COCCO KIZUNA</div>
+    <div class="ds">親子ふたり・スマホ1台・60秒。こっこを挟んで左右の指が縁の糸でつながり、息を合わせて自分の逆縁（ブラックこっこ）を縁で押し返す。0秒で無音、こっこが振り返る。</div>
+    <a class="play" href="/kizuna/">▶ 親子で遊ぶ</a>
+  </div>
+
+  <div class="links">
+    <a href="/changelog/">📜 畜史（あゆみ）</a>
+    <a href="/">🏠 トップ</a>
+  </div>
+
+  <div class="foot">畜物語 ─ <a href="/">chikumo.jp</a></div>
+</div>
+</body>
+</html>
