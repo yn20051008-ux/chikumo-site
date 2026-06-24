@@ -512,16 +512,18 @@ function roundWin(){
   var bonus=120*motif.length + Math.min(combo,30)*15;
   score+=bonus;
   sfxWin(motif.length);
-  banner='✓ ナイス！'; bannerSub='+'+bonus; bannerT=1;
+  // 加速：成功するたびに速くなり、連続成功(コンボ)が続くほど加速率がアップ
+  var inc=2 + Math.min(combo-1,12)*0.8;
+  bpm=clamp(bpm+inc,96,184);
+  banner='✓ ナイス！'; bannerSub='♪+1  ⚡'+(combo>=2?'コンボ×'+combo:''); bannerT=1;
   // 節を1つ伸ばす（出だしは同じまま＝耳に残る）。上限でフレーズ更新
   if(motif.length>=8){
-    phrase++; bpm=clamp(bpm+5,96,168);
+    phrase++; bpm=clamp(bpm+4,96,184);
     motif=newPhraseSeed(3);
     banner='✨ あたらしいフレーズ'; bannerSub='フレーズ '+phrase; bannerT=1;
     sfxPhrase();
   }else{
-    motif=motif.concat([(Math.random()*4)|0]);
-    bpm=clamp(bpm+2,96,168);
+    motif=motif.concat([(Math.random()*4)|0]);   // ＋1音
   }
   if(motif.length>maxLen){ maxLen=motif.length; bestPhrase=motif.slice(); } // 最長フレーズを保持
   updateLayers();
