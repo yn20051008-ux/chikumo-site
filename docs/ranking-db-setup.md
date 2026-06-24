@@ -135,6 +135,18 @@
           "ts":    { ".validate": "newData.isNumber()" },
           "$other": { ".validate": false }
         }
+      },
+      "match": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && (!data.exists() || newData.child('score').val() >= data.child('score').val())",
+          ".validate": "newData.hasChildren(['name','score'])",
+          "name":  { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "flag":  { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99999999" },
+          "chain": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999" },
+          "ts":    { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        }
       }
     },
     "letters": {
@@ -212,6 +224,12 @@
 - 登録は **GAME OVER画面**から、名前＋国旗を入れて「🏆 登録」。閲覧は **タイトルの「🏆 世界ランキング」ボタン** からいつでも可能。
 - 登録すると「◯位にランクイン！」の結果発表演出が出る。
 - ハイスコアは **ブラウザ保存（localStorage）**、世界ランキングだけ **サーバー保存（Firebase）**。
+
+## こっこマッチ（/match/）について
+- **スコア 世界ランキング**：1プレイ（60秒タイムアタック）のスコアの自己ベストを登録（1端末1枠・最高スコアのみ保持）。`score`=スコア、`chain`=最大れんさ（カスケード）数。
+- 登録は **TIME UP（リザルト）画面**から、名前＋国旗を入れて「🏆 登録」。閲覧は **タイトルの「🏆 世界ランキング」ボタン** からいつでも可能。
+- 登録すると「◯位にランクイン！」の結果発表演出（ドラムロール→順位ドーン＋紙吹雪・花火、1位は👑WORLD CHAMPION）が流れる。
+- ベストスコアは **ブラウザ保存（localStorage）**、世界ランキングだけ **サーバー保存（Firebase）**。ノードは `rankings/match`（koro/poko 同様、匿名認証OFFの“オープン”状態でも登録は動く）。
 
 ## コッコラッシュ（/rush/）について
 - **スコア 世界ランキング**：1プレイのスコアの自己ベストを登録（1端末1枠・最高スコアのみ保持）。`score`=スコア、`eggs`=集めたたまご数。
