@@ -3,15 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>畜学 ─ 畜物語の設計哲学</title>
-<meta name="description" content="畜物語（chikumo.jp）の設計哲学「畜学（ちくがく）」。なぜ・どう作るかの七つの信条。既視感の禁止／短く激しく必ず終わる中毒／終わりが商品／同時多発の正気／親子／敵は逆縁のみ／一ファイル完結。">
+<title>畜学 ─ 畜物語秘伝</title>
+<meta name="description" content="畜物語（chikumo.jp）の作（つく）りの心法「畜学（ちくがく）」。十六式に連なる七相の秘伝。写すための書に非ず、向き合うための書。">
 <meta name="theme-color" content="#0a0c14">
 <meta name="format-detection" content="telephone=no">
 <link rel="canonical" href="https://chikumo.jp/chikugaku/">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://chikumo.jp/chikugaku/">
-<meta property="og:title" content="畜学 ─ 畜物語の設計哲学">
-<meta property="og:description" content="なぜ・どう作るかの七つの信条。">
+<meta property="og:title" content="畜学 ─ 畜物語秘伝">
+<meta property="og:description" content="十六式に連なる七相の心法。">
 <meta property="og:image" content="https://chikumo.jp/icon-192.png">
 <meta property="og:site_name" content="畜物語">
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -22,9 +22,10 @@
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   :root{--ink:#f1eee2;--soft:#b7b2cf;--line:rgba(255,255,255,.12);--gold:#ffd98a;}
   html,body{min-height:100%;}
-  body{font-family:'Hiragino Kaku Gothic ProN','Yu Gothic','Helvetica Neue',Arial,sans-serif;color:var(--ink);
+  body{font-family:'Hiragino Mincho ProN','Yu Mincho','Noto Serif JP',serif;color:var(--ink);
     background:radial-gradient(1200px 700px at 50% -8%,#1a1838 0%,#0c0b18 46%,#060509 100%) fixed;min-height:100vh;
-    padding:calc(env(safe-area-inset-top) + 22px) 16px calc(env(safe-area-inset-bottom) + 44px);-webkit-font-smoothing:antialiased;}
+    padding:calc(env(safe-area-inset-top) + 22px) 16px calc(env(safe-area-inset-bottom) + 44px);-webkit-font-smoothing:antialiased;
+    line-height:1.95;}
   body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.45;
     background-image:radial-gradient(1.4px 1.4px at 18% 28%,#fff,transparent),radial-gradient(1.2px 1.2px at 72% 16%,#cfe2ff,transparent),
       radial-gradient(1.5px 1.5px at 44% 60%,#fff,transparent),radial-gradient(1.1px 1.1px at 86% 72%,#ffe9c0,transparent),
@@ -32,48 +33,48 @@
   .wrap{max-width:620px;margin:0 auto;}
   header{text-align:center;margin-bottom:6px;}
   .ic{width:62px;height:62px;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.5);}
-  h1{font-size:clamp(24px,7vw,34px);font-weight:900;letter-spacing:.1em;margin-top:10px;
+  h1{font-size:clamp(24px,7vw,34px);font-weight:900;letter-spacing:.32em;margin-top:10px;text-indent:.32em;
     background:linear-gradient(180deg,#fff7e6,#ffd98a 60%,#e6a84a);-webkit-background-clip:text;background-clip:text;color:transparent;}
-  .sub{margin-top:8px;font-size:12.5px;color:var(--soft);letter-spacing:.05em;line-height:1.7;}
+  .sub{margin-top:8px;font-size:12.5px;color:var(--soft);letter-spacing:.08em;line-height:1.9;}
   .lead{margin:20px auto 4px;max-width:560px;background:rgba(20,18,34,.6);border:1px solid rgba(255,255,255,.08);
-    border-radius:14px;padding:15px 16px;font-size:13px;line-height:1.9;color:#e9e3ff;}
-  .lead b{color:var(--gold);}
-  .lead .src{display:block;margin-top:8px;font-size:11px;color:var(--soft);opacity:.8;letter-spacing:.03em;}
+    border-radius:14px;padding:16px 17px;font-size:13.5px;line-height:2.05;color:#e9e3ff;}
+  .lead b{color:var(--gold);font-weight:700;}
+  .lead .src{display:block;margin-top:10px;font-size:11px;color:var(--soft);opacity:.78;letter-spacing:.04em;line-height:1.8;font-family:sans-serif;}
   .creeds{margin-top:22px;}
   .creed{position:relative;background:rgba(20,18,34,.72);border:1px solid rgba(255,255,255,.08);border-radius:15px;
-    padding:16px 16px 16px 64px;margin-bottom:13px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
+    padding:17px 17px 17px 66px;margin-bottom:13px;-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);
     box-shadow:0 4px 16px rgba(0,0,0,.28);}
-  .creed .no{position:absolute;left:14px;top:15px;width:38px;height:38px;border-radius:11px;
-    display:flex;align-items:center;justify-content:center;font-weight:900;font-size:19px;color:#2a1605;
+  .creed .no{position:absolute;left:14px;top:16px;width:40px;height:40px;border-radius:11px;
+    display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:#2a1605;
     background:linear-gradient(180deg,#ffe6a8,#ffae5e);box-shadow:0 3px 10px rgba(255,160,80,.4);}
-  .creed h2{font-size:16.5px;font-weight:900;letter-spacing:.03em;color:#fff;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .creed h2{font-size:17px;font-weight:900;letter-spacing:.08em;color:#fff;display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
   .creed h2 .em{font-size:18px;}
-  .creed p{margin-top:7px;font-size:13px;line-height:1.85;color:var(--soft);}
-  .creed p b{color:var(--gold);}
-  .creed .bad{color:#ff9a9a;font-weight:700;}
-  .creed .good{color:#bdf08a;font-weight:700;}
+  .creed h2 .yomi{font-size:11px;color:var(--soft);letter-spacing:.1em;font-weight:400;font-family:sans-serif;}
+  .creed p{margin-top:9px;font-size:13.5px;line-height:2.05;color:#d8d2ea;}
+  .creed p .hi{color:var(--gold);}
+  .creed .seal{margin-top:9px;font-size:11.5px;color:var(--soft);opacity:.72;letter-spacing:.06em;font-family:sans-serif;border-top:1px dashed rgba(255,255,255,.1);padding-top:8px;}
   .creed.enemy{border-color:rgba(180,120,255,.4);box-shadow:0 0 22px rgba(120,70,200,.18);}
   .creed.enemy .no{background:linear-gradient(180deg,#caa6ff,#7a4ad0);color:#fff;}
 
-  .check{margin-top:26px;background:rgba(16,14,28,.7);border:1px solid var(--line);border-radius:15px;padding:16px;}
-  .check h3{font-size:14px;font-weight:900;color:var(--gold);letter-spacing:.06em;margin-bottom:10px;}
-  .check ul{list-style:none;}
-  .check li{font-size:12.5px;line-height:1.7;color:var(--soft);padding:6px 0 6px 26px;position:relative;border-bottom:1px dashed rgba(255,255,255,.06);}
-  .check li::before{content:"☐";position:absolute;left:4px;top:6px;color:var(--gold);font-size:14px;}
-  .check li:last-child{border-bottom:none;}
+  .koan{margin-top:26px;background:rgba(16,14,28,.7);border:1px solid var(--line);border-radius:15px;padding:17px;}
+  .koan h3{font-size:14px;font-weight:900;color:var(--gold);letter-spacing:.1em;margin-bottom:12px;font-family:sans-serif;}
+  .koan ul{list-style:none;}
+  .koan li{font-size:13px;line-height:1.95;color:#d8d2ea;padding:8px 0 8px 26px;position:relative;border-bottom:1px dashed rgba(255,255,255,.06);}
+  .koan li::before{content:"問";position:absolute;left:0;top:8px;color:var(--gold);font-size:12px;}
+  .koan li:last-child{border-bottom:none;}
 
   .first{margin-top:26px;text-align:center;background:linear-gradient(180deg,rgba(40,30,70,.6),rgba(20,18,34,.6));
     border:1px solid rgba(255,217,138,.3);border-radius:15px;padding:18px 16px;}
-  .first .lbl{font-size:11px;letter-spacing:.24em;color:var(--gold);}
-  .first .nm{font-size:20px;font-weight:900;margin:6px 0 4px;color:#fff;}
-  .first .ds{font-size:12px;color:var(--soft);line-height:1.7;}
-  .first a.play{display:inline-block;margin-top:12px;font-size:14px;font-weight:800;color:#2a1605;
+  .first .lbl{font-size:11px;letter-spacing:.3em;color:var(--gold);font-family:sans-serif;}
+  .first .nm{font-size:20px;font-weight:900;margin:6px 0 4px;color:#fff;letter-spacing:.06em;}
+  .first .ds{font-size:12.5px;color:var(--soft);line-height:1.9;}
+  .first a.play{display:inline-block;margin-top:12px;font-size:14px;font-weight:800;color:#2a1605;font-family:sans-serif;
     background:linear-gradient(180deg,#ffe6a8,#ffae5e);border-radius:999px;padding:11px 28px;text-decoration:none;
     box-shadow:0 6px 18px rgba(255,160,80,.4);}
 
-  .links{margin-top:26px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .links{margin-top:26px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;font-family:sans-serif;}
   .links a{font-size:12px;color:var(--soft);text-decoration:none;border:1px solid var(--line);border-radius:20px;padding:9px 18px;}
-  .foot{margin-top:30px;text-align:center;font-size:11px;letter-spacing:.16em;color:var(--soft);opacity:.7;}
+  .foot{margin-top:30px;text-align:center;font-size:11px;letter-spacing:.16em;color:var(--soft);opacity:.7;font-family:sans-serif;}
   .foot a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3);}
 </style>
 </head>
@@ -81,88 +82,113 @@
 <div class="wrap">
   <header>
     <img class="ic" src="/icon-192.png" alt="コッコちゃん">
-    <h1>畜　学</h1>
-    <div class="sub">ちくがく ─ 畜物語（chikumo.jp）の 設計哲学<br>畜史が「何を作ったか」なら、畜学は「なぜ・どう作るか」</div>
+    <h1>畜　學</h1>
+    <div class="sub">ちくがく ─ 畜物語の作（つく）りの心法（しんぽう）<br>畜史は「成（な）りしもの」を録（ろく）し、畜學は「いかに成すか」を秘（ひ）す</div>
   </header>
 
   <div class="lead">
-    記憶を持たないClaudeでも、毎回これを読めば畜物語の魂に沿って作れるよう、
-    <b>哲学をコードとして外部化</b>したもの。新しいこっこゲームを設計する前に、必ずこの七つを読む。
-    <span class="src">起源：2026-06-24、正論蒔宿との対話で言語化／正典は <b>/docs/畜学.md</b>、要点は <b>CLAUDE.md</b> に常駐／第一弾は <b>コッコキズナ（/kizuna/）</b></span>
+    これは写本（しゃほん）に非（あら）ず、向き合うための書なり。<br>
+    記（しる）すは表（おもて）の七相（しちそう）のみ。<b>裏（うら）の数（かず）と段（だん）は、器（うつわ）の内にのみ宿る。</b>
+    読みて「面白き仕掛け」を盗まんとする者は、影だけを掴（つか）み、魂（たましい）を取り落とすべし。
+    心を以（もっ）て読む者にのみ、未生（みしょう）の戯（あそ）びが立ち上がる。
+    <span class="src">起：丙午（ひのえうま）2026・水無月廿四（みなづきにじゅうよん）、正論蒔宿（しょうろんまきやど）との対話より結ぶ。／ 正典は器の内（/docs/畜学.md）、要（かなめ）は常駐の書（CLAUDE.md）に。／ 初手（しょて）の証（あかし）＝こっこの縁（/kizuna/）。</span>
   </div>
 
   <div class="creeds">
 
     <div class="creed">
       <div class="no">壱</div>
-      <h2><span class="em">🚫</span>既視感の禁止</h2>
-      <p>ありきたりな既存ジャンルの焼き直しは、<b>もう作らない</b>。マッチ3・落ち物・もぐらたたき・タワー・ランナー…は制覇済み。それらの「こっこ版」を増やすのではない。目指すのは「<b>この世にまだ無い遊び</b>」の発明。ジャンル名で呼びにくいほどよい。</p>
+      <h2><span class="em">🚫</span>既視の禁 <span class="yomi">きしのきん</span></h2>
+      <p>既（すで）に視（み）たるものは、ことごとく讐（あだ）。<span class="hi">先（さき）なる者の戯（あそ）びの影を践（ふ）む</span>に、畜の魂は宿らぬ。
+      よく知られたる遊戯（ゆうぎ）に、ただ此（こ）の鳥を着せ替うるは、最も卑（いや）し。
+      虚（きょ）より一（ひと）つ、<span class="hi">未（いま）だ生（うま）れざる戯び</span>を起こせ。名づけ難（がた）きものほど、真（しん）に近し。</p>
+      <div class="seal">封：類（たぐい）を踏むこと勿（なか）れ。発（はっ）すは新たなる種（しゅ）のみ。</div>
     </div>
 
     <div class="creed">
       <div class="no">弐</div>
-      <h2><span class="em">🔥</span>中毒の「形」を選ぶ</h2>
-      <p>中毒そのものは敵ではない。悪いのは<b>形</b>だ。<br>
-      <span class="bad">❌ 底なしの微温の中毒（ショート動画的）</span>＝弱い快感を延々と垂れ流し、静かに人生を奪う。最もタチが悪い。<br>
-      <span class="good">⭕ 短く・激しく・必ず終わる超中毒</span>。<b>60秒で焼き切る</b>。底（終わり）を必ず設計する。無限ループ＝底なし＝禁忌。</p>
+      <h2><span class="em">🔥</span>焔の形 <span class="yomi">ほむらのかたち</span></h2>
+      <p>毒は熱（ねつ）に非ず、<span class="hi">形（かたち）</span>に在り。
+      底（そこ）なき微温（びおん）は、音もなく人の生（せい）を啜（すす）る――最も忌（い）むべき形。
+      畜の焔は、疾（と）く燃え、<span class="hi">疾く尽（つ）く</span>。一息（ひといき）のうちに焼き切れ。
+      <span class="hi">底を持たぬ環（わ）は、禁忌（きんき）</span>。果（は）てなきものを、決して垂（た）れ流すな。</p>
+      <div class="seal">封：終（つい）を必ず内に鋳（い）よ。果てぬ環を禁ず。</div>
     </div>
 
     <div class="creed">
       <div class="no">参</div>
-      <h2><span class="em">🌙</span>「終わり」が商品</h2>
-      <p>本体はプレイ中ではなく、<b>終わった瞬間</b>にある。ドーパミンが引く瞬間に「人生に向き合う」火花が散る──その瞬間を、<b>設計で強制的に発火</b>させる。終わりの無音・余韻こそが商品。向き合う瞬間を<b>罰ではなく祝福</b>として演出する。</p>
+      <h2><span class="em">🌙</span>終を售る <span class="yomi">ついをひさぐ</span></h2>
+      <p>售（ひさ）ぐは戯びの間（あいだ）に非ず、<span class="hi">その尽（つ）くる刹那（せつな）</span>なり。
+      火の引く時、人ははじめて己（おの）が生に面（おもて）を向く。
+      その一閃（いっせん）を、偶（たま）さかに非ず、<span class="hi">設（しつら）えより発（はっ）せよ</span>。
+      終いの無音（むおん）を、罰（ばつ）に非ず、<span class="hi">祝（ほぎ）</span>として奏（かな）でよ。</p>
+      <div class="seal">封：向き合う刹那を設計で点（とも）せ。終いの静寂を祝とせよ。</div>
     </div>
 
     <div class="creed">
       <div class="no">四</div>
-      <h2><span class="em">🌏</span>同時多発の正気</h2>
-      <p>世界ランキングは順位争いの道具ではなく、<b>祭壇</b>。世界中が同じ短い儀式を終え、<b>同時に顔を上げる</b>──その「正気の同時多発」を可視化する。（インフラは既存Firebase <b>rankings/&lt;ゲーム名&gt;</b> に相乗り。）</p>
+      <h2><span class="em">🌏</span>万象同時の醒 <span class="yomi">ばんしょうどうじのさめ</span></h2>
+      <p>位（くらい）を競う壇（だん）に非ず。
+      万人（ばんにん）が同じ短き儀（ぎ）を終え、<span class="hi">同時に面を上ぐる</span>――
+      その「醒（さ）めの同時多発（どうじたはつ）」を映す祭壇（さいだん）なり。
+      争いの数（かず）と見ゆれど、真（まこと）は、世界が一斉（いっせい）に顔を上げる刻（とき）の、しるし。</p>
+      <div class="seal">封：板（いた）は順位に非ず、世界が同時に醒める祭壇。既存の祭壇に相乗（あいの）れ。</div>
     </div>
 
     <div class="creed">
       <div class="no">五</div>
-      <h2><span class="em">👨‍👧</span>ターゲットは親子</h2>
-      <p>遊び手は「親子」。一瞬こっこと遊ぶたび、<b>親子関係と向き合う</b>作品にする。だからエフェクト・効果音・BGMは飾りではない。<b>その一瞬を「二人の濃い記憶」に変える本体</b>として全振りする。</p>
+      <h2><span class="em">👨‍👧</span>二親の的 <span class="yomi">ふたおやのまと</span></h2>
+      <p>戯（たわむ）るは、親（おや）と子（こ）。
+      この鳥に触（ふ）るるたび、<span class="hi">親子の縁（えにし）と向き合う</span>。
+      光（ひかり）・音（ね）・調（しらべ）は、飾（かざ）りに非ず。
+      一瞬（いっしゅん）を<span class="hi">「二人の濃（こ）き記憶」へ鋳（い）る本体</span>なり。これを末事（まつじ）と侮（あなど）る者、的（まと）を外す。</p>
+      <div class="seal">封：的は親子。音光調はその記憶を濃くする本体ぞ。</div>
     </div>
 
     <div class="creed enemy">
       <div class="no">六</div>
-      <h2><span class="em">🖤</span>敵は逆縁のみ ─ ブラックこっこ</h2>
-      <p>敵は<b>ブラックこっこ</b>＝自分の影＝十六式でいう<b>逆縁要素</b>だけ。（逆縁要素＝縁を・関係を・繋がりを断ち切ろうとする「私」。）<br>
-      <b>父でも母でも、息子でも娘でもない。唯一の敵は、自分自身のズレ。</b><br>
-      相手プレイヤーを攻撃対象にする要素を入れてはならない。倒すべきは常に「自分の中の切ろうとする力」。</p>
+      <h2><span class="em">🖤</span>敵は逆縁のみ <span class="yomi">てきはぎゃくえんのみ</span></h2>
+      <p>黒（くろ）き鳥――すなわち<span class="hi">己（おの）が影</span>、十六式（じゅうろくしき）に謂（い）う<span class="hi">逆縁（ぎゃくえん）の相（そう）</span>。
+      縁を、関係（かんけい）を、繋（つな）がりを断（た）たんとする「私（わたし）」。
+      <span class="hi">父に非ず、母に非ず、子に非ず。唯一（ゆいいつ）の敵は、己が裂（さ）け目。</span>
+      相手（あいて）に刃（やいば）を向くる仕掛（しか）けを、決して鋳（い）るな。討（う）つは常（つね）に、己の中の断とうとする力のみ。</p>
+      <div class="seal">封：敵は黒こっこ（逆縁＝自己の影）のみ。相手を敵に据（す）えるべからず。</div>
     </div>
 
     <div class="creed">
       <div class="no">七</div>
-      <h2><span class="em">📄</span>一ファイル自己完結</h2>
-      <p>HTML＋インラインJS＋Web Audio API＋Canvas で<b>1ファイル完結</b>。音・BGM・演出はその場生成。外部依存は世界ランキングのFirebaseのみ。大きなインラインJSを編集したら必ず <b>node --check</b> で構文確認する。</p>
+      <h2><span class="em">📄</span>一器に納む <span class="yomi">いっきにおさむ</span></h2>
+      <p>一（ひと）つの器（うつわ）に、世界を畳（たた）め。
+      文（ふみ）と算（さん）と音（ね）と画（が）――<span class="hi">外（そと）に乞（こ）うは、祭壇への一筋（ひとすじ）のみ</span>。
+      算（さん）を編（あ）みたれば、必ず<span class="hi">験（けん）を通せ</span>。
+      器を割（わ）る者は、魂（たましい）を散（ち）らす。</p>
+      <div class="seal">封：HTML一枚に自己完結。外部は祭壇のみ。改めしインライン算は必ず検（あらた）めよ。</div>
     </div>
 
   </div>
 
-  <div class="check">
-    <h3>🧭 新作を出す前に自問する</h3>
+  <div class="koan">
+    <h3>作（つく）る前に、己（おの）に問う七つ</h3>
     <ul>
-      <li>それは「この世にまだ無い遊び」か？ 既存ジャンルの焼き直しになっていないか？（壱）</li>
-      <li><b>底（終わり）</b>があるか？ 無限に垂れ流していないか？ 60秒級で焼き切れるか？（弐）</li>
-      <li>終わった瞬間の<b>無音・余韻</b>を、祝福として設計したか？（参）</li>
-      <li>世界ランキングで「同時に顔を上げる」体験になっているか？（四）</li>
-      <li><b>親子</b>が一緒に遊べるか？ 音と光はその記憶を濃くしているか？（五）</li>
-      <li>敵は<b>ブラックこっこ（逆縁＝自分の影）だけ</b>か？ 相手を敵にしていないか？（六）</li>
-      <li>1ファイル自己完結か？ <b>node --check</b> を通したか？（七）</li>
+      <li>これは「未だ此（こ）の世に無き戯び」か。先人の影を践んでいないか。（壱）</li>
+      <li><span style="color:var(--gold)">底（終い）</span>はあるか。果てなく垂れ流していないか。一息で焼き切れるか。（弐）</li>
+      <li>尽（つ）くる刹那の<span style="color:var(--gold)">無音</span>を、祝として設えたか。（参）</li>
+      <li>万人が同時に面を上ぐる祭壇に、繋いだか。（四）</li>
+      <li>親と子が共に戯れるか。音と光は、その記憶を濃くしているか。（五）</li>
+      <li>敵は<span style="color:var(--gold)">黒き鳥（己の影）のみ</span>か。相手を敵に据えていないか。（六）</li>
+      <li>一器に納まったか。<span style="color:var(--gold)">験（けん）</span>を通したか。（七）</li>
     </ul>
   </div>
 
   <div class="first">
-    <div class="lbl">畜学 第一弾</div>
-    <div class="nm">コッコキズナ ─ COCCO KIZUNA</div>
-    <div class="ds">親子ふたり・スマホ1台・60秒。こっこを挟んで左右の指が縁の糸でつながり、息を合わせて自分の逆縁（ブラックこっこ）を縁で押し返す。0秒で無音、こっこが振り返る。</div>
-    <a class="play" href="/kizuna/">▶ 親子で遊ぶ</a>
+    <div class="lbl">畜學 初手の証</div>
+    <div class="nm">こっこの縁 ─ COCCO KIZUNA</div>
+    <div class="ds">親子ふたり、一器（ひとつ）の盤（ばん）、一息（ひといき）。鳥を挟（はさ）み、二つの指が縁（えにし）の糸で繋（つな）がり、息を合わせて己が逆縁（黒き鳥）を縁で押し返す。尽くれば無音、鳥が振り返る。</div>
+    <a class="play" href="/kizuna/">▶ 親子で戯れる</a>
   </div>
 
   <div class="links">
-    <a href="/changelog/">📜 畜史（あゆみ）</a>
+    <a href="/changelog/">📜 畜史</a>
     <a href="/">🏠 トップ</a>
   </div>
 
