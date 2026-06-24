@@ -541,10 +541,7 @@ function roundMiss(){
   seq.push(setTimeout(startRound, 850));
 }
 function onPad(i){
-  if(state==='call'){ // 歌ってる最中：軽く反応だけ（採点しない）
-    lightPad(i,false); return;
-  }
-  if(state!=='echo') return;
+  if(state!=='echo') return;   // 反応するのは「まねする番(echo)」だけ。コール中や判定中は無反応
   lightPad(i,true); playPadSound(i);
   if(i===motif[echoPos]){
     var mult=1+Math.min(combo,20)*0.05;
@@ -734,7 +731,7 @@ function hitTest(px,py){
   return -1;
 }
 function pointer(e){
-  if(state!=='call'&&state!=='echo') return;
+  if(state!=='echo') return;   // 「まねする番」以外はパッドを反応させない
   var rect=cv.getBoundingClientRect();
   var t=e.touches?e.touches[0]:e;
   var px=t.clientX-rect.left, py=t.clientY-rect.top;
@@ -744,7 +741,7 @@ function pointer(e){
 cv.addEventListener('pointerdown', pointer, {passive:false});
 window.addEventListener('keydown', function(e){
   var map={'Digit1':0,'Digit2':1,'Digit3':2,'Digit4':3,'KeyQ':0,'KeyW':1,'KeyA':2,'KeyS':3};
-  if(map[e.code]!=null && (state==='call'||state==='echo')){ onPad(map[e.code]); }
+  if(map[e.code]!=null && state==='echo'){ onPad(map[e.code]); }
 });
 
 /* ===== 画面遷移 ===== */
