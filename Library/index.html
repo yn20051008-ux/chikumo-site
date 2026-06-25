@@ -1,438 +1,157 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Library</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>畜学 ─ 蔵書</title>
+<meta name="description" content="畜物語の蔵書室「畜学」。十四式（構造実体の固定構造）と遊戯学（遊びをめぐる資料）の二棚。読みたい本を選んでひらく。">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="畜学 ─ 蔵書">
+<meta property="og:description" content="十四式と遊戯学の二棚。読みたい本を選んでひらく、畜物語の蔵書室。">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700;800&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 :root{
-  --wall-base:#d4c8b8;
-  --wall-light:#e8dfd2;
-  --wall-shadow:#b8a890;
-  --wood-light:#8b6b4a;
-  --wood-mid:#5c4332;
-  --wood-dark:#3a2820;
-  --wood-grain:#4a3528;
-  --text:#4a4035;
-  --text-muted:#7a7060;
-  --search-bg:rgba(139,107,74,0.25);
-  --search-border:rgba(139,107,74,0.3);
+  --wall-top:#e9e0d2; --wall-mid:#d4c6b2; --wall-bot:#b29a7c;
+  --wood-light:#9a7550; --wood-mid:#5f4430; --wood-dark:#3a2820;
+  --ink:#3c332a; --ink-soft:#6f6456;
+  --gold:#c4a25e; --gold-bright:#e8cf95;
+  --serif:'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho',serif;
+  --mono:'IBM Plex Mono',monospace;
 }
-html,body{
-  min-height:100vh;
-  margin:0;
-}
+html,body{min-height:100%;}
 body{
-  font-family:Georgia,"Hiragino Mincho ProN","Yu Mincho",serif;
-  color:#4a4035;
-  overflow-x:hidden;
+  font-family:var(--serif);color:var(--ink);
+  min-height:100vh;overflow-x:hidden;
+  background:
+    radial-gradient(ellipse 80% 50% at 22% 8%,rgba(255,250,238,0.55),transparent 55%),
+    radial-gradient(ellipse 70% 50% at 85% 12%,rgba(255,244,224,0.4),transparent 50%),
+    linear-gradient(180deg,var(--wall-top) 0%,var(--wall-mid) 46%,var(--wall-bot) 100%);
 }
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    repeating-linear-gradient(90deg,transparent 0 3px,rgba(0,0,0,0.012) 3px 4px),
+    repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,0.012) 3px 4px);
+}
+.wrap{position:relative;z-index:1;max-width:880px;margin:0 auto;padding:clamp(2rem,6vw,4.5rem) 1.4rem 5rem;}
 
-.wall{
-min-height:100vh;
-position:relative;
-background-color:#d4c8b8;
-background-image:
-radial-gradient(ellipse 80% 50% at 20% 10%,rgba(255,250,240,0.4) 0%,transparent 50%),
-radial-gradient(ellipse 60% 40% at 85% 15%,rgba(255,245,230,0.3) 0%,transparent 40%),
-radial-gradient(ellipse 100% 80% at 50% 100%,rgba(160,140,120,0.15) 0%,transparent 50%),
-linear-gradient(180deg,#e8dfd2 0%,#d4c8b8 40%,#b8a890 100%);
-}
-.wall::before{
-content:””;
-position:absolute;
-inset:0;
-background-image:
-repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.008) 2px,rgba(0,0,0,0.008) 4px),
-repeating-linear-gradient(90deg,transparent,transparent 2px,rgba(0,0,0,0.005) 2px,rgba(0,0,0,0.005) 4px);
-pointer-events:none;
-}
-.wall::after{
-content:””;
-position:absolute;
-inset:0;
-background-image:
-linear-gradient(135deg,transparent 0%,transparent 40%,rgba(0,0,0,0.03) 100%),
-radial-gradient(ellipse 50% 30% at 15% 8%,rgba(255,255,255,0.15) 0%,transparent 70%);
-pointer-events:none;
-}
+a.home{display:inline-block;font-family:var(--mono);font-size:0.72rem;letter-spacing:0.2em;color:var(--ink-soft);
+  text-decoration:none;border-bottom:1px solid rgba(60,51,42,0.25);padding-bottom:2px;margin-bottom:2.6rem;transition:color .2s;}
+a.home:hover{color:var(--ink);}
 
-.container{
-position:relative;
-z-index:10;
-max-width:700px;
-margin:0 auto;
-padding:2rem 1.5rem 4rem;
-}
+header{text-align:center;margin-bottom:clamp(2.4rem,6vw,4rem);}
+header h1{font-size:clamp(3rem,12vw,5.4rem);font-weight:800;letter-spacing:0.18em;color:var(--ink);
+  text-shadow:0 1px 0 rgba(255,255,255,0.4),0 2px 6px rgba(90,68,48,0.2);}
+header .en{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.5em;color:var(--ink-soft);text-transform:uppercase;margin-top:0.9rem;}
+header p{margin-top:1.1rem;font-size:0.98rem;color:var(--ink-soft);letter-spacing:0.08em;font-style:italic;}
 
-header{
-margin-bottom:2.5rem;
+/* SHELF */
+.shelf{margin-top:1rem;}
+.books{
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:flex-end;
+  gap:clamp(22px,6vw,52px);min-height:268px;padding:30px 14px 0;perspective:1400px;
 }
-.title-area{
-margin-bottom:1.2rem;
+.board{
+  height:30px;border-radius:2px;position:relative;
+  background:linear-gradient(90deg,#3a2820 0%,#5f4430 6%,#9a7550 16%,#5f4430 32%,#3a2820 46%,#5f4430 56%,#9a7550 72%,#5f4430 86%,#3a2820 96%,#5f4430 100%);
+  box-shadow:0 5px 10px rgba(0,0,0,0.28),0 12px 30px rgba(0,0,0,0.16),inset 0 1px 0 rgba(255,255,255,0.12),inset 0 -2px 0 rgba(0,0,0,0.25);
 }
-.title-area h1{
-font-size:2.5rem;
-font-weight:400;
-letter-spacing:0.02em;
-margin-bottom:0.3rem;
-color:#4a4035;
-}
-.title-area p{
-color:#7a7060;
-font-style:italic;
-font-size:1.1rem;
-}
-.search-box{
-position:relative;
-width:100%;
-max-width:400px;
-}
-.search-box input{
-width:100%;
-padding:0.9rem 1rem 0.9rem 2.8rem;
-background-color:rgba(139,107,74,0.25);
-border:1px solid rgba(139,107,74,0.3);
-border-radius:8px;
-color:#4a4035;
-font-size:1rem;
-font-family:inherit;
-outline:none;
--webkit-backdrop-filter:blur(8px);
-backdrop-filter:blur(8px);
-}
-.search-box input::-webkit-input-placeholder{color:#7a7060}
-.search-box input::placeholder{color:#7a7060}
-.search-box input:focus{
-background-color:rgba(139,107,74,0.32);
-border-color:rgba(139,107,74,0.4);
-}
-.search-box svg{
-position:absolute;
-left:0.9rem;top:50%;
-transform:translateY(-50%);
-width:18px;height:18px;
-stroke:#7a7060;
-stroke-width:2;
-fill:none;
-}
+.board::after{content:"";position:absolute;left:0;right:0;top:100%;height:64px;
+  background:linear-gradient(180deg,rgba(0,0,0,0.2),transparent);pointer-events:none;}
 
-.bookshelf{
-display:flex;
-flex-direction:column;
-margin-top:2rem;
-}
-
-.shelf{
-display:none;
-}
-.shelf.visible{
-display:block;
-}
-
-.shelf-books{
-display:flex;
-justify-content:center;
-align-items:flex-end;
-gap:24px;
-padding:40px 20px 0;
-min-height:220px;
-position:relative;
-}
-
-.shelf-board{
-height:24px;
-position:relative;
-background-color:#5c4332;
-background-image:linear-gradient(90deg,
-#3a2820 0%,
-#5c4332 5%,
-#8b6b4a 15%,
-#5c4332 30%,
-#3a2820 45%,
-#5c4332 55%,
-#8b6b4a 70%,
-#5c4332 85%,
-#3a2820 95%,
-#5c4332 100%
-);
-box-shadow:
-0 4px 8px rgba(0,0,0,0.25),
-0 8px 20px rgba(0,0,0,0.15),
-0 12px 40px rgba(0,0,0,0.1),
-inset 0 1px 0 rgba(255,255,255,0.1),
-inset 0 -1px 0 rgba(0,0,0,0.2);
-border-radius:1px;
-}
-.shelf-board::before{
-content:””;
-position:absolute;
-inset:0;
-background-image:repeating-linear-gradient(90deg,
-transparent 0px,
-transparent 40px,
-rgba(0,0,0,0.03) 40px,
-rgba(0,0,0,0.03) 42px,
-transparent 42px,
-transparent 80px,
-rgba(255,255,255,0.02) 80px,
-rgba(255,255,255,0.02) 81px
-);
-border-radius:1px;
-}
-.shelf-board::after{
-content:””;
-position:absolute;
-left:0;right:0;top:100%;
-height:60px;
-background-image:linear-gradient(180deg,rgba(0,0,0,0.18) 0%,rgba(0,0,0,0.08) 30%,transparent 100%);
-pointer-events:none;
-}
-
+/* BOOK (front cover) */
 .book{
-display:flex;
-align-items:center;
-justify-content:center;
-width:140px;
-height:195px;
-flex-shrink:0;
-border-radius:2px;
-text-decoration:none;
-position:relative;
-padding:15px 12px;
-text-align:center;
-transition:transform 0.25s ease,box-shadow 0.25s ease;
-background-color:#252220;
-background-image:linear-gradient(135deg,
-#3a3530 0%,
-#2d2825 20%,
-#252220 50%,
-#2a2622 80%,
-#1f1c1a 100%
-);
-box-shadow:
-2px 4px 8px rgba(0,0,0,0.3),
-4px 8px 16px rgba(0,0,0,0.2),
--1px 0 3px rgba(0,0,0,0.15),
-inset 1px 1px 2px rgba(255,255,255,0.05),
-inset -1px -1px 2px rgba(0,0,0,0.3);
+  position:relative;display:block;text-decoration:none;flex:0 0 auto;
+  width:clamp(140px,40vw,184px);height:clamp(196px,56vw,256px);
+  border-radius:3px 6px 6px 3px;
+  background:linear-gradient(135deg,var(--c1),var(--c2));
+  box-shadow:
+    7px 10px 18px rgba(0,0,0,0.32),
+    14px 18px 36px rgba(0,0,0,0.2),
+    inset 0 1px 0 rgba(255,255,255,0.14),
+    inset -2px -2px 6px rgba(0,0,0,0.28);
+  transform:rotateY(8deg) translateY(0);transform-origin:left center;
+  transition:transform .3s cubic-bezier(.2,1,.3,1),box-shadow .3s;
+  overflow:hidden;
 }
-
-.book::after{
-content:””;
-position:absolute;
-top:2px;bottom:2px;right:-8px;
-width:8px;
-background-color:#1f1c18;
-background-image:linear-gradient(90deg,
-#1a1815 0%,
-#2a2520 40%,
-#1f1c18 100%
-);
-border-radius:0 2px 2px 0;
-box-shadow:
-2px 0 4px rgba(0,0,0,0.3),
-inset -1px 0 2px rgba(0,0,0,0.4);
+.book::after{ /* 背表紙の陰 */
+  content:"";position:absolute;left:0;top:0;bottom:0;width:14px;
+  background:linear-gradient(90deg,rgba(0,0,0,0.42),rgba(255,255,255,0.08) 60%,rgba(0,0,0,0.18));
 }
-
-.book::before{
-content:””;
-position:absolute;
-inset:0;
-background-image:
-repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,0.01) 3px,rgba(255,255,255,0.01) 6px),
-repeating-linear-gradient(90deg,transparent,transparent 5px,rgba(0,0,0,0.02) 5px,rgba(0,0,0,0.02) 10px);
-border-radius:2px;
-pointer-events:none;
+.book::before{ /* 小口（右ページ束） */
+  content:"";position:absolute;right:-5px;top:5px;bottom:5px;width:6px;border-radius:0 2px 2px 0;
+  background:repeating-linear-gradient(180deg,#efe6d3 0 1.5px,#cdbf a0 1.5px 3px,#d8cbb0 3px 4.5px);
+  background:repeating-linear-gradient(180deg,#efe6d3 0 1.6px,#cabd9c 1.6px 3.2px);
+  box-shadow:1px 0 3px rgba(0,0,0,0.3);
 }
-
-.book-shadow{
-position:absolute;
-bottom:-4px;
-left:50%;
-transform:translateX(-50%);
-width:90%;
-height:8px;
-background-image:radial-gradient(ellipse 100% 100% at 50% 0%,rgba(0,0,0,0.4) 0%,transparent 70%);
-pointer-events:none;
-z-index:-1;
+.cover{
+  position:absolute;inset:12px 12px 12px 22px;border:1px solid rgba(255,255,255,0.28);
+  border-radius:2px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.8rem;
+  box-shadow:inset 0 0 0 3px rgba(0,0,0,0.12),inset 0 0 22px rgba(0,0,0,0.22);
 }
-
-.book:hover{
-transform:translateY(-8px);
-box-shadow:
-4px 12px 20px rgba(0,0,0,0.35),
-8px 16px 32px rgba(0,0,0,0.25),
--1px 0 3px rgba(0,0,0,0.15),
-inset 1px 1px 2px rgba(255,255,255,0.08),
-inset -1px -1px 2px rgba(0,0,0,0.3);
+.cover .rule{width:34px;height:1px;background:var(--gold-bright);opacity:0.8;}
+.cover .title{
+  writing-mode:vertical-rl;text-orientation:upright;
+  font-size:clamp(1.7rem,5.4vw,2.2rem);font-weight:800;letter-spacing:0.18em;line-height:1.15;
+  color:var(--gold-bright);text-shadow:0 1px 2px rgba(0,0,0,0.5),0 0 10px rgba(0,0,0,0.25);
 }
-
-.book:focus{
-outline:2px solid rgba(139,107,74,0.5);
-outline-offset:4px;
+.cover .sub{font-family:var(--mono);font-size:0.56rem;letter-spacing:0.16em;color:rgba(255,248,235,0.7);
+  text-align:center;max-width:90%;line-height:1.7;text-transform:uppercase;}
+.book:hover,.book:focus-visible{
+  transform:rotateY(2deg) translateY(-12px);
+  box-shadow:10px 20px 30px rgba(0,0,0,0.4),20px 28px 56px rgba(0,0,0,0.26),inset 0 1px 0 rgba(255,255,255,0.18),inset -2px -2px 6px rgba(0,0,0,0.28);
+  outline:none;
 }
+.book .glow{position:absolute;inset:0;border-radius:inherit;opacity:0;transition:opacity .3s;
+  box-shadow:0 0 26px var(--c2);}
+.book:hover .glow{opacity:0.5;}
 
-.book.hidden{
-display:none;
-}
-
-.book-title{
-font-size:1.3rem;
-font-weight:500;
-color:#c9b896;
-line-height:1.4;
-text-shadow:
-0 1px 1px rgba(0,0,0,0.5),
-0 0 2px rgba(180,160,120,0.3);
-letter-spacing:0.15em;
-position:relative;
-z-index:1;
-}
-
-.no-results{
-text-align:center;
-padding:3rem;
-color:#7a7060;
-font-style:italic;
-display:none;
-}
-.no-results.show{display:block}
-
-@media(max-width:500px){
-.container{padding:1.5rem 1rem 3rem}
-.shelf-books{gap:16px;padding:30px 10px 0}
-.book{width:115px;height:160px;padding:10px 8px}
-.book-title{font-size:1.1rem}
-.shelf-board{height:20px}
+footer{margin-top:3.6rem;text-align:center;font-family:var(--mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--ink-soft);}
+footer a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(60,51,42,0.25);}
+@media(max-width:430px){
+  .books{gap:26px;}
 }
 </style>
-
 </head>
 <body>
-<div class="wall">
-  <div class="container">
-    <header>
-      <div class="title-area">
-        <h1>Library</h1>
-        <p>Select a Book</p>
-      </div>
-      <div class="search-box">
-        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="16" y1="16" x2="21" y2="21"/></svg>
-        <input type="text" id="search" placeholder="Search">
-      </div>
-    </header>
-    <main class="bookshelf" id="bookshelf"></main>
-    <p class="no-results" id="noResults">No books found</p>
+<div class="wrap">
+  <a class="home" href="/">← 畜物語</a>
+  <header>
+    <h1>畜学</h1>
+    <div class="en">Chikugaku — The Library</div>
+    <p>読みたい本を、棚からえらぶ。</p>
+  </header>
+
+  <div class="shelf">
+    <div class="books">
+      <a class="book" href="/jushishiki/" style="--c1:#1f3a44;--c2:#0e2730;" aria-label="十四式をひらく">
+        <span class="glow"></span>
+        <span class="cover">
+          <span class="rule"></span>
+          <span class="title">十四式</span>
+          <span class="rule"></span>
+          <span class="sub">構造実体の固定構造</span>
+        </span>
+      </a>
+      <a class="book" href="/yugigaku/" style="--c1:#5a2230;--c2:#34121b;" aria-label="遊戯学をひらく">
+        <span class="glow"></span>
+        <span class="cover">
+          <span class="rule"></span>
+          <span class="title">遊戯学</span>
+          <span class="rule"></span>
+          <span class="sub">遊びをめぐる資料</span>
+        </span>
+      </a>
+    </div>
+    <div class="board"></div>
   </div>
+
+  <footer>畜物語 ─ <a href="/">chikumo.jp</a></footer>
 </div>
-
-<script>
-var BOOKS = [
-  { id: 1, title: "五式", url: "https://chikumo.jp/Goshiki/" },
-  { id: 2, title: "十三式", url: "https://chikumo.jp/jusanshiki/" }
-];
-
-var shelves = [];
-
-function buildShelves() {
-  var container = document.getElementById("bookshelf");
-  container.innerHTML = "";
-  shelves = [];
-  
-  var numShelves = Math.ceil(BOOKS.length / 3);
-  
-  for (var s = 0; s < numShelves; s++) {
-    var shelf = document.createElement("div");
-    shelf.className = "shelf visible";
-    
-    var booksArea = document.createElement("div");
-    booksArea.className = "shelf-books";
-    
-    var startIdx = s * 3;
-    var shelfBooks = [];
-    
-    for (var i = 0; i < 3; i++) {
-      var bookIdx = startIdx + i;
-      if (bookIdx < BOOKS.length) {
-        var bookData = BOOKS[bookIdx];
-        var book = createBook(bookData);
-        booksArea.appendChild(book);
-        shelfBooks.push({ el: book, data: bookData });
-      }
-    }
-    
-    var board = document.createElement("div");
-    board.className = "shelf-board";
-    
-    shelf.appendChild(booksArea);
-    shelf.appendChild(board);
-    container.appendChild(shelf);
-    
-    shelves.push({ el: shelf, books: shelfBooks });
-  }
-}
-
-function createBook(data) {
-  var book = document.createElement("a");
-  book.className = "book";
-  book.href = data.url;
-  book.target = "_blank";
-  book.rel = "noopener noreferrer";
-  
-  var shadow = document.createElement("div");
-  shadow.className = "book-shadow";
-  book.appendChild(shadow);
-  
-  var title = document.createElement("span");
-  title.className = "book-title";
-  title.textContent = data.title;
-  book.appendChild(title);
-  
-  return book;
-}
-
-function filter(query) {
-  var q = query.toLowerCase().trim();
-  var total = 0;
-  
-  for (var i = 0; i < shelves.length; i++) {
-    var shelf = shelves[i];
-    var visible = 0;
-    for (var j = 0; j < shelf.books.length; j++) {
-      var item = shelf.books[j];
-      var match = q === "" || item.data.title.toLowerCase().indexOf(q) !== -1;
-      if (match) {
-        item.el.classList.remove("hidden");
-        visible++;
-      } else {
-        item.el.classList.add("hidden");
-      }
-    }
-    if (visible > 0) {
-      shelf.el.classList.add("visible");
-    } else {
-      shelf.el.classList.remove("visible");
-    }
-    total += visible;
-  }
-  
-  var noResults = document.getElementById("noResults");
-  if (total === 0) {
-    noResults.classList.add("show");
-  } else {
-    noResults.classList.remove("show");
-  }
-}
-
-document.getElementById("search").oninput = function(e) {
-  filter(e.target.value);
-};
-
-buildShelves();
-</script>
-
 </body>
 </html>
