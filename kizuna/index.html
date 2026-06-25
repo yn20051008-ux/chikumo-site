@@ -321,6 +321,15 @@ function padStop(){
   try{ padOsc.stop(); padOsc._o2.stop(); }catch(e){}
   padOsc=null; padGain=null;
 }
+/* 別ページ（インデックス等）へ移動・非表示にしたらBGMを必ず止める。
+   kizunaのWeb Audio（環境パッド）が残って、トップへ戻っても鳴り続けるバグ対策。
+   bfcache（iOS Safari等）でも pagehide で確実にパッドを stop する。 */
+function silenceAudio(){ try{ padStop(); }catch(e){} if(AC){ try{ AC.suspend(); }catch(e){} } }
+window.addEventListener('pagehide', silenceAudio);
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden){ if(AC){ try{ AC.suspend(); }catch(e){} } }
+  else if(AC && state==='play'){ try{ AC.resume(); }catch(e){} }
+});
 
 /* =========================== ゲーム状態 =========================== */
 var GAME_TIME=60.0;
