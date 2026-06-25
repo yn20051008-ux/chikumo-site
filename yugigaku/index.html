@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>遊戯学 ─ 遊びをめぐる資料</title>
+<meta name="description" content="畜学の一棚「遊戯学」。畜物語の遊びをめぐる資料をあつめた蔵。島・事業計画書・畜史・開発者記録・手紙・物語・地図の七巻。">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="遊戯学 ─ 遊びをめぐる資料">
+<meta property="og:description" content="畜物語の遊びをめぐる資料をあつめた蔵。七巻からえらんでひらく。">
+<meta property="og:type" content="website">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700;800&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --wall-top:#e9e0d2; --wall-mid:#d4c6b2; --wall-bot:#b29a7c;
+  --wood-light:#9a7550; --wood-mid:#5f4430; --wood-dark:#3a2820;
+  --ink:#3c332a; --ink-soft:#6f6456;
+  --gold:#c4a25e; --gold-bright:#e8cf95;
+  --serif:'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho',serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+html,body{min-height:100%;}
+body{
+  font-family:var(--serif);color:var(--ink);
+  min-height:100vh;overflow-x:hidden;
+  background:
+    radial-gradient(ellipse 80% 50% at 22% 8%,rgba(255,250,238,0.55),transparent 55%),
+    radial-gradient(ellipse 70% 50% at 85% 12%,rgba(255,244,224,0.4),transparent 50%),
+    linear-gradient(180deg,var(--wall-top) 0%,var(--wall-mid) 46%,var(--wall-bot) 100%);
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    repeating-linear-gradient(90deg,transparent 0 3px,rgba(0,0,0,0.012) 3px 4px),
+    repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,0.012) 3px 4px);
+}
+.wrap{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:clamp(2rem,6vw,4.5rem) 1.4rem 5rem;}
+
+a.home{display:inline-block;font-family:var(--mono);font-size:0.72rem;letter-spacing:0.2em;color:var(--ink-soft);
+  text-decoration:none;border-bottom:1px solid rgba(60,51,42,0.25);padding-bottom:2px;margin-bottom:2.6rem;transition:color .2s;}
+a.home:hover{color:var(--ink);}
+
+header{text-align:center;margin-bottom:clamp(2.2rem,6vw,3.4rem);}
+header h1{font-size:clamp(2.6rem,11vw,4.6rem);font-weight:800;letter-spacing:0.18em;color:var(--ink);
+  text-shadow:0 1px 0 rgba(255,255,255,0.4),0 2px 6px rgba(90,68,48,0.2);}
+header .en{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.42em;color:var(--ink-soft);text-transform:uppercase;margin-top:0.9rem;}
+header p{margin-top:1.1rem;font-size:0.96rem;color:var(--ink-soft);letter-spacing:0.08em;font-style:italic;}
+
+/* 七巻のグリッド（資料カード＝巻物の表紙） */
+.volumes{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:clamp(14px,3vw,22px);margin-top:1.5rem;
+}
+.vol{
+  position:relative;display:flex;flex-direction:column;gap:0.55rem;
+  text-decoration:none;color:inherit;
+  padding:1.5rem 1.4rem 1.3rem;border-radius:4px 7px 7px 4px;
+  background:
+    linear-gradient(135deg,rgba(255,252,244,0.5),rgba(255,250,238,0.18)),
+    linear-gradient(180deg,#f3ead8,#e4d6bd);
+  border:1px solid rgba(120,95,60,0.28);
+  box-shadow:5px 7px 14px rgba(90,68,48,0.2),inset 0 1px 0 rgba(255,255,255,0.5),inset -3px 0 0 var(--c,#9a7550);
+  transition:transform .26s cubic-bezier(.2,1,.3,1),box-shadow .26s;
+  overflow:hidden;
+}
+.vol::before{ /* 綴じ目 */
+  content:"";position:absolute;left:0;top:0;bottom:0;width:8px;
+  background:linear-gradient(90deg,rgba(0,0,0,0.16),transparent);
+}
+.vol:hover,.vol:focus-visible{
+  transform:translateY(-6px);outline:none;
+  box-shadow:8px 14px 24px rgba(90,68,48,0.3),inset 0 1px 0 rgba(255,255,255,0.6),inset -3px 0 0 var(--c,#9a7550);
+}
+.vol .num{
+  font-family:var(--mono);font-size:0.66rem;letter-spacing:0.3em;color:var(--ink-soft);text-transform:uppercase;
+  display:flex;align-items:center;gap:0.6rem;
+}
+.vol .num .kan{font-family:var(--serif);font-size:1.5rem;font-weight:800;color:var(--c,#9a7550);letter-spacing:0;line-height:1;}
+.vol .title{font-size:1.32rem;font-weight:800;letter-spacing:0.08em;color:var(--ink);line-height:1.35;}
+.vol .desc{font-size:0.84rem;color:var(--ink-soft);line-height:1.85;letter-spacing:0.02em;}
+.vol .go{margin-top:auto;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.18em;color:var(--c,#9a7550);text-transform:uppercase;opacity:0.85;}
+
+.board{
+  height:30px;border-radius:2px;position:relative;margin-top:1.8rem;
+  background:linear-gradient(90deg,#3a2820 0%,#5f4430 6%,#9a7550 16%,#5f4430 32%,#3a2820 46%,#5f4430 56%,#9a7550 72%,#5f4430 86%,#3a2820 96%,#5f4430 100%);
+  box-shadow:0 5px 10px rgba(0,0,0,0.28),0 12px 30px rgba(0,0,0,0.16),inset 0 1px 0 rgba(255,255,255,0.12),inset 0 -2px 0 rgba(0,0,0,0.25);
+}
+.board::after{content:"";position:absolute;left:0;right:0;top:100%;height:60px;
+  background:linear-gradient(180deg,rgba(0,0,0,0.18),transparent);pointer-events:none;}
+
+footer{margin-top:3rem;text-align:center;font-family:var(--mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--ink-soft);}
+footer a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(60,51,42,0.25);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="home" href="/Library/">← 畜学</a>
+  <header>
+    <h1>遊戯学</h1>
+    <div class="en">Yugigaku — Studies of Play</div>
+    <p>遊びをめぐる資料を、巻からえらぶ。</p>
+  </header>
+
+  <div class="volumes" id="volumes"></div>
+  <div class="board"></div>
+
+  <footer>畜学 ─ <a href="/Library/">蔵書へ</a> ／ 畜物語 ─ <a href="/">chikumo.jp</a></footer>
+</div>
+
+<script>
+"use strict";
+/* 遊戯学の七巻。項目を直すときは ここを書きかえるだけ（漢数字は自動）。 */
+var VOLUMES = [
+  { title:"畜物語の島",       desc:"遊戯そのもの。こっこちゃんの全ゲームが暮らす島。",        url:"/",                  c:"#3f8f7a" },
+  { title:"事業計画書",       desc:"生活実装型ストーリーOS。α（オンライン）とΩ（オフライン）。", url:"/AlphaToOmegaOnly/",  c:"#9a7550" },
+  { title:"畜史",             desc:"新ゲームの追加・機能改善・修正の記録。",                  url:"/changelog/",         c:"#b07a3c" },
+  { title:"開発者記録",       desc:"観測と制作の記録。畜物語をつくる過程のログ。",            url:"/observer-log/",      c:"#5f6f88" },
+  { title:"正論蒔宿への手紙", desc:"世界をつくる者へ、アイデアや感想をおくる便り。",          url:"/letter/",            c:"#8a4a5a" },
+  { title:"畜星インターセプト", desc:"畜物語の物語。星をめぐる一篇。",                        url:"/story/",             c:"#5a4a8a" },
+  { title:"ステージマップ",   desc:"はじまりの地図。畜物語の入口。",                          url:"/hajimari/",          c:"#3a6a8a" }
+];
+var KAN = ["零","一","二","三","四","五","六","七","八","九","十","十一","十二","十三","十四"];
+(function(){
+  var host = document.getElementById("volumes");
+  var html = "";
+  for (var i = 0; i < VOLUMES.length; i++) {
+    var v = VOLUMES[i];
+    var kan = KAN[i+1] || String(i+1);
+    html += '<a class="vol" href="' + v.url + '" style="--c:' + v.c + '">'
+      + '<span class="num"><span class="kan">' + kan + '</span>巻 / Vol.' + (i+1) + '</span>'
+      + '<span class="title">' + v.title + '</span>'
+      + '<span class="desc">' + v.desc + '</span>'
+      + '<span class="go">ひらく →</span>'
+      + '</a>';
+  }
+  host.innerHTML = html;
+})();
+</script>
+</body>
+</html>
