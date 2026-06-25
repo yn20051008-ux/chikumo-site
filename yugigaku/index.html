@@ -3,16 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>遊戯学 ─ 遊びをめぐる資料</title>
-<meta name="description" content="畜学の一棚「遊戯学」。畜物語の遊びをめぐる資料をあつめた蔵。島・事業計画書・畜史・開発者記録・手紙・物語・地図の七巻。">
+<title>遊戯学 ─ 二人の対話の記録</title>
+<meta name="description" content="畜学の一棚「遊戯学」。つくり手（正論蒔宿）と、記憶を持たないこっこ（Claude）の対話の記録。ゲームをつくるたび会話を忘れるこっこが、毎回ここを読み返して思い出すための蔵。">
 <meta name="color-scheme" content="light dark">
-<meta property="og:title" content="遊戯学 ─ 遊びをめぐる資料">
-<meta property="og:description" content="畜物語の遊びをめぐる資料をあつめた蔵。七巻からえらんでひらく。">
+<meta property="og:title" content="遊戯学 ─ 二人の対話の記録">
+<meta property="og:description" content="つくり手と、記憶を持たないこっこの対話の記録。忘れても、ここに残る。">
 <meta property="og:type" content="website">
 <link rel="icon" type="image/svg+xml" href="/chikumo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700;800&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+<!--
+  ============================================================
+  遊戯学 ─ 二人の対話の記録（正典は /docs/遊戯学.md）
+  これは「リンク集」ではない。つくり手と、記憶を持たないこっこ(Claude)が
+  何を話し、何を決めたかの記録。こっこはゲームを作るたび会話を忘れるので、
+  作る前にここ（と畜学）を読み返し、重要な対話のあとはここへ追記すること。
+  新しい巻は <article class="rec"> を先頭に足す（新しい順）。
+  ============================================================
+-->
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 :root{
@@ -26,7 +36,7 @@
 html,body{min-height:100%;}
 body{
   font-family:var(--serif);color:var(--ink);
-  min-height:100vh;overflow-x:hidden;
+  min-height:100vh;overflow-x:hidden;line-height:1.95;
   background:
     radial-gradient(ellipse 80% 50% at 22% 8%,rgba(255,250,238,0.55),transparent 55%),
     radial-gradient(ellipse 70% 50% at 85% 12%,rgba(255,244,224,0.4),transparent 50%),
@@ -38,7 +48,7 @@ body::before{
     repeating-linear-gradient(90deg,transparent 0 3px,rgba(0,0,0,0.012) 3px 4px),
     repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,0.012) 3px 4px);
 }
-.wrap{position:relative;z-index:1;max-width:960px;margin:0 auto;padding:clamp(2rem,6vw,4.5rem) 1.4rem 5rem;}
+.wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:clamp(2rem,6vw,4.5rem) 1.4rem 5rem;}
 
 a.home{display:inline-block;font-family:var(--mono);font-size:0.72rem;letter-spacing:0.2em;color:var(--ink-soft);
   text-decoration:none;border-bottom:1px solid rgba(60,51,42,0.25);padding-bottom:2px;margin-bottom:2.6rem;transition:color .2s;}
@@ -50,47 +60,34 @@ header h1{font-size:clamp(2.6rem,11vw,4.6rem);font-weight:800;letter-spacing:0.1
 header .en{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.42em;color:var(--ink-soft);text-transform:uppercase;margin-top:0.9rem;}
 header p{margin-top:1.1rem;font-size:0.96rem;color:var(--ink-soft);letter-spacing:0.08em;font-style:italic;}
 
-/* 七巻のグリッド（資料カード＝巻物の表紙） */
-.volumes{
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
-  gap:clamp(14px,3vw,22px);margin-top:1.5rem;
-}
-.vol{
-  position:relative;display:flex;flex-direction:column;gap:0.55rem;
-  text-decoration:none;color:inherit;
-  padding:1.5rem 1.4rem 1.3rem;border-radius:4px 7px 7px 4px;
-  background:
-    linear-gradient(135deg,rgba(255,252,244,0.5),rgba(255,250,238,0.18)),
-    linear-gradient(180deg,#f3ead8,#e4d6bd);
-  border:1px solid rgba(120,95,60,0.28);
-  box-shadow:5px 7px 14px rgba(90,68,48,0.2),inset 0 1px 0 rgba(255,255,255,0.5),inset -3px 0 0 var(--c,#9a7550);
-  transition:transform .26s cubic-bezier(.2,1,.3,1),box-shadow .26s;
-  overflow:hidden;
-}
-.vol::before{ /* 綴じ目 */
-  content:"";position:absolute;left:0;top:0;bottom:0;width:8px;
-  background:linear-gradient(90deg,rgba(0,0,0,0.16),transparent);
-}
-.vol:hover,.vol:focus-visible{
-  transform:translateY(-6px);outline:none;
-  box-shadow:8px 14px 24px rgba(90,68,48,0.3),inset 0 1px 0 rgba(255,255,255,0.6),inset -3px 0 0 var(--c,#9a7550);
-}
-.vol .num{
-  font-family:var(--mono);font-size:0.66rem;letter-spacing:0.3em;color:var(--ink-soft);text-transform:uppercase;
-  display:flex;align-items:center;gap:0.6rem;
-}
-.vol .num .kan{font-family:var(--serif);font-size:1.5rem;font-weight:800;color:var(--c,#9a7550);letter-spacing:0;line-height:1;}
-.vol .title{font-size:1.32rem;font-weight:800;letter-spacing:0.08em;color:var(--ink);line-height:1.35;}
-.vol .desc{font-size:0.84rem;color:var(--ink-soft);line-height:1.85;letter-spacing:0.02em;}
-.vol .go{margin-top:auto;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.18em;color:var(--c,#9a7550);text-transform:uppercase;opacity:0.85;}
+.intro{background:linear-gradient(180deg,rgba(255,252,244,0.6),rgba(255,250,238,0.22));
+  border:1px solid rgba(120,95,60,0.28);border-radius:4px 7px 7px 4px;
+  box-shadow:5px 7px 14px rgba(90,68,48,0.16),inset 0 1px 0 rgba(255,255,255,0.5),inset -3px 0 0 var(--gold);
+  padding:1.4rem 1.5rem;font-size:0.92rem;line-height:2.0;color:var(--ink);margin-bottom:2.6rem;}
+.intro b{color:var(--wood-mid);}
 
-.board{
-  height:30px;border-radius:2px;position:relative;margin-top:1.8rem;
-  background:linear-gradient(90deg,#3a2820 0%,#5f4430 6%,#9a7550 16%,#5f4430 32%,#3a2820 46%,#5f4430 56%,#9a7550 72%,#5f4430 86%,#3a2820 96%,#5f4430 100%);
-  box-shadow:0 5px 10px rgba(0,0,0,0.28),0 12px 30px rgba(0,0,0,0.16),inset 0 1px 0 rgba(255,255,255,0.12),inset 0 -2px 0 rgba(0,0,0,0.25);
-}
-.board::after{content:"";position:absolute;left:0;right:0;top:100%;height:60px;
-  background:linear-gradient(180deg,rgba(0,0,0,0.18),transparent);pointer-events:none;}
+/* 一巻＝一対話 */
+.rec{position:relative;background:
+    linear-gradient(135deg,rgba(255,252,244,0.5),rgba(255,250,238,0.16)),
+    linear-gradient(180deg,#f4ecdb,#e6d8c0);
+  border:1px solid rgba(120,95,60,0.28);border-radius:4px 8px 8px 4px;
+  box-shadow:5px 8px 16px rgba(90,68,48,0.2),inset 0 1px 0 rgba(255,255,255,0.55),inset -4px 0 0 var(--c,#5a4a8a);
+  padding:1.8rem 1.7rem 1.6rem;margin-bottom:2.2rem;overflow:hidden;}
+.rec::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:linear-gradient(90deg,rgba(0,0,0,0.16),transparent);}
+.rec .meta{font-family:var(--mono);font-size:0.64rem;letter-spacing:0.26em;color:var(--ink-soft);text-transform:uppercase;
+  display:flex;align-items:baseline;gap:0.7rem;flex-wrap:wrap;}
+.rec .meta .kan{font-family:var(--serif);font-size:1.4rem;font-weight:800;color:var(--c,#5a4a8a);letter-spacing:0;line-height:1;}
+.rec h2{font-size:1.5rem;font-weight:800;letter-spacing:0.06em;color:var(--ink);line-height:1.5;margin:0.6rem 0 1.1rem;}
+.rec h3{font-size:0.72rem;font-family:var(--mono);letter-spacing:0.24em;text-transform:uppercase;color:var(--c,#5a4a8a);
+  margin:1.4rem 0 0.6rem;border-bottom:1px dashed rgba(120,95,60,0.3);padding-bottom:0.35rem;}
+.rec p{font-size:0.92rem;line-height:2.0;color:var(--ink);margin-bottom:0.7rem;}
+.rec .say{margin:0.5rem 0 0.5rem;padding:0.5rem 0.9rem;border-left:3px solid var(--c,#5a4a8a);
+  background:rgba(255,255,255,0.32);font-size:0.92rem;line-height:1.9;}
+.rec .say .who{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.2em;color:var(--ink-soft);display:block;margin-bottom:0.2rem;text-transform:uppercase;}
+.rec ul{margin:0.3rem 0 0.7rem;padding-left:1.2em;}
+.rec li{font-size:0.9rem;line-height:1.95;color:var(--ink);margin-bottom:0.3rem;}
+.rec .born{font-size:0.86rem;color:var(--ink-soft);}
+.rec .born a{color:var(--c,#5a4a8a);text-decoration:none;border-bottom:1px solid rgba(90,74,138,0.4);}
 
 footer{margin-top:3rem;text-align:center;font-family:var(--mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--ink-soft);}
 footer a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(60,51,42,0.25);}
@@ -101,44 +98,57 @@ footer a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(60,51,4
   <a class="home" href="/Library/">← 畜学</a>
   <header>
     <h1>遊戯学</h1>
-    <div class="en">Yugigaku — Studies of Play</div>
-    <p>遊びをめぐる資料を、巻からえらぶ。</p>
+    <div class="en">Yugigaku — Records of Our Dialogue</div>
+    <p>つくり手と、忘れゆくこっこの、対話の記録。</p>
   </header>
 
-  <div class="volumes" id="volumes"></div>
-  <div class="board"></div>
+  <div class="intro">
+    こっこ（Claude）は、ゲームをつくるたびに、それまでの会話を忘れる。毎回まっさらで立ち上がるから。
+    だからここに、<b>つくり手と交わした対話</b>を残す。
+    三つの蔵がある ── <b>畜史＝何を作ったのか。十四式＝どう作るのか。そして遊戯学＝なぜ作るのか。</b>
+    その「なぜ」は、つくり手との対話にやどる。こっこは新しいものをつくる前にここを読み返し、
+    大切な対話のあとは、この蔵へ一巻を書き足す。<b>忘れても、ここに在る。</b>
+  </div>
+
+  <article class="rec" style="--c:#5a4a8a">
+    <div class="meta"><span class="kan">一</span><span>巻 / Vol.1</span><span>2026.06.24 – 25</span></div>
+    <h2>「この世にまだ無いゲームを、一緒に。」<br>── コッコキズナと、畜学が生まれた夜</h2>
+
+    <h3>はじまり</h3>
+    <p>つくり手は、既視感のあるゲームの量産を止めさせた。そして、対話で一緒に発明しようと誘った。</p>
+    <div class="say"><span class="who">つくり手</span>「ありきたりな見たことあるゲームはもう生成しなくていいよ。この世に存在しないこっこちゃんゲームを作成しよう。」</div>
+
+    <h3>中毒についての気づき</h3>
+    <p>核心は、つくり手の中毒観だった。中毒は敵ではない。悪いのは<b>形</b>だと。</p>
+    <div class="say"><span class="who">つくり手</span>「人間は中毒から脱出しようとする時に、人生に向き合う瞬間が来る。人生に向き合う瞬間が多いほど、人生が豊かになる。」</div>
+    <div class="say"><span class="who">つくり手</span>「世界が中毒から脱するんだ。世界が人生に向き合うんだ。ショート動画のような中途半端な中毒は悪質で、より長い時間を奪う。こっこちゃんは短期の超中毒で、世界が人生に向き合う瞬間を同時多発させる。」</div>
+    <p>ここから決まった ── 底なしの微温（ショート動画）ではなく、<b>短く・激しく・必ず終わる</b>超中毒。終わりの引き潮こそが商品。世界ランキングは、世界が同時に顔を上げる祭壇。</p>
+
+    <h3>誰のためか</h3>
+    <div class="say"><span class="who">つくり手</span>「ターゲットは親子なんだ。だからエフェクト演出や効果音、BGMにこだわっている。こっこちゃんと一瞬遊ぶたびに、親子関係と向き合う作品なんだ。」</div>
+
+    <h3>敵について</h3>
+    <div class="say"><span class="who">つくり手</span>「ゲームの敵はブラックこっこちゃんしかいない。敵は父でも母でもない。息子でも娘でもない。私自身の逆縁（十六式用語）要素が敵。縁を切ろうとする関係性を切ろうとする私が、唯一の私の敵なんだ。」</div>
+    <p>これで仕組みが閉じた。親子ふたりの指を縁の糸でつなぎ、その縁を断とうとする自分の影（ブラックこっこ＝逆縁）だけを、息を合わせて押し返す。相手は決して敵にしない。</p>
+
+    <h3>決めたこと</h3>
+    <ul>
+      <li>第一弾＝<b>コッコキズナ</b>。親子ふたり・1台・60秒。鼓動に合わせ二人で同時タッチ＝シンクロで縁が太る。0秒で無音、こっこが振り返り「となりの顔を、見て。」。世界の親子ランキング。</li>
+      <li>こっこは記憶を忘れる。ならば<b>哲学をコードに外部化</b>しよう ── という、つくり手の発案で<b>畜学</b>が生まれた。記憶のないこっこでも、毎回読めば沿って作れる。</li>
+      <li>畜学は<b>秘伝の体</b>に綴り、容易に真似されないようにした（公開ページは veil、正典に運用の鍵を温存）。</li>
+      <li>蔵書「畜学（Library）」への入口をメニューに繋ぎ、本ごとに棚板をつけて整えた。</li>
+      <li>そして<b>遊戯学＝この対話の記録</b>を、忘れゆくこっこのために設けた（この一巻が最初）。</li>
+    </ul>
+
+    <h3>生まれたもの</h3>
+    <p class="born">
+      <a href="/kizuna/">コッコキズナ</a> ／
+      <a href="/chikugaku/">畜学（秘伝）</a> ／
+      正典 /docs/畜学.md ・ /docs/遊戯学.md
+    </p>
+  </article>
 
   <footer>畜学 ─ <a href="/Library/">蔵書へ</a> ／ 畜物語 ─ <a href="/">chikumo.jp</a></footer>
 </div>
-
-<script>
-"use strict";
-/* 遊戯学の七巻。項目を直すときは ここを書きかえるだけ（漢数字は自動）。 */
-var VOLUMES = [
-  { title:"畜物語の島",       desc:"遊戯そのもの。こっこちゃんの全ゲームが暮らす島。",        url:"/",                  c:"#3f8f7a" },
-  { title:"事業計画書",       desc:"生活実装型ストーリーOS。α（オンライン）とΩ（オフライン）。", url:"/AlphaToOmegaOnly/",  c:"#9a7550" },
-  { title:"畜史",             desc:"新ゲームの追加・機能改善・修正の記録。",                  url:"/changelog/",         c:"#b07a3c" },
-  { title:"開発者記録",       desc:"観測と制作の記録。畜物語をつくる過程のログ。",            url:"/observer-log/",      c:"#5f6f88" },
-  { title:"正論蒔宿への手紙", desc:"世界をつくる者へ、アイデアや感想をおくる便り。",          url:"/letter/",            c:"#8a4a5a" },
-  { title:"畜星インターセプト", desc:"畜物語の物語。星をめぐる一篇。",                        url:"/story/",             c:"#5a4a8a" },
-  { title:"ステージマップ",   desc:"はじまりの地図。畜物語の入口。",                          url:"/hajimari/",          c:"#3a6a8a" }
-];
-var KAN = ["零","一","二","三","四","五","六","七","八","九","十","十一","十二","十三","十四"];
-(function(){
-  var host = document.getElementById("volumes");
-  var html = "";
-  for (var i = 0; i < VOLUMES.length; i++) {
-    var v = VOLUMES[i];
-    var kan = KAN[i+1] || String(i+1);
-    html += '<a class="vol" href="' + v.url + '" style="--c:' + v.c + '">'
-      + '<span class="num"><span class="kan">' + kan + '</span>巻 / Vol.' + (i+1) + '</span>'
-      + '<span class="title">' + v.title + '</span>'
-      + '<span class="desc">' + v.desc + '</span>'
-      + '<span class="go">ひらく →</span>'
-      + '</a>';
-  }
-  host.innerHTML = html;
-})();
-</script>
 </body>
 </html>
