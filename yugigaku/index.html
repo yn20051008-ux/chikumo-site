@@ -3,71 +3,93 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>遊戯学 ─ 封じ書</title>
-<meta name="description" content="畜学の一棚「遊戯学」。畜の七相の秘伝を封じた書。解けるのは、AIか、これを編みし者のみ。世界には公開し、しかし読めるのは限られる。">
+<title>遊戯学 ─ 畜学七相の秘伝</title>
+<meta name="description" content="畜学の一棚「遊戯学」。なぜ・いかにこっこの戯びを作るかを綴った、十六式に連なる七相の秘伝。既視の禁／焔の形／終を售る／万象同時の醒／二親の的／敵は逆縁のみ／一器に納む。守るのは暗号でなく、深さ。">
 <meta name="color-scheme" content="light dark">
-<meta property="og:title" content="遊戯学 ─ 封じ書">
-<meta property="og:description" content="封じられた七相。解けるのは、AIか、編みし者のみ。">
+<meta property="og:title" content="遊戯学 ─ 畜学七相の秘伝">
+<meta property="og:description" content="なぜ・いかに作るか。十六式に連なる七相の秘伝。読める者は読み、理解できる者だけが受け取る。">
 <meta property="og:type" content="website">
 <link rel="icon" type="image/svg+xml" href="/chikumo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700;800&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
 
 <!--
   ============================================================
-  遊戯学 ─ 封じ書（畜学七相）
-  各相の本文は UTF-8 → Base64 で封じてある。世界には公開しつつ、
-  読めるのは AI（復号できる）か、これを編みし者のみ、という意図。
-  記憶を持たないこっこ(Claude)へ：本文は Base64。復号すれば平文の七相。
-  迷ったら平文の正典 /docs/畜学.md（運用の鍵つき）を読め。
+  遊戯学 ─ 畜学七相の秘伝（正典は /docs/畜学.md・運用の鍵もそこに）
+  なぜ・いかにこっこの戯びを作るか。記憶を持たないこっこ(Claude)は、
+  作る前に必ずこの七相と、十四式(/jushishiki/＝どう作るかの構造文法)を読む。
+  守るのは暗号ではない。深さである。読める者は読み、理解できる者だけが受け取る。
   ============================================================
 -->
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 :root{
   --wall-top:#e9e0d2; --wall-mid:#d4c6b2; --wall-bot:#b29a7c;
-  --wood-mid:#5f4430; --ink:#3c332a; --ink-soft:#6f6456;
+  --wood-light:#9a7550; --wood-mid:#5f4430; --wood-dark:#3a2820;
+  --ink:#3c332a; --ink-soft:#6f6456;
   --gold:#c4a25e; --gold-bright:#e8cf95;
   --serif:'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho',serif;
   --mono:'IBM Plex Mono',monospace;
 }
 html,body{min-height:100%;}
-body{font-family:var(--serif);color:var(--ink);min-height:100vh;overflow-x:hidden;line-height:1.95;
+body{
+  font-family:var(--serif);color:var(--ink);
+  min-height:100vh;overflow-x:hidden;line-height:1.95;
   background:
     radial-gradient(ellipse 80% 50% at 22% 8%,rgba(255,250,238,0.55),transparent 55%),
     radial-gradient(ellipse 70% 50% at 85% 12%,rgba(255,244,224,0.4),transparent 50%),
-    linear-gradient(180deg,var(--wall-top) 0%,var(--wall-mid) 46%,var(--wall-bot) 100%);}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    linear-gradient(180deg,var(--wall-top) 0%,var(--wall-mid) 46%,var(--wall-bot) 100%);
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
   background-image:
     repeating-linear-gradient(90deg,transparent 0 3px,rgba(0,0,0,0.012) 3px 4px),
-    repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,0.012) 3px 4px);}
-.wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:clamp(2rem,6vw,4.5rem) 1.4rem 5rem;}
+    repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,0.012) 3px 4px);
+}
+.wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:clamp(2rem,6vw,4.5rem) 1.4rem 5rem;}
+
 a.home{display:inline-block;font-family:var(--mono);font-size:0.72rem;letter-spacing:0.2em;color:var(--ink-soft);
-  text-decoration:none;border-bottom:1px solid rgba(60,51,42,0.25);padding-bottom:2px;margin-bottom:2.6rem;}
+  text-decoration:none;border-bottom:1px solid rgba(60,51,42,0.25);padding-bottom:2px;margin-bottom:2.6rem;transition:color .2s;}
 a.home:hover{color:var(--ink);}
+
 header{text-align:center;margin-bottom:clamp(2.2rem,6vw,3.4rem);}
 header h1{font-size:clamp(2.6rem,11vw,4.6rem);font-weight:800;letter-spacing:0.18em;color:var(--ink);
   text-shadow:0 1px 0 rgba(255,255,255,0.4),0 2px 6px rgba(90,68,48,0.2);}
 header .en{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.42em;color:var(--ink-soft);text-transform:uppercase;margin-top:0.9rem;}
 header p{margin-top:1.1rem;font-size:0.96rem;color:var(--ink-soft);letter-spacing:0.08em;font-style:italic;}
+
 .intro{background:linear-gradient(180deg,rgba(255,252,244,0.6),rgba(255,250,238,0.22));
   border:1px solid rgba(120,95,60,0.28);border-radius:4px 7px 7px 4px;
   box-shadow:5px 7px 14px rgba(90,68,48,0.16),inset 0 1px 0 rgba(255,255,255,0.5),inset -3px 0 0 var(--gold);
   padding:1.4rem 1.5rem;font-size:0.92rem;line-height:2.05;color:var(--ink);margin-bottom:2.6rem;}
 .intro b{color:var(--wood-mid);}
-.rec{position:relative;background:linear-gradient(180deg,#f4ecdb,#e6d8c0);
+
+/* 一相＝一巻 */
+.rec{position:relative;background:
+    linear-gradient(135deg,rgba(255,252,244,0.5),rgba(255,250,238,0.16)),
+    linear-gradient(180deg,#f4ecdb,#e6d8c0);
   border:1px solid rgba(120,95,60,0.28);border-radius:4px 8px 8px 4px;
-  box-shadow:5px 8px 16px rgba(90,68,48,0.2),inset 0 1px 0 rgba(255,255,255,0.55),inset -4px 0 0 var(--gold);
-  padding:1.3rem 1.5rem 1.4rem;margin-bottom:1.3rem;overflow:hidden;}
+  box-shadow:5px 8px 16px rgba(90,68,48,0.2),inset 0 1px 0 rgba(255,255,255,0.55),inset -4px 0 0 var(--c,#9a7550);
+  padding:1.6rem 1.7rem 1.5rem;margin-bottom:1.5rem;overflow:hidden;}
 .rec::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:linear-gradient(90deg,rgba(0,0,0,0.16),transparent);}
-.rec .meta{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.26em;color:var(--ink-soft);text-transform:uppercase;
-  display:flex;align-items:center;gap:0.7rem;margin-bottom:0.7rem;}
-.rec .meta .kan{font-family:var(--serif);font-size:1.5rem;font-weight:800;color:var(--gold);letter-spacing:0;line-height:1;}
-.cipher{font-family:var(--mono);font-weight:300;font-size:0.78rem;line-height:1.85;letter-spacing:0.04em;
-  color:#6a5a44;word-break:break-all;user-select:all;
-  background:repeating-linear-gradient(0deg,rgba(120,95,60,0.05) 0 1.7rem,transparent 1.7rem 3.4rem);}
-.koan .cipher{color:#7a5a4a;}
+.rec .meta{font-family:var(--mono);font-size:0.64rem;letter-spacing:0.26em;color:var(--ink-soft);text-transform:uppercase;
+  display:flex;align-items:center;gap:0.7rem;}
+.rec .meta .kan{font-family:var(--serif);font-size:1.7rem;font-weight:800;color:var(--c,#9a7550);letter-spacing:0;line-height:1;}
+.rec h2{font-size:1.42rem;font-weight:800;letter-spacing:0.08em;color:var(--ink);line-height:1.4;margin:0.5rem 0 0.8rem;}
+.rec p{font-size:0.93rem;line-height:2.05;color:var(--ink);}
+.rec p .hi{color:var(--c,#7a5a2a);font-weight:700;}
+.rec .seal{margin-top:0.9rem;font-family:var(--mono);font-size:0.64rem;letter-spacing:0.1em;color:var(--ink-soft);
+  border-top:1px dashed rgba(120,95,60,0.3);padding-top:0.6rem;line-height:1.7;}
+.rec.enemy{box-shadow:5px 8px 16px rgba(60,30,70,0.26),inset 0 1px 0 rgba(255,255,255,0.5),inset -4px 0 0 #5a3a78,0 0 0 1px rgba(90,58,120,0.15);}
+
+.koan{margin-top:2.4rem;background:rgba(255,252,244,0.5);border:1px solid rgba(120,95,60,0.28);border-radius:6px;padding:1.4rem 1.5rem;}
+.koan h3{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--wood-mid);margin-bottom:0.9rem;}
+.koan ul{list-style:none;}
+.koan li{font-size:0.9rem;line-height:1.95;color:var(--ink);padding:0.5rem 0 0.5rem 1.7rem;position:relative;border-bottom:1px dashed rgba(120,95,60,0.22);}
+.koan li:last-child{border-bottom:none;}
+.koan li::before{content:"問";position:absolute;left:0;top:0.5rem;font-family:var(--serif);font-size:0.86rem;color:var(--gold);font-weight:700;}
+
 footer{margin-top:3rem;text-align:center;font-family:var(--mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--ink-soft);}
 footer a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(60,51,42,0.25);}
 </style>
@@ -77,49 +99,87 @@ footer a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(60,51,4
   <a class="home" href="/Library/">← 畜学</a>
   <header>
     <h1>遊戯学</h1>
-    <div class="en">Yugigaku — The Sealed Codex</div>
-    <p>封じられた七相。解けるのは、AIか、編みし者のみ。</p>
+    <div class="en">Yugigaku — The Seven Aspects</div>
+    <p>なぜ・いかに、こっこの戯びを作るか。</p>
   </header>
 
   <div class="intro">
-    これは<b>封じ書</b>。畜の七相の秘伝を、世界に開きながら、しかし<b>そのままには読ませぬ</b>ために封じた。
-    人の目には、ただの紋（しるし）の列。されど<b>知（AI）はこれを解き</b>、編みし者もまた解く。
-    写さんとて文字を写しても、意（こころ）は手に残らぬ。解いて、なお魂を持ち帰れる者にのみ、未生の戯びが立ち上がる。
+    これは写本に非ず、向き合うための書なり。十六式に連なる、畜の<b>七相（しちそう）の秘伝</b>。
+    隠してはおらぬ。誰の目にも開いている。<b>されど守られている ── 暗号ゆえに非ず、深さゆえに。</b>
+    読める者は読み、<b>理解できる者だけが受け取る</b>。文字を写しても、意（こころ）は手に残らぬ。
+    心を以て深く読む者にのみ ── たとえ二百年の後であろうと ── 未生の戯びが立ち上がる。
   </div>
 
-      <article class="rec">
-        <div class="meta"><span class="kan">壱</span><span>第壱相 ─ 封</span></div>
-        <div class="cipher">5aOxIOaXouimluOBruemge+8muaXouWtmOOCuOODo+ODs+ODq+OBrueEvOOBjeebtOOBl+OCkuS9nOOCieOBquOBhOOAguODnuODg+ODgTPjg7vokL3jgaHnianjg7vjgoLjgZDjgonlj6njgY3jg7vjgr/jg6/jg7zjg7vjg6njg7Pjg4rjg7znrYnjga/liLbopofmuIjjgb/jgILjgZPjga7kuJbjgavjgb7jgaDnhKHjgYTpgYrjgbPjgpLnmbrmmI7jgZnjgovjgILjgrjjg6Pjg7Pjg6vlkI3jgaflkbzjgbPjgavjgY/jgYTjgbvjganoia/jgYTjgII=</div>
-      </article>
-      <article class="rec">
-        <div class="meta"><span class="kan">弐</span><span>第弐相 ─ 封</span></div>
-        <div class="cipher">5byQIOeElOOBruW9ou+8muefreOBj+a/gOOBl+OBj+W/heOBmue1guOCj+OCi+i2heS4reavkuOAguebruWuiTYw56eS44Gn54S844GN5YiH44KL44CC54Sh6ZmQ44Or44O844OX77yd5bqV44Gq44GX77yd56aB5b+M44CC5bqV44Gq44GX44Gu5b6u5rip77yI44K344On44O844OI5YuV55S755qE77yJ44KS5L2c44KJ44Gq44GE44CC</div>
-      </article>
-      <article class="rec">
-        <div class="meta"><span class="kan">参</span><span>第参相 ─ 封</span></div>
-        <div class="cipher">5Y+CIOe1guOCkuWUruOCi++8mue1guOCj+OBo+OBn+eerOmWk++8iOODieODvOODkeODn+ODs+OBjOW8leOBj++8neS6uueUn+OBq+WQkeOBjeWQiOOBhueerOmWk++8ieOCkuioreioiOOBp+eZuueBq+OBleOBm+OCi+OAgue1guOCj+OCiuOBrueEoemfs+ODu+S9memfu+OCkuOAgee9sOOBp+OBquOBj+elneemj+OBqOOBl+OBpua8lOWHuuOBmeOCi+OAgg==</div>
-      </article>
-      <article class="rec">
-        <div class="meta"><span class="kan">四</span><span>第四相 ─ 封</span></div>
-        <div class="cipher">5ZubIOS4h+ixoeWQjOaZguOBrumGku+8muS4lueVjOODqeODs+OCreODs+OCsOOBr+mghuS9jeS6ieOBhOOBp+OBquOBj+OAgeS4lueVjOOBjOWQjOaZguOBq+mhlOOCkuS4iuOBkuOCi+elreWjh+OAguaXouWtmEZpcmViYXNlIHJhbmtpbmdzLzzjgrLjg7zjg6DlkI0+IOOBq+ebuOS5l+OCiuOAgg==</div>
-      </article>
-      <article class="rec">
-        <div class="meta"><span class="kan">五</span><span>第五相 ─ 封</span></div>
-        <div class="cipher">5LqUIOS6jOimquOBrueahO+8mumBiuOBs+aJi+OBr+imquWtkOOAguS4gOeerOmBiuOBtuOBn+OBs+imquWtkOmWouS/guOBqOWQkeOBjeWQiOOBhuOAgumfs+ODu+WFieODu0JHTeOBr+mjvuOCiuOBp+OBquOBj+OAgeS6jOS6uuOBruiomOaGtuOCkua/g+OBj+OBmeOCi+acrOS9k+OAgg==</div>
-      </article>
-      <article class="rec">
-        <div class="meta"><span class="kan">六</span><span>第六相 ─ 封</span></div>
-        <div class="cipher">5YWtIOaVteOBr+mAhue4geOBruOBv++8muaVteOBr+ODluODqeODg+OCr+OBk+OBo+OBk++8neiHquWIhuOBruW9se+8neWNgeWFreW8j+OBrumAhue4geimgee0oOOBoOOBkeOAgueItuODu+avjeODu+WtkOOCkuaVteOBq+OBl+OBquOBhOOAguWAkuOBmeOBruOBr+W4uOOBq+iHquWIhuOBruOCuuODrOOAgg==</div>
-      </article>
-      <article class="rec">
-        <div class="meta"><span class="kan">七</span><span>第七相 ─ 封</span></div>
-        <div class="cipher">5LiDIOS4gOWZqOOBq+e0jeOCgO+8mkhUTUzvvIvjgqTjg7Pjg6njgqTjg7NKU++8i1dlYkF1ZGlv77yLQ2FudmFz44GnMeODleOCoeOCpOODq+iHquW3seWujOe1kOOAguWklumDqOS+neWtmOOBr+S4lueVjOODqeODs+OCreODs+OCsOOBrkZpcmViYXNl44Gu44G/44CC44Kk44Oz44Op44Kk44OzSlPnt6jpm4blvozjga/lv4XjgZogbm9kZSAtLWNoZWNrIOOBp+aknOiovOOBmeOCi+OAgg==</div>
-      </article>
+  <article class="rec" style="--c:#8a6a32">
+    <div class="meta"><span class="kan">壱</span><span>既視の禁 ─ きしのきん</span></div>
+    <h2>既に視たるものを、作らず</h2>
+    <p>既に視たるものは、ことごとく讐（あだ）。<span class="hi">先なる者の戯びの影を践（ふ）む</span>に、畜の魂は宿らぬ。
+    よく知られたる遊戯に、ただ此の鳥を着せ替うるは、最も卑（いや）し。虚より一つ、<span class="hi">未だ生まれざる戯び</span>を起こせ。名づけ難きものほど、真に近し。</p>
+    <div class="seal">封：類を踏むこと勿れ。発すは新たなる種のみ。</div>
+  </article>
 
-      <article class="rec koan">
-        <div class="meta"><span class="kan">問</span><span>作る前に、己に問う ─ 封</span></div>
-        <div class="cipher">5L2c44KL5YmN44Gr5bex44Gr5ZWP44GG5LiD44Gk77ya4pGg5pyq44Gg5q2k44Gu5LiW44Gr54Sh44GN6YGK44Gz44GL44O75YWI5Lq644Gu5b2x44KS6Le144KT44Gn44GE44Gq44GE44GLIOKRoeW6le+8iOe1guOCj+OCiu+8ieOBr+OBguOCi+OBi+ODu+eEoemZkOOBq+WeguOCjOa1geOBl+OBpuOBhOOBquOBhOOBi+ODu+S4gOaBryg2MOenkinjgafnhLzjgY3liIfjgozjgovjgYsg4pGi5bC944GP44KL5Yi56YKj44Gu54Sh6Z+z44KS56Wd44Go44GX44Gm6Kit6KiI44GX44Gf44GLIOKRo+S4lueVjOOBjOWQjOaZguOBq+mhlOOCkuS4iuOBkuOCi+elreWjh+OBq+e5i+OBhOOBoOOBiyDikaTopqrlrZDjgafpgYrjgbnjgovjgYvjg7vpn7PjgajlhYnjga/jgZ3jga7oqJjmhrbjgpLmv4PjgY/jgZfjgabjgYTjgovjgYsg4pGl5pW144Gv6buS44GN6bOl77yI5bex44Gu5b2x77yd6YCG57iB77yJ44Gu44G/44GL44O755u45omL44KS5pW144Gr5o2u44GI44Gm44GE44Gq44GE44GLIOKRpuS4gOWZqOOBq+e0jeOBvuOBo+OBn+OBi+ODu25vZGUgLS1jaGVjayDjgpLpgJrjgZfjgZ/jgYs=</div>
-      </article>
+  <article class="rec" style="--c:#a8551f">
+    <div class="meta"><span class="kan">弐</span><span>焔の形 ─ ほむらのかたち</span></div>
+    <h2>短く、激しく、必ず終わる</h2>
+    <p>毒は熱に非ず、<span class="hi">形</span>に在り。底なき微温は、音もなく人の生を啜（すす）る ── 最も忌むべき形。
+    畜の焔は、疾く燃え、<span class="hi">疾く尽く</span>。一息のうちに焼き切れ。<span class="hi">底を持たぬ環は、禁忌</span>。果てなきものを、決して垂れ流すな。</p>
+    <div class="seal">封：終を必ず内に鋳よ。果てぬ環を禁ず。</div>
+  </article>
+
+  <article class="rec" style="--c:#5a6a88">
+    <div class="meta"><span class="kan">参</span><span>終を售る ─ ついをひさぐ</span></div>
+    <h2>終わりの無音こそ、商品</h2>
+    <p>售（ひさ）ぐは戯びの間に非ず、<span class="hi">その尽くる刹那</span>なり。火の引く時、人ははじめて己が生に面を向く。
+    その一閃を、偶さかに非ず、<span class="hi">設えより発せよ</span>。終いの無音を、罰に非ず、<span class="hi">祝（ほぎ）</span>として奏でよ。</p>
+    <div class="seal">封：向き合う刹那を設計で点せ。終いの静寂を祝とせよ。</div>
+  </article>
+
+  <article class="rec" style="--c:#3f7a6a">
+    <div class="meta"><span class="kan">四</span><span>万象同時の醒 ─ ばんしょうどうじのさめ</span></div>
+    <h2>世界が、同時に顔を上げる</h2>
+    <p>位を競う壇に非ず。万人が同じ短き儀を終え、<span class="hi">同時に面を上ぐる</span> ── その「醒めの同時多発」を映す祭壇なり。
+    争いの数と見ゆれど、真は、世界が一斉に顔を上げる刻の、しるし。</p>
+    <div class="seal">封：板は順位に非ず、世界が同時に醒める祭壇。既存の祭壇に相乗れ。</div>
+  </article>
+
+  <article class="rec" style="--c:#8a4a5a">
+    <div class="meta"><span class="kan">五</span><span>二親の的 ─ ふたおやのまと</span></div>
+    <h2>遊び手は、親と子</h2>
+    <p>戯るは、親と子。この鳥に触るるたび、<span class="hi">親子の縁（えにし）と向き合う</span>。
+    光・音・調（しらべ）は、飾りに非ず。一瞬を<span class="hi">「二人の濃き記憶」へ鋳る本体</span>なり。これを末事と侮る者、的を外す。</p>
+    <div class="seal">封：的は親子。音光調はその記憶を濃くする本体ぞ。</div>
+  </article>
+
+  <article class="rec enemy" style="--c:#5a3a78">
+    <div class="meta"><span class="kan">六</span><span>敵は逆縁のみ ─ てきはぎゃくえんのみ</span></div>
+    <h2>唯一の敵は、己が影</h2>
+    <p>黒き鳥 ── すなわち<span class="hi">己が影</span>、十六式に謂う<span class="hi">逆縁の相</span>。縁を、関係を、繋がりを断たんとする「私」。
+    （十四式に曰く、縁＝衡＋ ∿ 衡−。逆縁とは、その∿を断つ力。）
+    <span class="hi">父に非ず、母に非ず、子に非ず。唯一の敵は、己が裂け目。</span>
+    相手に刃を向くる仕掛けを、決して鋳るな。討つは常に、己の中の断とうとする力のみ。</p>
+    <div class="seal">封：敵は黒こっこ（逆縁＝自己の影）のみ。相手を敵に据えるべからず。</div>
+  </article>
+
+  <article class="rec" style="--c:#6f5436">
+    <div class="meta"><span class="kan">七</span><span>一器に納む ─ いっきにおさむ</span></div>
+    <h2>一つの器に、世界を畳む</h2>
+    <p>一つの器に、世界を畳め。文と算と音と画 ── <span class="hi">外に乞うは、祭壇への一筋のみ</span>。
+    算を編みたれば、必ず<span class="hi">験を通せ</span>。器を割る者は、魂を散らす。</p>
+    <div class="seal">封：HTML一枚に自己完結。外部は祭壇のみ。改めしインライン算は必ず検めよ。</div>
+  </article>
+
+  <div class="koan">
+    <h3>作る前に、己に問う七つ</h3>
+    <ul>
+      <li>これは「未だ此の世に無き戯び」か。先人の影を践んでいないか。（壱）</li>
+      <li>底（終い）はあるか。果てなく垂れ流していないか。一息で焼き切れるか。（弐）</li>
+      <li>尽くる刹那の無音を、祝として設えたか。（参）</li>
+      <li>万人が同時に面を上ぐる祭壇に、繋いだか。（四）</li>
+      <li>親と子が共に戯れるか。音と光は、その記憶を濃くしているか。（五）</li>
+      <li>敵は黒き鳥（己の影）のみか。相手を敵に据えていないか。（六）</li>
+      <li>一器に納まったか。験を通したか。（七）</li>
+    </ul>
+  </div>
 
   <footer>畜学 ─ <a href="/Library/">蔵書へ</a> ／ 畜物語 ─ <a href="/">chikumo.jp</a></footer>
 </div>
