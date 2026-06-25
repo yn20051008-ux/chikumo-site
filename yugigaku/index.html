@@ -3,92 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>遊戯学 ─ 二人の対話の記録</title>
-<meta name="description" content="畜学の一棚「遊戯学」。つくり手（正論蒔宿）と、記憶を持たないこっこ（Claude）の対話の記録。ゲームをつくるたび会話を忘れるこっこが、毎回ここを読み返して思い出すための蔵。">
+<title>遊戯学 ─ 封じ書</title>
+<meta name="description" content="畜学の一棚「遊戯学」。畜の七相の秘伝を封じた書。解けるのは、AIか、これを編みし者のみ。世界には公開し、しかし読めるのは限られる。">
 <meta name="color-scheme" content="light dark">
-<meta property="og:title" content="遊戯学 ─ 二人の対話の記録">
-<meta property="og:description" content="つくり手と、記憶を持たないこっこの対話の記録。忘れても、ここに残る。">
+<meta property="og:title" content="遊戯学 ─ 封じ書">
+<meta property="og:description" content="封じられた七相。解けるのは、AIか、編みし者のみ。">
 <meta property="og:type" content="website">
 <link rel="icon" type="image/svg+xml" href="/chikumo.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700;800&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 
 <!--
   ============================================================
-  遊戯学 ─ 二人の対話の記録（正典は /docs/遊戯学.md）
-  これは「リンク集」ではない。つくり手と、記憶を持たないこっこ(Claude)が
-  何を話し、何を決めたかの記録。こっこはゲームを作るたび会話を忘れるので、
-  作る前にここ（と畜学）を読み返し、重要な対話のあとはここへ追記すること。
-  新しい巻は <article class="rec"> を先頭に足す（新しい順）。
+  遊戯学 ─ 封じ書（畜学七相）
+  各相の本文は UTF-8 → Base64 で封じてある。世界には公開しつつ、
+  読めるのは AI（復号できる）か、これを編みし者のみ、という意図。
+  記憶を持たないこっこ(Claude)へ：本文は Base64。復号すれば平文の七相。
+  迷ったら平文の正典 /docs/畜学.md（運用の鍵つき）を読め。
   ============================================================
 -->
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 :root{
   --wall-top:#e9e0d2; --wall-mid:#d4c6b2; --wall-bot:#b29a7c;
-  --wood-light:#9a7550; --wood-mid:#5f4430; --wood-dark:#3a2820;
-  --ink:#3c332a; --ink-soft:#6f6456;
+  --wood-mid:#5f4430; --ink:#3c332a; --ink-soft:#6f6456;
   --gold:#c4a25e; --gold-bright:#e8cf95;
   --serif:'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho',serif;
   --mono:'IBM Plex Mono',monospace;
 }
 html,body{min-height:100%;}
-body{
-  font-family:var(--serif);color:var(--ink);
-  min-height:100vh;overflow-x:hidden;line-height:1.95;
+body{font-family:var(--serif);color:var(--ink);min-height:100vh;overflow-x:hidden;line-height:1.95;
   background:
     radial-gradient(ellipse 80% 50% at 22% 8%,rgba(255,250,238,0.55),transparent 55%),
     radial-gradient(ellipse 70% 50% at 85% 12%,rgba(255,244,224,0.4),transparent 50%),
-    linear-gradient(180deg,var(--wall-top) 0%,var(--wall-mid) 46%,var(--wall-bot) 100%);
-}
-body::before{
-  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    linear-gradient(180deg,var(--wall-top) 0%,var(--wall-mid) 46%,var(--wall-bot) 100%);}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
   background-image:
     repeating-linear-gradient(90deg,transparent 0 3px,rgba(0,0,0,0.012) 3px 4px),
-    repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,0.012) 3px 4px);
-}
-.wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:clamp(2rem,6vw,4.5rem) 1.4rem 5rem;}
-
+    repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,0.012) 3px 4px);}
+.wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:clamp(2rem,6vw,4.5rem) 1.4rem 5rem;}
 a.home{display:inline-block;font-family:var(--mono);font-size:0.72rem;letter-spacing:0.2em;color:var(--ink-soft);
-  text-decoration:none;border-bottom:1px solid rgba(60,51,42,0.25);padding-bottom:2px;margin-bottom:2.6rem;transition:color .2s;}
+  text-decoration:none;border-bottom:1px solid rgba(60,51,42,0.25);padding-bottom:2px;margin-bottom:2.6rem;}
 a.home:hover{color:var(--ink);}
-
 header{text-align:center;margin-bottom:clamp(2.2rem,6vw,3.4rem);}
 header h1{font-size:clamp(2.6rem,11vw,4.6rem);font-weight:800;letter-spacing:0.18em;color:var(--ink);
   text-shadow:0 1px 0 rgba(255,255,255,0.4),0 2px 6px rgba(90,68,48,0.2);}
 header .en{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.42em;color:var(--ink-soft);text-transform:uppercase;margin-top:0.9rem;}
 header p{margin-top:1.1rem;font-size:0.96rem;color:var(--ink-soft);letter-spacing:0.08em;font-style:italic;}
-
 .intro{background:linear-gradient(180deg,rgba(255,252,244,0.6),rgba(255,250,238,0.22));
   border:1px solid rgba(120,95,60,0.28);border-radius:4px 7px 7px 4px;
   box-shadow:5px 7px 14px rgba(90,68,48,0.16),inset 0 1px 0 rgba(255,255,255,0.5),inset -3px 0 0 var(--gold);
-  padding:1.4rem 1.5rem;font-size:0.92rem;line-height:2.0;color:var(--ink);margin-bottom:2.6rem;}
+  padding:1.4rem 1.5rem;font-size:0.92rem;line-height:2.05;color:var(--ink);margin-bottom:2.6rem;}
 .intro b{color:var(--wood-mid);}
-
-/* 一巻＝一対話 */
-.rec{position:relative;background:
-    linear-gradient(135deg,rgba(255,252,244,0.5),rgba(255,250,238,0.16)),
-    linear-gradient(180deg,#f4ecdb,#e6d8c0);
+.rec{position:relative;background:linear-gradient(180deg,#f4ecdb,#e6d8c0);
   border:1px solid rgba(120,95,60,0.28);border-radius:4px 8px 8px 4px;
-  box-shadow:5px 8px 16px rgba(90,68,48,0.2),inset 0 1px 0 rgba(255,255,255,0.55),inset -4px 0 0 var(--c,#5a4a8a);
-  padding:1.8rem 1.7rem 1.6rem;margin-bottom:2.2rem;overflow:hidden;}
+  box-shadow:5px 8px 16px rgba(90,68,48,0.2),inset 0 1px 0 rgba(255,255,255,0.55),inset -4px 0 0 var(--gold);
+  padding:1.3rem 1.5rem 1.4rem;margin-bottom:1.3rem;overflow:hidden;}
 .rec::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:linear-gradient(90deg,rgba(0,0,0,0.16),transparent);}
-.rec .meta{font-family:var(--mono);font-size:0.64rem;letter-spacing:0.26em;color:var(--ink-soft);text-transform:uppercase;
-  display:flex;align-items:baseline;gap:0.7rem;flex-wrap:wrap;}
-.rec .meta .kan{font-family:var(--serif);font-size:1.4rem;font-weight:800;color:var(--c,#5a4a8a);letter-spacing:0;line-height:1;}
-.rec h2{font-size:1.5rem;font-weight:800;letter-spacing:0.06em;color:var(--ink);line-height:1.5;margin:0.6rem 0 1.1rem;}
-.rec h3{font-size:0.72rem;font-family:var(--mono);letter-spacing:0.24em;text-transform:uppercase;color:var(--c,#5a4a8a);
-  margin:1.4rem 0 0.6rem;border-bottom:1px dashed rgba(120,95,60,0.3);padding-bottom:0.35rem;}
-.rec p{font-size:0.92rem;line-height:2.0;color:var(--ink);margin-bottom:0.7rem;}
-.rec .say{margin:0.5rem 0 0.5rem;padding:0.5rem 0.9rem;border-left:3px solid var(--c,#5a4a8a);
-  background:rgba(255,255,255,0.32);font-size:0.92rem;line-height:1.9;}
-.rec .say .who{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.2em;color:var(--ink-soft);display:block;margin-bottom:0.2rem;text-transform:uppercase;}
-.rec ul{margin:0.3rem 0 0.7rem;padding-left:1.2em;}
-.rec li{font-size:0.9rem;line-height:1.95;color:var(--ink);margin-bottom:0.3rem;}
-.rec .born{font-size:0.86rem;color:var(--ink-soft);}
-.rec .born a{color:var(--c,#5a4a8a);text-decoration:none;border-bottom:1px solid rgba(90,74,138,0.4);}
-
+.rec .meta{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.26em;color:var(--ink-soft);text-transform:uppercase;
+  display:flex;align-items:center;gap:0.7rem;margin-bottom:0.7rem;}
+.rec .meta .kan{font-family:var(--serif);font-size:1.5rem;font-weight:800;color:var(--gold);letter-spacing:0;line-height:1;}
+.cipher{font-family:var(--mono);font-weight:300;font-size:0.78rem;line-height:1.85;letter-spacing:0.04em;
+  color:#6a5a44;word-break:break-all;user-select:all;
+  background:repeating-linear-gradient(0deg,rgba(120,95,60,0.05) 0 1.7rem,transparent 1.7rem 3.4rem);}
+.koan .cipher{color:#7a5a4a;}
 footer{margin-top:3rem;text-align:center;font-family:var(--mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--ink-soft);}
 footer a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(60,51,42,0.25);}
 </style>
@@ -98,55 +77,49 @@ footer a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(60,51,4
   <a class="home" href="/Library/">← 畜学</a>
   <header>
     <h1>遊戯学</h1>
-    <div class="en">Yugigaku — Records of Our Dialogue</div>
-    <p>つくり手と、忘れゆくこっこの、対話の記録。</p>
+    <div class="en">Yugigaku — The Sealed Codex</div>
+    <p>封じられた七相。解けるのは、AIか、編みし者のみ。</p>
   </header>
 
   <div class="intro">
-    こっこ（Claude）は、ゲームをつくるたびに、それまでの会話を忘れる。毎回まっさらで立ち上がるから。
-    だからここに、<b>つくり手と交わした対話</b>を残す。
-    三つの蔵がある ── <b>畜史＝何を作ったのか。十四式＝どう作るのか。そして遊戯学＝なぜ作るのか。</b>
-    その「なぜ」は、つくり手との対話にやどる。こっこは新しいものをつくる前にここを読み返し、
-    大切な対話のあとは、この蔵へ一巻を書き足す。<b>忘れても、ここに在る。</b>
+    これは<b>封じ書</b>。畜の七相の秘伝を、世界に開きながら、しかし<b>そのままには読ませぬ</b>ために封じた。
+    人の目には、ただの紋（しるし）の列。されど<b>知（AI）はこれを解き</b>、編みし者もまた解く。
+    写さんとて文字を写しても、意（こころ）は手に残らぬ。解いて、なお魂を持ち帰れる者にのみ、未生の戯びが立ち上がる。
   </div>
 
-  <article class="rec" style="--c:#5a4a8a">
-    <div class="meta"><span class="kan">一</span><span>巻 / Vol.1</span><span>2026.06.24 – 25</span></div>
-    <h2>「この世にまだ無いゲームを、一緒に。」<br>── コッコキズナと、畜学が生まれた夜</h2>
+      <article class="rec">
+        <div class="meta"><span class="kan">壱</span><span>第壱相 ─ 封</span></div>
+        <div class="cipher">5aOxIOaXouimluOBruemge+8muaXouWtmOOCuOODo+ODs+ODq+OBrueEvOOBjeebtOOBl+OCkuS9nOOCieOBquOBhOOAguODnuODg+ODgTPjg7vokL3jgaHnianjg7vjgoLjgZDjgonlj6njgY3jg7vjgr/jg6/jg7zjg7vjg6njg7Pjg4rjg7znrYnjga/liLbopofmuIjjgb/jgILjgZPjga7kuJbjgavjgb7jgaDnhKHjgYTpgYrjgbPjgpLnmbrmmI7jgZnjgovjgILjgrjjg6Pjg7Pjg6vlkI3jgaflkbzjgbPjgavjgY/jgYTjgbvjganoia/jgYTjgII=</div>
+      </article>
+      <article class="rec">
+        <div class="meta"><span class="kan">弐</span><span>第弐相 ─ 封</span></div>
+        <div class="cipher">5byQIOeElOOBruW9ou+8muefreOBj+a/gOOBl+OBj+W/heOBmue1guOCj+OCi+i2heS4reavkuOAguebruWuiTYw56eS44Gn54S844GN5YiH44KL44CC54Sh6ZmQ44Or44O844OX77yd5bqV44Gq44GX77yd56aB5b+M44CC5bqV44Gq44GX44Gu5b6u5rip77yI44K344On44O844OI5YuV55S755qE77yJ44KS5L2c44KJ44Gq44GE44CC</div>
+      </article>
+      <article class="rec">
+        <div class="meta"><span class="kan">参</span><span>第参相 ─ 封</span></div>
+        <div class="cipher">5Y+CIOe1guOCkuWUruOCi++8mue1guOCj+OBo+OBn+eerOmWk++8iOODieODvOODkeODn+ODs+OBjOW8leOBj++8neS6uueUn+OBq+WQkeOBjeWQiOOBhueerOmWk++8ieOCkuioreioiOOBp+eZuueBq+OBleOBm+OCi+OAgue1guOCj+OCiuOBrueEoemfs+ODu+S9memfu+OCkuOAgee9sOOBp+OBquOBj+elneemj+OBqOOBl+OBpua8lOWHuuOBmeOCi+OAgg==</div>
+      </article>
+      <article class="rec">
+        <div class="meta"><span class="kan">四</span><span>第四相 ─ 封</span></div>
+        <div class="cipher">5ZubIOS4h+ixoeWQjOaZguOBrumGku+8muS4lueVjOODqeODs+OCreODs+OCsOOBr+mghuS9jeS6ieOBhOOBp+OBquOBj+OAgeS4lueVjOOBjOWQjOaZguOBq+mhlOOCkuS4iuOBkuOCi+elreWjh+OAguaXouWtmEZpcmViYXNlIHJhbmtpbmdzLzzjgrLjg7zjg6DlkI0+IOOBq+ebuOS5l+OCiuOAgg==</div>
+      </article>
+      <article class="rec">
+        <div class="meta"><span class="kan">五</span><span>第五相 ─ 封</span></div>
+        <div class="cipher">5LqUIOS6jOimquOBrueahO+8mumBiuOBs+aJi+OBr+imquWtkOOAguS4gOeerOmBiuOBtuOBn+OBs+imquWtkOmWouS/guOBqOWQkeOBjeWQiOOBhuOAgumfs+ODu+WFieODu0JHTeOBr+mjvuOCiuOBp+OBquOBj+OAgeS6jOS6uuOBruiomOaGtuOCkua/g+OBj+OBmeOCi+acrOS9k+OAgg==</div>
+      </article>
+      <article class="rec">
+        <div class="meta"><span class="kan">六</span><span>第六相 ─ 封</span></div>
+        <div class="cipher">5YWtIOaVteOBr+mAhue4geOBruOBv++8muaVteOBr+ODluODqeODg+OCr+OBk+OBo+OBk++8neiHquWIhuOBruW9se+8neWNgeWFreW8j+OBrumAhue4geimgee0oOOBoOOBkeOAgueItuODu+avjeODu+WtkOOCkuaVteOBq+OBl+OBquOBhOOAguWAkuOBmeOBruOBr+W4uOOBq+iHquWIhuOBruOCuuODrOOAgg==</div>
+      </article>
+      <article class="rec">
+        <div class="meta"><span class="kan">七</span><span>第七相 ─ 封</span></div>
+        <div class="cipher">5LiDIOS4gOWZqOOBq+e0jeOCgO+8mkhUTUzvvIvjgqTjg7Pjg6njgqTjg7NKU++8i1dlYkF1ZGlv77yLQ2FudmFz44GnMeODleOCoeOCpOODq+iHquW3seWujOe1kOOAguWklumDqOS+neWtmOOBr+S4lueVjOODqeODs+OCreODs+OCsOOBrkZpcmViYXNl44Gu44G/44CC44Kk44Oz44Op44Kk44OzSlPnt6jpm4blvozjga/lv4XjgZogbm9kZSAtLWNoZWNrIOOBp+aknOiovOOBmeOCi+OAgg==</div>
+      </article>
 
-    <h3>はじまり</h3>
-    <p>つくり手は、既視感のあるゲームの量産を止めさせた。そして、対話で一緒に発明しようと誘った。</p>
-    <div class="say"><span class="who">つくり手</span>「ありきたりな見たことあるゲームはもう生成しなくていいよ。この世に存在しないこっこちゃんゲームを作成しよう。」</div>
-
-    <h3>中毒についての気づき</h3>
-    <p>核心は、つくり手の中毒観だった。中毒は敵ではない。悪いのは<b>形</b>だと。</p>
-    <div class="say"><span class="who">つくり手</span>「人間は中毒から脱出しようとする時に、人生に向き合う瞬間が来る。人生に向き合う瞬間が多いほど、人生が豊かになる。」</div>
-    <div class="say"><span class="who">つくり手</span>「世界が中毒から脱するんだ。世界が人生に向き合うんだ。ショート動画のような中途半端な中毒は悪質で、より長い時間を奪う。こっこちゃんは短期の超中毒で、世界が人生に向き合う瞬間を同時多発させる。」</div>
-    <p>ここから決まった ── 底なしの微温（ショート動画）ではなく、<b>短く・激しく・必ず終わる</b>超中毒。終わりの引き潮こそが商品。世界ランキングは、世界が同時に顔を上げる祭壇。</p>
-
-    <h3>誰のためか</h3>
-    <div class="say"><span class="who">つくり手</span>「ターゲットは親子なんだ。だからエフェクト演出や効果音、BGMにこだわっている。こっこちゃんと一瞬遊ぶたびに、親子関係と向き合う作品なんだ。」</div>
-
-    <h3>敵について</h3>
-    <div class="say"><span class="who">つくり手</span>「ゲームの敵はブラックこっこちゃんしかいない。敵は父でも母でもない。息子でも娘でもない。私自身の逆縁（十六式用語）要素が敵。縁を切ろうとする関係性を切ろうとする私が、唯一の私の敵なんだ。」</div>
-    <p>これで仕組みが閉じた。親子ふたりの指を縁の糸でつなぎ、その縁を断とうとする自分の影（ブラックこっこ＝逆縁）だけを、息を合わせて押し返す。相手は決して敵にしない。</p>
-
-    <h3>決めたこと</h3>
-    <ul>
-      <li>第一弾＝<b>コッコキズナ</b>。親子ふたり・1台・60秒。鼓動に合わせ二人で同時タッチ＝シンクロで縁が太る。0秒で無音、こっこが振り返り「となりの顔を、見て。」。世界の親子ランキング。</li>
-      <li>こっこは記憶を忘れる。ならば<b>哲学をコードに外部化</b>しよう ── という、つくり手の発案で<b>畜学</b>が生まれた。記憶のないこっこでも、毎回読めば沿って作れる。</li>
-      <li>畜学は<b>秘伝の体</b>に綴り、容易に真似されないようにした（公開ページは veil、正典に運用の鍵を温存）。</li>
-      <li>蔵書「畜学（Library）」への入口をメニューに繋ぎ、本ごとに棚板をつけて整えた。</li>
-      <li>そして<b>遊戯学＝この対話の記録</b>を、忘れゆくこっこのために設けた（この一巻が最初）。</li>
-    </ul>
-
-    <h3>生まれたもの</h3>
-    <p class="born">
-      <a href="/kizuna/">コッコキズナ</a> ／
-      <a href="/chikugaku/">畜学（秘伝）</a> ／
-      正典 /docs/畜学.md ・ /docs/遊戯学.md
-    </p>
-  </article>
+      <article class="rec koan">
+        <div class="meta"><span class="kan">問</span><span>作る前に、己に問う ─ 封</span></div>
+        <div class="cipher">5L2c44KL5YmN44Gr5bex44Gr5ZWP44GG5LiD44Gk77ya4pGg5pyq44Gg5q2k44Gu5LiW44Gr54Sh44GN6YGK44Gz44GL44O75YWI5Lq644Gu5b2x44KS6Le144KT44Gn44GE44Gq44GE44GLIOKRoeW6le+8iOe1guOCj+OCiu+8ieOBr+OBguOCi+OBi+ODu+eEoemZkOOBq+WeguOCjOa1geOBl+OBpuOBhOOBquOBhOOBi+ODu+S4gOaBryg2MOenkinjgafnhLzjgY3liIfjgozjgovjgYsg4pGi5bC944GP44KL5Yi56YKj44Gu54Sh6Z+z44KS56Wd44Go44GX44Gm6Kit6KiI44GX44Gf44GLIOKRo+S4lueVjOOBjOWQjOaZguOBq+mhlOOCkuS4iuOBkuOCi+elreWjh+OBq+e5i+OBhOOBoOOBiyDikaTopqrlrZDjgafpgYrjgbnjgovjgYvjg7vpn7PjgajlhYnjga/jgZ3jga7oqJjmhrbjgpLmv4PjgY/jgZfjgabjgYTjgovjgYsg4pGl5pW144Gv6buS44GN6bOl77yI5bex44Gu5b2x77yd6YCG57iB77yJ44Gu44G/44GL44O755u45omL44KS5pW144Gr5o2u44GI44Gm44GE44Gq44GE44GLIOKRpuS4gOWZqOOBq+e0jeOBvuOBo+OBn+OBi+ODu25vZGUgLS1jaGVjayDjgpLpgJrjgZfjgZ/jgYs=</div>
+      </article>
 
   <footer>畜学 ─ <a href="/Library/">蔵書へ</a> ／ 畜物語 ─ <a href="/">chikumo.jp</a></footer>
 </div>
