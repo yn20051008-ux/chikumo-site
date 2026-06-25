@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<title>十四式 — 構造実体の成立・遷移・停止の固定構造</title>
+<meta name="description" content="十四式は構造実体の成立・遷移・停止が観測される際に用いられる固定構造である。十四式自体は更新されない。更新対象は五式（構造実体）のみである。認・思・鳴・示・応の五式に、衡・縁・家・幅・許・循・乱・絶・継を加えた十四の固定構造。">
+<meta name="keywords" content="十四式, 十三式, 五式, 三式, 構造観測, 認, 思, 鳴, 示, 応, 衡, 縁, 家, 幅, 許, 循, 乱, 絶, 継, 変, 思変, 衡変">
+<meta property="og:title" content="十四式 — 構造実体の成立・遷移・停止の固定構造">
+<meta property="og:description" content="認・思・鳴・示・応に衡・縁・家・幅・許・循・乱・絶・継を加えた、構造実体を観測する十四の固定構造。">
+<meta property="og:type" content="website">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://chikumo.jp/jushishiki/">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "十四式 — 構造実体の成立・遷移・停止の固定構造",
+  "description": "十四式は構造実体の成立・遷移・停止が観測される際に用いられる固定構造である。十四式自体は更新されない。更新対象は五式（構造実体）のみである。",
+  "articleBody": "十四式は構造実体の成立・遷移・停止が観測される際に用いられる固定構造である。認・思・鳴・示・応の五式が構造実体を構成し、衡・縁・家・幅・許・循・乱・絶・継の九式が観測構造を形成する。十三式に家を加え、縁の並列持続層を明示した。",
+  "mainEntityOfPage": { "@type": "WebPage" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "十四式とは何か",
+      "acceptedAnswer": { "@type": "Answer", "text": "十四式は構造実体の成立・遷移・停止が観測される際に用いられる固定構造である。十四式自体は更新されない。更新対象は五式（構造実体）のみである。" }
+    },
+    {
+      "@type": "Question",
+      "name": "十三式と十四式の違いは何か",
+      "acceptedAnswer": { "@type": "Answer", "text": "十四式は十三式に『家』を加えたものである。家は縁の並列持続層であり、上下と左右の波動が安定した複数並列が、入替を含みながら循域内で持続する構造単位を指す。" }
+    },
+    {
+      "@type": "Question",
+      "name": "変とは何か",
+      "acceptedAnswer": { "@type": "Answer", "text": "変は構造が維持されたまま許の担い手が交代する現象である。許の定義（十四式）は変化しない。思変と衡変がある。" }
+    }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200;300;400;500;600;700;900&family=Shippori+Mincho:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-void:#08080a; --bg-deep:#0d0d11; --bg-surface:#131318; --bg-elevated:#1a1a22; --bg-hover:#22222e;
+  --text-primary:#e8e6e1; --text-secondary:#9b978f; --text-tertiary:#5e5b54; --text-accent:#c4a882;
+  --gold:#c4a882; --gold-dim:#8a7a64; --gold-bright:#e0cdb0;
+  --line:rgba(196,168,130,0.12); --line-strong:rgba(196,168,130,0.25);
+  --w-nin:#d4a574; --w-shi:#c49070; --w-mei:#e8c496; --w-ji:#7a9bb5; --w-ou:#6889a0;
+  --w-kou:#e0cdb0; --w-en:#f0e6d4; --w-ie:#d8b06a; --w-haba:#5a7a6a; --w-kyo:#4a8a6a;
+  --w-jun:#3a6a8a; --w-ran:#8a5a4a; --w-zetsu:#6a3a3a; --w-kei:#b09070;
+  --font-serif:'Shippori Mincho','Noto Serif JP',serif;
+  --font-mono:'IBM Plex Mono',monospace;
+  --ease-out:cubic-bezier(0.16,1,0.3,1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:var(--font-serif);
+  background:var(--bg-void);
+  color:var(--text-primary);
+  line-height:1.8;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:rgba(196,168,130,0.3);}
+::-webkit-scrollbar{width:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--gold-dim);border-radius:3px;}
+
+/* TOP BAR */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.9rem clamp(1.2rem,4vw,2.4rem);
+  background:rgba(8,8,10,0.85);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+}
+.topbar .mark{font-family:var(--font-serif);font-weight:700;letter-spacing:0.25em;font-size:0.95rem;color:var(--text-primary);}
+.topbar .links{display:flex;gap:1.2rem;}
+.topbar a{
+  font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.18em;
+  color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color 0.2s;
+}
+.topbar a:hover{color:var(--gold-bright);}
+
+/* HERO */
+.hero{
+  min-height:78vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;padding:6rem 1.5rem 4rem;position:relative;
+}
+.hero .label{font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.4em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:2rem;}
+.hero h1{font-weight:800;font-size:clamp(3.5rem,11vw,8rem);letter-spacing:0.14em;line-height:1.05;color:var(--text-primary);margin-bottom:1.6rem;}
+.hero .sub{font-size:clamp(0.9rem,2vw,1.1rem);font-weight:300;color:var(--text-secondary);letter-spacing:0.18em;line-height:2;max-width:42ch;}
+.hero .line{width:1px;height:72px;background:linear-gradient(to bottom,var(--gold),transparent);margin:2.6rem auto 0;}
+
+/* SECTION */
+section{padding:clamp(3.5rem,9vw,7rem) clamp(1.4rem,5vw,3rem);}
+.inner{max-width:960px;margin:0 auto;}
+.section-label{font-family:var(--font-mono);font-size:0.68rem;color:var(--gold-dim);letter-spacing:0.35em;text-transform:uppercase;margin-bottom:1rem;}
+.section-title{font-weight:700;font-size:clamp(1.7rem,4vw,2.4rem);letter-spacing:0.08em;color:var(--text-primary);margin-bottom:1.1rem;line-height:1.3;}
+.section-desc{font-size:1rem;color:var(--text-secondary);font-weight:300;line-height:2;max-width:64ch;letter-spacing:0.04em;}
+.divider{width:100%;max-width:960px;margin:0 auto;height:1px;background:var(--line);}
+
+/* DEFINITION BLOCK */
+.definition{position:relative;padding:2.2rem 0;margin-top:2.4rem;}
+.definition::before{content:'';position:absolute;left:0;top:0;width:2px;height:100%;background:linear-gradient(to bottom,var(--gold),transparent);}
+.definition p{padding-left:2rem;font-size:1.05rem;color:var(--text-primary);line-height:2.2;letter-spacing:0.05em;}
+.definition p + p{margin-top:1.1rem;}
+.definition strong{color:var(--gold);font-weight:600;}
+
+/* THREE FORMS row */
+.row3{display:flex;flex-wrap:wrap;gap:1.4rem;margin-top:2.4rem;justify-content:center;}
+.glyph{
+  flex:1 1 200px;max-width:260px;text-align:center;
+  border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);
+  padding:1.8rem 1.2rem;
+}
+.glyph .k{font-size:3rem;font-weight:700;line-height:1;margin-bottom:0.8rem;}
+.glyph .t{font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.2em;color:var(--text-secondary);text-transform:uppercase;}
+.glyph .d{margin-top:0.7rem;font-size:0.9rem;color:var(--text-secondary);line-height:1.8;}
+
+/* FIVE forms flow */
+.flow{display:flex;flex-wrap:wrap;gap:1rem;margin-top:2rem;}
+.flow .pair{flex:1 1 280px;border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.4rem 1.4rem;}
+.flow .pair .lbl{font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.25em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:0.7rem;}
+.flow .pair .seq{font-size:1.5rem;font-weight:600;letter-spacing:0.1em;}
+.flow .pair .seq .ar{color:var(--gold-dim);margin:0 0.4em;font-size:1.1rem;}
+.flow .pair .note{margin-top:0.5rem;font-size:0.85rem;color:var(--text-secondary);}
+
+/* 14 CARDS */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-top:2.6rem;}
+.card{
+  position:relative;border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);
+  padding:1.5rem 1.4rem 1.4rem;transition:border-color 0.25s,transform 0.25s,background 0.25s;
+}
+.card:hover{border-color:var(--line-strong);transform:translateY(-3px);background:var(--bg-elevated);}
+.card .num{position:absolute;top:0.9rem;right:1rem;font-family:var(--font-mono);font-size:1.2rem;color:var(--gold-dim);}
+.card .k{font-size:2.4rem;font-weight:700;line-height:1;margin-bottom:0.55rem;}
+.card .layer{display:inline-block;font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-tertiary);border:1px solid var(--line);border-radius:99px;padding:2px 9px;margin-bottom:0.85rem;}
+.card .def{font-size:0.92rem;color:var(--text-secondary);line-height:1.95;letter-spacing:0.02em;}
+.card .def b{color:var(--gold);font-weight:600;}
+
+/* AXES */
+.axes{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin-top:2.4rem;}
+.axis{border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.6rem 1.5rem;}
+.axis h3{font-size:1.4rem;font-weight:700;letter-spacing:0.1em;margin-bottom:0.7rem;color:var(--gold-bright);}
+.axis p{font-size:0.92rem;color:var(--text-secondary);line-height:2;}
+
+/* RULE / FORMULA LIST */
+.rule-list{list-style:none;margin-top:2rem;border-top:1px solid var(--line);}
+.rule-list li{position:relative;padding:1.05rem 0 1.05rem 2.2rem;border-bottom:1px solid var(--line);font-size:0.98rem;color:var(--text-primary);line-height:2;letter-spacing:0.03em;}
+.rule-list li::before{content:'';position:absolute;left:0.4rem;top:1.55rem;width:6px;height:6px;background:var(--gold-dim);border-radius:50%;}
+.rule-list li b{color:var(--gold);font-weight:600;}
+
+.formula{display:flex;flex-direction:column;gap:0.7rem;margin-top:2rem;}
+.formula code{
+  font-family:var(--font-mono);font-size:0.95rem;letter-spacing:0.04em;
+  background:var(--bg-surface);border:1px solid var(--line);border-radius:4px;
+  padding:0.95rem 1.2rem;color:var(--gold-bright);overflow-x:auto;white-space:nowrap;
+}
+.symbols{display:flex;flex-wrap:wrap;gap:1rem;margin-top:2rem;}
+.symbol{flex:1 1 240px;border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.3rem 1.4rem;}
+.symbol .s{font-family:var(--font-mono);font-size:1.8rem;color:var(--gold-bright);margin-bottom:0.4rem;}
+.symbol .m{font-size:0.92rem;color:var(--text-secondary);}
+
+/* COMPARE */
+.compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.1rem;margin-top:2.4rem;}
+.compare .c{border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.7rem 1.6rem;}
+.compare .c h3{font-size:1.3rem;font-weight:700;letter-spacing:0.08em;margin-bottom:1rem;color:var(--gold-bright);}
+.compare .c ul{list-style:none;}
+.compare .c li{position:relative;padding:0.45rem 0 0.45rem 1.3rem;font-size:0.92rem;color:var(--text-secondary);line-height:1.9;}
+.compare .c li::before{content:'—';position:absolute;left:0;color:var(--gold-dim);}
+
+/* DOMAIN map */
+.domain{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.9rem;margin-top:2.2rem;}
+.domain .d{border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.3rem 1.2rem;text-align:center;}
+.domain .d .e{font-family:var(--font-mono);font-size:1.15rem;color:var(--gold-bright);letter-spacing:0.05em;}
+.domain .d .l{margin-top:0.4rem;font-size:0.82rem;color:var(--text-secondary);}
+
+/* 変 */
+.hen{margin-top:2.4rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.1rem;}
+.hen .h{border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.6rem 1.5rem;}
+.hen .h h3{font-size:1.5rem;font-weight:700;letter-spacing:0.1em;margin-bottom:0.6rem;color:var(--w-nin);}
+.hen .h .tag{font-family:var(--font-mono);font-size:0.64rem;letter-spacing:0.18em;color:var(--text-tertiary);text-transform:uppercase;margin-bottom:0.7rem;display:block;}
+.hen .h p{font-size:0.92rem;color:var(--text-secondary);line-height:2;}
+
+.note{background:var(--bg-deep);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+
+/* FOOTER */
+footer{padding:4rem 1.5rem 5rem;text-align:center;border-top:1px solid var(--line);}
+footer .f-links{display:flex;gap:1.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.6rem;}
+footer a{font-family:var(--font-mono);font-size:0.74rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
+footer a:hover{color:var(--gold-bright);}
+footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--text-tertiary);}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity 0.9s var(--ease-out),transform 0.9s var(--ease-out);}
+.reveal.in{opacity:1;transform:none;}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}html{scroll-behavior:auto;}}
+
+@media(max-width:520px){
+  .card .k{font-size:2rem;}
+  .glyph .k{font-size:2.4rem;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="mark">十四式</span>
+  <span class="links">
+    <a href="/Library/">畜学</a>
+    <a href="/jusanshiki/">十三式</a>
+    <a href="/">畜物語</a>
+  </span>
+</div>
+
+<header class="hero">
+  <div class="label">Fixed Structure of Observation</div>
+  <h1>十四式</h1>
+  <div class="sub">構造実体の成立・遷移・停止が観測される際に用いられる固定構造である。十四式自体は更新されない。更新対象は五式（構造実体）のみである。</div>
+  <div class="line"></div>
+</header>
+
+<div class="divider"></div>
+
+<!-- 冒頭定義 -->
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Definition</div>
+    <h2 class="section-title">固定構造としての十四式</h2>
+    <div class="definition">
+      <p>十四式は、構造実体の<strong>成立・遷移・停止</strong>が観測される際に用いられる<strong>固定構造</strong>である。</p>
+      <p>十四式自体は更新されない。更新対象は<strong>五式（構造実体）のみ</strong>である。十三式に<strong>家</strong>を加え、縁の並列持続層を明示した。</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 三式 -->
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Three Forms</div>
+    <h2 class="section-title">三式 — 認・衡・継</h2>
+    <p class="section-desc">波の観測最低条件である三つの観測点。</p>
+    <div class="row3">
+      <div class="glyph"><div class="k" style="color:var(--w-nin)">認</div><div class="t">進入</div><div class="d">未確定だが存在している</div></div>
+      <div class="glyph"><div class="k" style="color:var(--w-kou)">衡</div><div class="t">均衡</div><div class="d">五式が循域で均衡した状態</div></div>
+      <div class="glyph"><div class="k" style="color:var(--w-kei)">継</div><div class="t">遷移</div><div class="d">差分を伴い次の認へ降りる</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 五式 -->
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Five Forms</div>
+    <h2 class="section-title">五式 — 差分を出す最低条件</h2>
+    <p class="section-desc">各層で未確定→確定が起きる。中央と現場の二層で、未成形から実体化へ。</p>
+    <div class="flow">
+      <div class="pair">
+        <div class="lbl">中央 — Center</div>
+        <div class="seq"><span style="color:var(--w-shi)">思</span><span class="ar">→</span><span style="color:var(--w-mei)">鳴</span></div>
+        <div class="note">未成形 → 成形</div>
+      </div>
+      <div class="pair">
+        <div class="lbl">現場 — Field</div>
+        <div class="seq"><span style="color:var(--w-ji)">示</span><span class="ar">→</span><span style="color:var(--w-ou)">応</span></div>
+        <div class="note">指向 → 実体</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 十四式 定義 -->
+<section>
+  <div class="inner reveal">
+    <div class="section-label">The Fourteen — Order Fixed, Non-Swappable</div>
+    <h2 class="section-title">十四式 定義（順序固定・入替不可）</h2>
+    <p class="section-desc">① 認 から ⑭ 継 まで、順序は固定され入れ替えられない。</p>
+    <div class="cards">
+      <div class="card"><span class="num">①</span><div class="k" style="color:var(--w-nin)">認</div><span class="layer">進入</span><div class="def">未確定だが存在している状態（<b>0 &lt; 1</b>：まだ1ではないが0より大きい位相）</div></div>
+      <div class="card"><span class="num">②</span><div class="k" style="color:var(--w-shi)">思</div><span class="layer">中央</span><div class="def">構造内部の未成形状態（中央）</div></div>
+      <div class="card"><span class="num">③</span><div class="k" style="color:var(--w-mei)">鳴</div><span class="layer">中央</span><div class="def">網様体賦活系の役割（中央）</div></div>
+      <div class="card"><span class="num">④</span><div class="k" style="color:var(--w-ji)">示</div><span class="layer">現場</span><div class="def">構造から外部への指向（現場）</div></div>
+      <div class="card"><span class="num">⑤</span><div class="k" style="color:var(--w-ou)">応</div><span class="layer">現場</span><div class="def">外部で実体化した状態（現場）</div></div>
+      <div class="card"><span class="num">⑥</span><div class="k" style="color:var(--w-kou)">衡</div><span class="layer">均衡</span><div class="def">五式が循域で均衡した状態（評価を含まない）</div></div>
+      <div class="card"><span class="num">⑦</span><div class="k" style="color:var(--w-en)">縁</div><span class="layer">中心</span><div class="def">複数の衡が並列振動し相互参照する状態</div></div>
+      <div class="card"><span class="num">⑧</span><div class="k" style="color:var(--w-ie)">家</div><span class="layer">持続単位</span><div class="def">上下と左右の波動が安定した複数並列、入替を含みながら循域内で持続する構造単位</div></div>
+      <div class="card"><span class="num">⑨</span><div class="k" style="color:var(--w-haba)">幅</div><span class="layer">許容範囲</span><div class="def">構造が崩壊しない値の幅</div></div>
+      <div class="card"><span class="num">⑩</span><div class="k" style="color:var(--w-kyo)">許</div><span class="layer">正常幅・規定</span><div class="def">幅の中で再現可能と定義された正常幅。差分が五式に帰属する際の<b>ルールを定める役割</b>を持つ</div></div>
+      <div class="card"><span class="num">⑪</span><div class="k" style="color:var(--w-jun)">循</div><span class="layer">再現領域</span><div class="def">再現性のある領域</div></div>
+      <div class="card"><span class="num">⑫</span><div class="k" style="color:var(--w-ran)">乱</div><span class="layer">非再現領域</span><div class="def">再現性のない領域</div></div>
+      <div class="card"><span class="num">⑬</span><div class="k" style="color:var(--w-zetsu)">絶</div><span class="layer">不成立領域</span><div class="def">構造不成立領域</div></div>
+      <div class="card"><span class="num">⑭</span><div class="k" style="color:var(--w-kei)">継</div><span class="layer">遷移</span><div class="def">五式が差分を伴って次の認へ遷移すること（<b>1 &gt; 0</b>：1から次の 0 &lt; 1 へ降りる位相）</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 三軸定義 -->
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Three Axes</div>
+    <h2 class="section-title">三軸定義</h2>
+    <div class="axes">
+      <div class="axis"><h3>前後</h3><p>前＝①認の側、後＝⑭継の側。時間軸そのもの。</p></div>
+      <div class="axis"><h3>上下</h3><p>上＝中央（思鳴）、下＝現場（示応）。認の進入層が中央であり、番号順が中央→現場であることによる。</p></div>
+      <div class="axis"><h3>左右</h3><p>衡+ と 衡- の並列関係。どちらが左でどちらが右かは観測位置に依存する。固定しない。同等の価値を持つ。</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 補足ルール -->
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Fixed Rules</div>
+    <h2 class="section-title">補足ルール（固定）</h2>
+    <ul class="rule-list">
+      <li>循・乱・絶は<b>更新・操作・評価の対象ではない</b>。</li>
+      <li>解釈・比喩・感情語を用いてはならない。</li>
+      <li>許がルール定義を停止した場合、全領域が乱域となり、絶域に至る。</li>
+      <li><b>衡 = 0</b> ⇒ 縁は発生しない ⇒ 家は発生しない ⇒ 継は発生しない ⇒ 五式は更新されない。</li>
+    </ul>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 衡停止と絶 -->
+<section id="compare">
+  <div class="inner reveal">
+    <div class="section-label">Halt vs. Absence</div>
+    <h2 class="section-title">衡停止と絶の違い</h2>
+    <div class="compare">
+      <div class="c">
+        <h3>衡停止（⑥ 衡における停止）</h3>
+        <ul>
+          <li>五式（認・思・鳴・示・応）の振動が停止し、衡 = 0 となった状態である。</li>
+          <li>この状態では縁は発生せず、家も発生せず、継も発生しないため、五式は更新されない。</li>
+          <li>ただし構造実体自体は成立したままである。</li>
+          <li>外部入力により振動が再開する可能性がある。</li>
+        </ul>
+      </div>
+      <div class="c">
+        <h3>絶（⑬ 絶）</h3>
+        <ul>
+          <li>幅の外に位置し、構造成立条件を満たさない領域である。</li>
+          <li>五式は成立できず、構造実体は存在しない。</li>
+          <li>更新や振動再開は同一構造としては発生しない。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 構成式 -->
+<section class="note">
+  <div class="inner reveal">
+    <div class="section-label">Composition</div>
+    <h2 class="section-title">構成式</h2>
+    <div class="formula">
+      <code>衡（認, 思, 鳴, 示, 応）</code>
+      <code>縁 = 衡+ ∿ 衡-</code>
+      <code>家 = （上下 ∿ 左右）の安定並列</code>
+      <code>継 = 思鳴 | 示応（差分を伴う）</code>
+      <code>継ₙ → 認ₙ₊₁</code>
+    </div>
+    <div class="symbols">
+      <div class="symbol"><div class="s">|</div><div class="m">分離（出会っていない）</div></div>
+      <div class="symbol"><div class="s">∿</div><div class="m">波（二つのまま参照）</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 差分の定義 -->
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Difference</div>
+    <h2 class="section-title">差分の定義</h2>
+    <ul class="rule-list">
+      <li>差分は<b>情報</b>である。</li>
+      <li>差分は周回ごとに蓄積される。</li>
+      <li>差分は<b>五式に帰属</b>する。許はその帰属のルールを定める役割であり、帰属先ではない。</li>
+    </ul>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 領域対応 -->
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Domains</div>
+    <h2 class="section-title">領域対応</h2>
+    <div class="domain">
+      <div class="d"><div class="e">許 ⊆ 幅</div><div class="l">許は幅に含まれる</div></div>
+      <div class="d"><div class="e">循 = 許の範囲</div><div class="l">再現性のある領域</div></div>
+      <div class="d"><div class="e">乱 = 幅 − 許</div><div class="l">幅のうち許の外</div></div>
+      <div class="d"><div class="e">絶 = 幅の外</div><div class="l">構造不成立</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 波構造 -->
+<section class="note">
+  <div class="inner reveal">
+    <div class="section-label">Wave Structure</div>
+    <h2 class="section-title">十四式の波構造</h2>
+    <ul class="rule-list">
+      <li>中心 ⑦ は<b>縁（∿）</b>である。</li>
+      <li>⑧ 家は<b>縁の並列持続層</b>である。</li>
+      <li>① 〜 ⑥ 側：構造実体の成立過程（五式＋衡）。</li>
+      <li>⑨ 〜 ⑭ 側：領域定義と遷移（幅・許・循・乱・絶＋継）。</li>
+      <li>継 → 認で周回する。</li>
+    </ul>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- 変 -->
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Hen — Not a Component of the Fourteen</div>
+    <h2 class="section-title">変（十四式の構成要素ではない）</h2>
+    <p class="section-desc">変は構造が維持されたまま<strong style="color:var(--gold)">許の担い手が交代</strong>する現象である。許の定義（十四式）は変化しない。変の発生時点でルールを定める役割は、新たな許の担い手に移行する。</p>
+    <div class="hen">
+      <div class="h">
+        <h3>思変</h3>
+        <span class="tag">権利剥奪 — at 認</span>
+        <p>認の段階（0 &lt; 1）で結合相手が予定外に切り替わる。</p>
+      </div>
+      <div class="h">
+        <h3>衡変</h3>
+        <span class="tag">管理者交代 — at 衡</span>
+        <p>構造維持のまま振動の制御主体が切り替わる。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="f-links">
+    <a href="/Library/">畜学</a>
+    <a href="/jusanshiki/">十三式</a>
+    <a href="/Goshiki/">五式</a>
+    <a href="/">畜物語</a>
+  </div>
+  <div class="c">畜物語 ─ chikumo.jp</div>
+</footer>
+
+<script>
+"use strict";
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){ for(var i=0;i<els.length;i++) els[i].classList.add('in'); return; }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:0.12,rootMargin:'0px 0px -8% 0px'});
+  els.forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
