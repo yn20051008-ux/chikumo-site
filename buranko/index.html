@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>コッコブランコ ─ COCCO BURANKO｜親子ふたりで60秒・交互にこいで縁を高く</title>
+<meta name="description" content="親子ふたり・スマホ1台・60秒。まんなかのブランコにこっこちゃん。親は左の頂点で、子は右の頂点で、来たタイミングに押す。交互に息を合わせるほどブランコは高く、こっこは笑う。ズレると勢いが消え、下から逆縁（ブラックこっこ＝自分の影）がせり上がる。敵はそれだけ。0秒でこぐのをやめ、ブランコは静かに止まり、こっこが振り返る。世界の親子と縁の高さを競う。">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+
+<!--
+  ============================================================
+  畜学（ちくがく） ─ 畜物語の設計哲学（→ /docs/畜学.md）
+  この一作は「交互の呼吸」。kizuna(同時)・echo(まねっこ)とは別の縁。
+   1. 既視感の禁止 … ブランコを二人で交互にこぐ、ジャンル名のない遊び
+   2. 中毒の形    … 60秒で必ず止まる（無限ループ無し）
+   3. 終わりが商品  … 0秒、ブランコが静かに止まる無音＝祝福
+   4. 同時多発の正気 … 世界の親子ランキング＝同時に顔を上げる祭壇
+   5. ターゲットは親子 … 親が押し、子が押し返す。音と光は二人の記憶の本体
+   6. 敵は逆縁のみ  … 下からせり上がるブラックこっこ＝自分の影だけ
+   7. 一ファイル完結 … HTML+JS+WebAudio+Canvas、ランキングのみFirebase
+  ============================================================
+-->
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+<style>
+  :root{ --warm:#ffcaa6; --gold:#ffd98a; --bond:#ffe6a0; }
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body{ margin:0; padding:0; height:100%; overflow:hidden; background:#0b0a14; }
+  body{ font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;
+    color:#fff; touch-action:none; user-select:none; -webkit-user-select:none; }
+  #stage{ position:fixed; inset:0; }
+  canvas{ display:block; width:100%; height:100%; }
+
+  .ov{ position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:24px; z-index:10; }
+  .hidden{ display:none !important; }
+
+  #title{ background:radial-gradient(120% 90% at 50% 0%, #3a2350 0%, #1a1330 55%, #0b0a14 100%); }
+  #title .hero{ width:118px; height:118px; filter:drop-shadow(0 8px 26px rgba(255,200,140,.5)); animation:bob 2.6s ease-in-out infinite; }
+  @keyframes bob{ 0%,100%{ transform:translateY(0) rotate(-6deg) } 50%{ transform:translateY(-10px) rotate(6deg) } }
+  .ttl{ font-size:clamp(30px,9vw,52px); font-weight:900; letter-spacing:.04em; margin:14px 0 2px;
+    background:linear-gradient(180deg,#fff 0%,var(--gold) 100%); -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 2px 30px rgba(255,210,140,.25); }
+  .sub{ font-size:13px; letter-spacing:.18em; color:#e7c2ff; opacity:.85; margin-bottom:16px; }
+  .lead{ max-width:540px; font-size:clamp(15px,4vw,17px); line-height:2.0; color:#f4f1ff; opacity:1;
+    background:rgba(10,8,22,.42); border:1px solid rgba(255,255,255,.08); border-radius:16px;
+    padding:16px 18px; text-shadow:0 1px 3px rgba(0,0,0,.55); }
+  .lead b{ color:#ffdf9a; font-weight:800; }
+  .howto{ display:flex; gap:14px; margin:18px 0 6px; flex-wrap:wrap; justify-content:center; }
+  .ht{ background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); border-radius:14px; padding:12px 16px; min-width:128px; }
+  .ht .k{ font-size:24px; } .ht .t{ font-size:12px; opacity:.8; margin-top:4px; line-height:1.5; }
+  .btn{ appearance:none; border:none; cursor:pointer; font-weight:800; color:#3a2410;
+    background:linear-gradient(180deg,#ffe6a8,#ffb86b); border-radius:999px; padding:16px 40px; font-size:19px;
+    box-shadow:0 10px 26px rgba(255,170,90,.45); margin-top:8px; transition:transform .12s; }
+  .btn:active{ transform:scale(.96); }
+  .btn.ghost{ background:rgba(255,255,255,.08); color:#fff; border:1px solid rgba(255,255,255,.2); box-shadow:none;
+    padding:12px 26px; font-size:14px; font-weight:700; }
+  .row{ display:flex; gap:10px; flex-wrap:wrap; justify-content:center; align-items:center; }
+  .best{ margin-top:14px; font-size:13px; color:#dcc4ff; opacity:.85; }
+  .reload{ position:fixed; right:14px; top:calc(12px + env(safe-area-inset-top)); z-index:20;
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18); color:#fff; border-radius:10px;
+    padding:8px 11px; font-size:13px; cursor:pointer; }
+
+  #over{ background:rgba(6,5,12,.0); transition:background 1.2s ease; }
+  #over.show{ background:rgba(6,5,12,.92); }
+  .quiet{ font-size:clamp(18px,5vw,26px); font-weight:800; color:#fff; opacity:0; transform:translateY(8px);
+    transition:opacity 1s ease 0.3s, transform 1s ease 0.3s; letter-spacing:.06em; }
+  #over.show .quiet{ opacity:1; transform:none; }
+  .resBox{ opacity:0; transition:opacity .8s ease 1.4s; margin-top:18px; }
+  #over.show .resBox{ opacity:1; }
+  .bondLabel{ font-size:13px; color:#ffd98a; letter-spacing:.2em; }
+  .bondScore{ font-size:clamp(44px,15vw,84px); font-weight:900; line-height:1.05;
+    background:linear-gradient(180deg,#fff,#ffd98a); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .bondSub{ font-size:13px; color:#e7c2ff; margin-top:2px; }
+
+  .form{ margin-top:18px; display:flex; flex-direction:column; gap:10px; align-items:center; }
+  .nameRow{ display:flex; gap:8px; align-items:center; }
+  #flagBtn{ font-size:24px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.2);
+    border-radius:12px; padding:8px 10px; cursor:pointer; }
+  #nameInput{ background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.22); border-radius:12px;
+    color:#fff; padding:12px 14px; font-size:16px; width:180px; text-align:center; }
+  #nameInput::placeholder{ color:rgba(255,255,255,.45); }
+
+  #flagPick{ position:fixed; inset:0; z-index:30; background:rgba(6,5,12,.82); display:flex; align-items:center; justify-content:center; padding:20px; }
+  .flagCard{ background:#1a1330; border:1px solid rgba(255,255,255,.14); border-radius:16px; padding:16px; max-width:420px; width:100%; max-height:78vh; overflow:auto; }
+  .flagGrid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(48px,1fr)); gap:6px; margin-top:10px; }
+  .flagOpt{ font-size:24px; background:rgba(255,255,255,.05); border:1px solid transparent; border-radius:10px; padding:6px 0; cursor:pointer; }
+  .flagOpt.sel{ border-color:var(--gold); background:rgba(255,210,140,.15); }
+
+  #rankPanel{ z-index:30; background:rgba(6,5,12,.9); }
+  .rankCard{ background:#1a1330; border:1px solid rgba(255,255,255,.14); border-radius:18px; padding:18px; max-width:440px; width:100%; max-height:82vh; overflow:auto; }
+  .rankHead{ font-size:18px; font-weight:900; color:var(--gold); margin-bottom:4px; }
+  .rankNote{ font-size:11px; opacity:.6; margin-bottom:10px; }
+  ol.rankList{ list-style:none; margin:0; padding:0; }
+  ol.rankList li{ display:flex; align-items:center; gap:8px; padding:9px 6px; border-bottom:1px solid rgba(255,255,255,.07); }
+  .rk{ width:34px; text-align:center; font-weight:800; opacity:.9; }
+  .rn{ flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:14px; }
+  .rs{ font-weight:900; color:var(--bond); }
+  .rankempty{ opacity:.5; text-align:center; padding:18px; }
+
+  #celebrate{ position:fixed; inset:0; z-index:40; display:flex; align-items:center; justify-content:center; pointer-events:none; }
+  .celCard{ text-align:center; }
+  .celSub{ font-size:14px; letter-spacing:.3em; color:#ffd98a; }
+  .celNum{ font-size:min(40vw,220px); font-weight:900; line-height:1;
+    background:linear-gradient(180deg,#fff,#ffd98a); -webkit-background-clip:text; background-clip:text; color:transparent;
+    text-shadow:0 0 50px rgba(255,210,140,.6); }
+  .celPos{ font-size:22px; font-weight:800; }
+  .celMsg{ font-size:16px; margin-top:8px; color:#fff; }
+
+  .credit{ position:fixed; left:0; right:0; bottom:calc(10px + env(safe-area-inset-bottom)); text-align:center; font-size:11px; opacity:.4; z-index:10; }
+</style>
+</head>
+<body>
+<div id="stage"><canvas id="cv"></canvas></div>
+
+<!-- ===== タイトル ===== -->
+<div id="title" class="ov">
+  <img class="hero" src="/chikumo.svg" alt="こっこちゃん">
+  <div class="ttl">コッコブランコ</div>
+  <div class="sub">C O C C O 　 B U R A N K O 　 ─ 　 ふ た り で こ ぐ</div>
+  <div class="lead">
+    <b>親子ふたり・スマホ1台・60秒。</b><br>
+    まんなかのブランコに、こっこちゃん。<br>
+    <b>親は左</b>のてっぺん、<b>子は右</b>のてっぺん。<br>
+    ブランコが自分の側に来た<b>その瞬間にタッチ</b>して押す。<br>
+    交互に息が合うほど、ブランコは<b>高く</b>、こっこは笑う。<br>
+    ズレると勢いが消え、下から<b>ブラックこっこ＝自分の影（逆縁）</b>がせり上がる。<br>
+    敵はそれだけ。相手じゃない。0秒で、すべてが静かになる。となりの顔を、見て。
+  </div>
+  <div class="howto">
+    <div class="ht"><div class="k">👈 親（おとな）</div><div class="t">左半分タッチ<br>（キーボード: F）</div></div>
+    <div class="ht"><div class="k">子（こども） 👉</div><div class="t">右半分タッチ<br>（キーボード: J）</div></div>
+  </div>
+  <button class="btn" id="startBtn">ふたりで こぐ</button>
+  <div class="row" style="margin-top:12px">
+    <button class="btn ghost" id="soloBtn">ひとりで ためす</button>
+    <button class="btn ghost" id="rankBtn">🏆 世界の親子ランキング</button>
+  </div>
+  <div class="best" id="bestLabel"></div>
+</div>
+<button class="reload" id="reloadBtn" title="最新に更新">🔄 更新</button>
+
+<!-- ===== 結果（終わり＝商品） ===== -->
+<div id="over" class="ov hidden">
+  <div class="quiet" id="quietLine">ブランコが、とまった。となりの顔を、見て。</div>
+  <div class="resBox" id="resBox">
+    <div class="bondLabel">ふたりで あげた 縁 の たかさ</div>
+    <div class="bondScore" id="bondScore">0</div>
+    <div class="bondSub" id="bondSub"></div>
+    <div class="form">
+      <div class="nameRow">
+        <button id="flagBtn" type="button">🇯🇵</button>
+        <input id="nameInput" maxlength="12" placeholder="親子の なまえ" autocomplete="off">
+      </div>
+      <button class="btn" id="submitBtn">🏆 世界の板に 縁を刻む</button>
+      <div class="row">
+        <button class="btn ghost" id="againBtn">もう一度</button>
+        <button class="btn ghost" id="overRankBtn">ランキングを見る</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 国旗ピッカー -->
+<div id="flagPick" class="hidden">
+  <div class="flagCard">
+    <div class="rankHead">国旗をえらぶ</div>
+    <div class="flagGrid" id="flagGridMajor"></div>
+    <button class="btn ghost" id="flagMore" style="margin-top:10px">もっと見る…</button>
+    <div class="flagGrid hidden" id="flagGridAll"></div>
+    <button class="btn ghost" id="flagClose" style="margin-top:10px">とじる</button>
+  </div>
+</div>
+
+<!-- ランキング -->
+<div id="rankPanel" class="ov hidden">
+  <div class="rankCard">
+    <div class="rankHead">🏆 世界の親子ランキング</div>
+    <div class="rankNote">世界中の親子が、60秒でこぎあげた縁の高さ。同じ儀式を終えて、いま顔を上げた人たち。</div>
+    <ol class="rankList" id="rankList"><li class="rankempty">読み込み中…</li></ol>
+    <button class="btn ghost" id="rankClose" style="margin-top:12px;width:100%">とじる</button>
+  </div>
+</div>
+
+<div id="celebrate" class="hidden"><div class="celCard">
+  <div class="celSub" id="celSub">けっか はっぴょう</div>
+  <div class="celNum" id="celNum">?</div>
+  <div class="celPos" id="celPos"></div>
+  <div class="celMsg" id="celMsg"></div>
+</div></div>
+
+<div class="credit">畜物語 ─ 畜学</div>
+
+<script>
+/* =========================================================================
+   コッコブランコ ─ COCCO BURANKO
+   畜学：交互の呼吸。親子ふたり・60秒・敵はブラックこっこ（逆縁）だけ。
+   ========================================================================= */
+(function(){
+'use strict';
+
+var cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+var W=0,H=0,DPR=1;
+function resize(){
+  DPR=Math.min(window.devicePixelRatio||1, 2.5);
+  W=window.innerWidth; H=window.innerHeight;
+  cv.width=Math.floor(W*DPR); cv.height=Math.floor(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+window.addEventListener('resize', resize); resize();
+
+/* ---- こっこ画像（白＝本物 / 黒＝ブラックこっこ） ---- */
+var coccoImg=new Image(), coccoReady=false;
+var blackCanvas=document.createElement('canvas');
+coccoImg.onload=function(){
+  coccoReady=true;
+  var s=256; blackCanvas.width=s; blackCanvas.height=s;
+  var bc=blackCanvas.getContext('2d');
+  bc.drawImage(coccoImg,0,0,s,s);
+  bc.globalCompositeOperation='source-atop';
+  bc.fillStyle='#160e22'; bc.fillRect(0,0,s,s);
+};
+coccoImg.src='/chikumo.svg';
+
+/* =========================== Web Audio =========================== */
+var AC=null, master=null;
+function audioInit(){
+  if(AC) return;
+  try{
+    AC=new (window.AudioContext||window.webkitAudioContext)();
+    master=AC.createGain(); master.gain.value=0.9; master.connect(AC.destination);
+  }catch(e){ AC=null; }
+}
+function now(){ return AC?AC.currentTime:0; }
+function tone(freq,t,dur,type,vol,toFreq){
+  if(!AC) return;
+  var o=AC.createOscillator(), g=AC.createGain();
+  o.type=type||'sine'; o.frequency.setValueAtTime(freq,t);
+  if(toFreq) o.frequency.exponentialRampToValueAtTime(toFreq,t+dur);
+  g.gain.setValueAtTime(0,t);
+  g.gain.linearRampToValueAtTime(vol==null?0.2:vol,t+0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t+dur+0.05);
+}
+function noise(t,dur,vol,hp){
+  if(!AC) return;
+  var n=Math.floor(AC.sampleRate*dur), buf=AC.createBuffer(1,n,AC.sampleRate), d=buf.getChannelData(0);
+  for(var i=0;i<n;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
+  var s=AC.createBufferSource(); s.buffer=buf;
+  var f=AC.createBiquadFilter(); f.type='highpass'; f.frequency.value=hp||800;
+  var g=AC.createGain(); g.gain.value=vol==null?0.2:vol;
+  s.connect(f); f.connect(g); g.connect(master); s.start(t);
+}
+// ブランコが下を通る「ヒュッ」
+function sfxWhoosh(speed){
+  if(!AC) return; var t=now();
+  noise(t,0.18,0.04+0.05*speed,500);
+  tone(220+200*speed,t,0.12,'sine',0.05,120);
+}
+// 良い押し（温かい和音・コンボでキー上昇）
+var SCALE=[0,2,4,7,9,12,14,16,19];
+function sfxPump(combo){
+  if(!AC) return; var t=now();
+  var step=SCALE[Math.min(combo,SCALE.length-1)];
+  var base=349.23*Math.pow(2,step/12); // F4起点
+  tone(base,t,0.45,'triangle',0.20);
+  tone(base*1.25,t+0.01,0.45,'sine',0.12);
+  tone(base*1.5,t+0.02,0.5,'sine',0.09);
+  noise(t,0.06,0.04,3000);
+}
+// ズレ（逆縁が差し込む）
+function sfxMiss(){
+  if(!AC) return; var t=now();
+  tone(98,t,0.4,'sawtooth',0.13,70);
+  tone(104,t,0.4,'sawtooth',0.09,74);
+  noise(t,0.16,0.09,400);
+}
+// ブラックこっこ接近
+function sfxDark(){
+  if(!AC) return; var t=now();
+  tone(64,t,0.7,'sine',0.16,38);
+}
+// 残り10秒カウント
+function sfxTick(){
+  if(!AC) return; var t=now();
+  tone(880,t,0.06,'square',0.08);
+}
+// 終わりの鐘
+function sfxBell(){
+  if(!AC) return; var t=now();
+  tone(523.25,t,2.2,'sine',0.18);
+  tone(659.25,t+0.02,2.0,'sine',0.10);
+  tone(784,t+0.04,1.8,'sine',0.07);
+}
+// 環境パッド（縁の高さで明るさが変わる温かい持続音）
+var padOsc=null, padGain=null, padFilter=null;
+function padStart(){
+  if(!AC||padOsc) return;
+  padGain=AC.createGain(); padGain.gain.value=0.0;
+  padFilter=AC.createBiquadFilter(); padFilter.type='lowpass'; padFilter.frequency.value=600;
+  padOsc=AC.createOscillator(); padOsc.type='sawtooth'; padOsc.frequency.value=130.81;
+  var o2=AC.createOscillator(); o2.type='sawtooth'; o2.frequency.value=196;
+  padOsc.connect(padFilter); o2.connect(padFilter); padFilter.connect(padGain); padGain.connect(master);
+  padOsc.start(); o2.start(); padOsc._o2=o2;
+}
+function padSet(bond){
+  if(!padGain) return;
+  padGain.gain.setTargetAtTime(0.04+0.10*bond, now(), 0.2);
+  padFilter.frequency.setTargetAtTime(400+1500*bond, now(), 0.3);
+}
+function padStop(){
+  if(!padOsc) return;
+  try{ padOsc.stop(); padOsc._o2.stop(); }catch(e){}
+  padOsc=null; padGain=null;
+}
+/* 別ページ（インデックス等）へ移動・非表示にしたらBGMを必ず止める。
+   Web Audio（環境パッド）が残って、トップへ戻っても鳴り続けるバグ対策。 */
+function silenceAudio(){ try{ padStop(); }catch(e){} if(AC){ try{ AC.suspend(); }catch(e){} } }
+window.addEventListener('pagehide', silenceAudio);
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden){ if(AC){ try{ AC.suspend(); }catch(e){} } }
+  else if(AC && state==='play'){ try{ AC.resume(); }catch(e){} }
+});
+
+/* =========================== ゲーム状態 =========================== */
+var GAME_TIME=60.0;
+var state='title'; // title | play | over
+var solo=false;
+var startT=0, timeLeft=GAME_TIME;
+var score=0, combo=0, maxCombo=0, pumpCount=0;
+
+// ブランコの振り子（振幅＋位相モデル）
+var AMP_MIN=0.07, AMP_MAX=1.40;      // ラジアン（約4°〜80°）
+var amp=AMP_MIN, phase=0, OMEGA=3.5; // θ=amp*cos(phase)
+var PUMP=0.20, PENALTY=0.16, DECAY=0.14, WIN=0.75; // 押しの効き/ペナルティ/自然減衰/判定窓
+var theta=AMP_MIN, prevSin=0;
+
+var particles=[], petals=[], floaters=[], cracks=[];
+var black={y:0,anger:0,lungeT:-9}; // ブラックこっこ（逆縁）：下からせり上がる
+var shake=0, redPulse=0, pumpFlash=0, lastTickSec=99, dueSide='right', flashSide=0, flashSideWhich='';
+var best=loadBest();
+
+function pivot(){ return {x:W/2, y:H*0.18}; }
+function ropeLen(){ var pv=pivot(); return Math.min(H*0.50, H-pv.y-90); }
+function bond(){ return Math.max(0, Math.min(1,(amp-AMP_MIN)/(AMP_MAX-AMP_MIN))); }
+function seatPos(){ var pv=pivot(), L=ropeLen(); return {x:pv.x+Math.sin(theta)*L, y:pv.y+Math.cos(theta)*L}; }
+
+function startGame(isSolo){
+  audioInit();
+  if(AC && AC.state==='suspended') AC.resume();
+  solo=!!isSolo;
+  document.getElementById('title').classList.add('hidden');
+  document.getElementById('over').classList.add('hidden');
+  document.getElementById('over').classList.remove('show');
+  document.getElementById('reloadBtn').classList.add('hidden');
+  score=0; combo=0; maxCombo=0; pumpCount=0;
+  amp=0.32; phase=0; theta=amp; prevSin=0;
+  timeLeft=GAME_TIME; particles=[]; petals=[]; floaters=[]; cracks=[];
+  shake=0; redPulse=0; pumpFlash=0; lastTickSec=99; flashSide=0;
+  black.y=H+80; black.anger=0; black.lungeT=-9;
+  startT=performance.now()/1000;
+  padStart(); padSet(bond());
+  state='play';
+}
+
+function endGame(){
+  if(state!=='play') return;
+  state='over';
+  padStop();
+  if(AC){ setTimeout(function(){ sfxBell(); }, 1100); } // 静寂のあと鐘
+  var ov=document.getElementById('over');
+  ov.classList.remove('hidden');
+  document.getElementById('bondScore').textContent = score.toLocaleString();
+  document.getElementById('bondSub').textContent =
+    '最高リズム '+maxCombo+'連　／　息の合った押し '+pumpCount+'回'+(solo?'　（ひとり練習）':'');
+  pendingScore = solo? -1 : score;
+  pendingCombo = maxCombo;
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ ov.classList.add('show'); }); });
+  document.getElementById('submitBtn').style.display = solo? 'none':'';
+  if(!solo && score>best){ best=score; saveBest(best); }
+}
+
+/* =========================== 入力 =========================== */
+function sideOf(x){ return x < W/2 ? 'left' : 'right'; }
+function pump(side){
+  if(state!=='play') return;
+  // 位相 0(右頂点) / π(左頂点)。各プレイヤーは自分側の頂点で押す。
+  var pm=((phase%(Math.PI*2))+Math.PI*2)%(Math.PI*2);
+  var distRight=Math.min(pm, Math.PI*2-pm);  // 0 への距離
+  var distLeft=Math.abs(pm-Math.PI);         // π への距離
+  var useSide = solo ? ((distLeft<distRight)?'left':'right') : side;
+  var dist = useSide==='left' ? distLeft : distRight;
+  spawnRipple(useSide);
+  if(dist<=WIN){
+    // 良い押し！
+    var acc=1-dist/WIN;
+    combo++; if(combo>maxCombo) maxCombo=combo; pumpCount++;
+    amp=Math.min(AMP_MAX, amp + PUMP*(0.45+0.55*acc));
+    var gain=Math.round((80+combo*10)*(0.5+bond())*(0.6+0.4*acc));
+    score+=gain;
+    sfxPump(combo);
+    pumpFlash=1; shake=Math.min(9, shake+2);
+    black.anger=Math.max(0, black.anger-0.45);
+    spawnPetals(); spawnFloater('+'+gain);
+    if(combo>0 && combo%10===0) spawnFloater(combo+' RHYTHM!');
+  }else{
+    // ズレ＝逆縁が差し込む
+    combo=0;
+    amp=Math.max(AMP_MIN, amp - PENALTY);
+    black.anger=Math.min(1.4, black.anger+0.4);
+    black.lungeT=performance.now()/1000;
+    shake=Math.min(16, shake+8);
+    sfxMiss(); if(black.anger>0.9) sfxDark();
+    spawnCracks();
+  }
+  padSet(bond());
+}
+function pointerDown(x,y){ if(state==='play') pump(sideOf(x)); }
+
+cv.addEventListener('touchstart', function(e){
+  e.preventDefault();
+  for(var i=0;i<e.changedTouches.length;i++){ var t=e.changedTouches[i]; pointerDown(t.clientX,t.clientY); }
+},{passive:false});
+cv.addEventListener('mousedown', function(e){ pointerDown(e.clientX,e.clientY); });
+window.addEventListener('keydown', function(e){
+  if(e.repeat) return;
+  if(e.key==='f'||e.key==='F'){ pump('left'); }
+  if(e.key==='j'||e.key==='J'){ pump('right'); }
+  if(e.key===' '){ e.preventDefault(); var pm=((phase%(Math.PI*2))+Math.PI*2)%(Math.PI*2); pump(Math.abs(pm-Math.PI)<Math.min(pm,Math.PI*2-pm)?'left':'right'); }
+});
+
+/* =========================== パーティクル =========================== */
+function spawnPetals(){
+  var c=seatPos();
+  var emo=['🌸','💛','✨','🐣','💗'];
+  for(var i=0;i<12;i++){
+    var a=Math.random()*Math.PI*2, sp=2+Math.random()*4;
+    petals.push({x:c.x,y:c.y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,life:1,
+      e:emo[Math.floor(Math.random()*emo.length)], sz:16+Math.random()*16});
+  }
+}
+function spawnRipple(side){
+  var x = side==='left'? W*0.16 : W*0.84, y=H*0.8;
+  particles.push({x:x,y:y,r:8,vr:2.4,life:1,col:side==='left'?'#9fd0ff':'#ffd0a0'});
+}
+function spawnCracks(){
+  var c=seatPos();
+  for(var i=0;i<6;i++){ var a=Math.random()*Math.PI*2;
+    cracks.push({x:c.x,y:c.y,a:a,len:0,max:36+Math.random()*54,life:1}); }
+}
+function spawnFloater(txt){ var c=seatPos(); floaters.push({x:c.x,y:c.y-58,txt:txt,life:1}); }
+
+/* =========================== 更新 =========================== */
+var lastFrame=performance.now();
+function update(){
+  var nowMs=performance.now(), dt=Math.min(0.05,(nowMs-lastFrame)/1000); lastFrame=nowMs;
+
+  if(state==='play'){
+    timeLeft=Math.max(0, GAME_TIME-(nowMs/1000-startT));
+    // 振り子前進＋自然減衰
+    phase+=OMEGA*dt;
+    amp=Math.max(AMP_MIN, amp-DECAY*dt);
+    theta=amp*Math.cos(phase);
+    // 下を通過（sinの符号反転）でヒュッ
+    var sn=Math.sin(phase);
+    if(prevSin<=0 && sn>0 || prevSin>=0 && sn<0){ if(amp>0.2) sfxWhoosh(bond()); }
+    prevSin=sn;
+    // 次に来る頂点側（合図用）
+    dueSide = (sn>0)? 'left' : 'right'; // sin>0→θ減少→左へ→次は左頂点
+    // 残り10秒：緊張
+    if(timeLeft<=10){
+      redPulse=Math.min(1, redPulse+dt*2);
+      var sec=Math.ceil(timeLeft);
+      if(sec!==lastTickSec && sec<=10 && sec>0){ lastTickSec=sec; sfxTick(); shake=Math.min(shake+2,12); }
+    } else redPulse=Math.max(0, redPulse-dt);
+    // 逆縁：縁が低い/怒りで下からせり上がる、押せば下がる
+    black.anger=Math.max(0, black.anger-dt*0.35);
+    var targetY=H+80 - (1-bond())*H*0.42 - black.anger*H*0.16;
+    black.y+=(targetY-black.y)*Math.min(1,dt*3);
+    if(pumpFlash>0) pumpFlash=Math.max(0,pumpFlash-dt*3);
+    if(shake>0) shake=Math.max(0,shake-dt*30);
+    if(timeLeft<=0) endGame();
+  } else if(state==='over'){
+    // 終わり＝商品：ブランコが静かに止まる
+    amp=Math.max(0, amp-dt*0.5*Math.max(amp,0.15));
+    phase+=OMEGA*dt; theta=amp*Math.cos(phase);
+    black.y+=((H+120)-black.y)*Math.min(1,dt*2); // 逆縁は去る
+    if(shake>0) shake=Math.max(0,shake-dt*30);
+  } else {
+    theta=0.34*Math.cos(nowMs/700); // タイトル中はゆれているだけ
+  }
+
+  for(var i=particles.length-1;i>=0;i--){ var p=particles[i]; p.r+=p.vr; p.life-=dt*1.6; if(p.life<=0) particles.splice(i,1); }
+  for(var i=petals.length-1;i>=0;i--){ var q=petals[i]; q.x+=q.vx; q.y+=q.vy; q.vy+=0.12; q.vx*=0.99; q.life-=dt*0.7; if(q.life<=0) petals.splice(i,1); }
+  for(var i=floaters.length-1;i>=0;i--){ var f=floaters[i]; f.y-=1.1; f.life-=dt*0.8; if(f.life<=0) floaters.splice(i,1); }
+  for(var i=cracks.length-1;i>=0;i--){ var cr=cracks[i]; cr.len=Math.min(cr.max,cr.len+6); cr.life-=dt*1.5; if(cr.life<=0) cracks.splice(i,1); }
+}
+
+/* =========================== 描画 =========================== */
+function draw(){
+  var sx=(Math.random()-0.5)*shake, sy=(Math.random()-0.5)*shake;
+  ctx.save(); ctx.translate(sx,sy);
+
+  // 空（縁が高いほど夕焼けが暖かく明るい）
+  var b=bond();
+  var g=ctx.createLinearGradient(0,0,0,H);
+  if(state==='over'){ g.addColorStop(0,'#0c0a18'); g.addColorStop(1,'#05040a'); }
+  else { g.addColorStop(0, mix('#241a40','#5a3a72',b)); g.addColorStop(0.55, mix('#4a3360','#b06a5a',b)); g.addColorStop(1, mix('#6a4a55','#f0b074',b)); }
+  ctx.fillStyle=g; ctx.fillRect(-20,-20,W+40,H+40);
+
+  // お日さま（縁が高いほど昇る）
+  if(state!=='over'){
+    var sunY=H*0.92-H*0.5*b;
+    var sg=ctx.createRadialGradient(W*0.5,sunY,4,W*0.5,sunY,120+80*b);
+    sg.addColorStop(0,'rgba(255,240,200,'+(0.5+0.4*b)+')'); sg.addColorStop(1,'rgba(255,200,120,0)');
+    ctx.fillStyle=sg; ctx.fillRect(0,0,W,H);
+  }
+
+  // 残り10秒の赤
+  if(redPulse>0){
+    var rg=ctx.createRadialGradient(W/2,H/2,H*0.2,W/2,H/2,H*0.75);
+    rg.addColorStop(0,'rgba(0,0,0,0)'); rg.addColorStop(1,'rgba(180,20,30,'+(0.42*redPulse)+')');
+    ctx.fillStyle=rg; ctx.fillRect(-20,-20,W+40,H+40);
+  }
+
+  // 島のシルエット
+  ctx.fillStyle='rgba(18,10,28,0.6)';
+  ctx.beginPath(); ctx.moveTo(0,H);
+  ctx.quadraticCurveTo(W*0.25,H*0.88,W*0.5,H*0.91);
+  ctx.quadraticCurveTo(W*0.75,H*0.95,W,H*0.87); ctx.lineTo(W,H); ctx.closePath(); ctx.fill();
+
+  // 逆縁（下からのブラックこっこ）
+  drawBlack();
+
+  // ブランコ
+  var pv=pivot(), L=ropeLen(), seat=seatPos();
+  // 支柱（木の枝）
+  ctx.strokeStyle='rgba(40,26,30,0.9)'; ctx.lineWidth=10; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(pv.x-W*0.22,pv.y); ctx.lineTo(pv.x+W*0.22,pv.y); ctx.stroke();
+  // ロープ（縁＝太さ・輝き）
+  var sw=22;
+  var perpx=Math.cos(theta), perpy=-Math.sin(theta);
+  var l1={x:seat.x-perpx*sw,y:seat.y-perpy*sw}, l2={x:seat.x+perpx*sw,y:seat.y+perpy*sw};
+  ctx.save();
+  ctx.strokeStyle='rgba(255,'+Math.round(220-60*(1-b))+','+Math.round(150+40*b)+','+(0.65+0.35*b)+')';
+  ctx.shadowColor='rgba(255,220,150,'+(0.5*b)+')'; ctx.shadowBlur=18*b;
+  ctx.lineWidth=2+b*3;
+  ctx.beginPath(); ctx.moveTo(pv.x-sw*0.5,pv.y); ctx.lineTo(l1.x,l1.y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(pv.x+sw*0.5,pv.y); ctx.lineTo(l2.x,l2.y); ctx.stroke();
+  ctx.restore();
+  // 座板
+  ctx.save(); ctx.translate(seat.x,seat.y); ctx.rotate(theta);
+  ctx.fillStyle='#7a4a28'; ctx.fillRect(-30,-6,60,12);
+  ctx.restore();
+  // ひび
+  ctx.strokeStyle='rgba(255,80,90,0.7)'; ctx.lineWidth=2;
+  for(var i=0;i<cracks.length;i++){ var cr=cracks[i]; ctx.globalAlpha=cr.life;
+    ctx.beginPath(); ctx.moveTo(cr.x,cr.y); ctx.lineTo(cr.x+Math.cos(cr.a)*cr.len,cr.y+Math.sin(cr.a)*cr.len); ctx.stroke(); }
+  ctx.globalAlpha=1;
+  // こっこ（座板の上、ブランコと一緒に傾く）
+  drawCocco(seat.x, seat.y-30, 78+pumpFlash*14, theta, b);
+
+  // 親子アンカー（合図：次に来る頂点側が光る）
+  if(state==='play'){
+    drawAnchor(W*0.16,H*0.8,'#9fd0ff', dueSide==='left', '親');
+    drawAnchor(W*0.84,H*0.8,'#ffd0a0', dueSide==='right', '子');
+  }
+
+  // パーティクル
+  for(var i=0;i<particles.length;i++){ var p=particles[i]; ctx.globalAlpha=Math.max(0,p.life);
+    ctx.strokeStyle=p.col; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,7); ctx.stroke(); }
+  ctx.globalAlpha=1;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  for(var i=0;i<petals.length;i++){ var q=petals[i]; ctx.globalAlpha=Math.max(0,q.life);
+    ctx.font=q.sz+'px serif'; ctx.fillText(q.e,q.x,q.y); }
+  ctx.globalAlpha=1;
+  for(var i=0;i<floaters.length;i++){ var f=floaters[i]; ctx.globalAlpha=Math.max(0,f.life);
+    ctx.font='800 26px sans-serif'; ctx.fillStyle='#fff'; ctx.strokeStyle='rgba(120,60,20,.6)'; ctx.lineWidth=4;
+    ctx.strokeText(f.txt,f.x,f.y); ctx.fillText(f.txt,f.x,f.y); }
+  ctx.globalAlpha=1;
+
+  ctx.restore();
+  if(state==='play') drawHUD();
+}
+
+function drawBlack(){
+  if(black.y>H+60) return;
+  var a=black.anger;
+  ctx.save();
+  // 逆縁のもや
+  ctx.globalAlpha=0.3+0.3*a;
+  var rg=ctx.createRadialGradient(W/2,black.y,0,W/2,black.y,160);
+  rg.addColorStop(0,'rgba(40,10,60,0.7)'); rg.addColorStop(1,'rgba(40,10,60,0)');
+  ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(W/2,black.y,160,0,7); ctx.fill();
+  ctx.globalAlpha=0.62+0.32*a;
+  drawCocco(W/2, black.y, 96+30*a, Math.sin(performance.now()/300)*0.2, 0, true);
+  ctx.restore();
+}
+function drawCocco(x,y,size,rot,b,isBlack){
+  if(!coccoReady) return;
+  var img = isBlack? blackCanvas : coccoImg;
+  ctx.save(); ctx.translate(x,y); if(rot) ctx.rotate(rot);
+  if(!isBlack){ ctx.shadowColor='rgba(255,210,150,'+(0.4+0.4*(b||0))+')'; ctx.shadowBlur=14+18*(b||0); }
+  ctx.drawImage(img, -size/2, -size/2, size, size);
+  ctx.restore();
+}
+function drawAnchor(x,y,col,active,label){
+  ctx.save();
+  ctx.globalAlpha=active?1:0.4;
+  ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=active?20:5;
+  ctx.beginPath(); ctx.arc(x,y,active?17:11,0,7); ctx.fill();
+  ctx.shadowBlur=0; ctx.globalAlpha=active?0.95:0.5;
+  ctx.fillStyle='#fff'; ctx.font='800 14px sans-serif'; ctx.textAlign='center';
+  ctx.fillText(label,x,y+32);
+  if(active){ ctx.font='800 12px sans-serif'; ctx.fillStyle='#fff'; ctx.fillText('いま！',x,y-26); }
+  ctx.restore();
+}
+function drawHUD(){
+  var bw=W-40, x=20, y=18;
+  ctx.fillStyle='rgba(255,255,255,0.15)'; roundRect(x,y,bw,10,5); ctx.fill();
+  var p=timeLeft/GAME_TIME;
+  ctx.fillStyle= timeLeft<=10? '#ff5a6a' : '#ffd98a';
+  roundRect(x,y,bw*p,10,5); ctx.fill();
+  ctx.textAlign='left'; ctx.textBaseline='top';
+  ctx.fillStyle='#fff'; ctx.font='900 30px sans-serif';
+  ctx.fillText(score.toLocaleString(), x, y+18);
+  ctx.font='700 12px sans-serif'; ctx.fillStyle='#ffd98a';
+  ctx.fillText('縁 BOND', x, y+52);
+  if(combo>1){ ctx.textAlign='right'; ctx.font='900 28px sans-serif'; ctx.fillStyle='#fff'; ctx.fillText(combo+' RHYTHM', W-20, y+18); }
+  ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+}
+function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function mix(c1,c2,t){
+  var a=parseInt(c1.slice(1),16), b2=parseInt(c2.slice(1),16);
+  var r=Math.round(((a>>16)&255)*(1-t)+((b2>>16)&255)*t);
+  var g=Math.round(((a>>8)&255)*(1-t)+((b2>>8)&255)*t);
+  var bl=Math.round((a&255)*(1-t)+(b2&255)*t);
+  return 'rgb('+r+','+g+','+bl+')';
+}
+
+function loop(){ try{ update(); draw(); }catch(e){ if(!loop._w){ loop._w=1; try{console.error('buranko loop error:',e);}catch(_){} } } requestAnimationFrame(loop); }
+requestAnimationFrame(loop);
+
+/* =========================== ローカルベスト =========================== */
+function loadBest(){ try{ return +localStorage.getItem('coccoBurankoBest')||0; }catch(e){ return 0; } }
+function saveBest(v){ try{ localStorage.setItem('coccoBurankoBest',v); }catch(e){} }
+function refreshBestLabel(){
+  var el=document.getElementById('bestLabel');
+  el.textContent = best>0? '🏅 ふたりの自己ベスト：縁 '+best.toLocaleString() : '';
+}
+refreshBestLabel();
+
+/* =========================== UI 配線 =========================== */
+document.getElementById('startBtn').addEventListener('click', function(){ startGame(false); });
+document.getElementById('soloBtn').addEventListener('click', function(){ startGame(true); });
+document.getElementById('reloadBtn').addEventListener('click', function(){ location.reload(true); });
+document.getElementById('againBtn').addEventListener('click', function(){
+  document.getElementById('over').classList.add('hidden');
+  document.getElementById('over').classList.remove('show');
+  document.getElementById('title').classList.remove('hidden');
+  document.getElementById('reloadBtn').classList.remove('hidden');
+  refreshBestLabel();
+  state='title';
+});
+
+/* =========================== 世界ランキング（Firebase rankings/buranko） =========================== */
+var pendingScore=-1, pendingCombo=0;
+(function(){
+  if(typeof firebase==='undefined') return;
+  try{ if(!firebase.apps||!firebase.apps.length) firebase.initializeApp({
+    apiKey:"AIzaSyBw5-6oAuOmgYC_7G27Z0Qavwn78ZrkhdQ",
+    authDomain:"chikumonogatarikiroku.firebaseapp.com",
+    databaseURL:"https://chikumonogatarikiroku-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:"chikumonogatarikiroku",
+    storageBucket:"chikumonogatarikiroku.firebasestorage.app",
+    messagingSenderId:"725202431277",
+    appId:"1:725202431277:web:c49c911cfcae26d63ab7a4"
+  }); }catch(e){}
+  var db; try{ db=firebase.database(); }catch(e){ return; }
+  var ref=db.ref('rankings/buranko');
+  var SCORE_CAP=99999999;
+  var UID_KEY='coccoBurankoUid', NAME_KEY='coccoBurankoName', FLAG_KEY='coccoBurankoFlag';
+  var selFlag='🇯🇵';
+  try{ selFlag=localStorage.getItem(FLAG_KEY)||'🇯🇵'; }catch(e){}
+  function flagOf(cc){ return cc.replace(/./g,function(c){ return String.fromCodePoint(0x1F1E6+c.charCodeAt(0)-65); }); }
+  var MAJOR=('JP US GB CA AU KR CN TW HK TH VN PH ID MY SG IN FR DE IT ES PT NL SE BR MX AR RU UA TR EG ZA SA NZ').split(' ').map(flagOf);
+  var ALL_CC=('AD AE AF AG AL AM AO AR AT AU AZ BA BB BD BE BF BG BH BI BJ BN BO BR BS BT BW BY BZ CA CD CF CG CH CI CL CM CN CO CR CU CV CY CZ DE DJ DK DM DO DZ EC EE EG ER ES ET FI FJ FM FR GA GB GD GE GH GM GN GQ GR GT GW GY HN HR HT HU ID IE IL IN IQ IR IS IT JM JO JP KE KG KH KI KM KN KP KR KW KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MG MH MK ML MM MN MR MT MU MV MW MX MY MZ NA NE NG NI NL NO NP NR NZ OM PA PE PG PH PK PL PT PW PY QA RO RS RU RW SA SB SC SD SE SG SI SK SL SM SN SO SR SS ST SV SY SZ TD TG TH TJ TL TM TN TO TR TT TV TW TZ UA UG US UY UZ VA VC VE VN VU WS YE ZA ZM ZW').split(' ');
+  var ALL=['🏳️','🏴','🏁','🇺🇳'].concat(ALL_CC.map(flagOf));
+  var myUid=null;
+  try{ if(firebase.auth){ var a=firebase.auth(); a.onAuthStateChanged(function(u){ if(u) myUid=u.uid; }); if(!a.currentUser) a.signInAnonymously().catch(function(){}); } }catch(e){}
+  function uid(){ if(myUid) return myUid; var u; try{ u=localStorage.getItem(UID_KEY); }catch(e){}
+    if(!u){ u='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); try{ localStorage.setItem(UID_KEY,u); }catch(e){} } return u; }
+  function esc(s){ return String(s).replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; }); }
+  function fmtName(s){ s=(s||'').replace(/\s+/g,' ').trim().slice(0,12); return s||'ななしの親子'; }
+
+  var $=function(id){ return document.getElementById(id); };
+  $('flagBtn').textContent=selFlag;
+
+  function renderList(rows){
+    var el=$('rankList'); if(!el) return;
+    if(!rows||!rows.length){ el.innerHTML='<li class="rankempty">まだ記録がありません。最初の親子になろう。</li>'; return; }
+    el.innerHTML=rows.slice(0,100).map(function(r,i){
+      var medal=['🥇','🥈','🥉'][i]||((i+1)+'.');
+      var fl=r.flag?esc(r.flag)+' ':'';
+      var cb=(r.bond!=null)?' <span style="opacity:.55;font-size:11px">💞'+r.bond+'連</span>':'';
+      return '<li><span class="rk">'+medal+'</span><span class="rn">'+fl+esc(r.name)+cb+'</span><span class="rs">'+Number(r.score).toLocaleString()+'</span></li>';
+    }).join('');
+  }
+  function loadTop(after){
+    ref.orderByChild('score').limitToLast(2000).once('value').then(function(snap){
+      var rows=[]; snap.forEach(function(c){ var v=c.val()||{}; rows.push({uid:c.key,name:v.name,flag:v.flag,score:+v.score||0,bond:(v.bond!=null?+v.bond:null)}); });
+      rows.sort(function(a,b){ return b.score-a.score; });
+      renderList(rows); if(after) after(rows);
+    }).catch(function(){ var el=$('rankList'); if(el) el.innerHTML='<li class="rankempty">読み込めませんでした</li>'; });
+  }
+  function openRank(){ $('rankPanel').classList.remove('hidden'); $('rankList').innerHTML='<li class="rankempty">読み込み中…</li>'; loadTop(); }
+  $('rankBtn').addEventListener('click', openRank);
+  $('overRankBtn').addEventListener('click', openRank);
+  $('rankClose').addEventListener('click', function(){ $('rankPanel').classList.add('hidden'); });
+
+  function buildGrid(elId, flags){ var el=$(elId); if(!el||el._built) return; el._built=true;
+    el.innerHTML=flags.map(function(f){ return '<button type="button" class="flagOpt'+(f===selFlag?' sel':'')+'" data-f="'+f+'">'+f+'</button>'; }).join('');
+    el.addEventListener('click', function(e){ var t=e.target&&e.target.closest?e.target.closest('.flagOpt'):null; if(!t)return;
+      selFlag=t.getAttribute('data-f'); try{ localStorage.setItem(FLAG_KEY,selFlag); }catch(e){}
+      $('flagBtn').textContent=selFlag; $('flagPick').classList.add('hidden'); }); }
+  $('flagBtn').addEventListener('click', function(){ buildGrid('flagGridMajor',MAJOR); $('flagPick').classList.remove('hidden'); });
+  $('flagMore').addEventListener('click', function(){ buildGrid('flagGridAll',ALL); $('flagGridAll').classList.remove('hidden'); $('flagMore').classList.add('hidden'); });
+  $('flagClose').addEventListener('click', function(){ $('flagPick').classList.add('hidden'); });
+  $('flagPick').addEventListener('click', function(e){ if(e.target===$('flagPick')) $('flagPick').classList.add('hidden'); });
+
+  try{ var sv=localStorage.getItem(NAME_KEY); if(sv) $('nameInput').value=sv; }catch(e){}
+
+  function celebrate(rank,total){
+    var ov=$('celebrate'); ov.classList.remove('hidden');
+    var champ = rank===1;
+    $('celSub').textContent = champ?'WORLD CHAMPION':'けっか はっぴょう';
+    var num=$('celNum'); $('celPos').textContent=''; $('celMsg').textContent='';
+    var roll=setInterval(function(){ num.textContent=Math.floor(Math.random()*Math.max(total,9))+1; sfxTick(); }, 70);
+    setTimeout(function(){
+      clearInterval(roll); num.textContent=rank;
+      $('celPos').textContent=champ?'👑 世界一の親子':rank+' 位';
+      $('celMsg').textContent= rank<=3? 'すごい縁だ。となりの人を見て。' : (rank<=10?'世界トップ10の縁。':'世界に縁が刻まれた。');
+      sfxBell();
+      for(var i=0;i<40;i++) petals.push({x:Math.random()*W,y:-20,vx:(Math.random()-0.5)*3,vy:1+Math.random()*3,life:1.5,e:['🌸','💛','✨','🎉','💞'][Math.floor(Math.random()*5)],sz:18+Math.random()*14});
+    }, 1700);
+    setTimeout(function(){ ov.classList.add('hidden'); }, 5200);
+  }
+
+  function submit(){
+    if(pendingScore<0) return;
+    var name=fmtName($('nameInput').value);
+    try{ localStorage.setItem(NAME_KEY,name); }catch(e){}
+    var sc=Math.max(0,Math.min(SCORE_CAP,Math.round(pendingScore)));
+    var data={ name:name, flag:selFlag, score:sc, bond:pendingCombo, ts:Date.now() };
+    var myref=ref.child(uid());
+    myref.once('value').then(function(snap){
+      var prev=snap.val();
+      if(prev && +prev.score>=sc){ openRank(); return; }
+      myref.set(data).then(function(){
+        loadTop(function(rows){
+          var rank=1; for(var i=0;i<rows.length;i++){ if(rows[i].uid===uid()){ rank=i+1; break; } }
+          celebrate(rank, rows.length);
+        });
+      }).catch(function(){ openRank(); });
+    }).catch(function(){ openRank(); });
+  }
+  $('submitBtn').addEventListener('click', submit);
+})();
+
+window.__buranko={ get state(){return state;}, pump:pump, startGame:startGame, endGame:endGame,
+  peek:function(){return {amp:amp,phase:phase,theta:theta,score:score,combo:combo,bond:bond(),timeLeft:timeLeft};} };
+
+})();
+</script>
+</body>
+</html>
