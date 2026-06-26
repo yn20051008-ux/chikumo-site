@@ -2,6 +2,24 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<script>
+/* こっこ共通: ページを離れたら必ず音を止める（bfcache対策／全ゲーム共通の番人） */
+(function(){
+  var ctxs=[];
+  var OrigAC=window.AudioContext||window.webkitAudioContext;
+  if(OrigAC&&typeof Proxy!=='undefined'&&typeof Reflect!=='undefined'){
+    var P=new Proxy(OrigAC,{construct:function(T,a,nt){
+      var c=Reflect.construct(T,a,nt===P?T:nt);
+      try{ctxs.push(c);}catch(e){}
+      return c;
+    }});
+    try{window.AudioContext=P;}catch(e){}
+    try{if(window.webkitAudioContext)window.webkitAudioContext=P;}catch(e){}
+  }
+  function kill(){for(var i=0;i<ctxs.length;i++){try{ctxs[i].suspend();}catch(e){}}}
+  window.addEventListener('pagehide',kill);
+})();
+</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>こっこパルス | 畜物語</title>
 <meta name="description" content="ビートに合わせてタップ！Z軸の奥から迫るブラックこっこちゃんを撃ち落とす3Dリズムシューティング。90秒サバイブでステージクリア、絵文字アイテムとフィーバーで超ド派手。通勤・休憩のスキマ時間にどハマりの無料ブラウザゲーム。">

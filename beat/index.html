@@ -2,6 +2,24 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<script>
+/* こっこ共通: ページを離れたら必ず音を止める（bfcache対策／全ゲーム共通の番人） */
+(function(){
+  var ctxs=[];
+  var OrigAC=window.AudioContext||window.webkitAudioContext;
+  if(OrigAC&&typeof Proxy!=='undefined'&&typeof Reflect!=='undefined'){
+    var P=new Proxy(OrigAC,{construct:function(T,a,nt){
+      var c=Reflect.construct(T,a,nt===P?T:nt);
+      try{ctxs.push(c);}catch(e){}
+      return c;
+    }});
+    try{window.AudioContext=P;}catch(e){}
+    try{if(window.webkitAudioContext)window.webkitAudioContext=P;}catch(e){}
+  }
+  function kill(){for(var i=0;i<ctxs.length;i++){try{ctxs[i].suspend();}catch(e){}}}
+  window.addEventListener('pagehide',kill);
+})();
+</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>こっこビート | 畜物語</title>
 <meta name="description" content="BGMに合わせて左右をタップする中毒系リズムゲーム！降ってくるこっこちゃんをビートに乗せてキャッチ、絵文字アイテムでボーナス、ブラックこっこちゃんは押しちゃダメ。壮大なエフェクトと脳内ループBGMの無料ブラウザ音ゲー。">
