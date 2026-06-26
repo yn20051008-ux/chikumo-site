@@ -1,6 +1,6 @@
 # ランキング（結果発表）DB セットアップ & セキュリティ手順
 
-対象ゲーム：コッコリンク（/link/）・コッコ救出（/rescue/）・こっこの森（/mori/ 総資産ランキング）・コッコスプラット3D（/splat3d/）・こっこダービー（/derby/ 通算勝ち点ランキング）・コッコグレイズ（/graze/ 弾幕回避スコアランキング）・コッコ・インベーダー（/invaders/ 迎撃スコアランキング）・コッコラッシュ（/rush/ 通勤ランスコアランキング）
+対象ゲーム：コッコリンク（/link/）・コッコ救出（/rescue/）・こっこの森（/mori/ 総資産ランキング）・コッコスプラット3D（/splat3d/）・こっこダービー（/derby/ 通算勝ち点ランキング）・コッコグレイズ（/graze/ 弾幕回避スコアランキング）・コッコ・インベーダー（/invaders/ 迎撃スコアランキング）・コッコラッシュ（/rush/ 通勤ランスコアランキング）・コッコ縁波（/ennami/ 家の高さスコアランキング）
 保存先：既存 Firebase プロジェクト `chikumonogatarikiroku` の Realtime Database
 ノード：リンク=`rankings/link` ／ 救出=`rankings/rescue` ／ こっこの森=`rankings/mori` ／ スプラット3D=`rankings/splat3d` ／ ダービー=`rankings/derby` ／ グレイズ=`rankings/graze` ／ インベーダー=`rankings/invaders` ／ ラッシュ=`rankings/rush`（**新規DBは不要**）
 
@@ -147,6 +147,18 @@
           "ts":    { ".validate": "newData.isNumber()" },
           "$other": { ".validate": false }
         }
+      },
+      "ennami": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && (!data.exists() || newData.child('score').val() >= data.child('score').val())",
+          ".validate": "newData.hasChildren(['name','score'])",
+          "name":  { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "flag":  { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999999" },
+          "home":  { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99999" },
+          "ts":    { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        }
       }
     },
     "letters": {
@@ -230,6 +242,12 @@
 - 登録は **TIME UP（リザルト）画面**から、名前＋国旗を入れて「🏆 登録」。閲覧は **タイトルの「🏆 世界ランキング」ボタン** からいつでも可能。
 - 登録すると「◯位にランクイン！」の結果発表演出（ドラムロール→順位ドーン＋紙吹雪・花火、1位は👑WORLD CHAMPION）が流れる。
 - ベストスコアは **ブラウザ保存（localStorage）**、世界ランキングだけ **サーバー保存（Firebase）**。ノードは `rankings/match`（koro/poko 同様、匿名認証OFFの“オープン”状態でも登録は動く）。
+
+## コッコ縁波（/ennami/）について
+- **スコア 世界ランキング**：1プレイ（60秒）で建てた「家」の高さときずな連数から算出したスコアの自己ベストを登録（1端末1枠・最高スコアのみ保持）。`score`=スコア、`home`=建てた家の段数。
+- 登録は **リザルト画面**から、名前＋国旗を入れて「🏆 世界に登録」。閲覧は **タイトルの「🏆 世界ランキング」ボタン** からいつでも可能。
+- 登録すると「◯位にランクイン！」の結果発表演出が出る（1位は👑WORLD CHAMPION）。
+- ベストは **サーバー保存（Firebase）**。ノードは `rankings/ennami`（koro/poko/match 同様、匿名認証OFFの“オープン”状態でも登録は動く）。
 
 ## コッコラッシュ（/rush/）について
 - **スコア 世界ランキング**：1プレイのスコアの自己ベストを登録（1端末1枠・最高スコアのみ保持）。`score`=スコア、`eggs`=集めたたまご数。
