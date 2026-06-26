@@ -2,6 +2,25 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<script>
+/* こっこ共通: ページを離れたら必ず音を止める（bfcache対策／全ゲーム共通の番人） */
+(function(){
+  var ctxs=[];
+  var OrigAC=window.AudioContext||window.webkitAudioContext;
+  if(OrigAC&&typeof Proxy!=='undefined'&&typeof Reflect!=='undefined'){
+    var P=new Proxy(OrigAC,{construct:function(T,a,nt){
+      var c=Reflect.construct(T,a,nt===P?T:nt);
+      try{ctxs.push(c);}catch(e){}
+      return c;
+    }});
+    try{window.AudioContext=P;}catch(e){}
+    try{if(window.webkitAudioContext)window.webkitAudioContext=P;}catch(e){}
+  }
+  function kill(){for(var i=0;i<ctxs.length;i++){var c=ctxs[i];try{c.suspend();}catch(e){}try{c.close();}catch(e){}}ctxs=[];}
+  window.addEventListener('pagehide',kill);
+  window.addEventListener('pageshow',function(e){if(e.persisted)window.location.reload();});
+})();
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>コッコキズナ ─ COCCO KIZUNA｜親子ふたりで60秒・逆縁を縁で押し返す</title>
 <meta name="description" content="親子ふたり・スマホ1台・60秒。こっこちゃんを挟んで左右の指が縁の糸でつながる。鼓動に合わせて二人で息を合わせると縁が太り、ズレるとブラックこっこ（逆縁＝自分の影）が糸に差し込む。敵はそれだけ。0秒で無音、こっこが振り返る。世界の親子と縁の太さを競う。">

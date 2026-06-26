@@ -16,8 +16,9 @@
     try{window.AudioContext=P;}catch(e){}
     try{if(window.webkitAudioContext)window.webkitAudioContext=P;}catch(e){}
   }
-  function kill(){for(var i=0;i<ctxs.length;i++){try{ctxs[i].suspend();}catch(e){}}}
+  function kill(){for(var i=0;i<ctxs.length;i++){var c=ctxs[i];try{c.suspend();}catch(e){}try{c.close();}catch(e){}}ctxs=[];}
   window.addEventListener('pagehide',kill);
+  window.addEventListener('pageshow',function(e){if(e.persisted)window.location.reload();});
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
