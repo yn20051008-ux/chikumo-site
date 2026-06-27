@@ -175,6 +175,18 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://chikumo.jp/genso/</loc>
+    <lastmod>2026-06-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://chikumo.jp/seimei/</loc>
+    <lastmod>2026-06-27</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://chikumo.jp/story/01/</loc>
     <lastmod>2026-01-12</lastmod>
     <changefreq>monthly</changefreq>
