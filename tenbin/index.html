@@ -72,6 +72,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:#0c1020;
   border:1px solid rgba(255,255,255,.10);overflow:hidden;min-height:0;}
 .lane.p{background:linear-gradient(180deg,rgba(60,46,20,.55),rgba(30,24,12,.35));border-color:rgba(255,207,107,.28);}
 .lane.c{background:linear-gradient(180deg,rgba(16,46,60,.5),rgba(10,26,34,.32));border-color:rgba(127,230,255,.26);}
+/* 1台のスマホを挟んで向かい合って遊ぶ：向かい側（上）の子レーンは180°反転して子に正立で見せる */
+.lane.far{transform:rotate(180deg);}
 .lane-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .lane-who{font-size:13px;font-weight:900;letter-spacing:.04em;display:flex;align-items:center;gap:6px;}
 .lane.p .lane-who{color:#ffcf6b;} .lane.c .lane-who{color:#7fe6ff;}
@@ -206,6 +208,18 @@ h1.title{font-size:clamp(32px,11vw,60px);font-weight:900;letter-spacing:.05em;li
       <div class="hud-cell" id="hudTime"><div class="lab">のこり</div><div class="val" id="hudTime2">60</div></div>
     </div>
     <div class="lanes">
+      <!-- 向かい側（上）＝こ：180°反転で、テーブルの向かいに座る子に正立で見せる -->
+      <div class="lane c far" id="laneC">
+        <div class="lane-head">
+          <span class="lane-who"><img src="/chikumo.svg" alt="">こ</span>
+          <span class="streak" id="streakC"></span>
+          <span class="lane-topic"><b>いま</b><span id="topicC">—</span></span>
+        </div>
+        <div class="prompt" id="promptC">—</div>
+        <div class="choices" id="choicesC"></div>
+        <img class="shadow" id="shadowC" src="/chikumo.svg" alt="">
+      </div>
+      <!-- 手前（下）＝おや：正立（スマホを持つ親が読める向き） -->
       <div class="lane p" id="laneP">
         <div class="lane-head">
           <span class="lane-who"><img src="/chikumo.svg" alt="">おや</span>
@@ -215,16 +229,6 @@ h1.title{font-size:clamp(32px,11vw,60px);font-weight:900;letter-spacing:.05em;li
         <div class="prompt" id="promptP">—</div>
         <div class="choices" id="choicesP"></div>
         <img class="shadow" id="shadowP" src="/chikumo.svg" alt="">
-      </div>
-      <div class="lane c" id="laneC">
-        <div class="lane-head">
-          <span class="lane-who"><img src="/chikumo.svg" alt="">こ</span>
-          <span class="streak" id="streakC"></span>
-          <span class="lane-topic"><b>いま</b><span id="topicC">—</span></span>
-        </div>
-        <div class="prompt" id="promptC">—</div>
-        <div class="choices" id="choicesC"></div>
-        <img class="shadow" id="shadowC" src="/chikumo.svg" alt="">
       </div>
     </div>
   </div>
@@ -238,7 +242,7 @@ h1.title{font-size:clamp(32px,11vw,60px);font-weight:900;letter-spacing:.05em;li
       数学の <b>＝（イコール）</b> は、十四式の <b>衡（均衡）</b>。<br>
       左の式と<b>釣り合う数</b>のこっこをえらんで、天秤を水平に！<br>
       正解するたび <b>🗼数学の塔</b> を一段のぼる。<br>
-      <span class="s">上＝おや（数学）・下＝こ（算数）。二人で一台、ひとり二画面でもOK。<br>
+      <span class="s">スマホを机に置いて<b>向かい合って</b>あそぼう。<br>手前（下）＝おや、向かい側（上・逆向き）＝こ。<br>
       敵は <b>「できない私」の影（ブラックこっこ）</b> だけ。解けた光で押し返す。<br>
       60秒で焼き切り。どこまで登れたか、二人で。</span>
     </div>
