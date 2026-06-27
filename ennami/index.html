@@ -177,12 +177,13 @@ h1.title{font-size:clamp(34px,12vw,68px);font-weight:900;letter-spacing:.06em;li
     <h1 class="title">コッコ縁波</h1>
     <div class="title-sub">COCCO ENNAMI ─ 親子二本指の共鳴</div>
     <div class="how">
-      <span class="amber">おや</span>は<b>上</b>のなみ、<span class="cyan">こ</span>は<b>下</b>のなみ。<br>
-      <b>二本の指</b>で、上下の<b>縁帯（えんたい）</b>に<br>
-      <b>同時に</b>こっこをのせると、波が<b>共鳴(∿)</b>して<br>
-      <b>🏠 家</b>が積み上がるよ。<br>
-      <span class="dark">ブラックこっこ</span>＝自分のかげ。共鳴の光で焼ける。<br>
-      <b>60秒</b>で焼き切る。最後の静けさまで、二人で。
+      <b>二本の指</b>で遊ぶよ（親と子、ひとり二本指でもOK）<br>
+      ① <span class="amber">上のこっこ＝おや</span>を、画面の<b>上半分</b>を指でなぞって動かす<br>
+      ② <span class="cyan">下のこっこ＝こ</span>を、画面の<b>下半分</b>で動かす<br>
+      ③ 上下とも点線の<b>わく</b>に入れてキープ → <b>🏠家</b>が建つ！<br>
+      <span style="font-size:12px;color:#bdb6d8">わくはゆっくり上下に動く。二本指で追いかけよう。<br>
+      <span class="dark">ブラックこっこ</span>＝自分のかげ。そろってる間は光が焼く。<br>
+      <b>60秒</b>で焼き切り、最後は静けさ。二人で。</span>
     </div>
     <button class="btn big" id="btnStart">▶ はじめる</button>
     <button class="btn ghost" id="btnRankTitle">🏆 世界ランキング</button>
@@ -362,12 +363,13 @@ h1.title{font-size:clamp(34px,12vw,68px);font-weight:900;letter-spacing:.06em;li
   var blacks=[], parts=[], beams=[];
   var lastT=0, blackTimer=0;
 
+  function ease(){ return Math.min(1, elapsed()/7); }   // 最初の7秒はやさしく（わくが動かない→だんだん呼吸）
   function bandGap(t){ // 縁帯の中心からの距離（∿ 呼吸）。終盤ほど速く・狭く（疾く燃え疾く尽く）
     var prog=1-timeLeft/GAME_TIME;
-    var w=1.1+prog*1.7;
-    return H*(0.155+0.075*Math.sin(t*w));
+    var w=1.0+prog*1.6;
+    return H*(0.155+0.075*Math.sin(t*w)*ease());
   }
-  function tol(){ var prog=1-timeLeft/GAME_TIME; return H*(0.052-0.016*prog); }
+  function tol(){ var prog=1-timeLeft/GAME_TIME; return H*(0.060-0.020*prog); }
 
   function reset(){
     birdP=C-H*0.155; birdC=C+H*0.155; pTarget=birdP; cTarget=birdC;
@@ -490,6 +492,26 @@ h1.title{font-size:clamp(34px,12vw,68px);font-weight:900;letter-spacing:.06em;li
     for(var x=0;x<=W;x+=10){ var y=yc+Math.sin(x*0.018+ph)*amp; if(x===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); }
     ctx.lineWidth=2; ctx.strokeStyle=col; ctx.stroke(); ctx.restore();
   }
+  function drawSocket(x,y,col,label,inBand){
+    // 目標の「わく」＝ここにこっこを合わせる
+    var rr=Math.max(28,Math.min(W,H)*0.066);
+    ctx.save();
+    ctx.strokeStyle=col; ctx.lineWidth=inBand?3.5:2.5; ctx.globalAlpha=inBand?1:0.8;
+    ctx.setLineDash(inBand?[]:[7,7]);
+    ctx.beginPath(); ctx.arc(x,y,rr,0,6.2832); ctx.stroke();
+    ctx.setLineDash([]);
+    // ラベル（おや/こ）を左端に
+    ctx.globalAlpha=1; ctx.fillStyle=col; ctx.font='bold 14px sans-serif'; ctx.textAlign='left'; ctx.textBaseline='middle';
+    ctx.fillText(label,12,y);
+    ctx.restore();
+  }
+  function drawHint(x,birdY,targetY,col){
+    // わくの外なら、合わせる向きへ点滅矢印
+    var dir=targetY<birdY?-1:1, ay=birdY+dir*Math.max(W,H)*0.085;
+    ctx.save(); ctx.fillStyle=col; ctx.globalAlpha=0.5+0.5*Math.abs(Math.sin(performance.now()/180));
+    ctx.beginPath(); ctx.moveTo(x,ay+dir*11); ctx.lineTo(x-10,ay-dir*7); ctx.lineTo(x+10,ay-dir*7); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
   function draw(){
     var sx=(Math.random()-0.5)*shake, sy=(Math.random()-0.5)*shake;
     ctx.save(); ctx.translate(sx,sy);
@@ -501,12 +523,15 @@ h1.title{font-size:clamp(34px,12vw,68px);font-weight:900;letter-spacing:.06em;li
     var t=(performance.now()-startMs)/1000, ph=t*2.4;
     var gap=bandGap(t), tl=tol(), bU=C-gap, bL=C+gap;
 
-    // 縁帯（目標）
+    // 縁帯（目標）＝こっこを合わせる「わく」
     if(state==='play'){
-      ctx.fillStyle='rgba(255,207,107,0.10)'; ctx.fillRect(0,bU-tl,W,tl*2);
-      ctx.fillStyle='rgba(127,230,255,0.10)'; ctx.fillRect(0,bL-tl,W,tl*2);
+      var pIn0=Math.abs(birdP-bU)<tl, cIn0=Math.abs(birdC-bL)<tl;
+      ctx.fillStyle=pIn0?'rgba(255,207,107,0.20)':'rgba(255,207,107,0.09)'; ctx.fillRect(0,bU-tl,W,tl*2);
+      ctx.fillStyle=cIn0?'rgba(127,230,255,0.20)':'rgba(127,230,255,0.09)'; ctx.fillRect(0,bL-tl,W,tl*2);
       waveLine(bU,7,'rgba(255,207,107,0.5)',ph,0.9);
       waveLine(bL,7,'rgba(127,230,255,0.5)',-ph,0.9);
+      drawSocket(CX,bU,'#ffcf6b','おや',pIn0);
+      drawSocket(CX,bL,'#7fe6ff','こ',cIn0);
     }
     // 中央線（衡の境）
     ctx.strokeStyle='rgba(255,255,255,0.10)'; ctx.lineWidth=1;
@@ -543,6 +568,19 @@ h1.title{font-size:clamp(34px,12vw,68px);font-weight:900;letter-spacing:.06em;li
       var pIn=Math.abs(birdP-bU)<tl, cIn=Math.abs(birdC-bL)<tl;
       drawBird(CX,birdP,pr,'#ffcf6b',pIn?(1+0.6*Math.sin(t*10)):0,'p');
       drawBird(CX,birdC,pr,'#7fe6ff',cIn?(1+0.6*Math.sin(t*10)):0,'c');
+
+      // 合わせる向きのヒント矢印（わくの外のときだけ）
+      if(state==='play'){
+        if(!pIn) drawHint(CX,birdP,bU,'#ffcf6b');
+        if(!cIn) drawHint(CX,birdC,bL,'#7fe6ff');
+        // まんなかの状態表示
+        ctx.save(); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font='900 16px sans-serif';
+        if(pIn&&cIn){ ctx.fillStyle='#fff7cf'; ctx.shadowColor='#ffcf6b'; ctx.shadowBlur=12;
+          ctx.fillText('∿ そろった！ 家が建つよ',CX,C); }
+        else { ctx.fillStyle='rgba(255,255,255,0.7)';
+          ctx.fillText('上下とも、わくに合わせて',CX,C); }
+        ctx.restore();
+      }
 
       // 粒子
       for(var p=0;p<parts.length;p++){ var pp=parts[p]; ctx.globalAlpha=Math.max(0,pp.life);
