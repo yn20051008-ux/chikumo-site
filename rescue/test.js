@@ -44,6 +44,12 @@ R.start(); frames(2);
 ok(R.phase==='aim','game starts in aim phase');
 ok(R.info().blocks>0,'blocks present at start ('+R.info().blocks+')');
 
+// 発射位置を手動で左右に移動できる（両端はクランプ）
+{ const b=R.launchBounds();
+  ok(R.moveLauncher(b.mid)===b.mid,'ランチャーを中央へ移動できる');
+  ok(R.moveLauncher(-99999)===b.min,'左へ動かしすぎても左端でクランプ');
+  ok(R.moveLauncher(99999)===b.max,'右へ動かしすぎても右端でクランプ'); }
+
 let sawScore=false, maxTurn=0, sawShift=false, prevTurn=R.info().turn;
 for(let shot=0; shot<80 && R.phase!=='over'; shot++){
   if(R.phase==='aim'){
