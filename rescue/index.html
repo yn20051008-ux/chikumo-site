@@ -387,11 +387,13 @@ function layout(){
   launchY=deadY+cell*0.45;                          // launcher just below the deadline
   maxRow=ROWS;
   R=Math.max(5,cell*0.13);
-  // three bumpers in the bounce zone below the launcher
-  const zone=catchY-launchY, br=cell*0.38;
-  bumpers=[ {x:gx+pw*0.24, y:launchY+zone*0.42, r:br, pop:0},
-            {x:gx+pw*0.50, y:launchY+zone*0.66, r:br, pop:0},
-            {x:gx+pw*0.76, y:launchY+zone*0.42, r:br, pop:0} ];
+  // four bumpers in the bounce zone below the launcher:
+  // 停止2個(上段・左右) + 動く2個(下段・左右に往復) で生存率アップ
+  const zone=catchY-launchY, br=cell*0.38, amp=pw*0.18;
+  bumpers=[ {x:gx+pw*0.28, y:launchY+zone*0.40, r:br, pop:0},
+            {x:gx+pw*0.72, y:launchY+zone*0.40, r:br, pop:0},
+            {x:gx+pw*0.34, y:launchY+zone*0.70, r:br, pop:0, baseX:gx+pw*0.34, amp:amp, sp:1.1, ph:0,        move:true},
+            {x:gx+pw*0.66, y:launchY+zone*0.70, r:br, pop:0, baseX:gx+pw*0.66, amp:amp, sp:1.1, ph:Math.PI, move:true} ];
 }
 
 /* ===== State ===== */
@@ -400,7 +402,7 @@ const G={ phase:'title', score:0, best:0, turn:0, balls:1, rescued:0, best_rescu
   pendingBalls:0, nextLaunchX:null, shootClock:0, shake:0, flash:0, flashCol:'255,255,255', timeScale:1, freezeT:0, boostPending:false, perfectPending:false, boostBall:null, newBest:false,
   special:null, specials:[], activeSpecial:null, thunderT:0, thunderCol:null };
 let shockwaves=[], bolts=[], bigText=null, bonusCoccos=[];
-let blocks=[], items=[], balls=[], particles=[], floats=[], bumpers=[];
+let blocks=[], items=[], balls=[], particles=[], floats=[], bumpers=[], bumperT=0;
 
 function cellX(c){ return gx+c*cell+cell/2; }
 function cellY(r){ return gridTop+r*cell+cell/2; }
@@ -861,10 +863,11 @@ function render(){
 
   // bumpers (pinball-style ricochet pegs)
   for(const bm of bumpers){ const e=1+(bm.pop||0)*0.3; if(bm.pop>0)bm.pop-=0.1;
+    const glow=bm.move?'#7be0ff':'#ff7be0', fill=bm.move?'rgba(123,224,255,.22)':'rgba(255,123,224,.22)', ring=bm.move?'#9eecff':'#ff9ee8';
     ctx.save(); ctx.translate(bm.x,bm.y); ctx.scale(e,e);
-    ctx.shadowColor='#ff7be0'; ctx.shadowBlur=14;
-    ctx.fillStyle='rgba(255,123,224,.22)'; ctx.beginPath(); ctx.arc(0,0,bm.r,0,TAU); ctx.fill();
-    ctx.lineWidth=3; ctx.strokeStyle='#ff9ee8'; ctx.beginPath(); ctx.arc(0,0,bm.r*0.72,0,TAU); ctx.stroke();
+    ctx.shadowColor=glow; ctx.shadowBlur=14;
+    ctx.fillStyle=fill; ctx.beginPath(); ctx.arc(0,0,bm.r,0,TAU); ctx.fill();
+    ctx.lineWidth=3; ctx.strokeStyle=ring; ctx.beginPath(); ctx.arc(0,0,bm.r*0.72,0,TAU); ctx.stroke();
     ctx.shadowBlur=0; ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(0,0,bm.r*0.26,0,TAU); ctx.fill();
     ctx.restore(); }
 
@@ -989,6 +992,8 @@ function loop(ts){ requestAnimationFrame(loop);
       if(G.perfectPending){ G.perfectPending=false; startTurnShift(); } } }
   else if(G.timeScale<1) G.timeScale=Math.min(1,G.timeScale+dt*2.2);
   const sdt=dt*G.timeScale;
+  bumperT+=sdt;                                             // 動くバンパー: 左右に往復(freeze/slowmoでは止まる)
+  for(const bm of bumpers){ if(bm.move) bm.x=bm.baseX+Math.sin(bumperT*bm.sp+bm.ph)*bm.amp; }
   if(G.phase==='shoot' && G.freezeT<=0) updateShoot(sdt);   // freeze halts ball physics (movement is fixed-step, not dt-scaled)
   updateFX(dt);
   if(G.shake>0.3)G.shake*=0.85; if(G.flash>0)G.flash-=dt*1.4;
