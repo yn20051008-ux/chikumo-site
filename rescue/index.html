@@ -248,6 +248,7 @@
     <div class="logo small">あそびかた</div>
     <div class="desc" style="max-width:380px;text-align:left;">
       ◆ 画面を <b>ドラッグ</b> して発射する向きをきめる（点線がガイド）。<br><br>
+      ◆ <b>発射位置（◀▶）は手動で移動できる</b> ── 下のランチャーの列をつかんで <b>左右にスライド</b>。<br><br>
       ◆ 指を <b>はなす</b> と、たくさんのボールが発射！ブロックに当たると数字が減って、0でこわれる。<br><br>
       ◆ <b>＋ボール</b>を拾うと、次から発射数が増える。<br><br>
       ◆ オリの中の <b>こっこちゃん</b> をこわすと <b>救出</b>！オリの色でうれしさが増す ── <b>鉄＝1羽・銀＝2羽・金＝3羽</b>。<b>ブロック全消し</b>でいっきに <b>5羽</b> 救出！<br><br>
@@ -400,7 +401,7 @@ function layout(){
 
 /* ===== State ===== */
 const G={ phase:'title', score:0, best:0, turn:0, balls:1, rescued:0, best_rescued:0,
-  aiming:false, aimX:0, aimY:0, launchX:0, fireT:0, toFire:0, firedDir:{x:0,y:-1},
+  aiming:false, moving:false, aimX:0, aimY:0, launchX:0, fireT:0, toFire:0, firedDir:{x:0,y:-1},
   pendingBalls:0, nextLaunchX:null, shootClock:0, shake:0, flash:0, flashCol:'255,255,255', timeScale:1, freezeT:0, boostPending:false, perfectPending:false, boostBall:null, newBest:false,
   special:null, specials:[], activeSpecial:null, thunderT:0, thunderCol:null };
 let shockwaves=[], bolts=[], bigText=null, bonusCoccos=[];
@@ -413,7 +414,7 @@ function newGame(){
   Sound.init(); Sound.resume(); if(audioOn) Sound.startBGM();
   blocks=[]; items=[]; balls=[]; particles=[]; floats=[]; shockwaves=[]; bolts=[]; bigText=null; bonusCoccos=[];
   Object.assign(G,{phase:'aim',score:0,turn:0,balls:1,rescued:0,
-    aiming:false,launchX:gx+COLS*cell/2,nextLaunchX:null,pendingBalls:0,shake:0,flash:0,flashCol:'255,255,255',timeScale:1,freezeT:0,boostPending:false,perfectPending:false,boostBall:null,newBest:false,
+    aiming:false,moving:false,launchX:gx+COLS*cell/2,nextLaunchX:null,pendingBalls:0,shake:0,flash:0,flashCol:'255,255,255',timeScale:1,freezeT:0,boostPending:false,perfectPending:false,boostBall:null,newBest:false,
     special:null,specials:[],activeSpecial:null,thunderT:0,thunderCol:null});
   document.getElementById('score') && 0;
   spawnRow(true);
@@ -497,6 +498,8 @@ function grantSpecial(bx,by){
   if(G.specials.length<9) G.specials.push(s.id);   // each rescue = one charge, they stack
   addText(s.emoji+s.name+'!', bx, by-cell*0.7, s.col);
 }
+// 手動で発射位置を左右に動かす（ランチャー行をつかんでスライド）。両端はクランプ。
+function moveLauncher(x){ G.launchX=clamp(x, gx+R, gx+COLS*cell-R); }
 function launch(){
   const d=aimDir();
   G.firedDir=d; G.activeSpecial=G.specials.length?G.specials.shift():null;
@@ -911,7 +914,14 @@ function render(){
     ctx.fillStyle=sp?sp.col:'#ffd98a';
     if(sp){ ctx.shadowColor=sp.col; ctx.shadowBlur=14; }
     ctx.beginPath(); ctx.arc(G.launchX,launchY,previewR*1.15,0,TAU); ctx.fill(); ctx.shadowBlur=0;
-    ctx.fillStyle='rgba(255,255,255,.7)'; ctx.font='700 12px sans-serif'; ctx.textAlign='center';
+    // 左右に動かせるヒント: ランチャー行の薄いレール＋◀▶（移動中はくっきり）
+    if(!G.aiming){ const lit=G.moving?1:0.45;
+      ctx.globalAlpha=lit*0.5; ctx.strokeStyle='#ffd98a'; ctx.lineWidth=2; ctx.setLineDash([5,6]);
+      ctx.beginPath(); ctx.moveTo(gx+R,launchY); ctx.lineTo(gx+COLS*cell-R,launchY); ctx.stroke(); ctx.setLineDash([]);
+      ctx.globalAlpha=lit; ctx.fillStyle='#ffd98a'; ctx.font='900 16px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('◀', G.launchX-previewR*1.15-12, launchY); ctx.fillText('▶', G.launchX+previewR*1.15+12, launchY);
+      ctx.globalAlpha=1; }
+    ctx.fillStyle='rgba(255,255,255,.7)'; ctx.font='700 12px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='alphabetic';
     ctx.fillText('×'+G.balls, G.launchX, launchY+22);
     if(sp){ ctx.fillStyle=sp.col; ctx.font='900 13px sans-serif';
       ctx.fillText(sp.emoji+sp.name+(G.specials.length>1?' ×'+G.specials.length:''), G.launchX, launchY-R*1.3-12); }
@@ -1007,9 +1017,14 @@ function loop(ts){ requestAnimationFrame(loop);
 function pos(e){ const t=(e.touches&&e.touches[0])||(e.changedTouches&&e.changedTouches[0]);
   return t?{x:t.clientX,y:t.clientY}:{x:e.clientX,y:e.clientY}; }
 function down(e){ if(G.phase!=='aim')return; e.preventDefault(); Sound.init();Sound.resume();
-  const p=pos(e); G.aiming=true; G.aimX=p.x; G.aimY=p.y; }
-function move(e){ if(!G.aiming)return; e.preventDefault(); const p=pos(e); G.aimX=p.x; G.aimY=p.y; }
-function up(e){ if(!G.aiming)return; G.aiming=false;
+  const p=pos(e);
+  // ランチャー行(下端)をつかんだら「移動モード」＝左右にスライド。それ以外(盤面)は「照準モード」。
+  if(p.y > launchY-cell*0.9){ G.moving=true; G.aiming=false; moveLauncher(p.x); }
+  else { G.moving=false; G.aiming=true; G.aimX=p.x; G.aimY=p.y; } }
+function move(e){ if(G.moving){ e.preventDefault(); moveLauncher(pos(e).x); return; }
+  if(!G.aiming)return; e.preventDefault(); const p=pos(e); G.aimX=p.x; G.aimY=p.y; }
+function up(e){ if(G.moving){ G.moving=false; return; }   // スライドのみ：発射しない
+  if(!G.aiming)return; G.aiming=false;
   const p=pos(e); G.aimX=p.x; G.aimY=p.y;
   // ランチャーから十分離れていれば、赤点線より下（バンパー側）で離しても発射（向きは上にクランプ）。
   // ランチャーのごく近く(16px以内)だけキャンセル。
@@ -1094,7 +1109,9 @@ window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G
     const r0=G.rescued; updateShoot(0.016);
     return { phase:G.phase, balls:balls.length, gained:G.rescued-r0, frozen:G.freezeT>0 }; },
   accelTo60:()=>{ const b={x:W/2,y:H/2,vx:1,vy:-1,sp:SPEED,bounces:59,dmg:5,alive:true,r:R,trail:[]}; balls.push(b); accel(b); return b.dmg; },
-  testCageGain:(cg)=>{ const r0=G.rescued; breakBlock({col:0,row:0,hp:1,maxhp:1,type:'cocco',cage:cg,pop:0}, cellX(0), cellY(0)); return G.rescued-r0; }, };
+  testCageGain:(cg)=>{ const r0=G.rescued; breakBlock({col:0,row:0,hp:1,maxhp:1,type:'cocco',cage:cg,pop:0}, cellX(0), cellY(0)); return G.rescued-r0; },
+  moveLauncher:(x)=>{ moveLauncher(x); return G.launchX; }, launchXNow:()=>G.launchX,
+  launchBounds:()=>({min:gx+R, max:gx+COLS*cell-R, mid:gx+COLS*cell/2}), };
 
 /* ===== Boot ===== */
 try{ window.__safeTop=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0; }catch(e){ window.__safeTop=0; }
