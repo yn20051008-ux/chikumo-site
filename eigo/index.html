@@ -232,7 +232,7 @@ h1.title{font-size:clamp(30px,10vw,56px);font-weight:900;letter-spacing:.05em;li
     <div class="title-sub">COCCO EIGO ─ 親子で英語を学び直す</div>
     <div class="how">
       <b>コース</b>をえらんで、英語と意味を<b>結ぶ</b>（縁）。<br>
-      <b>9コース</b>（単語・英会話・生活・ビジネス・旅行・句動詞・IT・ことわざ・学校）、それぞれ<b>5段階</b>。<br>
+      <b>15コース</b>（単語・英会話・生活・ビジネス・旅行・句動詞・IT・ことわざ・学校・医療・電話接客・時事・カジュアル・スポーツ・反対語）、それぞれ<b>5段階</b>。<br>
       <span class="s">スマホを机に置いて<b>向かい合って</b>（手前＝おや／向かい＝こ）。<br>
       親子それぞれスタート段を選べる。親は上級レベルまで。<br>
       敵は「忘却」だけ。60秒で焼き切り、二人で。</span>
@@ -387,9 +387,69 @@ h1.title{font-size:clamp(30px,10vw,56px);font-weight:900;letter-spacing:.05em;li
         ['宿題','homework',2],['試験','exam',2],['成績','grade',2],['時間割','timetable',2],['休み時間','break',2],['給食','school lunch',2],
         ['運動会','sports day',3],['文化祭','school festival',3],['遠足','field trip',3],['部活','club activity',3],['卒業','graduation',3],['入学','admission',3],
         ['大学','university',4],['専攻','major',4],['奨学金','scholarship',4],['論文','thesis',4],['講義','lecture',4],['出席','attendance',4]
+      ]},
+    iryo:{ name:'医療', sub:'日本語→英語（からだ・病院）', ask:'を 英語で？',
+      bandL:['体の部位','症状','病院','薬・処方','専門'],
+      tiers:[['体',0],['症状',1],['病院',2],['薬',3],['専門',4]],
+      raw:[
+        ['頭','head',0],['胸','chest',0],['おなか','stomach',0],['背中','back',0],['腕','arm',0],['足','leg',0],
+        ['熱','fever',1],['咳','cough',1],['痛み','pain',1],['めまい','dizziness',1],['吐き気','nausea',1],['発疹','rash',1],
+        ['医者','doctor',2],['看護師','nurse',2],['診察','examination',2],['注射','injection',2],['手術','surgery',2],['救急車','ambulance',2],
+        ['薬局','pharmacy',3],['処方箋','prescription',3],['錠剤','tablet',3],['副作用','side effect',3],['アレルギー','allergy',3],['包帯','bandage',3],
+        ['診断','diagnosis',4],['症状','symptom',4],['感染','infection',4],['慢性','chronic',4],['免疫','immunity',4],['輸血','blood transfusion',4]
+      ]},
+    denwa:{ name:'電話・接客', sub:'日本語→英語（フレーズ）', ask:'を 英語で？',
+      bandL:['電話の基本','接客','案内','ビジネス電話','クレーム対応'],
+      tiers:[['電話',0],['接客',1],['案内',2],['仕事',3],['クレーム',4]],
+      raw:[
+        ['もしもし','Hello',0],['少々お待ちを','Hold on please',0],['誰ですか？',"Who's calling?",0],['伝言','message',0],['切れた','The line was cut off',0],['番号','number',0],
+        ['いらっしゃいませ','Welcome',1],['少々お待ちください','Just a moment',1],['申し訳ございません',"I'm very sorry",1],['かしこまりました','Certainly',1],['またお越しください','Please come again',1],['お会計','the check',1],
+        ['あちらです',"It's over there",2],['ご案内します',"I'll show you the way",2],['在庫を確認します',"I'll check the stock",2],['売り切れ','sold out',2],['試着','try on',2],['返品','return',2],
+        ['お世話になっております','Thank you for your business',3],['担当者','the person in charge',3],['不在です','He is not available',3],['内線','extension',3],['留守電','voicemail',3],['折り返します',"I'll call you back",3],
+        ['ご迷惑をおかけしました','We apologize for the inconvenience',4],['至急対応します',"We'll handle it immediately",4],['交換します',"We'll replace it",4],['返金','refund',4],['責任者','the manager',4],['善処します',"We'll do our best",4]
+      ]},
+    news:{ name:'時事', sub:'日本語→英語（ニュース）', ask:'を 英語で？',
+      bandL:['基本','社会','災害・環境','国際','経済・専門'],
+      tiers:[['基本',0],['社会',1],['災害',2],['国際',3],['経済',4]],
+      raw:[
+        ['政府','government',0],['選挙','election',0],['経済','economy',0],['事故','accident',0],['天気','weather',0],['事件','incident',0],
+        ['首相','prime minister',1],['大統領','president',1],['税金','tax',1],['失業','unemployment',1],['物価','prices',1],['法律','law',1],
+        ['地震','earthquake',2],['台風','typhoon',2],['洪水','flood',2],['地球温暖化','global warming',2],['汚染','pollution',2],['避難','evacuation',2],
+        ['国際連合','United Nations',3],['条約','treaty',3],['紛争','conflict',3],['難民','refugee',3],['制裁','sanctions',3],['同盟','alliance',3],
+        ['物価上昇','inflation',4],['不況','recession',4],['株式市場','stock market',4],['国内総生産','GDP',4],['為替','exchange rate',4],['関税','tariff',4]
+      ]},
+    casual:{ name:'カジュアル', sub:'英→意味（SNS・スラング）', ask:'の 意味は？',
+      bandL:['あいさつ系','リアクション','SNS略語','スラング','ネット文化'],
+      tiers:[['あいさつ',0],['反応',1],['略語',2],['スラング',3],['ネット',4]],
+      raw:[
+        ['Hi!','やあ',0],['Thanks!','ありがと',0],['Cool!','いいね',0],['OK','わかった',0],['Sure','もちろん',0],['See ya','じゃあね',0],
+        ['Awesome','最高',1],['No way','まさか',1],['Really?','ほんと？',1],['Of course','もちろん（強調）',1],['Maybe','たぶん',1],['Never mind','気にしないで',1],
+        ['LOL','（大笑い）',2],['BTW','ところで',2],['OMG','なんてこと',2],['FYI','参考までに',2],['ASAP','できるだけ早く',2],['DM','ダイレクトメッセージ',2],
+        ['hang out','ぶらぶら遊ぶ',3],['chill','くつろぐ',3],['broke','金欠の',3],['sick','（スラングで）イケてる',3],['lit','盛り上がってる',3],['ghost','既読スルーする',3],
+        ['troll','荒らし',4],['viral','バズる',4],['meme','ミーム',4],['flex','自慢する',4],['salty','不機嫌な',4],['vibe','雰囲気',4]
+      ]},
+    sports:{ name:'スポーツ', sub:'日本語→英語（運動・趣味）', ask:'を 英語で？',
+      bandL:['スポーツ名','動作','道具・場所','趣味','上級'],
+      tiers:[['競技',0],['動作',1],['用語',2],['趣味',3],['上級',4]],
+      raw:[
+        ['野球','baseball',0],['サッカー','soccer',0],['水泳','swimming',0],['卓球','table tennis',0],['柔道','judo',0],['テニス','tennis',0],
+        ['走る','run',1],['投げる','throw',1],['蹴る','kick',1],['跳ぶ','jump',1],['泳ぐ','swim',1],['打つ','hit',1],
+        ['試合','game',2],['審判','referee',2],['選手','player',2],['競技場','stadium',2],['監督','coach',2],['得点','score',2],
+        ['読書','reading',3],['釣り','fishing',3],['登山','hiking',3],['料理','cooking',3],['写真','photography',3],['園芸','gardening',3],
+        ['優勝','championship',4],['引退','retirement',4],['記録','record',4],['観客','spectators',4],['延長戦','overtime',4],['反則','foul',4]
+      ]},
+    hantai:{ name:'反対語', sub:'英→反対の語', ask:'の 反対は？',
+      bandL:['基本','形容詞','やや難','上級','難'],
+      tiers:[['基本',0],['形容詞',1],['やや難',2],['上級',3],['難',4]],
+      raw:[
+        ['big','small',0],['hot','cold',0],['fast','slow',0],['up','down',0],['open','closed',0],['day','night',0],
+        ['happy','sad',1],['long','short',1],['new','old',1],['easy','difficult',1],['rich','poor',1],['light','dark',1],
+        ['increase','decrease',2],['buy','sell',2],['win','lose',2],['accept','reject',2],['arrive','leave',2],['remember','forget',2],
+        ['success','failure',3],['expand','shrink',3],['ancient','modern',3],['generous','stingy',3],['brave','cowardly',3],['temporary','permanent',3],
+        ['optimistic','pessimistic',4],['abundant','scarce',4],['explicit','implicit',4],['superior','inferior',4],['transparent','opaque',4],['voluntary','compulsory',4]
       ]}
   };
-  var COURSE_KEYS=['tango','kaiwa','seikatsu','business','ryoko','kudoshi','it','kotowaza','school'];
+  var COURSE_KEYS=['tango','kaiwa','seikatsu','business','ryoko','kudoshi','it','kotowaza','school','iryo','denwa','news','casual','sports','hantai'];
 
   /* ---- 現在のコース状態 ---- */
   var curKey='tango', CUR=COURSES.tango, IT=[], ansByBand=[], ALLANS=[], BANDL=[], ASK='';
