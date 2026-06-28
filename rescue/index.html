@@ -387,13 +387,15 @@ function layout(){
   launchY=deadY+cell*0.45;                          // launcher just below the deadline
   maxRow=ROWS;
   R=Math.max(5,cell*0.13);
-  // four bumpers in the bounce zone below the launcher:
-  // 停止2個(上段・左右) + 動く2個(下段・左右に往復) で生存率アップ
+  // six bumpers in the bounce zone below the launcher:
+  // 停止2個(上段・左右) + 動く4個(中段2・下段2、左右に往復) で生存率アップ
   const zone=catchY-launchY, br=cell*0.38, amp=pw*0.18;
   bumpers=[ {x:gx+pw*0.28, y:launchY+zone*0.40, r:br, pop:0},
             {x:gx+pw*0.72, y:launchY+zone*0.40, r:br, pop:0},
-            {x:gx+pw*0.34, y:launchY+zone*0.70, r:br, pop:0, baseX:gx+pw*0.34, amp:amp, sp:1.1, ph:0,        move:true},
-            {x:gx+pw*0.66, y:launchY+zone*0.70, r:br, pop:0, baseX:gx+pw*0.66, amp:amp, sp:1.1, ph:Math.PI, move:true} ];
+            {x:gx+pw*0.50, y:launchY+zone*0.55, r:br, pop:0, baseX:gx+pw*0.50, amp:amp, sp:0.9, ph:Math.PI*0.5, move:true},
+            {x:gx+pw*0.50, y:launchY+zone*0.55, r:br, pop:0, baseX:gx+pw*0.50, amp:amp, sp:0.9, ph:Math.PI*1.5, move:true},
+            {x:gx+pw*0.34, y:launchY+zone*0.72, r:br, pop:0, baseX:gx+pw*0.34, amp:amp, sp:1.1, ph:0,           move:true},
+            {x:gx+pw*0.66, y:launchY+zone*0.72, r:br, pop:0, baseX:gx+pw*0.66, amp:amp, sp:1.1, ph:Math.PI,     move:true} ];
 }
 
 /* ===== State ===== */
