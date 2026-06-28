@@ -250,7 +250,7 @@
       ◆ 画面を <b>ドラッグ</b> して発射する向きをきめる（点線がガイド）。<br><br>
       ◆ 指を <b>はなす</b> と、たくさんのボールが発射！ブロックに当たると数字が減って、0でこわれる。<br><br>
       ◆ <b>＋ボール</b>を拾うと、次から発射数が増える。<br><br>
-      ◆ オリの中の <b>こっこちゃん</b> をこわすと <b>救出</b>！ボーナス点。<br><br>
+      ◆ オリの中の <b>こっこちゃん</b> をこわすと <b>救出</b>！オリの色でうれしさが増す ── <b>鉄＝1羽・銀＝2羽・金＝3羽</b>。<b>ブロック全消し</b>でいっきに <b>5羽</b> 救出！<br><br>
       ◆ ブロックは1ターンごとに下がってくる。<b>下の線まで来たらゲームオーバー</b>。
     </div>
     <button class="btn" id="howBack">もどる</button>
@@ -588,13 +588,14 @@ function breakBlock(bl,bx,by){
   const col = bl.type==='cocco'?'255,200,90':'255,150,90';
   for(let i=0;i<10;i++) particles.push(spark(bx,by,col));
   if(bl.type==='cocco'){ const cg=bl.cage||2;
-    const sc=cg===4?500:cg===3?350:200; const cname=cg===4?'金のおり ':cg===3?'銀のおり ':'';
+    const sc=cg===4?500:cg===3?350:200; const cname=cg===4?'金のおり ':cg===3?'銀のおり ':'鉄のおり ';
     const ccol=cg===4?'#ffd24d':cg===3?'#e8eefc':'#ffd36b';
-    G.rescued++; G.score+=sc; Sound.rescue();
-    addText(cname+'RESCUE!', bx, by, ccol); G.flash=0.5; G.shake=Math.min(G.shake+(cg>=3?12:8),18);
+    const gain=cg===4?3:cg===3?2:1;                       // 鉄=1 / 銀=2 / 金=3 羽 救出
+    const before=G.rescued; G.rescued+=gain; G.score+=sc; Sound.rescue();
+    addText(cname+'RESCUE +'+gain, bx, by, ccol); G.flash=0.5; G.shake=Math.min(G.shake+(cg>=3?12:8),18);
     for(let i=0;i<(cg>=3?28:20);i++) particles.push(spark(bx,by, cg===4?'255,215,90':cg===3?'235,240,255':'255,225,120'));
-    // 10救出ごと：+1px成長。MAX到達後の節目は「火力Nボール！」へプレステージ
-    if(G.rescued%10===0){ const cyc=ballCycle();
+    // 10救出ごと：+1px成長。MAX到達後の節目は「火力Nボール！」へプレステージ（複数羽でも10の節目を跨いだら発火）
+    if(Math.floor(G.rescued/10) > Math.floor(before/10)){ const cyc=ballCycle();
       if(cyc.step===0 && cyc.cycle>0){ addText('火力'+defaultBallPower()+'ボール！🔥', bx, by+cell*0.5, '#ff9a3c');
         flashTint('255,150,60',0.20); G.shake=Math.min(G.shake+6,16); }
       else if(cyc.step>0){ addText('ボール ＋'+cyc.step+'px!', bx, by+cell*0.5, '#9fe8ff'); flashTint('120,210,255',0.12); } }
@@ -671,10 +672,10 @@ function perfectClearBonus(){
   const pal=['255,120,170','120,220,255','255,225,120','170,255,150','200,160,255'];
   for(let i=0;i<48;i++) particles.push({x:rnd(gx,gx+COLS*cell),y:rnd(gridTop,gridTop+cell*4.5),
     vx:rnd(-3,3),vy:rnd(-5,-1),life:rnd(.7,1.3),max:1.3,r:rnd(2,5),col:pal[Math.floor(rnd(0,pal.length))],glow:1,g:0.06});
-  // こっこ3羽が嬉しそうに飛び出す（公式SVG）
-  for(let i=0;i<3;i++){
+  // こっこ5羽が嬉しそうに飛び出す（公式SVG）─ 全消しは特大ボーナス
+  for(let i=0;i<5;i++){
     G.rescued++; G.score+=200;
-    bonusCoccos.push({ x:W*(0.24+0.26*i), y:gridTop+cell*1.7, vy:-(cell*1.0+rnd(0,cell*0.5)),
+    bonusCoccos.push({ x:W*(0.16+0.17*i), y:gridTop+cell*1.7, vy:-(cell*1.0+rnd(0,cell*0.5)),
       vx:rnd(-cell*0.5,cell*0.5), spin:rnd(-5,5), rot:0, life:1.7, max:1.7 });
   }
   updateHUDtext();
@@ -1092,7 +1093,8 @@ window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G
     balls.length=0; balls.push({x:W/2,y:H*0.5,vx:1,vy:-1,sp:SPEED,dmg:1,alive:true,r:R,trail:[],bounces:0});
     const r0=G.rescued; updateShoot(0.016);
     return { phase:G.phase, balls:balls.length, gained:G.rescued-r0, frozen:G.freezeT>0 }; },
-  accelTo60:()=>{ const b={x:W/2,y:H/2,vx:1,vy:-1,sp:SPEED,bounces:59,dmg:5,alive:true,r:R,trail:[]}; balls.push(b); accel(b); return b.dmg; }, };
+  accelTo60:()=>{ const b={x:W/2,y:H/2,vx:1,vy:-1,sp:SPEED,bounces:59,dmg:5,alive:true,r:R,trail:[]}; balls.push(b); accel(b); return b.dmg; },
+  testCageGain:(cg)=>{ const r0=G.rescued; breakBlock({col:0,row:0,hp:1,maxhp:1,type:'cocco',cage:cg,pop:0}, cellX(0), cellY(0)); return G.rescued-r0; }, };
 
 /* ===== Boot ===== */
 try{ window.__safeTop=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0; }catch(e){ window.__safeTop=0; }

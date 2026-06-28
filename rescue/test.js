@@ -112,13 +112,19 @@ R.setRescued(per);      ok(Math.abs(R.ballR()-base)<1e-9 && R.ballPower()===2,'p
 R.setRescued(per+span*10); ok(Math.abs(R.ballR()-(base+span))<1e-9 && R.ballPower()===2,'cycle 2 grows back to MAX, power 2');
 R.setRescued(per*2);    ok(Math.abs(R.ballR()-base)<1e-9 && R.ballPower()===3,'second wrap -> base size & power 3');
 
-// perfect clear: emptying the board pops a 3-こっこ bonus
+// cage grade -> rescue count: 鉄(2)=1, 銀(3)=2, 金(4)=3
+R.start(); frames(2);
+ok(R.testCageGain(2)===1,'鉄のオリ → 救出1羽');
+ok(R.testCageGain(3)===2,'銀のオリ → 救出2羽');
+ok(R.testCageGain(4)===3,'金のオリ → 救出3羽');
+
+// perfect clear: emptying the board pops a 5-こっこ bonus
 R.start(); frames(2);
 let pr0=R.info().rescued, ps0=R.info().score;
 R.perfectClear();
-ok(R.info().rescued===pr0+3,'perfect-clear bonus rescues 3 こっこ');
+ok(R.info().rescued===pr0+5,'perfect-clear bonus rescues 5 こっこ');
 ok(R.info().score>ps0+500,'perfect-clear bonus adds score');
-ok(R.bonusCount()===3,'3 bonus こっこ fly out');
+ok(R.bonusCount()===5,'5 bonus こっこ fly out');
 
 // integration: clearing every block at turn end triggers the bonus
 R.start(); frames(2);
@@ -127,7 +133,7 @@ const ir=R.info().rescued;
 R.fire(-Math.PI/2);
 let pg=0; while(R.phase==='shoot' && pg++<420){ frames(1); if(pg===400) R.settle(); }
 frames(3);
-ok(R.info().rescued>=ir+3,'clearing the whole board grants the perfect bonus on turn end');
+ok(R.info().rescued>=ir+5,'clearing the whole board grants the perfect bonus on turn end');
 ok(R.freezeT()>0.5,'全消しで約0.8秒のお祝い停止に入る');
 let pf=0; while(R.freezeT()>0 && pf++<90) frames(1); frames(3);
 ok(R.info().blocks>0,'お祝い停止のあと新しい行が出る');
@@ -147,8 +153,8 @@ ok(R.testBoostBudget()===5,'加速メテオ vanishes after a capped 5 reflection
 { const cf=R.testChainFreeze(); ok(cf[0]===0.3&&cf[1]===0.3&&cf[2]===0.7,'3連続加速は 0.3→0.3→0.7 で停止 ('+cf.join(',')+')'); }
 ok(R.testIsoFreeze()===0.7,'単発（バラバラ）加速は通常の0.7秒停止');
 { const sk=R.testInstantSkip();
-  ok(sk.gained===3 && sk.balls===0 && sk.phase==='shift' && sk.frozen,
-     '全消しした瞬間にお祝いへスキップ（球即消去＋3羽＋停止） ('+JSON.stringify(sk)+')'); }
+  ok(sk.gained===5 && sk.balls===0 && sk.phase==='shift' && sk.frozen,
+     '全消しした瞬間にお祝いへスキップ（球即消去＋5羽＋停止） ('+JSON.stringify(sk)+')'); }
 
 // the freeze actually halts ball physics (movement is fixed-step, not dt-scaled)
 R.start(); frames(2);
