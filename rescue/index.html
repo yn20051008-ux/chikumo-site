@@ -389,7 +389,7 @@ function layout(){
   R=Math.max(5,cell*0.13);
   // six bumpers in the bounce zone below the launcher:
   // 停止2個(上段・左右) + 動く4個(中段2・下段2、左右に往復) で生存率アップ
-  const zone=catchY-launchY, br=cell*0.38, amp=pw*0.18;
+  const zone=catchY-launchY, br=cell*0.076, amp=pw*0.18;   // バンパー半径を80%小さく(0.38→0.076)
   bumpers=[ {x:gx+pw*0.28, y:launchY+zone*0.40, r:br, pop:0},
             {x:gx+pw*0.72, y:launchY+zone*0.40, r:br, pop:0},
             {x:gx+pw*0.50, y:launchY+zone*0.55, r:br, pop:0, baseX:gx+pw*0.50, amp:amp, sp:0.9, ph:Math.PI*0.5, move:true},
@@ -647,7 +647,7 @@ function updateShoot(dt){
   // anti-stuck: nudge near-horizontal balls
   for(const b of balls){ if(b.alive && Math.abs(b.vy)<(b.sp||SPEED)*0.18){ b.vy += (b.vy<0?-1:1)*(b.sp||SPEED)*0.05; renorm(b); } }
   // force end if too long
-  if(G.shootClock>22){ for(const b of balls) b.alive=false; }   // ターン強制終了を延長（50反射を狙える猶予）
+  if(G.shootClock>26){ for(const b of balls) b.alive=false; }   // ターン強制終了を延長（60反射を狙える猶予）
   if(G.toFire<=0 && balls.every(b=>!b.alive)) endTurn();
 }
 // ターン終了の後始末（全消しならお祝い、そうでなければ次の行）
@@ -684,7 +684,7 @@ function renorm(b){ const sp=b.sp||SPEED, l=Math.hypot(b.vx,b.vy)||1; b.vx=b.vx/
 // colours shift stage by stage: gold → orange → coral → violet → blazing red.
 const POWER_TIERS={2:{hex:'#ffd24d',rgb:'255,210,77'},3:{hex:'#ff9a3c',rgb:'255,154,60'},
   4:{hex:'#ff5d6c',rgb:'255,93,108'},5:{hex:'#b15bff',rgb:'177,91,255'},6:{hex:'#ff2e2e',rgb:'255,46,46'}};
-function powerTier(n){ return n>=50?6:n>=40?5:n>=30?4:n>=20?3:n>=10?2:1; }
+function powerTier(n){ return n>=60?6:n>=40?5:n>=30?4:n>=20?3:n>=10?2:1; }
 function powerColor(dmg){ const t=POWER_TIERS[Math.min(6,dmg)]; return (dmg>=2&&t)?t.hex:null; }
 function powerRGB(dmg){ const t=POWER_TIERS[Math.min(6,dmg)]; return t?t.rgb:'255,210,77'; }
 function accel(b){ b.bounces=(b.bounces||0)+1;
@@ -726,8 +726,8 @@ function boostCinematic(b){
   if(G.freezeT>0) return;
   G.boostBall=b||null;
   // 連続加速の途中は短く(0.3s)、最後／単発はしっかり(0.7s)。
-  // 他に「50反射目前(未加速)」のボールがいれば“まだ続く＝途中”とみなす。
-  const more = balls.some(x=>x!==b && x.alive && !x.boosted && (x.dmg||1)<6 && (x.bounces||0)>=47);
+  // 他に「60反射目前(未加速)」のボールがいれば“まだ続く＝途中”とみなす。
+  const more = balls.some(x=>x!==b && x.alive && !x.boosted && (x.dmg||1)<6 && (x.bounces||0)>=57);
   G.freezeT = more ? 0.3 : 0.7; G.boostPending=true;
   bigText={name:'加速',emoji:'⚡',col:'#ff3b3b',life:more?1.0:1.7,max:more?1.0:1.7};
   flashTint('255,70,70',more?0.4:0.55); G.shake=Math.min(G.shake+(more?5:8),22);
@@ -737,7 +737,7 @@ function applyBoost(){
   const b=G.boostBall; G.boostBall=null;
   if(!b || !b.alive) return;                                  // 本人が既に消えていたら何もしない
   b.boosted=true; b.dmg=Math.max(b.dmg||1, 15);              // メテオ化: 貫通する火力15のコメット
-  b.boostLeft=8;                                             // チート反射は8回まで → 消滅
+  b.boostLeft=5;                                             // チート反射は5回まで → 消滅
   b.r=(b.r||R)*1.7;                                           // 巨大化（当たり判定も拡大）
   b.sp=Math.min(SPEEDMAX*1.7,(b.sp||SPEED)*1.7); renorm(b);
   burst(b.x,b.y,'255,70,70',26,13,true);
@@ -1072,27 +1072,27 @@ window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G
   testPierceKill:()=>{ blocks=[]; const bl={col:0,row:0,hp:999,maxhp:999,type:'normal',pop:0}; blocks.push(bl);
     collideBlocks({x:cellX(0),y:cellY(0),vx:1,vy:-1,sp:SPEED,dmg:15,boosted:true,alive:true,r:R*1.7,trail:[]});
     return bl.dead===true; },
-  testBoostBudget:()=>{ const b={x:cellX(0),y:cellY(0),vx:1,vy:-1,sp:SPEED,dmg:15,boosted:true,alive:true,r:R,trail:[],boostLeft:8};
+  testBoostBudget:()=>{ const b={x:cellX(0),y:cellY(0),vx:1,vy:-1,sp:SPEED,dmg:15,boosted:true,alive:true,r:R,trail:[],boostLeft:5};
     let n=0; while(b.alive && n<99){ b.wallCd=0; boostWallFX(b); n++; } return n; },
   testOnlyOneBoosted:()=>{ balls.length=0; G.boostBall=null; G.freezeT=0; G.boostPending=false;
-    const a={x:W/2,y:H*0.5,vx:1,vy:-1,sp:SPEED,bounces:49,dmg:5,alive:true,r:R,trail:[]};
+    const a={x:W/2,y:H*0.5,vx:1,vy:-1,sp:SPEED,bounces:59,dmg:5,alive:true,r:R,trail:[]};
     const c={x:W/3,y:H*0.5,vx:1,vy:-1,sp:SPEED,bounces:3,dmg:1,alive:true,r:R,trail:[]};
     balls.push(a,c); accel(a); applyBoost(); return { self:!!a.boosted, other:!!c.boosted }; },
   testChainFreeze:()=>{ balls.length=0; G.boostBall=null; G.freezeT=0; G.boostPending=false;
-    const mk=()=>({x:W/2,y:H*0.5,vx:1,vy:-1,sp:SPEED,bounces:49,dmg:5,alive:true,r:R,trail:[]});
+    const mk=()=>({x:W/2,y:H*0.5,vx:1,vy:-1,sp:SPEED,bounces:59,dmg:5,alive:true,r:R,trail:[]});
     const a=mk(),b=mk(),c=mk(); balls.push(a,b,c); const res=[];
     accel(a); res.push(+G.freezeT.toFixed(2)); G.freezeT=0; applyBoost();
     accel(b); res.push(+G.freezeT.toFixed(2)); G.freezeT=0; applyBoost();
     accel(c); res.push(+G.freezeT.toFixed(2)); G.freezeT=0; applyBoost();
     return res; },
   testIsoFreeze:()=>{ balls.length=0; G.boostBall=null; G.freezeT=0; G.boostPending=false;
-    const a={x:W/2,y:H*0.5,vx:1,vy:-1,sp:SPEED,bounces:49,dmg:5,alive:true,r:R,trail:[]};
+    const a={x:W/2,y:H*0.5,vx:1,vy:-1,sp:SPEED,bounces:59,dmg:5,alive:true,r:R,trail:[]};
     balls.push(a); accel(a); return +G.freezeT.toFixed(2); },
   testInstantSkip:()=>{ G.phase='shoot'; G.toFire=0; G.freezeT=0; G.perfectPending=false; blocks.length=0;
     balls.length=0; balls.push({x:W/2,y:H*0.5,vx:1,vy:-1,sp:SPEED,dmg:1,alive:true,r:R,trail:[],bounces:0});
     const r0=G.rescued; updateShoot(0.016);
     return { phase:G.phase, balls:balls.length, gained:G.rescued-r0, frozen:G.freezeT>0 }; },
-  accelTo50:()=>{ const b={x:W/2,y:H/2,vx:1,vy:-1,sp:SPEED,bounces:49,dmg:5,alive:true,r:R,trail:[]}; balls.push(b); accel(b); return b.dmg; }, };
+  accelTo60:()=>{ const b={x:W/2,y:H/2,vx:1,vy:-1,sp:SPEED,bounces:59,dmg:5,alive:true,r:R,trail:[]}; balls.push(b); accel(b); return b.dmg; }, };
 
 /* ===== Boot ===== */
 try{ window.__safeTop=parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat'))||0; }catch(e){ window.__safeTop=0; }

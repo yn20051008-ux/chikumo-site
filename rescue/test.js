@@ -4,7 +4,8 @@
    Run: node rescue/test.js */
 const fs=require('fs');
 const html=fs.readFileSync(__dirname+'/index.html','utf8');
-const script=html.match(/<script>([\s\S]*?)<\/script>/)[1];
+// pick the game block (not the shared audio-guard <script> that precedes it)
+const script=[...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]).find(b=>b.includes('window.__rescue'));
 function ctxStub(){const g={addColorStop(){}};return new Proxy({},{get(t,p){
   if(/createLinear|createRadial|createConic/.test(p))return()=>g; return ()=>{};}});}
 const els={};
@@ -92,13 +93,13 @@ let q=0; while(R.phase==='shoot' && q++<240){ frames(1); if(q===200) R.settle();
 if(R.phase==='aim'){ R.fire(-Math.PI/2); ok(R.queue()===0,'second shot consumes the remaining charge'); }
 else ok(true,'second charge retained until next shot');
 
-// power tiers ramp by reflection count: 10->2, 20->3, 30->4, 40->5, 50->6 (爆破波動)
+// power tiers ramp by reflection count: 10->2, 20->3, 30->4, 40->5, 60->6 (爆破波動)
 ok(R.tierFor(0)===1 && R.tierFor(9)===1,'below 10 reflections stays power 1');
 ok(R.tierFor(10)===2,'10 reflections -> power 2');
 ok(R.tierFor(20)===3,'20 reflections -> power 3');
 ok(R.tierFor(30)===4,'30 reflections -> power 4');
-ok(R.tierFor(40)===5,'40 reflections -> power 5');
-ok(R.tierFor(50)===6 && R.tierFor(99)===6,'50+ reflections -> power 6 (爆破波動)');
+ok(R.tierFor(40)===5 && R.tierFor(59)===5,'40-59 reflections -> power 5');
+ok(R.tierFor(60)===6 && R.tierFor(99)===6,'60+ reflections -> power 6 (爆破波動)');
 
 // default ball grows +1px per 10 rescued; at MAX it wraps to base size & power+1
 R.start(); frames(2);
@@ -131,18 +132,18 @@ ok(R.freezeT()>0.5,'全消しで約0.8秒のお祝い停止に入る');
 let pf=0; while(R.freezeT()>0 && pf++<90) frames(1); frames(3);
 ok(R.info().blocks>0,'お祝い停止のあと新しい行が出る');
 
-// 50th reflection (火力6) cinematic: freeze ~1s, show 「加速」, then accelerate
+// 60th reflection (火力6) cinematic: freeze ~1s, show 「加速」, then accelerate
 R.start(); frames(2);
-const d50=R.accelTo50();
-ok(d50===6,'50th reflection reaches 火力6');
-ok(R.freezeT()>0.55,'50th reflection freezes time (~0.7s)');
+const d50=R.accelTo60();
+ok(d50===6,'60th reflection reaches 火力6');
+ok(R.freezeT()>0.55,'60th reflection freezes time (~0.7s)');
 ok(R.bigName()==='加速','「加速」 cinematic text appears');
 frames(30); ok(R.freezeT()>0,'still frozen mid-cinematic');
 frames(60); ok(R.freezeT()===0,'freeze releases (~0.7s) then accelerates');
 ok(R.ballDmg()>=15,'after 加速 the ball becomes a piercing meteor (火力'+R.ballDmg()+')');
 ok(R.testPierceKill()===true,'加速メテオ destroys any block it pierces, ignoring HP');
-ok(R.testBoostBudget()===8,'加速メテオ vanishes after a capped 8 reflections ('+R.testBoostBudget()+')');
-{ const ob=R.testOnlyOneBoosted(); ok(ob.self&&!ob.other,'only the 50-reflection ball boosts; other balls stay normal'); }
+ok(R.testBoostBudget()===5,'加速メテオ vanishes after a capped 5 reflections ('+R.testBoostBudget()+')');
+{ const ob=R.testOnlyOneBoosted(); ok(ob.self&&!ob.other,'only the 60-reflection ball boosts; other balls stay normal'); }
 { const cf=R.testChainFreeze(); ok(cf[0]===0.3&&cf[1]===0.3&&cf[2]===0.7,'3連続加速は 0.3→0.3→0.7 で停止 ('+cf.join(',')+')'); }
 ok(R.testIsoFreeze()===0.7,'単発（バラバラ）加速は通常の0.7秒停止');
 { const sk=R.testInstantSkip();
