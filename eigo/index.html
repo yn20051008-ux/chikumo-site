@@ -127,6 +127,8 @@ h1.title{font-size:clamp(30px,10vw,56px);font-weight:900;letter-spacing:.05em;li
   border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:#f0e4ec;}
 .tier.sel{border-color:#ffd98a;background:rgba(255,217,138,.2);color:#fff;}
 .crs-row .tier.sel{border-color:#ff8ad0;background:rgba(255,138,208,.22);}
+.crs-row .tiers{flex-wrap:wrap;gap:5px;}
+.crs-row .tier{flex:0 0 auto;padding:7px 11px;}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;border:none;
   font-weight:900;letter-spacing:.05em;color:#1a1226;border-radius:999px;
   background:linear-gradient(180deg,#ffe7a6,#ffc24d 70%,#ff8ad0);box-shadow:0 10px 26px rgba(255,160,80,.3),inset 0 1px 0 rgba(255,255,255,.6);}
@@ -230,7 +232,7 @@ h1.title{font-size:clamp(30px,10vw,56px);font-weight:900;letter-spacing:.05em;li
     <div class="title-sub">COCCO EIGO ─ 親子で英語を学び直す</div>
     <div class="how">
       <b>コース</b>をえらんで、英語と意味を<b>結ぶ</b>（縁）。<br>
-      <b>単語・英会話・生活・ビジネス</b>、それぞれ<b>5段階</b>。<br>
+      <b>9コース</b>（単語・英会話・生活・ビジネス・旅行・句動詞・IT・ことわざ・学校）、それぞれ<b>5段階</b>。<br>
       <span class="s">スマホを机に置いて<b>向かい合って</b>（手前＝おや／向かい＝こ）。<br>
       親子それぞれスタート段を選べる。親は上級レベルまで。<br>
       敵は「忘却」だけ。60秒で焼き切り、二人で。</span>
@@ -335,9 +337,59 @@ h1.title{font-size:clamp(30px,10vw,56px);font-weight:900;letter-spacing:.05em;li
         ['見積もり','estimate',2],['請求書','invoice',2],['契約','contract',2],['納期','delivery date',2],['値引き','discount',2],['在庫','stock',2],
         ['折り返します',"I'll call you back",3],['ご検討ください','Please consider it',3],['承知しました','Understood',3],['確認します',"I'll check",3],['引き継ぎ','handover',3],['前向きに','positively',3],
         ['損益','profit and loss',4],['株主','shareholder',4],['四半期','quarter',4],['買収','acquisition',4],['利害関係者','stakeholder',4],['決算','settlement',4]
+      ]},
+    ryoko:{ name:'旅行', sub:'日本語→英語（トラベル）', ask:'を 英語で？',
+      bandL:['空港・機内','ホテル','移動・道案内','レストラン','トラブル'],
+      tiers:[['空港',0],['ホテル',1],['移動',2],['食事',3],['困った',4]],
+      raw:[
+        ['搭乗券','boarding pass',0],['手荷物','baggage',0],['出発','departure',0],['到着','arrival',0],['税関','customs',0],['座席','seat',0],
+        ['予約','reservation',1],['受付','front desk',1],['鍵','key',1],['部屋','room',1],['朝食付き','breakfast included',1],['会計','check-out',1],
+        ['切符','ticket',2],['地図','map',2],['まっすぐ','straight',2],['右に曲がる','turn right',2],['のりかえ','transfer',2],['片道','one way',2],
+        ['メニュー','menu',3],['注文','order',3],['お会計','the bill',3],['おすすめ','recommendation',3],['持ち帰り','takeout',3],['飲み放題','all-you-can-drink',3],
+        ['道に迷った',"I'm lost",4],['盗まれた','It was stolen',4],['体調が悪い','I feel sick',4],['助けて','Help',4],['警察','police',4],['大使館','embassy',4]
+      ]},
+    kudoshi:{ name:'句動詞', sub:'英→意味', ask:'の 意味は？',
+      bandL:['基本','日常','やや難','上級','最上級'],
+      tiers:[['基本',0],['日常',1],['やや難',2],['上級',3],['最上',4]],
+      raw:[
+        ['get up','起きる',0],['sit down','すわる',0],['stand up','立つ',0],['come in','入ってくる',0],['go out','出かける',0],['put on','身につける',0],
+        ['look for','さがす',1],['give up','あきらめる',1],['turn on','（スイッチを）つける',1],['turn off','消す',1],['wake up','目をさます',1],['pick up','迎えに行く',1],
+        ['find out','見つけ出す',2],['take off','離陸する',2],['put off','延期する',2],['run out','使い果たす',2],['set up','設置する',2],['break down','故障する',2],
+        ['carry out','実行する',3],['bring up','育てる',3],['look up to','尊敬する',3],['come up with','思いつく',3],['get along with','仲良くする',3],['put up with','がまんする',3],
+        ['account for','説明する',4],['cut down on','減らす',4],['look forward to','楽しみにする',4],['make up for','埋め合わせる',4],['do away with','廃止する',4],['come down with','（病気に）かかる',4]
+      ]},
+    it:{ name:'IT', sub:'日本語→英語（テック）', ask:'を 英語で？',
+      bandL:['基本操作','ネット','機器・用語','プログラミング','専門'],
+      tiers:[['基本',0],['ネット',1],['機器',2],['開発',3],['専門',4]],
+      raw:[
+        ['ファイル','file',0],['保存','save',0],['削除','delete',0],['検索','search',0],['設定','settings',0],['更新','update',0],
+        ['ダウンロード','download',1],['アップロード','upload',1],['パスワード','password',1],['接続','connection',1],['共有','share',1],['通知','notification',1],
+        ['端末','device',2],['容量','storage',2],['画面','screen',2],['電源','power',2],['充電','charge',2],['再起動','restart',2],
+        ['変数','variable',3],['関数','function',3],['配列','array',3],['繰り返し','loop',3],['条件','condition',3],['引数','argument',3],
+        ['計算量','complexity',4],['暗号化','encryption',4],['機械学習','machine learning',4],['人工知能','artificial intelligence',4],['並列処理','parallel processing',4],['再帰','recursion',4]
+      ]},
+    kotowaza:{ name:'ことわざ', sub:'英ことわざ→意味', ask:'の 意味は？',
+      bandL:['有名','定番','やや難','上級','難'],
+      tiers:[['有名',0],['定番',1],['やや難',2],['上級',3],['難',4]],
+      raw:[
+        ['Time is money.','時は金なり',0],['Practice makes perfect.','習うより慣れろ',0],['Better late than never.','遅くてもやらないよりまし',0],['Seeing is believing.','百聞は一見にしかず',0],['No pain, no gain.','苦労なくして得るものなし',0],['Easy come, easy go.','悪銭身につかず',0],
+        ['When in Rome, do as the Romans do.','郷に入っては郷に従え',1],['The early bird catches the worm.','早起きは三文の徳',1],['Birds of a feather flock together.','類は友を呼ぶ',1],['Actions speak louder than words.','不言実行',1],['Look before you leap.','転ばぬ先の杖',1],['Honesty is the best policy.','正直は最善の策',1],
+        ["Don't count your chickens before they hatch.",'取らぬ狸の皮算用',2],['A rolling stone gathers no moss.','転石苔むさず',2],['Kill two birds with one stone.','一石二鳥',2],['Out of sight, out of mind.','去る者は日々に疎し',2],['Every cloud has a silver lining.','苦あれば楽あり',2],['Strike while the iron is hot.','鉄は熱いうちに打て',2],
+        ['The grass is always greener on the other side.','隣の芝は青い',3],["Don't put all your eggs in one basket.",'リスクは分散せよ',3],['When it rains, it pours.','悪いことは重なる',3],['Necessity is the mother of invention.','必要は発明の母',3],["Rome wasn't built in a day.",'ローマは一日にして成らず',3],['Two heads are better than one.','三人寄れば文殊の知恵',3],
+        ['A bird in the hand is worth two in the bush.','明日の百より今日の五十',4],["Don't bite the hand that feeds you.",'恩をあだで返すな',4],['Let sleeping dogs lie.','触らぬ神に祟りなし',4],['The pen is mightier than the sword.','ペンは剣よりも強し',4],['All that glitters is not gold.','光るもの必ずしも金ならず',4],['Fortune favors the bold.','幸運は勇者に味方する',4]
+      ]},
+    school:{ name:'学校', sub:'日本語→英語（学校）', ask:'を 英語で？',
+      bandL:['教室','教科','学校生活','行事・部活','進路・学術'],
+      tiers:[['教室',0],['教科',1],['生活',2],['行事',3],['進路',4]],
+      raw:[
+        ['黒板','blackboard',0],['机','desk',0],['椅子','chair',0],['教科書','textbook',0],['鉛筆','pencil',0],['消しゴム','eraser',0],
+        ['数学','math',1],['理科','science',1],['社会','social studies',1],['体育','PE',1],['音楽','music',1],['美術','art',1],
+        ['宿題','homework',2],['試験','exam',2],['成績','grade',2],['時間割','timetable',2],['休み時間','break',2],['給食','school lunch',2],
+        ['運動会','sports day',3],['文化祭','school festival',3],['遠足','field trip',3],['部活','club activity',3],['卒業','graduation',3],['入学','admission',3],
+        ['大学','university',4],['専攻','major',4],['奨学金','scholarship',4],['論文','thesis',4],['講義','lecture',4],['出席','attendance',4]
       ]}
   };
-  var COURSE_KEYS=['tango','kaiwa','seikatsu','business'];
+  var COURSE_KEYS=['tango','kaiwa','seikatsu','business','ryoko','kudoshi','it','kotowaza','school'];
 
   /* ---- 現在のコース状態 ---- */
   var curKey='tango', CUR=COURSES.tango, IT=[], ansByBand=[], ALLANS=[], BANDL=[], ASK='';
