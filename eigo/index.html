@@ -16,7 +16,7 @@
     try{window.AudioContext=P;}catch(e){}
     try{if(window.webkitAudioContext)window.webkitAudioContext=P;}catch(e){}
   }
-  function kill(){for(var i=0;i<ctxs.length;i++){var c=ctxs[i];try{c.suspend();}catch(e){}try{c.close();}catch(e){}}ctxs=[];}
+  function kill(){for(var i=0;i<ctxs.length;i++){var c=ctxs[i];try{c.suspend();}catch(e){}try{c.close();}catch(e){}}ctxs=[];try{if(window.speechSynthesis)window.speechSynthesis.cancel();}catch(e){}}
   window.addEventListener('pagehide',kill);
   window.addEventListener('pageshow',function(e){if(e.persisted)window.location.reload();});
 })();
@@ -243,6 +243,7 @@ h1.title{font-size:clamp(30px,10vw,56px);font-weight:900;letter-spacing:.05em;li
       <div class="row"><span class="who p">おや から</span><div class="tiers" id="tiersP" data-who="p"></div></div>
     </div>
     <button class="btn big" id="btnStart">▶ はじめる</button>
+    <button class="btn ghost" id="btnTTS">🔊 答えを読み上げ：ON</button>
     <button class="btn ghost" id="btnRankTitle">🏆 世界ランキング</button>
     <div class="foot-link"><a href="/">← 畜物語のしまへ</a></div>
   </div>
@@ -493,6 +494,27 @@ h1.title{font-size:clamp(30px,10vw,56px);font-weight:900;letter-spacing:.05em;li
   function sfxBless(){ [392,493.88,587.33,783.99].forEach(function(f,i){ setTimeout(function(){ tone(f,1.6,'sine',0.12); },i*90); }); }
   function vib(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
 
+  /* ---- 読み上げ（英語の音）: 回答するたび正しい英語を耳で結ぶ ---- */
+  var TTS=('speechSynthesis' in window) && (typeof window.SpeechSynthesisUtterance!=='undefined');
+  var ttsOn=true; try{ if(localStorage.getItem('coccoEigoTTS')==='0') ttsOn=false; }catch(e){}
+  var enVoice=null;
+  function pickVoice(){ if(!TTS) return; var vs=[]; try{ vs=window.speechSynthesis.getVoices()||[]; }catch(e){ vs=[]; }
+    enVoice=null;
+    for(var i=0;i<vs.length;i++){ if(/^en[-_]us/i.test(vs[i].lang)){ enVoice=vs[i]; break; } }
+    if(!enVoice) for(var j=0;j<vs.length;j++){ if(/^en/i.test(vs[j].lang)){ enVoice=vs[j]; break; } }
+  }
+  if(TTS){ pickVoice(); try{ window.speechSynthesis.onvoiceschanged=pickVoice; }catch(e){} }
+  function speak(txt){ if(!TTS||!ttsOn||!txt) return;
+    try{ window.speechSynthesis.cancel();
+      var u=new window.SpeechSynthesisUtterance(String(txt));
+      u.lang='en-US'; if(enVoice) u.voice=enVoice; u.rate=0.92; u.pitch=1.0; u.volume=1.0;
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+  function ttsStop(){ if(!TTS) return; try{ window.speechSynthesis.cancel(); }catch(e){} }
+  /* その問いの「英語の側」を返す。「を 英語で？」系は答え側、それ以外（意味/反対）は問い側が英語。 */
+  function engText(q){ if(!q) return ''; return (ASK.indexOf('英語')>=0) ? q.correct : (q.item&&q.item.q); }
+
   /* ---- 状態 ---- */
   var GAME_TIME=60;
   var startTier={p:2,c:0};
@@ -537,6 +559,7 @@ h1.title{font-size:clamp(30px,10vw,56px);font-weight:900;letter-spacing:.05em;li
       burst(cx,cy,'#ff6b6b',10);
     }
     ln.shadowEl.classList.toggle('show', ln.shadow>=2);
+    speak(engText(ln.q));
     renderLane(ln);
   }
 
@@ -552,7 +575,7 @@ h1.title{font-size:clamp(30px,10vw,56px);font-weight:900;letter-spacing:.05em;li
     $('play').style.display='flex'; hide('ovTitle'); hide('ovRankView'); hide('ovOver');
     audioInit(); if(ac&&ac.state==='suspended') ac.resume(); startPad();
   }
-  function endGame(){ state='over'; stopPad(); setTimeout(function(){ sfxBless(); showResult(); }, 900); $('play').style.display='none'; }
+  function endGame(){ state='over'; stopPad(); ttsStop(); setTimeout(function(){ sfxBless(); showResult(); }, 900); $('play').style.display='none'; }
 
   /* ---- ループ＆演出（ただようアルファベット） ---- */
   var lastSec=-1, lastT=0;
@@ -624,6 +647,16 @@ h1.title{font-size:clamp(30px,10vw,56px);font-weight:900;letter-spacing:.05em;li
     $('choicesC').onclick=function(e){ var b=e.target.closest('.choice'); if(b&&lanes.c) answer(lanes.c, decodeURIComponent(b.getAttribute('data-v'))); };
   }
   loadCourse('tango'); bindLanes(); buildCourses(); buildTiers();
+  function syncTTSBtn(){ var b=$('btnTTS'); if(!b) return;
+    if(!TTS){ b.textContent='🔇 読み上げ非対応の端末'; b.disabled=true; b.style.opacity='.5'; return; }
+    b.textContent = ttsOn ? '🔊 答えを読み上げ：ON' : '🔇 答えを読み上げ：OFF';
+  }
+  syncTTSBtn();
+  $('btnTTS').addEventListener('click', function(){ if(!TTS) return; ttsOn=!ttsOn;
+    try{ localStorage.setItem('coccoEigoTTS', ttsOn?'1':'0'); }catch(e){}
+    if(!ttsOn) ttsStop(); else speak('OK'); /* ONにした瞬間に声を出して、許可と動作を確かめる */
+    syncTTSBtn();
+  });
   $('btnStart').addEventListener('click', startGame);
   $('btnRetry').addEventListener('click', function(){ show('ovTitle'); hide('ovOver'); buildCourses(); buildTiers(); });
   $('btnRankTitle').addEventListener('click', function(){ hide('ovTitle'); show('ovRankView'); if(window.CoccoRank) window.CoccoRank.onShowRanking(); });
