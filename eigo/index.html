@@ -22,8 +22,8 @@
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>コッコ英語（えいご） ─ COCCO EIGO｜親子で英単語を学び直す60秒</title>
-<meta name="description" content="中学英単語からアカデミック語彙・語源まで。英単語とその意味を結ぶ＝縁。親子で英語の階段をのぼる60秒の学習ゲーム。親も大学院レベルまで学び直しできる。世界ランキングつき。無料ブラウザゲーム。">
+<title>コッコ英語（えいご） ─ COCCO EIGO｜親子で英語を学び直す60秒（単語・英会話・生活・ビジネス）</title>
+<meta name="description" content="単語・英会話・生活・ビジネスの4コース、各5段階。英単語やフレーズと意味を結ぶ＝縁。親子で英語の階段をのぼる60秒の学習ゲーム。親も大学院・上級レベルまで学び直しできる。世界ランキングつき。無料ブラウザゲーム。">
 <meta name="author" content="畜物語">
 <meta name="robots" content="index, follow">
 <meta name="color-scheme" content="dark">
@@ -33,13 +33,13 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://chikumo.jp/eigo/">
 <meta property="og:title" content="コッコ英語（えいご） ─ COCCO EIGO">
-<meta property="og:description" content="英単語と意味を結ぶ＝縁。中学英単語から大学院レベルの学術語彙まで。親子で英語を学び直す60秒。">
+<meta property="og:description" content="単語・英会話・生活・ビジネスの4コース×5段階。親子で英語を学び直す60秒。親も上級レベルまで。">
 <meta property="og:image" content="https://chikumo.jp/ogp.png">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:site_name" content="畜物語">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="コッコ英語（えいご） ─ COCCO EIGO">
-<meta name="twitter:description" content="英単語と意味を結ぶ英語ゲーム。中学英単語から大学院レベルまで、親子で学び直す60秒。">
+<meta name="twitter:description" content="単語・英会話・生活・ビジネスの4コース×5段階。親子で英語を学び直す60秒。">
 <meta name="twitter:image" content="https://chikumo.jp/ogp.png">
 <link rel="icon" type="image/svg+xml" href="/chikumo.svg">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -83,7 +83,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1a0c18;
 .lane.p .streak{color:#ffd98a;} .lane.c .streak{color:#ffb8e0;}
 
 .prompt{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-align:center;padding:6px 4px 8px;}
-.frontev{font-size:clamp(22px,7vw,36px);font-weight:900;line-height:1.18;letter-spacing:.01em;}
+.frontev{font-size:clamp(18px,5.6vw,30px);font-weight:900;line-height:1.18;letter-spacing:.01em;}
 .askn{font-size:12px;color:#e4c0d8;margin-top:2px;font-weight:700;}
 .lane.flash-ok{animation:fok .45s;} .lane.flash-ng{animation:fng .4s;}
 @keyframes fok{0%{box-shadow:0 0 0 0 rgba(140,255,170,.0);}30%{box-shadow:inset 0 0 40px 6px rgba(120,255,160,.5);}100%{box-shadow:none;}}
@@ -93,7 +93,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1a0c18;
 
 .choices{flex:1;display:flex;flex-direction:column;gap:7px;justify-content:center;min-height:0;}
 .choice{position:relative;cursor:pointer;border:none;border-radius:13px;padding:11px 12px;text-align:left;
-  font-size:clamp(14px,4.4vw,17px);font-weight:800;color:#22180c;line-height:1.2;display:flex;align-items:center;gap:9px;
+  font-size:clamp(13px,4.1vw,16px);font-weight:800;color:#22180c;line-height:1.22;display:flex;align-items:center;gap:9px;
   background:linear-gradient(180deg,#ffe7a6,#ffc24d 82%);box-shadow:0 4px 0 rgba(180,120,40,.5),0 7px 12px rgba(0,0,0,.28);}
 .lane.c .choice{color:#2a0c20;background:linear-gradient(180deg,#ffcae8,#ff8ad0 82%);box-shadow:0 4px 0 rgba(160,60,120,.5),0 7px 12px rgba(0,0,0,.28);}
 .choice:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(180,120,40,.5);}
@@ -111,25 +111,26 @@ html,body{width:100%;height:100%;overflow:hidden;background:#1a0c18;
   -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
 .ov.hidden{display:none;}
 .brand{font-size:11.5px;letter-spacing:.34em;color:#cc90b4;text-transform:uppercase;margin-bottom:12px;}
-h1.title{font-size:clamp(32px,11vw,60px);font-weight:900;letter-spacing:.05em;line-height:1.04;
+h1.title{font-size:clamp(30px,10vw,56px);font-weight:900;letter-spacing:.05em;line-height:1.04;
   background:linear-gradient(180deg,#fff4d6,#ffd98a 50%,#ff8ad0 96%);
   -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 6px 22px rgba(0,0,0,.5));}
 .title-sub{margin-top:7px;font-size:12.5px;letter-spacing:.16em;color:#e4c0d8;}
-.how{margin:16px auto 2px;max-width:450px;font-size:13.5px;line-height:1.95;color:#f0e4ec;
-  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:13px 15px;}
+.how{margin:14px auto 2px;max-width:450px;font-size:13px;line-height:1.9;color:#f0e4ec;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:12px 15px;}
 .how b{color:#ffd98a;} .how .s{font-size:11.5px;color:#e4c0d8;}
-.picker{margin:14px auto 0;max-width:450px;width:100%;}
-.picker .row{display:flex;align-items:center;gap:8px;margin:8px 0;}
-.picker .who{width:74px;text-align:left;font-size:13px;font-weight:900;flex:none;}
-.picker .who.p{color:#ffcf6b;} .picker .who.c{color:#ff8ad0;}
+.picker{margin:12px auto 0;max-width:460px;width:100%;}
+.picker .row{display:flex;align-items:center;gap:8px;margin:7px 0;}
+.picker .who{width:62px;text-align:left;font-size:12.5px;font-weight:900;flex:none;}
+.picker .who.p{color:#ffcf6b;} .picker .who.c{color:#ff8ad0;} .picker .who.crs{color:#ffd98a;}
 .tiers{display:flex;gap:5px;flex:1;}
 .tier{flex:1;font-size:11px;font-weight:800;padding:8px 1px;border-radius:10px;cursor:pointer;
   border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.05);color:#f0e4ec;}
 .tier.sel{border-color:#ffd98a;background:rgba(255,217,138,.2);color:#fff;}
+.crs-row .tier.sel{border-color:#ff8ad0;background:rgba(255,138,208,.22);}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;border:none;
   font-weight:900;letter-spacing:.05em;color:#1a1226;border-radius:999px;
   background:linear-gradient(180deg,#ffe7a6,#ffc24d 70%,#ff8ad0);box-shadow:0 10px 26px rgba(255,160,80,.3),inset 0 1px 0 rgba(255,255,255,.6);}
-.btn.big{font-size:21px;padding:15px 44px;margin-top:18px;}
+.btn.big{font-size:21px;padding:15px 44px;margin-top:16px;}
 .btn.ghost{background:rgba(255,255,255,.08);color:#f0e4ec;border:1px solid rgba(255,255,255,.2);box-shadow:none;font-size:14px;padding:11px 22px;font-weight:700;margin-top:12px;}
 .btn:active{transform:translateY(2px) scale(.99);}
 .foot-link{margin-top:16px;font-size:12px;letter-spacing:.14em;}
@@ -204,7 +205,7 @@ h1.title{font-size:clamp(32px,11vw,60px);font-weight:900;letter-spacing:.05em;li
         <div class="lane-head">
           <span class="lane-who"><img src="/chikumo.svg" alt="">こ</span>
           <span class="streak" id="streakC"></span>
-          <span class="lane-topic"><b>いまの段</b><span id="topicC">—</span></span>
+          <span class="lane-topic"><b id="courseLabelC">いまの段</b><span id="topicC">—</span></span>
         </div>
         <div class="prompt" id="promptC">—</div>
         <div class="choices" id="choicesC"></div>
@@ -214,7 +215,7 @@ h1.title{font-size:clamp(32px,11vw,60px);font-weight:900;letter-spacing:.05em;li
         <div class="lane-head">
           <span class="lane-who"><img src="/chikumo.svg" alt="">おや</span>
           <span class="streak" id="streakP"></span>
-          <span class="lane-topic"><b>いまの段</b><span id="topicP">—</span></span>
+          <span class="lane-topic"><b id="courseLabelP">いまの段</b><span id="topicP">—</span></span>
         </div>
         <div class="prompt" id="promptP">—</div>
         <div class="choices" id="choicesP"></div>
@@ -226,16 +227,16 @@ h1.title{font-size:clamp(32px,11vw,60px);font-weight:900;letter-spacing:.05em;li
   <div class="ov" id="ovTitle">
     <div class="brand">畜物語 ─ CHIKUMO</div>
     <h1 class="title">コッコ英語</h1>
-    <div class="title-sub">COCCO EIGO ─ 親子で英単語を学び直す</div>
+    <div class="title-sub">COCCO EIGO ─ 親子で英語を学び直す</div>
     <div class="how">
-      英単語と、その<b>意味</b>を<b>結ぶ</b> ── 縁。<br>
-      正しい意味のこっこをえらんで、<b>📖英語の階段</b>をのぼろう。<br>
-      中学英単語 → 高校 → 受験 → 大学 → <b>学術語彙</b>。<br>
-      <span class="s">スマホを机に置いて<b>向かい合って</b>あそぼう。<br>手前（下）＝おや、向かい側（上・逆向き）＝こ。<br>
-      敵は <b>「忘却」＝自分の影</b> だけ。正しく結ぶ光で焼ける。<br>
-      60秒で焼き切り。親は大学院レベルまで、二人で。</span>
+      <b>コース</b>をえらんで、英語と意味を<b>結ぶ</b>（縁）。<br>
+      <b>単語・英会話・生活・ビジネス</b>、それぞれ<b>5段階</b>。<br>
+      <span class="s">スマホを机に置いて<b>向かい合って</b>（手前＝おや／向かい＝こ）。<br>
+      親子それぞれスタート段を選べる。親は上級レベルまで。<br>
+      敵は「忘却」だけ。60秒で焼き切り、二人で。</span>
     </div>
     <div class="picker">
+      <div class="row crs-row"><span class="who crs">コース</span><div class="tiers" id="courses"></div></div>
       <div class="row"><span class="who c">こ から</span><div class="tiers" id="tiersC" data-who="c"></div></div>
       <div class="row"><span class="who p">おや から</span><div class="tiers" id="tiersP" data-who="p"></div></div>
     </div>
@@ -285,44 +286,70 @@ h1.title{font-size:clamp(32px,11vw,60px);font-weight:900;letter-spacing:.05em;li
 
 <script>
 /* ================= コッコ英語（COCCO EIGO） ─ 本体 =================
-   英語＝十四式 ⑦ 縁（えん）：二つが結ばれる。英単語と、その意味を結ぶ。
-   正しく結ぶたび英語の階段をのぼる。差分（記憶）が積む。地球(地理)・生命(生物)に連なる縁の作。
-   敵は逆縁＝「忘却」＝自分の影（ブラックこっこ）だけ。正しく結ぶ光が焼く。
-   60秒で焼き切る（焔の形）。0:00で無音→のぼった段が残る（終を售る）。            */
+   英語＝十四式 ⑦ 縁（えん）：二つが結ばれる。英単語/フレーズと、その意味を結ぶ。
+   コースは 単語・英会話・生活・ビジネス の4つ、各5段階。正しく結ぶたび階段をのぼる。
+   敵は逆縁＝「忘却」＝自分の影だけ。60秒で焼き切る（焔の形）。0:00で無音→段が残る（終を售る）。*/
 "use strict";
 (function(){
   var $=function(id){return document.getElementById(id);};
   function shuffle(a){ for(var i=a.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=a[i];a[i]=a[j];a[j]=t; } return a; }
 
-  /* ---- 出題。[英単語, 意味, 段band]。意味は段内で重複させない ---- */
-  var BANDS=[
-    {t:'中学英単語（基礎）', ask:'の 意味は？'},
-    {t:'中学〜高校', ask:'の 意味は？'},
-    {t:'高校（受験頻出）', ask:'の 意味は？'},
-    {t:'大学受験・TOEIC', ask:'の 意味は？'},
-    {t:'大学・アカデミック', ask:'の 意味は？'},
-    {t:'大学院・学術語彙', ask:'の 意味は？'}
-  ];
-  var BANDL=BANDS.map(function(b){return b.t;});
-  var RAW=[
-    ['apple','りんご',0],['run','走る',0],['big','大きい',0],['water','水',0],['friend','友だち',0],
-    ['happy','幸せな',0],['eat','食べる',0],['school','学校',0],['book','本',0],['dog','犬',0],
-    ['decide','決める',1],['important','重要な',1],['remember','思い出す',1],['difficult','難しい',1],['finish','終える',1],
-    ['beautiful','美しい',1],['understand','理解する',1],['dangerous','危険な',1],['improve','改善する',1],['similar','似ている',1],
-    ['consider','よく考える',2],['achieve','達成する',2],['obvious','明らかな',2],['increase','増える',2],['reduce','減らす',2],
-    ['prevent','防ぐ',2],['require','必要とする',2],['available','利用できる',2],['certain','確実な',2],['recognize','見分ける',2],
-    ['consequence','結果',3],['sufficient','十分な',3],['hesitate','ためらう',3],['eliminate','取り除く',3],['fundamental','基本的な',3],
-    ['vague','あいまいな',3],['accumulate','蓄積する',3],['deliberate','意図的な',3],['inevitable','避けられない',3],['comply','従う',3],
-    ['empirical','経験にもとづく',4],['paradigm','枠組み・範例',4],['coherent','首尾一貫した',4],['plausible','もっともらしい',4],['arbitrary','恣意的な',4],
-    ['robust','頑健な',4],['derive','導き出す',4],['hypothesis','仮説',4],['ambiguous','あいまいな',4],['novel','新規の',4],
-    ['ubiquitous','遍在する',5],['esoteric','難解な',5],['nuance','微妙な差',5],['juxtapose','並置する',5],['ostensible','表向きの',5],
-    ['salient','顕著な',5],['mitigate','緩和する',5],['epistemology','認識論',5],['heuristic','発見的な',5],['cogent','説得力のある',5]
-  ];
-  var IT=RAW.map(function(r){ return {q:r[0], a:r[1], b:r[2]}; });
-  var ansByBand=[[],[],[],[],[],[]]; var ALLANS=[];
-  IT.forEach(function(it){ ansByBand[it.b].push(it.a); ALLANS.push(it.a); });
+  /* ---- コース定義。各5段階。[問い, 答え, 段] ---- */
+  var COURSES={
+    tango:{ name:'単語', sub:'英→意味', ask:'の 意味は？',
+      bandL:['中学（基礎）','高校','大学受験・TOEIC','大学・アカデミック','大学院・学術語彙'],
+      tiers:[['中学',0],['高校',1],['受験',2],['大学',3],['院',4]],
+      raw:[
+        ['apple','りんご',0],['run','走る',0],['big','大きい',0],['friend','友だち',0],['happy','幸せな',0],['school','学校',0],
+        ['decide','決める',1],['important','重要な',1],['improve','改善する',1],['difficult','難しい',1],['similar','似ている',1],['dangerous','危険な',1],
+        ['consider','よく考える',2],['achieve','達成する',2],['prevent','防ぐ',2],['available','利用できる',2],['recognize','見分ける',2],['sufficient','十分な',2],
+        ['empirical','経験にもとづく',3],['plausible','もっともらしい',3],['arbitrary','恣意的な',3],['coherent','首尾一貫した',3],['hypothesis','仮説',3],['derive','導き出す',3],
+        ['ubiquitous','遍在する',4],['esoteric','難解な',4],['mitigate','緩和する',4],['epistemology','認識論',4],['heuristic','発見的な',4],['salient','顕著な',4]
+      ]},
+    kaiwa:{ name:'英会話', sub:'日本語→英語フレーズ', ask:'を 英語で？',
+      bandL:['あいさつ','日常のやりとり','旅行','気持ち・意見','こなれた表現'],
+      tiers:[['あいさつ',0],['日常',1],['旅行',2],['気持ち',3],['上級',4]],
+      raw:[
+        ['はじめまして','Nice to meet you',0],['ありがとう','Thank you',0],['ごめんなさい',"I'm sorry",0],['おはよう','Good morning',0],['さようなら','Goodbye',0],['元気ですか？','How are you?',0],
+        ['いくらですか？','How much is it?',1],['トイレはどこ？','Where is the restroom?',1],['助けて！','Help!',1],['わかりません',"I don't understand",1],['もう一度お願い','Once more, please',1],['お名前は？',"What's your name?",1],
+        ['駅に行きたい','I want to go to the station',2],['予約しています','I have a reservation',2],['写真を撮って','Could you take a photo?',2],['道に迷いました',"I'm lost",2],['何時ですか？','What time is it?',2],['これをください',"I'll take this",2],
+        ['そう思います','I think so',3],['賛成です','I agree',3],['残念です',"That's too bad",3],['楽しみです',"I'm looking forward to it",3],['気にしないで','Never mind',3],['あなた次第です',"It's up to you",3],
+        ['考えさせて','Let me think about it',4],['場合によります','It depends',4],['念のため','Just in case',4],['正直に言うと','To be honest',4],['やっと終わった',"I'm finally done",4],['きっとうまくいく',"It'll be fine",4]
+      ]},
+    seikatsu:{ name:'生活', sub:'日本語→英語（くらし）', ask:'を 英語で？',
+      bandL:['家の中','食べもの','買い物・お金','健康・体調','暮らしの手続き'],
+      tiers:[['家',0],['食',1],['買物',2],['健康',3],['手続き',4]],
+      raw:[
+        ['台所','kitchen',0],['寝室','bedroom',0],['お風呂','bath',0],['冷蔵庫','refrigerator',0],['洗濯機','washing machine',0],['玄関','entrance',0],
+        ['朝食','breakfast',1],['野菜','vegetable',1],['飲み物','drink',1],['おやつ','snack',1],['食器','dishes',1],['残り物','leftovers',1],
+        ['値段','price',2],['割引','discount',2],['領収書','receipt',2],['おつり','change',2],['現金','cash',2],['棚','shelf',2],
+        ['風邪','cold',3],['頭痛','headache',3],['薬','medicine',3],['病院','hospital',3],['熱','fever',3],['処方箋','prescription',3],
+        ['家賃','rent',4],['請求書','bill',4],['契約','contract',4],['保険','insurance',4],['修理','repair',4],['近所','neighborhood',4]
+      ]},
+    business:{ name:'ビジネス', sub:'日本語→英語（仕事）', ask:'を 英語で？',
+      bandL:['基本','メール','商談','こなれた表現','上級・専門'],
+      tiers:[['基本',0],['メール',1],['商談',2],['こなれ',3],['上級',4]],
+      raw:[
+        ['会議','meeting',0],['締め切り','deadline',0],['同僚','colleague',0],['上司','boss',0],['部署','department',0],['給料','salary',0],
+        ['添付','attachment',1],['返信','reply',1],['議題','agenda',1],['議事録','minutes',1],['取引先','client',1],['出張','business trip',1],
+        ['見積もり','estimate',2],['請求書','invoice',2],['契約','contract',2],['納期','delivery date',2],['値引き','discount',2],['在庫','stock',2],
+        ['折り返します',"I'll call you back",3],['ご検討ください','Please consider it',3],['承知しました','Understood',3],['確認します',"I'll check",3],['引き継ぎ','handover',3],['前向きに','positively',3],
+        ['損益','profit and loss',4],['株主','shareholder',4],['四半期','quarter',4],['買収','acquisition',4],['利害関係者','stakeholder',4],['決算','settlement',4]
+      ]}
+  };
+  var COURSE_KEYS=['tango','kaiwa','seikatsu','business'];
+
+  /* ---- 現在のコース状態 ---- */
+  var curKey='tango', CUR=COURSES.tango, IT=[], ansByBand=[], ALLANS=[], BANDL=[], ASK='';
+  function loadCourse(key){
+    curKey=key; CUR=COURSES[key];
+    IT=CUR.raw.map(function(r){ return {q:r[0], a:r[1], b:r[2]}; });
+    BANDL=CUR.bandL; ASK=CUR.ask;
+    ansByBand=[[],[],[],[],[]]; ALLANS=[];
+    IT.forEach(function(it){ (ansByBand[it.b]=ansByBand[it.b]||[]).push(it.a); ALLANS.push(it.a); });
+    var cl=CUR.name+'：いまの段'; var a=$('courseLabelP'), b=$('courseLabelC'); if(a)a.textContent=cl; if(b)b.textContent=cl;
+  }
   function firstIdxOfBand(b){ for(var i=0;i<IT.length;i++){ if(IT[i].b>=b) return i; } return 0; }
-  var TIERS=[{k:'中学',b:0},{k:'高校',b:2},{k:'受験',b:3},{k:'大学',b:4},{k:'院',b:5}];
 
   function makeQ(idx){
     if(idx>=IT.length) return null;
@@ -356,7 +383,7 @@ h1.title{font-size:clamp(32px,11vw,60px);font-weight:900;letter-spacing:.05em;li
 
   /* ---- 状態 ---- */
   var GAME_TIME=60;
-  var startTier={p:3,c:0};                   // 既定：おや=受験 / こ=中学（band）
+  var startTier={p:2,c:0};
   var state='title', startMs=0, timeLeft=GAME_TIME, score=0, step=0;
   var parts=[], lanes={};
 
@@ -371,7 +398,7 @@ h1.title{font-size:clamp(32px,11vw,60px);font-weight:900;letter-spacing:.05em;li
     ln.streakEl.textContent=ln.streak>=2?('🔥'+ln.streak):'';
     var q=makeQ(ln.idx); ln.q=q;
     if(!q){ ln.done=true; ln.promptEl.innerHTML='<div class="frontev">📖 全問クリア！</div>'; ln.choicesEl.innerHTML=''; return; }
-    ln.promptEl.innerHTML='<div class="frontev">'+esc(q.item.q)+'</div><div class="askn">↓ '+esc(BANDS[q.item.b].ask)+'</div>';
+    ln.promptEl.innerHTML='<div class="frontev">'+esc(q.item.q)+'</div><div class="askn">↓ '+esc(ASK)+'</div>';
     var html='';
     for(var i=0;i<q.choices.length;i++) html+='<button class="choice" data-v="'+encodeURIComponent(q.choices[i])+'"><img class="ic" src="/chikumo.svg" alt="">'+esc(q.choices[i])+'</button>';
     ln.choicesEl.innerHTML=html;
@@ -447,21 +474,33 @@ h1.title{font-size:clamp(32px,11vw,60px);font-weight:900;letter-spacing:.05em;li
   function hide(id){ var e=$(id); if(e) e.classList.add('hidden'); }
   function show(id){ var e=$(id); if(e) e.classList.remove('hidden'); }
   function showResult(){
-    $('reachP').textContent=BANDL[lanes.p.maxB]; $('reachC').textContent=BANDL[lanes.c.maxB];
+    $('reachP').textContent=CUR.name+'・'+BANDL[lanes.p.maxB]; $('reachC').textContent=CUR.name+'・'+BANDL[lanes.c.maxB];
     $('overStep').textContent=step; $('overScore').textContent=score.toLocaleString();
     var hi=Math.max(lanes.p.maxB,lanes.c.maxB);
-    $('overBrand').textContent = hi>=5?'英語の頂へ' : hi>=3?'よく解いた' : 'またのぼろう';
-    $('overTitle').textContent = '「'+BANDL[hi]+'」まで';
+    $('overBrand').textContent = hi>=4?'英語の頂へ' : hi>=2?'よく解いた' : 'またのぼろう';
+    $('overTitle').textContent = '「'+CUR.name+'・'+BANDL[hi]+'」まで';
     show('ovOver');
-    if(window.CoccoRank) window.CoccoRank.onGameOver(score, Math.max(lanes.p.maxB,lanes.c.maxB), step);
+    if(window.CoccoRank) window.CoccoRank.onGameOver(score, hi, step, CUR.name+'・'+BANDL[hi]);
   }
 
+  /* ---- ピッカー ---- */
+  function buildCourses(){
+    var el=$('courses'); el.innerHTML='';
+    COURSE_KEYS.forEach(function(k){
+      var b=document.createElement('button'); b.className='tier'+(k===curKey?' sel':''); b.textContent=COURSES[k].name;
+      b.addEventListener('click',function(){ if(k===curKey) return; loadCourse(k);
+        var sib=el.querySelectorAll('.tier'); for(var i=0;i<sib.length;i++) sib[i].classList.remove('sel'); b.classList.add('sel');
+        startTier={p:Math.min(startTier.p,CUR.tiers.length-1), c:Math.min(startTier.c,CUR.tiers.length-1)};
+        buildTiers(); });
+      el.appendChild(b);
+    });
+  }
   function buildTiers(){
     ['p','c'].forEach(function(who){
       var el=$('tiers'+who.toUpperCase()); el.innerHTML='';
-      TIERS.forEach(function(tr){
-        var b=document.createElement('button'); b.className='tier'+(startTier[who]===tr.b?' sel':''); b.textContent=tr.k;
-        b.addEventListener('click',function(){ startTier[who]=tr.b;
+      CUR.tiers.forEach(function(tr){
+        var b=document.createElement('button'); b.className='tier'+(startTier[who]===tr[1]?' sel':''); b.textContent=tr[0];
+        b.addEventListener('click',function(){ startTier[who]=tr[1];
           var sib=el.querySelectorAll('.tier'); for(var i=0;i<sib.length;i++) sib[i].classList.remove('sel'); b.classList.add('sel'); });
         el.appendChild(b);
       });
@@ -472,9 +511,9 @@ h1.title{font-size:clamp(32px,11vw,60px);font-weight:900;letter-spacing:.05em;li
     $('choicesP').onclick=function(e){ var b=e.target.closest('.choice'); if(b&&lanes.p) answer(lanes.p, decodeURIComponent(b.getAttribute('data-v'))); };
     $('choicesC').onclick=function(e){ var b=e.target.closest('.choice'); if(b&&lanes.c) answer(lanes.c, decodeURIComponent(b.getAttribute('data-v'))); };
   }
-  bindLanes(); buildTiers();
+  loadCourse('tango'); bindLanes(); buildCourses(); buildTiers();
   $('btnStart').addEventListener('click', startGame);
-  $('btnRetry').addEventListener('click', function(){ show('ovTitle'); hide('ovOver'); buildTiers(); });
+  $('btnRetry').addEventListener('click', function(){ show('ovTitle'); hide('ovOver'); buildCourses(); buildTiers(); });
   $('btnRankTitle').addEventListener('click', function(){ hide('ovTitle'); show('ovRankView'); if(window.CoccoRank) window.CoccoRank.onShowRanking(); });
   $('btnRankBack').addEventListener('click', function(){ hide('ovRankView'); show('ovTitle'); });
 
@@ -499,8 +538,6 @@ h1.title{font-size:clamp(32px,11vw,60px);font-weight:900;letter-spacing:.05em;li
   var ref=db.ref('rankings/eigo');
   var SCORE_CAP=9999999;
   var NAME_KEY='coccoEigoName', UID_KEY='coccoEigoUid', FLAG_KEY='coccoEigoFlag';
-  var BANDL=['中学英単語（基礎）','中学〜高校','高校（受験頻出）','大学受験・TOEIC','大学・アカデミック','大学院・学術語彙'];
-  function labelOf(L){ L=Math.max(0,Math.min(5,L|0)); return BANDL[L]; }
   var selFlag='🇯🇵';
   function flagOf(cc){ return cc.replace(/./g,function(c){ return String.fromCodePoint(0x1F1E6+c.charCodeAt(0)-65); }); }
   var MAJOR=('JP US GB CA AU KR CN TW HK TH VN PH ID MY SG IN FR DE IT ES PT NL SE BR MX AR RU UA TR EG ZA SA NZ').split(' ').map(flagOf);
@@ -520,13 +557,13 @@ h1.title{font-size:clamp(32px,11vw,60px);font-weight:900;letter-spacing:.05em;li
     var el=$(elId); if(!el) return;
     if(!rows||!rows.length){ el.innerHTML='<li class="rankempty">まだ記録がありません</li>'; return; }
     el.innerHTML=rows.map(function(r,i){ var medal=['🥇','🥈','🥉'][i]||((i+1)+'.'); var fl=r.flag?esc(r.flag)+' ':'';
-      var lv=(r.lvl!=null)?' <span style="opacity:.6;font-size:10.5px">📖'+esc(labelOf(+r.lvl))+'</span>':'';
+      var lv=(r.stage)?' <span style="opacity:.6;font-size:10.5px">📖'+esc(r.stage)+'</span>':'';
       return '<li><span class="rk">'+medal+'</span><span class="rn">'+fl+esc(r.name)+lv+'</span><span class="rs">'+Number(r.score).toLocaleString()+'</span></li>';
     }).join('');
   }
   function loadTop(targets, after){
     ref.orderByChild('score').limitToLast(10000).once('value').then(function(snap){
-      var rows=[]; snap.forEach(function(c){ var v=c.val()||{}; rows.push({uid:c.key,name:v.name,flag:v.flag,score:+v.score||0,lvl:(v.lvl!=null?+v.lvl:null)}); });
+      var rows=[]; snap.forEach(function(c){ var v=c.val()||{}; rows.push({uid:c.key,name:v.name,flag:v.flag,score:+v.score||0,stage:v.stage||''}); });
       rows.sort(function(a,b){return b.score-a.score;}); targets.forEach(function(t){ renderInto(t,rows); }); if(after) after(rows);
     }).catch(function(){ targets.forEach(function(t){ var el=$(t); if(el) el.innerHTML='<li class="rankempty">読み込めませんでした</li>'; }); });
   }
@@ -577,17 +614,18 @@ h1.title{font-size:clamp(32px,11vw,60px);font-weight:900;letter-spacing:.05em;li
     var name=fmtName($('rankName')&&$('rankName').value), flag=selFlag||'🇯🇵';
     try{ localStorage.setItem(NAME_KEY,name); localStorage.setItem(FLAG_KEY,flag); }catch(e){}
     var score=Math.max(0,Math.min(SCORE_CAP,Math.floor(pending.score||0)));
-    var lvl=Math.max(0,Math.min(5,Math.floor(pending.lvl||0)));
+    var lvl=Math.max(0,Math.min(99,Math.floor(pending.lvl||0)));
+    var stage=String(pending.stage||'').slice(0,24);
     if(btn) btn.disabled=true;
     ref.child(uid()).transaction(function(cur){ if(cur && (cur.score||0)>=score){ cur.name=name; cur.flag=flag; return cur; }
-      return { name:name, flag:flag, score:score, lvl:lvl, ts:nowt }; }).then(function(res){
+      return { name:name, flag:flag, score:score, lvl:lvl, stage:stage, ts:nowt }; }).then(function(res){
       var kept = res && res.snapshot && (res.snapshot.val()||{}).score>score;
       if(msg){ msg.textContent = kept ? '自己ベスト('+Number((res.snapshot.val()||{}).score).toLocaleString()+')を表示中🏆' : '登録しました！🏆'; }
       pending=null; loadTop(['rankList'], celebrateMine);
     }).catch(function(){ if(msg){ msg.textContent='登録に失敗しました（接続を確認）'; } if(btn) btn.disabled=false; });
   }
-  function onGameOver(score, lvl){
-    pending={score:score, lvl:lvl}; var msg=$('rankMsg'); if(msg) msg.textContent='';
+  function onGameOver(score, lvl, step, stage){
+    pending={score:score, lvl:lvl, stage:stage}; var msg=$('rankMsg'); if(msg) msg.textContent='';
     var btn=$('rankSubmit'); if(btn) btn.disabled=false;
     var nm=$('rankName'); if(nm){ try{ nm.value=localStorage.getItem(NAME_KEY)||''; }catch(e){} }
     setFlag(selFlag); loadTop(['rankList']);

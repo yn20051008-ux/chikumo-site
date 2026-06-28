@@ -240,6 +240,7 @@
           "flag":  { ".validate": "newData.isString() && newData.val().length <= 16" },
           "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999999" },
           "lvl":   { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99" },
+          "stage": { ".validate": "newData.isString() && newData.val().length <= 24" },
           "ts":    { ".validate": "newData.isNumber()" },
           "$other": { ".validate": false }
         }
@@ -328,7 +329,7 @@
 - ベストスコアは **ブラウザ保存（localStorage）**、世界ランキングだけ **サーバー保存（Firebase）**。ノードは `rankings/match`（koro/poko 同様、匿名認証OFFの“オープン”状態でも登録は動く）。
 
 ## コッコ英語（/eigo/）について
-- 学習シリーズの英語版。英単語と意味を結ぶ（縁）。`score`=スコア、`lvl`=到達した最高段（0〜5）。ノードは `rankings/eigo`。仕組み・登録/閲覧は他の学習作と同じ。匿名認証OFFの“オープン”状態でも登録は動く。
+- 学習シリーズの英語版。**単語・英会話・生活・ビジネスの4コース×5段階**。`score`=スコア、`lvl`=到達した最高段（0〜4）、`stage`=到達した『コース・段』の表示用文字列（例「ビジネス・上級・専門」）。ノードは `rankings/eigo`（4コース共通の1ランキング）。仕組み・登録/閲覧は他の学習作と同じ。匿名認証OFFの“オープン”状態でも登録は動く。
 
 ## コッコ元素（/genso/）・コッコ生命（/seimei/）について
 - 学習シリーズの理科版。`score`=スコア、`lvl`=到達した最高段（0〜5）を段ラベルに変換して表示。仕組み・登録/閲覧は天秤/地球と同じ。
