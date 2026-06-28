@@ -113,7 +113,10 @@ ok(R.tierSpeed(2)===23,'火力2 → 速度23');
 ok(R.tierSpeed(3)===29,'火力3 → 速度29');
 ok(R.tierSpeed(4)===35,'火力4 → 速度35');
 ok(R.tierSpeed(5)===41,'火力5 → 速度41');
-ok(R.tierSpeed(6)===47,'メテオ(火力6) → 速度47');
+ok(R.tierSpeed(6)===47,'メテオ(火力6)段の速度は47');
+// メテオ化したボールは別格に爆速（火力段47よりずっと速い／従来どおり72）
+ok(R.testMeteorSpeed()===72,'メテオ化したボールは速度72（別格に爆速）');
+ok(R.meteorSpeed()>R.tierSpeed(6),'メテオ速度 > 火力6段の速度（メテオは別格）');
 
 // default ball grows +1px per 10 rescued; at MAX it wraps to base size & power+1
 R.start(); frames(2);
