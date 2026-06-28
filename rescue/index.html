@@ -482,7 +482,10 @@ function aimDir(){
   const a=clamp(ang,minA,maxA);
   return {x:Math.cos(a), y:Math.sin(a)};
 }
-const SPEED=15, ACCEL=0.45, SPEEDMAX=SPEED*2.05+12;   // faster start + higher accel cap to cut downtime
+const SPEED=17;                                       // フォールバック初速（実速度は火力段で決まる）
+// 速度は火力段に直結（段ごとに固定・+6刻み）: 火力1=17 / 2=23 / 3=29 / 4=35 / 5=41 / メテオ(6)=47
+// ゲーム進行を速めるため、連続加速ではなく火力に応じた段階速度にした。
+function tierSpeed(t){ return 11 + 6*clamp(t,1,6); }
 const SPECIALS=[
   {id:'fire',   name:'ファイア',  col:'#ff7b3a', emoji:'🔥'},
   {id:'thunder',name:'いかずち',  col:'#ffe066', emoji:'⚡'},
@@ -511,8 +514,10 @@ function launch(){
 function spawnBall(){
   const fx=G.activeSpecial;
   const r = fx==='giant'? R*3.0 : defaultBallR();
-  balls.push({x:G.launchX,y:launchY-r-1,vx:G.firedDir.x*SPEED,vy:G.firedDir.y*SPEED,alive:true,
-    r, sp:SPEED, bounces:0, dmg: fx==='giant'?3:defaultBallPower(), fx, split: fx==='split', trail:[]});
+  const dmg = fx==='giant'?3:defaultBallPower();
+  const sp = tierSpeed(dmg);                            // 発射時から火力に応じた速度
+  balls.push({x:G.launchX,y:launchY-r-1,vx:G.firedDir.x*sp,vy:G.firedDir.y*sp,alive:true,
+    r, sp, bounces:0, dmg, fx, split: fx==='split', trail:[]});
   Sound.ball();
 }
 // default ball grows +1px per 10 こっこ rescued, capped at the でかボール (giant) size
@@ -699,7 +704,7 @@ function accel(b){ b.bounces=(b.bounces||0)+1;
     flashTint(rgb,tier>=6?0.18:0.10);
     G.shake=Math.min(G.shake+(tier>=6?9:3),22);
     if(tier>=6){ Sound.rescue(); boostCinematic(b); } else Sound.ball(); }
-  if((b.sp||SPEED)<SPEEDMAX){ b.sp=Math.min(SPEEDMAX,(b.sp||SPEED)+ACCEL); renorm(b); } }
+  b.sp=tierSpeed(b.dmg||1); renorm(b); }      // 速度は現在の火力段に直結（火力1=17…メテオ=47）
 function collideBumpers(b){
   const rad=b.r||R;
   for(const bm of bumpers){
@@ -743,7 +748,7 @@ function applyBoost(){
   b.boosted=true; b.dmg=Math.max(b.dmg||1, 15);              // メテオ化: 貫通する火力15のコメット
   b.boostLeft=5;                                             // チート反射は5回まで → 消滅
   b.r=(b.r||R)*1.7;                                           // 巨大化（当たり判定も拡大）
-  b.sp=Math.min(SPEEDMAX*1.7,(b.sp||SPEED)*1.7); renorm(b);
+  b.sp=tierSpeed(6); renorm(b);                              // メテオ速度=47（火力6段）
   burst(b.x,b.y,'255,70,70',26,13,true);
   addShock(b.x,b.y,cell*4.0,'255,70,70',10,8);               // 解放の一撃: 広範囲8ダメージ
   flashTint('255,150,150',0.5); G.shake=Math.min(G.shake+20,32); Sound.boostHit();
@@ -1110,6 +1115,7 @@ window.__rescue={ get phase(){return G.phase;}, info:()=>({phase:G.phase,score:G
     return { phase:G.phase, balls:balls.length, gained:G.rescued-r0, frozen:G.freezeT>0 }; },
   accelTo60:()=>{ const b={x:W/2,y:H/2,vx:1,vy:-1,sp:SPEED,bounces:59,dmg:5,alive:true,r:R,trail:[]}; balls.push(b); accel(b); return b.dmg; },
   testCageGain:(cg)=>{ const r0=G.rescued; breakBlock({col:0,row:0,hp:1,maxhp:1,type:'cocco',cage:cg,pop:0}, cellX(0), cellY(0)); return G.rescued-r0; },
+  tierSpeed:(t)=>tierSpeed(t),
   moveLauncher:(x)=>{ moveLauncher(x); return G.launchX; }, launchXNow:()=>G.launchX,
   launchBounds:()=>({min:gx+R, max:gx+COLS*cell-R, mid:gx+COLS*cell/2}), };
 

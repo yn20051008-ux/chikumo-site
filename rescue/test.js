@@ -107,6 +107,14 @@ ok(R.tierFor(30)===4,'30 reflections -> power 4');
 ok(R.tierFor(40)===5 && R.tierFor(59)===5,'40-59 reflections -> power 5');
 ok(R.tierFor(60)===6 && R.tierFor(99)===6,'60+ reflections -> power 6 (爆破波動)');
 
+// 速度は火力段に直結（段ごと固定・+6刻み）: 火力1=17/2=23/3=29/4=35/5=41/メテオ=47
+ok(R.tierSpeed(1)===17,'火力1 → 速度17');
+ok(R.tierSpeed(2)===23,'火力2 → 速度23');
+ok(R.tierSpeed(3)===29,'火力3 → 速度29');
+ok(R.tierSpeed(4)===35,'火力4 → 速度35');
+ok(R.tierSpeed(5)===41,'火力5 → 速度41');
+ok(R.tierSpeed(6)===47,'メテオ(火力6) → 速度47');
+
 // default ball grows +1px per 10 rescued; at MAX it wraps to base size & power+1
 R.start(); frames(2);
 const base=R.baseR(); const span=R.growSteps(); const per=(span+1)*10;
