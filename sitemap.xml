@@ -193,6 +193,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://chikumo.jp/emoji/</loc>
+    <lastmod>2026-06-28</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://chikumo.jp/story/01/</loc>
     <lastmod>2026-01-12</lastmod>
     <changefreq>monthly</changefreq>
