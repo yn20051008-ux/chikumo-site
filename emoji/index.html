@@ -732,9 +732,38 @@ h1.title{font-size:clamp(28px,9.4vw,52px);font-weight:900;letter-spacing:.04em;l
     });
   }
 
+  /* 親子で“同時押し”できるように。click はタッチ端末ではマウス互換の単一ポインタ扱いで、
+     二人が別レーンを同時に押すと片方しか発火しない。各タッチが独立して発火する
+     PointerEvent（pointerdown＝多点対応）で受け、古い端末は touchstart にフォールバック。 */
+  function tapTarget(target, lane){
+    var b=(target&&target.closest)?target.closest('.choice'):null;
+    if(b&&lane) answer(lane, decodeURIComponent(b.getAttribute('data-v')));
+  }
   function bindLanes(){
-    $('choicesP').onclick=function(e){ var b=e.target.closest('.choice'); if(b&&lanes.p) answer(lanes.p, decodeURIComponent(b.getAttribute('data-v'))); };
-    $('choicesC').onclick=function(e){ var b=e.target.closest('.choice'); if(b&&lanes.c) answer(lanes.c, decodeURIComponent(b.getAttribute('data-v'))); };
+    var pairs=[['choicesP','p'],['choicesC','c']];
+    var hasPointer=('PointerEvent' in window);
+    pairs.forEach(function(pr){
+      var el=$(pr[0]); if(!el) return;
+      if(hasPointer){
+        el.addEventListener('pointerdown', function(e){
+          if(e.pointerType==='mouse' && e.button!==0) return; /* 左クリック以外は無視 */
+          e.preventDefault(); /* 合成click抑止＝二度押し防止／フォーカス・選択も抑止 */
+          tapTarget(e.target, lanes[pr[1]]);
+        }, {passive:false});
+      } else {
+        var touched=false;
+        el.addEventListener('touchstart', function(e){
+          touched=true; e.preventDefault();
+          /* touchstart は多点対応。このレーンに同時に複数指が乗っても先頭1点だけ処理 */
+          var t=(e.changedTouches&&e.changedTouches[0])?e.changedTouches[0].target:e.target;
+          tapTarget(t, lanes[pr[1]]);
+        }, {passive:false});
+        el.addEventListener('click', function(e){ /* マウス端末用フォールバック */
+          if(touched){ touched=false; return; }
+          tapTarget(e.target, lanes[pr[1]]);
+        });
+      }
+    });
   }
   loadZone('animal'); bindLanes(); buildCourses(); buildTiers();
   function syncTTSBtn(){ var b=$('btnTTS'); if(!b) return;
