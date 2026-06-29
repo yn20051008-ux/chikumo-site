@@ -1,5 +1,5 @@
 /* Service Worker — 畜物語 */
-const CACHE = 'chikumonogatari-v84';
+const CACHE = 'chikumonogatari-v85';
 const ASSETS = [
   './',
   './index.html',
