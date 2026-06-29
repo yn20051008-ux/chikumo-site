@@ -150,6 +150,9 @@ h1.title{font-size:clamp(28px,9.4vw,52px);font-weight:900;letter-spacing:.04em;l
 .reached .lv b{display:block;font-size:10px;color:#bfeee0;font-weight:700;}
 .result-score{font-size:15px;color:#d6f3ea;margin-top:10px;}
 .result-score b{font-size:28px;color:#ffd98a;}
+.versus{margin:10px auto 0;max-width:420px;width:100%;}
+.vs-line{font-size:19px;font-weight:900;color:#ffd98a;letter-spacing:.03em;}
+.vs-team{font-size:12px;color:#bfeee0;margin-top:3px;letter-spacing:.04em;}
 .rank-entry{margin:14px auto 0;max-width:380px;width:100%;}
 .rank-row{display:flex;gap:8px;}
 #rankName{flex:1;min-width:0;font-size:16px;padding:11px 13px;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.07);color:#fff;outline:none;}
@@ -263,10 +266,11 @@ h1.title{font-size:clamp(28px,9.4vw,52px);font-weight:900;letter-spacing:.04em;l
     <div class="brand" id="overBrand">よく結んだ</div>
     <h1 class="title" id="overTitle" style="font-size:clamp(24px,8vw,46px)">おつかれさま</h1>
     <div class="reached">
-      <div class="r p"><span class="who">おや</span><span class="lv"><b>めぐれた島</b><span id="reachP">—</span></span></div>
-      <div class="r c"><span class="who">こ</span><span class="lv"><b>めぐれた島</b><span id="reachC">—</span></span></div>
+      <div class="r p"><span class="who">おや</span><span class="lv"><b>めぐった島・つんだ数</b><span id="reachP">—</span></span></div>
+      <div class="r c"><span class="who">こ</span><span class="lv"><b>めぐった島・つんだ数</b><span id="reachC">—</span></span></div>
     </div>
-    <div class="result-score">二人で <b id="overStep">0</b> こ むすんだ ／ スコア <span id="overScore">0</span></div>
+    <div class="versus" id="versus"></div>
+    <div class="result-score">ふたり合わせて <b id="overStep">0</b> こ つみあげた ／ 🌍合算スコア <span id="overScore">0</span></div>
     <div class="rank-entry" id="rankEntry">
       <div class="rank-row">
         <input id="rankName" maxlength="10" placeholder="なまえ（10文字まで）" autocomplete="off">
@@ -603,7 +607,7 @@ h1.title{font-size:clamp(28px,9.4vw,52px);font-weight:900;letter-spacing:.04em;l
   var state='title', startMs=0, timeLeft=GAME_TIME, score=0, step=0;
   var parts=[], lanes={};
 
-  function mkLane(who){ var idx=firstIdxOfBand(startTier[who]); return { who:who, idx:idx, climbed:0, streak:0, shadow:0, maxB:IT[idx].b, done:false,
+  function mkLane(who){ var idx=firstIdxOfBand(startTier[who]); return { who:who, idx:idx, climbed:0, streak:0, shadow:0, maxB:IT[idx].b, done:false, blocks:[],
     promptEl:$('prompt'+who.toUpperCase()), choicesEl:$('choices'+who.toUpperCase()),
     topicEl:$('topic'+who.toUpperCase()), streakEl:$('streak'+who.toUpperCase()),
     laneEl:$('lane'+who.toUpperCase()), shadowEl:$('shadow'+who.toUpperCase()) }; }
@@ -631,6 +635,25 @@ h1.title{font-size:clamp(28px,9.4vw,52px);font-weight:900;letter-spacing:.04em;l
   function burst(x,y,col,n){ for(var i=0;i<n;i++){ var a=Math.random()*6.2832,s=(0.6+Math.random())*3.0;
     parts.push({x:x,y:y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,life:1,col:col,r:2+Math.random()*3}); } }
 
+  /* ---- 背景のカラーブロック（正解するたび積み上がる：おや＝下から／こ＝上から） ---- */
+  function roundRect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function drawStack(blocks, fromTop){
+    var n=blocks.length; if(!n) return;
+    var zoneH=H*0.46, bh=Math.min(20, zoneH/Math.max(n,14)), gap=bh>7?2:1, bw=Math.min(W*0.5,360), x0=(W-bw)/2;
+    for(var i=0;i<n;i++){
+      var blk=blocks[i];
+      var a=0.6, sc=1;
+      if(i===n-1){ var age=Math.min(1,(performance.now()-blk.t)/200); a=0.3+0.5*age; sc=0.72+0.28*age; }
+      var w=bw*sc, x=(W-w)/2;
+      var y=fromTop ? (i*bh) : (H-(i+1)*bh);
+      ctx.globalAlpha=a; ctx.fillStyle=blk.col;
+      roundRect(x, y+gap/2, w, bh-gap, Math.min(6,(bh-gap)/2)); ctx.fill();
+      ctx.globalAlpha=a*0.25; ctx.fillStyle='#ffffff';
+      roundRect(x, y+gap/2, w, Math.max(2,(bh-gap)*0.28), Math.min(6,(bh-gap)/2)); ctx.fill();
+    }
+    ctx.globalAlpha=1;
+  }
+
   function answer(ln, val){
     if(state!=='play'||!ln.q||ln.done) return;
     var rect=ln.laneEl.getBoundingClientRect(), cx=rect.left+rect.width/2, cy=rect.top+rect.height/2;
@@ -639,6 +662,7 @@ h1.title{font-size:clamp(28px,9.4vw,52px);font-weight:900;letter-spacing:.04em;l
       ln.shadow=Math.max(0,ln.shadow-1);
       var bandNow=IT[Math.min(ln.idx,IT.length-1)].b;
       score+=10+bandNow*8+ln.streak*4; step++;
+      ln.blocks.push({col:'hsl('+((ln.blocks.length*37)%360)+',72%,56%)', t:performance.now()});
       sfxOK(ln.streak); vib(14);
       ln.laneEl.classList.remove('flash-ok'); void ln.laneEl.offsetWidth; ln.laneEl.classList.add('flash-ok');
       burst(cx,cy,ln.who==='p'?'#ffd98a':'#5fe0d0',14);
@@ -682,6 +706,7 @@ h1.title{font-size:clamp(28px,9.4vw,52px);font-weight:900;letter-spacing:.04em;l
     for(var i2=0;i2<floats.length;i2++){ var s=floats[i2]; s.y-=s.s*dt*12; if(s.y<-0.06){ s.y=1.06; s.x=Math.random(); s.ch=BG_EMOJI[Math.floor(Math.random()*BG_EMOJI.length)]; }
       ctx.font=s.sz+'px serif'; ctx.fillText(s.ch, s.x*W, s.y*H); }
     ctx.globalAlpha=1; ctx.textAlign='start'; ctx.textBaseline='alphabetic';
+    if((state==='play'||state==='over') && lanes.p && lanes.c){ drawStack(lanes.p.blocks,false); drawStack(lanes.c.blocks,true); }
     for(var p=parts.length-1;p>=0;p--){ var pp=parts[p]; pp.x+=pp.vx; pp.y+=pp.vy; pp.vy+=0.12; pp.life-=dt*1.5;
       if(pp.life<=0){ parts.splice(p,1); continue; } ctx.globalAlpha=Math.max(0,pp.life); ctx.fillStyle=pp.col;
       ctx.beginPath(); ctx.arc(pp.x,pp.y,pp.r,0,6.2832); ctx.fill(); }
@@ -699,13 +724,17 @@ h1.title{font-size:clamp(28px,9.4vw,52px);font-weight:900;letter-spacing:.04em;l
   function hide(id){ var e=$(id); if(e) e.classList.add('hidden'); }
   function show(id){ var e=$(id); if(e) e.classList.remove('hidden'); }
   function showResult(){
-    $('reachP').textContent=CUR.emoji+' '+CUR.name+'・'+BANDL[lanes.p.maxB]; $('reachC').textContent=CUR.emoji+' '+CUR.name+'・'+BANDL[lanes.c.maxB];
-    $('overStep').textContent=step; $('overScore').textContent=score.toLocaleString();
+    var cp=lanes.p.climbed, cc=lanes.c.climbed;
+    $('reachP').textContent=CUR.emoji+' '+CUR.name+'・'+BANDL[lanes.p.maxB]+'　🧱'+cp+'こ';
+    $('reachC').textContent=CUR.emoji+' '+CUR.name+'・'+BANDL[lanes.c.maxB]+'　🧱'+cc+'こ';
+    var vs=(cp===cc)?('🤝 ひきわけ！ '+cp+' 対 '+cc):((cp>cc?'🏆 おや の勝ち！ ':'🏆 こ の勝ち！ ')+Math.max(cp,cc)+' 対 '+Math.min(cp,cc));
+    $('versus').innerHTML='<div class="vs-line">'+vs+'</div><div class="vs-team">ふたりのブロックを合わせた '+(cp+cc)+' こ＝🌍合算ポイントで世界に挑戦（協力）</div>';
+    $('overStep').textContent=(cp+cc); $('overScore').textContent=score.toLocaleString();
     var hi=Math.max(lanes.p.maxB,lanes.c.maxB);
     $('overBrand').textContent = hi>=4?'島の主' : hi>=2?'よく結んだ' : 'またおいで';
     $('overTitle').textContent = '「'+CUR.name+'・'+BANDL[hi]+'」まで';
     show('ovOver');
-    if(window.CoccoRank) window.CoccoRank.onGameOver(score, hi, step, CUR.emoji+CUR.name+'・'+BANDL[hi]);
+    if(window.CoccoRank) window.CoccoRank.onGameOver(score, hi, step, '🧱'+(cp+cc)+' '+CUR.emoji+CUR.name+'・'+BANDL[hi]);
   }
 
   /* ---- ピッカー ---- */
