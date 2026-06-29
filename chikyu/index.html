@@ -472,8 +472,35 @@ h1.title{font-size:clamp(32px,11vw,60px);font-weight:900;letter-spacing:.05em;li
   }
 
   function bindLanes(){
-    $('choicesP').onclick=function(e){ var b=e.target.closest('.choice'); if(b&&lanes.p) answer(lanes.p, decodeURIComponent(b.getAttribute('data-v'))); };
-    $('choicesC').onclick=function(e){ var b=e.target.closest('.choice'); if(b&&lanes.c) answer(lanes.c, decodeURIComponent(b.getAttribute('data-v'))); };
+    /* 親子で“同時押し”できるように。click はタッチ端末ではマウス互換の単一ポインタ扱いで、
+       二人が別レーンを同時に押すと片方しか発火しない。各タッチが独立して発火する
+       PointerEvent（pointerdown＝多点対応）で受け、古い端末は touchstart にフォールバック。 */
+    var tapTarget=function(target, lane){
+      var b=(target&&target.closest)?target.closest('.choice'):null;
+      if(b&&lane) answer(lane, decodeURIComponent(b.getAttribute('data-v')));
+    };
+    var lanePairs=[['choicesP','p'],['choicesC','c']], hasPointer=('PointerEvent' in window);
+    lanePairs.forEach(function(pr){
+      var el=$(pr[0]); if(!el) return;
+      if(hasPointer){
+        el.addEventListener('pointerdown', function(e){
+          if(e.pointerType==='mouse' && e.button!==0) return;
+          e.preventDefault();
+          tapTarget(e.target, lanes[pr[1]]);
+        }, {passive:false});
+      } else {
+        var touched=false;
+        el.addEventListener('touchstart', function(e){
+          touched=true; e.preventDefault();
+          var t=(e.changedTouches&&e.changedTouches[0])?e.changedTouches[0].target:e.target;
+          tapTarget(t, lanes[pr[1]]);
+        }, {passive:false});
+        el.addEventListener('click', function(e){
+          if(touched){ touched=false; return; }
+          tapTarget(e.target, lanes[pr[1]]);
+        });
+      }
+    });
   }
   bindLanes(); buildTiers();
   $('btnStart').addEventListener('click', startGame);
