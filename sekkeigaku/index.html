@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>設計学 ─ 森林木の三相（高きより降る作りの順）</title>
+<meta name="description" content="畜学の一棚「設計学」。設計には高さがある。森（全体）→林（束）→木（一）の順に、高きより降りて作れ。木より積み上げる者は森に成らず、抜いて植え直す（手戻り）。十四式を設計者の高さから読み直した、作りの順の秘伝。森＝家・林＝縁・木＝衡。">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="設計学 ─ 森林木の三相">
+<meta property="og:description" content="森→林→木の順に、高きより降りて作れ。木より積めば、森に成らず手戻りす。十四式を設計者の高さから読み直す。">
+<meta property="og:type" content="website">
+<link rel="canonical" href="https://chikumo.jp/sekkeigaku/">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700;800&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+
+<!--
+  ============================================================
+  設計学 ─ 森林木の三相（正典・運用の鍵は /docs/設計学.md）
+  設計には高さがある。森（全体）→林（束）→木（一）の順に、高きより降りて作る。
+  木より積み上げる者は森に成らず、後に森を見て木を抜いて植え直す（手戻り）。
+  森＝家（⑧）／林＝縁（⑦）／木＝衡（⑥）── 十四式を設計者の高さから読み直したもの。
+  十四式（/jushishiki/）＝構造の文法（一本の木の成り立ち）／設計学＝その木を森のどこに植えるか（高さと順）。
+  守るのは暗号ではない。深さである。読める者は読み、理解できる者だけが受け取る。
+  ============================================================
+-->
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --wall-top:#e7ecdf; --wall-mid:#cdd6bd; --wall-bot:#9aaa84;
+  --wood-light:#5f7a4e; --wood-mid:#3c5230; --wood-dark:#243520;
+  --ink:#2c352a; --ink-soft:#5a6450;
+  --gold:#7a9a52; --gold-bright:#a8c878;
+  --serif:'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho',serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+html,body{min-height:100%;}
+body{
+  font-family:var(--serif);color:var(--ink);
+  min-height:100vh;overflow-x:hidden;line-height:1.95;
+  background:
+    radial-gradient(ellipse 80% 50% at 22% 8%,rgba(248,252,238,0.6),transparent 55%),
+    radial-gradient(ellipse 70% 50% at 85% 12%,rgba(238,248,222,0.42),transparent 50%),
+    linear-gradient(180deg,var(--wall-top) 0%,var(--wall-mid) 46%,var(--wall-bot) 100%);
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background-image:
+    repeating-linear-gradient(90deg,transparent 0 3px,rgba(0,0,0,0.012) 3px 4px),
+    repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,0.012) 3px 4px);
+}
+.wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:clamp(2rem,6vw,4.5rem) 1.4rem 5rem;}
+
+a.home{display:inline-block;font-family:var(--mono);font-size:0.72rem;letter-spacing:0.2em;color:var(--ink-soft);
+  text-decoration:none;border-bottom:1px solid rgba(44,53,42,0.25);padding-bottom:2px;margin-bottom:2.6rem;transition:color .2s;}
+a.home:hover{color:var(--ink);}
+
+header{text-align:center;margin-bottom:clamp(2.2rem,6vw,3.4rem);}
+header h1{font-size:clamp(2.6rem,11vw,4.6rem);font-weight:800;letter-spacing:0.18em;color:var(--ink);
+  text-shadow:0 1px 0 rgba(255,255,255,0.4),0 2px 6px rgba(48,68,40,0.2);}
+header .en{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.42em;color:var(--ink-soft);text-transform:uppercase;margin-top:0.9rem;}
+header p{margin-top:1.1rem;font-size:0.96rem;color:var(--ink-soft);letter-spacing:0.08em;font-style:italic;}
+
+.intro{background:linear-gradient(180deg,rgba(250,253,244,0.62),rgba(244,250,232,0.24));
+  border:1px solid rgba(80,110,60,0.28);border-radius:4px 7px 7px 4px;
+  box-shadow:5px 7px 14px rgba(48,68,40,0.16),inset 0 1px 0 rgba(255,255,255,0.5),inset -3px 0 0 var(--gold);
+  padding:1.4rem 1.5rem;font-size:0.92rem;line-height:2.05;color:var(--ink);margin-bottom:2rem;}
+.intro b{color:var(--wood-mid);}
+
+/* 三相と十四式の対応 */
+.map{display:flex;flex-wrap:wrap;gap:0.8rem;margin-bottom:2.6rem;}
+.map .cell{flex:1 1 200px;background:rgba(250,253,244,0.5);border:1px solid rgba(80,110,60,0.28);border-radius:6px;
+  padding:1rem 1.1rem;text-align:center;}
+.map .cell .big{font-size:1.5rem;font-weight:800;color:var(--c,#3c5230);letter-spacing:0.1em;}
+.map .cell .arrow{font-family:var(--mono);font-size:0.8rem;color:var(--ink-soft);margin:0.3rem 0;}
+.map .cell .shiki{font-size:1.05rem;font-weight:700;color:var(--ink);}
+.map .cell .note{margin-top:0.4rem;font-family:var(--mono);font-size:0.6rem;letter-spacing:0.12em;color:var(--ink-soft);text-transform:uppercase;line-height:1.7;}
+
+/* 一相＝一巻 */
+.rec{position:relative;background:
+    linear-gradient(135deg,rgba(250,253,244,0.5),rgba(244,250,232,0.18)),
+    linear-gradient(180deg,#eef2e0,#dde6c8);
+  border:1px solid rgba(80,110,60,0.28);border-radius:4px 8px 8px 4px;
+  box-shadow:5px 8px 16px rgba(48,68,40,0.2),inset 0 1px 0 rgba(255,255,255,0.55),inset -4px 0 0 var(--c,#5f7a4e);
+  padding:1.6rem 1.7rem 1.5rem;margin-bottom:1.5rem;overflow:hidden;}
+.rec::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:linear-gradient(90deg,rgba(0,0,0,0.14),transparent);}
+.rec .meta{font-family:var(--mono);font-size:0.64rem;letter-spacing:0.26em;color:var(--ink-soft);text-transform:uppercase;
+  display:flex;align-items:center;gap:0.7rem;}
+.rec .meta .kan{font-family:var(--serif);font-size:1.7rem;font-weight:800;color:var(--c,#5f7a4e);letter-spacing:0;line-height:1;}
+.rec h2{font-size:1.42rem;font-weight:800;letter-spacing:0.08em;color:var(--ink);line-height:1.4;margin:0.5rem 0 0.8rem;}
+.rec p{font-size:0.93rem;line-height:2.05;color:var(--ink);}
+.rec p + p{margin-top:0.7rem;}
+.rec p .hi{color:var(--c,#3c5230);font-weight:700;}
+.rec .seal{margin-top:0.9rem;font-family:var(--mono);font-size:0.64rem;letter-spacing:0.1em;color:var(--ink-soft);
+  border-top:1px dashed rgba(80,110,60,0.3);padding-top:0.6rem;line-height:1.7;}
+
+.koan{margin-top:2.4rem;background:rgba(250,253,244,0.5);border:1px solid rgba(80,110,60,0.28);border-radius:6px;padding:1.4rem 1.5rem;}
+.koan h3{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--wood-mid);margin-bottom:0.9rem;}
+.koan ul{list-style:none;}
+.koan li{font-size:0.9rem;line-height:1.95;color:var(--ink);padding:0.5rem 0 0.5rem 1.7rem;position:relative;border-bottom:1px dashed rgba(80,110,60,0.22);}
+.koan li:last-child{border-bottom:none;}
+.koan li::before{content:"問";position:absolute;left:0;top:0.5rem;font-family:var(--serif);font-size:0.86rem;color:var(--gold);font-weight:700;}
+
+footer{margin-top:3rem;text-align:center;font-family:var(--mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--ink-soft);}
+footer a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(44,53,42,0.25);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="home" href="/Library/">← 畜学</a>
+  <header>
+    <h1>設計学</h1>
+    <div class="en">Sekkeigaku — The Three Altitudes</div>
+    <p>高きより降りて、木に到る。</p>
+  </header>
+
+  <div class="intro">
+    設計（つく）りには<b>高さ</b>がある。<b>森（全体）・林（束）・木（一）</b>──この三つの相は、いづれも同じ世界の、見おろす<b>高さ</b>の違いに過ぎぬ。
+    高きより降りよ。<b>森を定め、林を割り、然（しか）る後に木を植う。</b>
+    木より積み上ぐる者は、森に成らず。後に森を仰ぎ見て、木が森に合わぬと知り、<b>抜いて植え直す</b>──これを手戻（てもど）りと謂（い）う。
+    十四式が一本の木の成り立ちを記すなら、設計学は<b>その木を森のいづこに植うるか</b>を記す。隠してはおらぬ。守るのは暗号に非ず、深さなり。
+  </div>
+
+  <div class="map">
+    <div class="cell" style="--c:#243520"><div class="big">森</div><div class="arrow">▼ 全体</div><div class="shiki">家（⑧）</div><div class="note">縁の並列<br>持続層</div></div>
+    <div class="cell" style="--c:#3c5230"><div class="big">林</div><div class="arrow">▼ 束</div><div class="shiki">縁（⑦）</div><div class="note">衡＋ ∿ 衡−<br>相互参照</div></div>
+    <div class="cell" style="--c:#5f7a4e"><div class="big">木</div><div class="arrow">▼ 一</div><div class="shiki">衡（⑥）</div><div class="note">一つの<br>構造実体</div></div>
+  </div>
+
+  <article class="rec" style="--c:#243520">
+    <div class="meta"><span class="kan">森</span><span>もり ─ 家（⑧）</span></div>
+    <h2>全体を、まず描く</h2>
+    <p>森とは、世界そのもの。掟（おきて）と名（な）と、共に分かつ臓器（ぞうき）の総（すべ）て。十四式に謂う<span class="hi">家（いえ）＝縁の並列持続層</span>──多くの縁が循域（じゅんいき）に共在し、入替を含みながら持続する層なり。</p>
+    <p>森を描くとは、<span class="hi">いかなる世界か・何を掟とし・何を分かち合うか</span>を先（ま）づ定むること。これ無くして木を植うるは、地（ち）無くして根を張るに同じ。</p>
+    <div class="seal">封：森を最初に描け。世界・掟・共有の臓器を、木より前に定めよ。</div>
+  </article>
+
+  <article class="rec" style="--c:#3c5230">
+    <div class="meta"><span class="kan">林</span><span>はやし ─ 縁（⑦）</span></div>
+    <h2>束を、次に割る</h2>
+    <p>林とは、相寄（あいよ）る木の束（たば）。十四式に謂う<span class="hi">縁＝衡＋ ∿ 衡−</span>──複数の衡が並び立ち、出会わぬまま<span class="hi">∿（波）して相（あい）参照する</span>。同じ林の木は、同じ操作の理（ことわり）・同じ祭壇・同じ焔（ほむら）を分かつ。</p>
+    <p>森を描きたれば、次に問う──<span class="hi">いかなる束が、この森に在るべきか</span>。既（すで）の縁に連ねるか、新たな林を起こすか。木はこの問いの後（のち）に植う。</p>
+    <div class="seal">封：木の前に、その木が連なる林（縁の束）を割れ。孤（ひと）つの木を縁なきまま植うるな。</div>
+  </article>
+
+  <article class="rec" style="--c:#5f7a4e">
+    <div class="meta"><span class="kan">木</span><span>き ─ 衡（⑥）</span></div>
+    <h2>一を、最後に植う</h2>
+    <p>木とは、一（ひと）つの構造実体。十四式に謂う<span class="hi">衡（こう）＝五式が循域に均衡した状態</span>。一つの戯（あそ）び、一つの機（はたら）き、一つの面（おもて）。設計者が手を入れ、磨くは、この木なり。</p>
+    <p>されど木を磨くは<span class="hi">最後</span>。森と林の定まりて後に降（くだ）れば、木は生（うま）るるその時すでに縁の座（ざ）に在り、<span class="hi">植え直しは要（い）らぬ</span>。</p>
+    <div class="seal">封：木を磨くは最後。森と林の定まりて後に降りよ。</div>
+  </article>
+
+  <article class="rec" style="--c:#7a5a32">
+    <div class="meta"><span class="kan">逆</span><span>逆しまの罰 ─ 手戻り</span></div>
+    <h2>木より積めば、森に成らず</h2>
+    <p>十四式に曰く──<span class="hi">衡＝0 ならば、縁は発（おこ）らず。縁発らねば、家は発らず。</span>
+    森を見ぬまま木を植うる者の木は、傍（かたわ）らに参照すべき衡を持たぬ。ゆゑに縁を結べず、家に容（い）れられず、持続せぬ。</p>
+    <p>木をいかに磨けど、木の集（あつ）まりは森に成らぬ。後に森を仰げば、木は森の掟（おきて）に背（そむ）き、<span class="hi">抜いて植え直す</span>ほかなし。これが手戻り──逆しまに積みし者の、避け難き罰なり。</p>
+    <div class="seal">封：森→林→木の順を逆しまにすれば、必ず手戻る。木の山は森に非ず。</div>
+  </article>
+
+  <article class="rec" style="--c:#4a7a5a">
+    <div class="meta"><span class="kan">継</span><span>継ぎて還る ─ 木より森へ</span></div>
+    <h2>降りて植え、継ぎて還る</h2>
+    <p>降（くだ）るは一方（いっぽう）に非ず。十四式は<span class="hi">継→認で周回する</span>。木を建てて得たる差分（＝継）は、林へ、森へと還（かえ）り、森の地図（ちず）を編み直す。</p>
+    <p>森より降りて木を植え、木の差分を継ぎて森へ還す。この<span class="hi">降下と還流（かんりゅう）</span>の周回こそ設計。されど初手（しょて）は常に高きより。<span class="hi">森を描かぬ降下は、無し。</span></p>
+    <div class="seal">封：主たる順は上より下。木で得た差分は継として森へ還し、地図を編み直せ。</div>
+  </article>
+
+  <div class="koan">
+    <h3>作る前に、高さを問う四つ</h3>
+    <ul>
+      <li>森は描かれているか。世界・掟（七相）・共有の臓器を、木より前に定めたか。（森）</li>
+      <li>この木は、いづれの林に連なるか。既（すで）の縁に連ねるか、新たな林を起こすか。（林）</li>
+      <li>木を磨くのは最後にしたか。森と林の定まりて後に、降りているか。（木）</li>
+      <li>逆しまに積んでいないか。木の山を森と見誤（みあやま）っていないか。（逆）</li>
+    </ul>
+  </div>
+
+  <footer>
+    十四式 ─ <a href="/jushishiki/">構造の文法へ</a> ／ 遊戯学 ─ <a href="/yugigaku/">なぜ作るかへ</a><br>
+    畜学 ─ <a href="/Library/">蔵書へ</a> ／ 畜物語 ─ <a href="/">chikumo.jp</a>
+  </footer>
+</div>
+</body>
+</html>
