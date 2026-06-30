@@ -1,15 +1,25 @@
-/* Service Worker — 畜物語 */
-const CACHE = 'chikumonogatari-v85';
-const ASSETS = [
+/* Service Worker — 畜物語
+   低帯域(通信の悪い場所)でも遊べるよう、一度開いたものは極力ネットワークを使わず出す。
+   ・HTML   = stale-while-revalidate（キャッシュを即返す→裏で更新。次回最新）
+   ・静的資産 = cache-first（あれば即返す。無ければ取得して保存）
+   ・外部資産(Firebase/Googleフォント) もキャッシュ対象に含める（opaqueも保存）
+   ・メッセージ PRECACHE_ALL で全ゲームを一括ダウンロード（オフライン保存ボタン用） */
+const CACHE = 'chikumonogatari-v86';
+const SHELL = [
   './',
   './index.html',
   './chikumo.svg',
-  './manifest.json'
+  './manifest.json',
+  './icon-192.png',
+  './icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      // 1つ失敗しても install 全体を止めない（取りこぼし対策）
+      .then((c) => Promise.all(SHELL.map((u) => c.add(u).catch(() => null))))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -21,32 +31,76 @@ self.addEventListener('activate', (event) => {
   );
 });
 
+// 保存してよいレスポンスか（同一オリジンは200のみ、外部はopaque/200を許可）
+function cacheable(res) {
+  if (!res) return false;
+  if (res.type === 'opaque') return true;          // 外部(no-cors): 中身は見えないが保存可
+  return res.status === 200;
+}
+
+function isHTML(req) {
+  return req.mode === 'navigate' ||
+         (req.headers.get('accept') || '').includes('text/html');
+}
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
-  // ページ(HTML)はネットワーク優先 — メニュー更新や新ゲームを即反映、オフライン時のみキャッシュ
-  if (req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html')) {
+
+  // ── HTML: stale-while-revalidate（即キャッシュ→裏で更新。低帯域で待たせない）
+  if (isHTML(req)) {
     event.respondWith(
-      fetch(req).then((res) => {
-        if (res && res.status === 200 && res.type === 'basic') {
-          const clone = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, clone));
-        }
-        return res;
-      }).catch(() => caches.match(req).then((cached) => cached || caches.match('./index.html')))
+      caches.match(req).then((cached) => {
+        const net = fetch(req).then((res) => {
+          if (cacheable(res)) {
+            const clone = res.clone();
+            caches.open(CACHE).then((c) => c.put(req, clone));
+          }
+          return res;
+        }).catch(() => cached || caches.match('./index.html'));
+        return cached || net;     // キャッシュがあれば即返し、更新は裏で
+      })
     );
     return;
   }
+
+  // ── それ以外(JS/CSS/画像/フォント/Firebase): cache-first
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
       return fetch(req).then((res) => {
-        if (res && res.status === 200 && res.type === 'basic') {
+        if (cacheable(res)) {
           const clone = res.clone();
           caches.open(CACHE).then((c) => c.put(req, clone));
         }
         return res;
       }).catch(() => caches.match('./index.html'));
     })
+  );
+});
+
+// ── オフライン保存: ページから渡されたURL群をまとめてキャッシュし、進捗を返す
+self.addEventListener('message', (event) => {
+  const data = event.data || {};
+  if (data.type !== 'PRECACHE_ALL' || !Array.isArray(data.urls)) return;
+  const src = event.source;
+  const urls = data.urls;
+  let done = 0;
+  event.waitUntil(
+    caches.open(CACHE).then((c) =>
+      Promise.all(urls.map((u) => {
+        const external = /^https?:\/\//.test(u) && u.indexOf(self.location.origin) !== 0;
+        const req = new Request(u, external ? { mode: 'no-cors' } : {});
+        return fetch(req)
+          .then((res) => { if (cacheable(res)) return c.put(req, res.clone()); })
+          .catch(() => null)
+          .then(() => {
+            done++;
+            if (src) src.postMessage({ type: 'PRECACHE_PROGRESS', done, total: urls.length });
+          });
+      })).then(() => {
+        if (src) src.postMessage({ type: 'PRECACHE_DONE', total: urls.length });
+      })
+    )
   );
 });

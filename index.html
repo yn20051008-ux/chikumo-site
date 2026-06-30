@@ -440,6 +440,21 @@
     .a2hs-hint.hidden{display:none;} .a2hs-hint b{color:#9fe8ff;}
     .a2hs-hint .x{float:right;margin-left:10px;opacity:.6;cursor:pointer;font-weight:700;}
     @media (min-width:861px){ .a2hs,.a2hs-hint{display:none !important;} }
+    /* ===== オフライン保存（低帯域でも遊べるよう全ゲームを先に保存） ===== */
+    .dlsave{position:fixed;left:50%;transform:translateX(-50%);bottom:max(12px,calc(env(safe-area-inset-bottom) + 4px));
+      z-index:49;display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:999px;cursor:pointer;
+      font:600 12.5px/1 'Helvetica Neue',Arial,sans-serif;color:#dff1ff;background:rgba(18,26,46,.82);
+      border:1px solid rgba(160,215,255,.45);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+      box-shadow:0 6px 20px rgba(0,0,0,.45);max-width:min(86vw,360px);white-space:nowrap;}
+    .dlsave:active{transform:translateX(-50%) scale(.96);}
+    .dlsave[disabled]{cursor:default;opacity:.92;}
+    .dlsave .ico{font-size:14px;}
+    .dlsave .bar{position:relative;width:74px;height:5px;border-radius:3px;overflow:hidden;
+      background:rgba(160,215,255,.22);display:none;}
+    .dlsave.busy .bar{display:inline-block;}
+    .dlsave .fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:3px;
+      background:linear-gradient(90deg,#9fe8ff,#ffe08a);transition:width .2s;}
+    @media (prefers-reduced-motion: reduce){ .dlsave .fill{transition:none;} }
   </style>
 </head>
 <body>
@@ -611,6 +626,14 @@
     <b>ホーム画面に追加するには</b><br>
     画面下の <b>共有ボタン</b>（□から↑）をタップ → <b>「ホーム画面に追加」</b> を選んでください。
   </div>
+
+  <button type="button" id="dlSaveBtn" class="dlsave" hidden
+          aria-label="全ゲームをオフライン保存（通信の悪い場所でも遊べる）"
+          title="Wi-Fiのうちに全部保存しておくと、通信の悪い場所でも遊べます">
+    <span class="ico" aria-hidden="true">📥</span>
+    <span class="label">オフライン保存</span>
+    <span class="bar" aria-hidden="true"><span class="fill"></span></span>
+  </button>
 
   <noscript>
     <div class="noscript-msg">
@@ -885,6 +908,69 @@
       navigator.serviceWorker.register('sw.js').catch(() => { /* silent */ });
     });
   }
+})();
+</script>
+
+<script>
+/* オフライン保存: 全ゲーム＋Firebaseを先にキャッシュ → 通信の悪い場所でも遊べる */
+(function(){
+  var btn = document.getElementById('dlSaveBtn');
+  if(!btn) return;
+  if(!('serviceWorker' in navigator) || location.protocol === 'file:') return; // 非対応なら出さない
+  btn.hidden = false;
+
+  var fill  = btn.querySelector('.fill');
+  var label = btn.querySelector('.label');
+
+  function collectUrls(){
+    var set = {}, links = document.querySelectorAll('a[href^="/"]');
+    for(var i=0;i<links.length;i++){
+      var href = links[i].getAttribute('href');
+      if(href && href.charAt(0)==='/' && href.indexOf('//')!==0) set[href]=1; // 内部リンクのみ
+    }
+    set['/']=1;
+    // 世界ランキング用 Firebase（外部・全ゲーム共通）
+    set['https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js']=1;
+    set['https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js']=1;
+    set['https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js']=1;
+    return Object.keys(set);
+  }
+
+  var busy=false;
+  btn.addEventListener('click', function(){
+    if(busy) return;
+    var urls = collectUrls();
+    busy=true; btn.disabled=true; btn.classList.add('busy');
+    fill.style.width='0%'; label.textContent='保存中… 0/'+urls.length;
+
+    function onMsg(e){
+      var d=e.data||{};
+      if(d.type==='PRECACHE_PROGRESS'){
+        fill.style.width = Math.round(d.done/d.total*100)+'%';
+        label.textContent = '保存中… '+d.done+'/'+d.total;
+      } else if(d.type==='PRECACHE_DONE'){
+        fill.style.width='100%'; label.textContent='保存完了 ✓ オフラインでも遊べます';
+        navigator.serviceWorker.removeEventListener('message', onMsg);
+        setTimeout(function(){
+          btn.classList.remove('busy'); btn.disabled=false; busy=false;
+          label.textContent='オフライン保存'; fill.style.width='0%';
+        }, 4000);
+      }
+    }
+    navigator.serviceWorker.addEventListener('message', onMsg);
+
+    navigator.serviceWorker.ready.then(function(reg){
+      var target = reg.active || navigator.serviceWorker.controller;
+      if(!target){ throw new Error('no active sw'); }
+      target.postMessage({ type:'PRECACHE_ALL', urls: urls });
+    }).catch(function(){
+      navigator.serviceWorker.removeEventListener('message', onMsg);
+      label.textContent='保存できませんでした（あとで再試行）';
+      setTimeout(function(){
+        btn.classList.remove('busy'); btn.disabled=false; busy=false; label.textContent='オフライン保存';
+      }, 4000);
+    });
+  });
 })();
 </script>
 
