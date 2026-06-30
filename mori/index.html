@@ -2882,6 +2882,16 @@ function update(dt){
     const rt=camRightH(), sx=iv.x*rt[0]+iv.z*rt[2];
     if(Math.abs(sx)>0.05) P.flip=sx<0?-1:1;
     if(G.gauge<1) gainGauge(dt*0.06);   // 歩き回ると 酸素ゲージが じわじわ回復
+    // 🚗マイカーで爆走中は 後ろに ウィンドパフ（土煙）を出す
+    if(G.vehicle==='car'&&P.onG){
+      G.carDustT=(G.carDustT||0)-dt;
+      if(G.carDustT<=0){ G.carDustT=0.035;
+        const bx=P.x-iv.x*0.7, bz=P.z-iv.z*0.7;
+        parts.push({x:bx+rnd(-0.3,0.3),y:P.y+0.22,z:bz+rnd(-0.3,0.3),
+          vx:-iv.x*rnd(1,2.6)+rnd(-0.5,0.5),vy:rnd(0.6,1.9),vz:-iv.z*rnd(1,2.6)+rnd(-0.5,0.5),
+          life:rnd(0.3,0.55),t:0,col:[0.93,0.95,0.88],size:rnd(0.36,0.62),cell:2,grav:-1.5});
+      }
+    }
   }
   const fl=heightAt(P.x,P.z);
   if(P.y>fl+0.001||P.vy>0){
