@@ -455,6 +455,45 @@
     .dlsave .fill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:3px;
       background:linear-gradient(90deg,#9fe8ff,#ffe08a);transition:width .2s;}
     @media (prefers-reduced-motion: reduce){ .dlsave .fill{transition:none;} }
+
+    /* ===== Enter affordance（メニューを開く明示的な入口・全デバイス共通） ===== */
+    .enter-hint {
+      position: fixed; left: 50%; top: 72%;
+      transform: translate(-50%, -50%);
+      z-index: 46;
+      display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
+      padding: 0.6rem 1.5rem;
+      cursor: pointer;
+      color: #eaf2ff;
+      background: rgba(10, 14, 30, 0.45);
+      border: 1px solid rgba(140, 200, 255, 0.5);
+      border-radius: 999px;
+      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+      font-family: var(--font-ja);
+      box-shadow: 0 0 18px rgba(120, 200, 255, 0.25);
+      animation: enter-pulse 2.6s ease-in-out infinite;
+      transition: opacity 0.5s ease, color 0.3s, border-color 0.3s, background 0.3s, box-shadow 0.3s;
+    }
+    .enter-hint .lead {
+      font-size: 1.05rem; letter-spacing: 0.45em; text-indent: 0.45em; line-height: 1;
+    }
+    .enter-hint .sub {
+      font-family: var(--font-en); font-size: 0.56rem; letter-spacing: 0.3em;
+      opacity: 0.82; text-transform: uppercase; font-weight: 300;
+    }
+    .enter-hint:hover, .enter-hint:focus-visible {
+      color: #fff; border-color: rgba(200, 235, 255, 0.95);
+      background: rgba(20, 30, 60, 0.6);
+      box-shadow: 0 0 28px rgba(120, 200, 255, 0.5), inset 0 0 18px rgba(120, 200, 255, 0.15);
+    }
+    .enter-hint:active { transform: translate(-50%, -50%) scale(0.96); }
+    .enter-hint.gone { opacity: 0; pointer-events: none; }
+    @keyframes enter-pulse {
+      0%, 100% { box-shadow: 0 0 16px rgba(120, 200, 255, 0.22); }
+      50%      { box-shadow: 0 0 30px rgba(120, 200, 255, 0.5); }
+    }
+    @media (prefers-reduced-motion: reduce) { .enter-hint { animation: none; } }
+    @media (max-width: 600px) { .enter-hint { top: 70%; padding: 0.55rem 1.25rem; } }
   </style>
 </head>
 <body>
@@ -616,6 +655,12 @@
 
   <button type="button" id="reloadBtn" class="reload-btn" aria-label="さいしんに更新（強制リロード）" title="さいしんに更新">
     <img src="/chikumo.svg" alt="" width="40" height="40">
+  </button>
+
+  <button type="button" id="enterHint" class="enter-hint"
+          aria-label="メニューをひらく（ズームして遊びを選ぶ）">
+    <span class="lead" aria-hidden="true">ひらく</span>
+    <span class="sub" id="enterHintSub" aria-hidden="true">ZOOM IN</span>
   </button>
 
   <footer class="footer" role="contentinfo">© 畜物語 / CHIKUMONOGATARI</footer>
@@ -832,6 +877,7 @@
   }
 
   const blackhole = document.querySelector('.blackhole');
+  const enterHint = document.getElementById('enterHint');
 
   function applyZoom() {
     // Apply scale DIRECTLY to blackhole SVG — Chrome's SVG renderer
@@ -852,6 +898,8 @@
       menu.style.opacity   = '0';
       menu.style.transform = `translate(-50%, -50%) scale(0.6)`;
     }
+    // 入口ボタンは「メニューが閉じている間」だけ見せる（開いたら消す）
+    if (enterHint) enterHint.classList.toggle('gone', zoom >= MENU_THRESHOLD);
   }
   applyZoom();
 
@@ -895,6 +943,34 @@
 
   document.getElementById('zoomIn' ).addEventListener('click', () => setZoom(zoom * 1.3));
   document.getElementById('zoomOut').addEventListener('click', () => setZoom(zoom / 1.3));
+
+  // ───────── Enter affordance: どの端末でも確実にメニューを開ける入口 ─────────
+  if (enterHint) {
+    const sub = document.getElementById('enterHintSub');
+    const coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    if (sub) sub.textContent = coarse ? 'Pinch to open' : 'Zoom in';
+    let openRaf = 0;
+    enterHint.addEventListener('click', () => {
+      cancelAnimationFrame(openRaf);
+      const from = zoom, target = 3.2, t0 = performance.now(), dur = 700;
+      const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (reduce) {
+        setZoom(target);
+        const first = menu.querySelector('a'); if (first) first.focus({ preventScroll: true });
+        return;
+      }
+      (function step(now) {
+        const k = Math.min(1, (now - t0) / dur);
+        const e = 1 - Math.pow(1 - k, 3);   // easeOutCubic
+        setZoom(from + (target - from) * e);
+        if (k < 1) {
+          openRaf = requestAnimationFrame(step);
+        } else {
+          const first = menu.querySelector('a'); if (first) first.focus({ preventScroll: true });
+        }
+      })(t0);
+    });
+  }
 
   window.addEventListener('keydown', (e) => {
     if (e.key === '+' || e.key === '=') { setZoom(zoom * 1.2); e.preventDefault(); }
