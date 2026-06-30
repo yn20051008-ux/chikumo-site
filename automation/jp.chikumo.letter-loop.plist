@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  正論蒔宿の手紙 定期チェック — launchd 設定テンプレート（macOS / LaunchAgent）
+
+  使い方:
+    1. このファイルを ~/Library/LaunchAgents/jp.chikumo.letter-loop.plist にコピー
+    2. 下の __大文字__ プレースホルダを実際の値に置き換える
+       - __SCRIPT_PATH__ : letter_loop.py の絶対パス
+                           （例: /Users/あなた/chikumo-site/automation/letter_loop.py）
+       - __NTFY_TOPIC__  : iPhone で購読中の ntfy トピック名
+       - __CLAUDE_BIN__  : `which claude` の出力（例: /opt/homebrew/bin/claude）
+       - __LOG_DIR__     : ログ出力先ディレクトリ（例: /Users/あなた/Library/Logs）
+    3. 読み込み:
+         launchctl load ~/Library/LaunchAgents/jp.chikumo.letter-loop.plist
+       （解除は launchctl unload ... ）
+
+  ※ このコピー先ファイルには本物のトピック名が入るが、~/Library/LaunchAgents 配下なので
+     リポジトリには含まれず外部に漏れない。リポジトリ側はプレースホルダのまま。
+  ※ LaunchAgent はユーザーログインセッションで動くため、Keychain（claude のログイン情報）に
+     アクセスできる。Mac にログインした状態で常時起動しておくこと。
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>jp.chikumo.letter-loop</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/python3</string>
+    <string>__SCRIPT_PATH__</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>NTFY_TOPIC</key>
+    <string>__NTFY_TOPIC__</string>
+    <key>CLAUDE_BIN</key>
+    <string>__CLAUDE_BIN__</string>
+    <!-- claude / gh / git を見つけられるよう Homebrew を含む PATH を通す -->
+    <key>PATH</key>
+    <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </array>
+
+  <!-- 5時間ごと（18000秒）。スリープ中に過ぎた分は復帰時にまとめて実行される。 -->
+  <key>StartInterval</key>
+  <integer>18000</integer>
+
+  <!-- 読み込み直後にも1回走らせて動作確認しやすくする（不要なら false に） -->
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>__LOG_DIR__/letter-loop.out.log</string>
+  <key>StandardErrorPath</key>
+  <string>__LOG_DIR__/letter-loop.err.log</string>
+</dict>
+</plist>
