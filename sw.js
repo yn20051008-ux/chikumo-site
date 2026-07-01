@@ -4,7 +4,7 @@
    ・静的資産 = cache-first（あれば即返す。無ければ取得して保存）
    ・外部資産(Firebase/Googleフォント) もキャッシュ対象に含める（opaqueも保存）
    ・メッセージ PRECACHE_ALL で全ゲームを一括ダウンロード（オフライン保存ボタン用） */
-const CACHE = 'chikumonogatari-v89';
+const CACHE = 'chikumonogatari-v90';
 const SHELL = [
   './',
   './index.html',
@@ -13,12 +13,26 @@ const SHELL = [
   './icon-192.png',
   './icon-512.png'
 ];
+// 全ゲームが使う共有SDK。最初に入れておけば、以後どのゲームも回線に関係なく即ランキング接続できる
+const SHELL_EXT = [
+  'https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js',
+  'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js',
+  'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js'
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE)
       // 1つ失敗しても install 全体を止めない（取りこぼし対策）
-      .then((c) => Promise.all(SHELL.map((u) => c.add(u).catch(() => null))))
+      .then((c) => Promise.all([
+        ...SHELL.map((u) => c.add(u).catch(() => null)),
+        ...SHELL_EXT.map((u) => {
+          const req = new Request(u, { mode: 'no-cors' });
+          return fetch(req)
+            .then((res) => { if (cacheable(res)) return c.put(req, res); })
+            .catch(() => null);
+        })
+      ]))
       .then(() => self.skipWaiting())
   );
 });
@@ -74,7 +88,8 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE).then((c) => c.put(req, clone));
         }
         return res;
-      }).catch(() => caches.match('./index.html'));
+      // HTMLを返すとJSとして実行されて壊れるため、素直に失敗を返す（呼び出し側のonerror再試行に任せる）
+      }).catch(() => new Response('', { status: 504, statusText: 'offline' }));
     })
   );
 });
