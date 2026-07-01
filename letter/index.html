@@ -152,9 +152,29 @@
   </div>
 </div>
 
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://chikumonogatarikiroku-default-rtdb.asia-southeast1.firebasedatabase.app">
+<script>
+/* Firebase SDK 非同期ローダー：描画を止めずに順番に読み込む（低帯域でもゲームは即開始）。
+   読込失敗時は時間をおいて/回線復帰(online)で自動再試行 → 遅れてでもランキングを生かす */
+(function(){
+  var base='https://www.gstatic.com/firebasejs/9.23.0/';
+  var files=['firebase-app-compat.js','firebase-database-compat.js','firebase-auth-compat.js'];
+  var next=0, busy=false, fails=0;
+  function load(){
+    if(busy||next>=files.length) return;
+    busy=true;
+    var s=document.createElement('script');
+    s.src=base+files[next]; s.async=true;
+    s.onload=function(){ busy=false; fails=0; next++; load(); };
+    s.onerror=function(){ busy=false; if(s.parentNode) s.parentNode.removeChild(s);
+      setTimeout(load, Math.min(60000, 3000*Math.pow(2,fails++))); };
+    (document.head||document.documentElement).appendChild(s);
+  }
+  window.addEventListener('online', load);
+  load();
+})();
+</script>
 <script>
 "use strict";
 (function(){
@@ -226,7 +246,13 @@
 
   /* Firebase */
   var ready=false, db=null, ref=null, myUid=null, authDone=false, lastTs=0;
-  if(typeof firebase!=='undefined'){
+  (function initFb(){
+    if(typeof firebase==='undefined'||!firebase.database||!firebase.auth){
+      /* SDKは非同期読込。まだ来ていなければ待って再試行（読め次第 手紙機能を起動） */
+      var n=initFb._n=(initFb._n||0)+1;
+      setTimeout(initFb, n<120?500:3000);
+      return;
+    }
     try{ if(!firebase.apps||!firebase.apps.length) firebase.initializeApp({
       apiKey:"AIzaSyBw5-6oAuOmgYC_7G27Z0Qavwn78ZrkhdQ",
       authDomain:"chikumonogatarikiroku.firebaseapp.com",
@@ -241,7 +267,8 @@
       a.onAuthStateChanged(function(u){ if(u){ myUid=u.uid; authDone=true; loadMine(); } });
       if(!a.currentUser) a.signInAnonymously().catch(function(){ authDone=true; });
     }catch(e){ authDone=true; } } else { authDone=true; }
-  }
+    setTimeout(loadMine,0);   // SDKが遅れて読めた場合も（認証を待たずに）自分の手紙を読み直す
+  })();
   function localUid(){ var u; try{ u=localStorage.getItem(UID_KEY); }catch(e){}
     if(!u){ u='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); try{ localStorage.setItem(UID_KEY,u); }catch(e){} } return u; }
   /* 一度 手紙を書いたら その保存キーを固定（ピン留め）して 以降は必ず同じ場所を上書きする。
