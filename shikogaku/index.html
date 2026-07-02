@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<title>思考学 — どう考えたのかを残す（思考の再現レシピ）</title>
+<meta name="description" content="思考学は、判断が分かれた場所で どちらへ・なぜ曲がったかを記録する蔵。軽量な頭（小さなAI・記憶を持たない次の作り手）でも同じ質の仕事を再現できるよう、標準手順・判断の記録・思考のチェックリストを収める。畜物語の五つ目の蔵。">
+<meta property="og:title" content="思考学 — どう考えたのかを残す">
+<meta property="og:description" content="判断が分かれた場所だけを記録し、軽い頭でも再現できるようにする、畜物語の五つ目の蔵。">
+<meta property="og:type" content="website">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://chikumo.jp/shikogaku/">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600;700&family=Shippori+Mincho:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-void:#08080a; --bg-surface:#131318; --bg-elevated:#1a1a22;
+  --text-primary:#e8e6e1; --text-secondary:#9b978f; --text-tertiary:#5e5b54;
+  --gold:#c4a882; --gold-dim:#8a7a64; --gold-bright:#e0cdb0;
+  --line:rgba(196,168,130,0.12); --line-strong:rgba(196,168,130,0.25);
+  --font-serif:'Shippori Mincho','Noto Serif JP',serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-serif);background:var(--bg-void);color:var(--text-primary);line-height:1.9;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+::selection{background:rgba(196,168,130,0.3);}
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:0.9rem clamp(1.2rem,4vw,2.4rem);background:rgba(8,8,10,0.85);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);}
+.topbar .mark{font-weight:700;letter-spacing:0.25em;font-size:0.95rem;}
+.topbar .links{display:flex;gap:1.2rem;}
+.topbar a{font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color .2s;}
+.topbar a:hover{color:var(--gold-bright);}
+.hero{min-height:66vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:5rem 1.5rem 3.5rem;}
+.hero .label{font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.4em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:2rem;}
+.hero h1{font-weight:800;font-size:clamp(3.2rem,11vw,7rem);letter-spacing:0.14em;line-height:1.05;margin-bottom:1.6rem;}
+.hero .sub{font-size:clamp(0.9rem,2vw,1.05rem);font-weight:300;color:var(--text-secondary);letter-spacing:0.14em;line-height:2.1;max-width:46ch;}
+.hero .line{width:1px;height:64px;background:linear-gradient(to bottom,var(--gold),transparent);margin:2.4rem auto 0;}
+section{padding:clamp(3rem,8vw,5.5rem) clamp(1.4rem,5vw,3rem);}
+.inner{max-width:880px;margin:0 auto;}
+.section-label{font-family:var(--font-mono);font-size:0.68rem;color:var(--gold-dim);letter-spacing:0.35em;text-transform:uppercase;margin-bottom:1rem;}
+.section-title{font-weight:700;font-size:clamp(1.6rem,4vw,2.2rem);letter-spacing:0.08em;margin-bottom:1.1rem;line-height:1.35;}
+.section-desc{font-size:0.98rem;color:var(--text-secondary);font-weight:300;line-height:2.1;max-width:66ch;letter-spacing:0.04em;}
+.section-desc b,.step b,.rec b{color:var(--gold);font-weight:600;}
+.divider{max-width:880px;margin:0 auto;height:1px;background:var(--line);}
+.kura{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0.9rem;margin-top:2.2rem;}
+.kura .k{border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.2rem 1.1rem;text-align:center;}
+.kura .k.hi{border-color:var(--line-strong);background:var(--bg-elevated);}
+.kura .k .n{font-size:1.25rem;font-weight:700;color:var(--gold-bright);letter-spacing:0.1em;}
+.kura .k .d{margin-top:0.4rem;font-size:0.8rem;color:var(--text-secondary);}
+.steps{counter-reset:s;margin-top:2.2rem;border-top:1px solid var(--line);}
+.step{position:relative;padding:1.3rem 0 1.3rem 3.3rem;border-bottom:1px solid var(--line);}
+.step::before{counter-increment:s;content:counter(s);position:absolute;left:0.2rem;top:1.25rem;
+  width:2rem;height:2rem;border:1px solid var(--line-strong);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:0.85rem;color:var(--gold-bright);}
+.step h3{font-size:1.05rem;font-weight:700;letter-spacing:0.06em;color:var(--gold-bright);margin-bottom:0.3rem;}
+.step p{font-size:0.92rem;color:var(--text-secondary);line-height:2;}
+.step code,.rec code{font-family:var(--font-mono);font-size:0.82em;color:var(--gold-bright);background:var(--bg-surface);border:1px solid var(--line);border-radius:3px;padding:0.06em 0.4em;}
+.recs{display:flex;flex-direction:column;gap:1.1rem;margin-top:2.2rem;}
+.rec{border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.5rem 1.5rem;}
+.rec h3{font-size:1.05rem;font-weight:700;letter-spacing:0.08em;color:var(--gold-bright);margin-bottom:0.5rem;}
+.rec p{font-size:0.92rem;color:var(--text-secondary);line-height:2;}
+.rec p + p{margin-top:0.5rem;}
+.check{list-style:none;margin-top:2rem;border-top:1px solid var(--line);}
+.check li{position:relative;padding:0.95rem 0 0.95rem 2.2rem;border-bottom:1px solid var(--line);font-size:0.95rem;line-height:2;color:var(--text-primary);}
+.check li::before{content:'☐';position:absolute;left:0.3rem;top:0.95rem;color:var(--gold-dim);}
+.note{background:#0d0d11;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.definition{position:relative;padding:2rem 0;margin-top:2rem;}
+.definition::before{content:'';position:absolute;left:0;top:0;width:2px;height:100%;background:linear-gradient(to bottom,var(--gold),transparent);}
+.definition p{padding-left:1.9rem;font-size:1.02rem;line-height:2.2;letter-spacing:0.05em;}
+.definition p + p{margin-top:1rem;}
+.definition strong{color:var(--gold);font-weight:600;}
+footer{padding:4rem 1.5rem 5rem;text-align:center;border-top:1px solid var(--line);}
+footer .f-links{display:flex;gap:1.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.6rem;}
+footer a{font-family:var(--font-mono);font-size:0.74rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color .2s;}
+footer a:hover{color:var(--gold-bright);}
+footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--text-tertiary);}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .9s cubic-bezier(0.16,1,0.3,1),transform .9s cubic-bezier(0.16,1,0.3,1);}
+.reveal.in{opacity:1;transform:none;}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}html{scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="mark">思考学</span>
+  <span class="links">
+    <a href="/Library/">畜学</a>
+    <a href="/sekkeigaku/">設計学</a>
+    <a href="/">畜物語</a>
+  </span>
+</div>
+
+<header class="hero">
+  <div class="label">How It Was Thought</div>
+  <h1>思考学</h1>
+  <div class="sub">判断が分かれた場所で、どちらへ・なぜ曲がったかを録す。<br>軽い頭でも、この手順をなぞれば同じ質へ至れるように。</div>
+  <div class="line"></div>
+</header>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Definition</div>
+    <h2 class="section-title">五つ目の蔵</h2>
+    <div class="definition">
+      <p>畜史が<strong>成りしもの</strong>を録し、設計学が<strong>降りる順</strong>を示すなら、思考学は<strong>迷った場所の曲がり方</strong>を録す。</p>
+      <p>すべては書かない。迷わなかった場所は書かない。<strong>迷った場所・間違えた場所・二分して確かめた場所</strong>だけを、次の軽い頭のために残す。</p>
+    </div>
+    <div class="kura">
+      <div class="k"><div class="n">十四式</div><div class="d">どう作るのか</div></div>
+      <div class="k"><div class="n">遊戯学</div><div class="d">なぜ作るのか</div></div>
+      <div class="k"><div class="n">設計学</div><div class="d">どの高さから作るのか</div></div>
+      <div class="k"><div class="n">畜史</div><div class="d">何を作ったのか</div></div>
+      <div class="k hi"><div class="n">思考学</div><div class="d">どう考えたのか</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Volume I — Standard Procedure</div>
+    <h2 class="section-title">巻一 ─ 標準手順（新作・大改修の再現レシピ）</h2>
+    <p class="section-desc">順番を守ること。飛ばした段が、あとで手戻りになる。</p>
+    <div class="steps">
+      <div class="step"><h3>蔵を読む</h3><p>CLAUDE.md → 畜学（七相＋運用の鍵）→ 設計学（森林木）→ 遊戯学 → 十四式。ラベルで済ませず、開いて読む。</p></div>
+      <div class="step"><h3>先行作を批判的にレビューする</h3><p>コードを実際に開き、①描画は何で作られているか ②遊びの動詞は何か ③七相に照らして違反はどれか、を忖度なしに書き出す。ほめるためでなく、<b>次作の設計材料を採るため</b>に読む。</p></div>
+      <div class="step"><h3>死んだ木を調べる</h3><p>畜史を「サービス終了」で検索し、同じ名前・同じ企画が過去に死んでいないかを確かめる。死んでいたら、その死因を設計制約に繰り入れる。</p></div>
+      <div class="step"><h3>森→林→木で降りる</h3><p>森＝掟と共有臓器。林＝この木が連なる束。木＝今回の一作。<b>木の仕様を書く前に、森と林への接続を一行ずつ書く。</b></p></div>
+      <div class="step"><h3>七相との衝突を先に解く</h3><p>ジャンルの性質と掟がぶつかる場所を、実装前に決める。<b>掟は捨てない、ジャンルの方を曲げる。</b>（例：終わらないジャンル→「必ず終わる器」に変換）</p></div>
+      <div class="step"><h3>投資の優先順位を数で決める</h3><p>「すごい」は総量でなく順序。効果の大きい一手から。細部から始めない（＝木から積むな）。</p></div>
+      <div class="step"><h3>全部にフォールバックを敷く</h3><p>失敗したら基本版へ落ちる道を、機能ごとに敷く。重い環境では自動で軽くなる段も。精度・互換の統一（過去の死因）を守る。</p></div>
+      <div class="step"><h3>実際に遊んで検証する</h3><p>構文チェックだけで済ませない。起動→開始→<b>終端まで</b>を実際に通し、エラーゼロと画の目視を確かめる。長い遊びには<b>検証用の小さなフック</b>（状態取得・スキップ・時間加速）を常設する。</p></div>
+      <div class="step"><h3>共有臓器を繋ぐ</h3><p>🔄強制更新・音の番人・世界ランキングの祭壇・トップ目録・sitemap・キャッシュ版上げ。島の器官と血を通わせる。</p></div>
+      <div class="step"><h3>継として還す</h3><p>畜史に録し、<b>判断が分かれた場所をこの書に追記</b>し、公開の扉（PR）までを開く。扉を押すのは、つくり手。</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="note">
+  <div class="inner reveal">
+    <div class="section-label">Volume II — Records of Judgment</div>
+    <h2 class="section-title">巻二 ─ 判断の記録：島ぐらし2「ななつの夜明け」</h2>
+    <p class="section-desc">実際の分かれ道で、どう考えたか。同じ形の迷いに出会ったら、まずここを読む。</p>
+    <div class="recs">
+      <div class="rec"><h3>一・レビューは「掟との衝突」から書く</h3>
+        <p>前作（島ぐらし）の弱点は、機能の不足ではなかった。<b>世界のすべてが紙（カメラを向く平らな絵）であること、太陽があるのに影が落ちないこと</b>──没入を壊す最大要因はこの二つ。遊びの側は、幅はあるのに<b>底（終わり）が無い</b>ことが焔の形に反していた。レビューは「足りない機能の一覧」でなく「掟との衝突」と「没入を壊す最大要因」から書く。</p></div>
+      <div class="rec"><h3>二・死んだ木の死因を繰り入れる</h3>
+        <p>島ぐらし2は過去に一度存在し、三日で取り下げられていた。死因は<b>外部エンジン依存（一器に納むの違反）</b>と<b>シェーダ精度の不統一によるiOS起動不能</b>。ゆえに今作は外部依存ゼロ・精度統一・道（パス）も新しく。<b>死んだ木の上に建てない。</b></p></div>
+      <div class="rec"><h3>三・終わらないジャンルと焔の形</h3>
+        <p>島ぐらしの気持ちよさは残し、無限ループは断つ。核は「60秒」という数字でなく<b>底（必ず終わる）</b>。ゆえに「７日間・約５分・必ず夜明けで終わる島ぐらし」へ変換した。祭壇に刻むのは資産でなく<b>結んだ縁の数</b>。終わりは無音と花びら──罰でなく祝福。</p></div>
+      <div class="rec"><h3>四・グラフィック投資の順序</h3>
+        <p>①太陽の影（光に実在が宿る・最大の一手）②紙を本物のメッシュに（風に揺れる幹と樹冠。<b>法線は中心から外向きを保証する</b>──巻き順まかせは黒い面を生む。実際に生んだ）③深さを知る水（浅瀬の色・岸の泡）④育つ地形（世界そのものが報酬）⑤ポストは最後のひと塗り。<b>先に塗るな。</b></p></div>
+      <div class="rec"><h3>五・検証の型：極端値で二分する</h3>
+        <p>「影が出ていない気がする」とき、疑う項を<b>一時的に極端値</b>（影を真っ黒）にする。差分が出れば配管は生きている（調整の問題）、出なければ配管が死んでいる（バグ）。迷いを二分して確かめる。また、長い遊びの検証には時間加速のフックが要る──実時間で待つ検証は破綻する。</p></div>
+      <div class="rec"><h3>六・削る勇気</h3>
+        <p>前作の店・ジム・乗り物・隠しステージは持ち込まなかった。動詞は<b>あつめる・ともす・はしる・まもる</b>の四つだけ。５分の器に、動詞は四つで足りる。幅を足すより、一周の密度を上げる。</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Volume III — Checklist</div>
+    <h2 class="section-title">巻三 ─ 作る前に己に問う</h2>
+    <ul class="check">
+      <li>蔵を五つとも読んだか（十四式・遊戯学・設計学・畜史・思考学）。</li>
+      <li>先行作を批判的に読み、「掟との衝突」と「没入を壊す最大要因」を言葉にしたか。</li>
+      <li>同名・同企画の死んだ木を調べ、死因を制約に繰り入れたか。</li>
+      <li>森→林→木の接続を一行ずつ書いたか。木から書き始めていないか。</li>
+      <li>ジャンルと七相の衝突を実装前に解いたか。掟でなくジャンルを曲げたか。</li>
+      <li>投資の優先順位を決めたか。細部から始めていないか。</li>
+      <li>フォールバックと自動軽量化を敷いたか。</li>
+      <li>実際に遊んで終端まで通したか。検証フックを仕込んだか。</li>
+      <li>共有臓器を繋いだか。</li>
+      <li>畜史に録し、迷った場所をこの書に追記したか。扉はつくり手に委ねたか。</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="f-links">
+    <a href="/Library/">畜学</a>
+    <a href="/jushishiki/">十四式</a>
+    <a href="/yugigaku/">遊戯学</a>
+    <a href="/sekkeigaku/">設計学</a>
+    <a href="/changelog/">畜史</a>
+    <a href="/">畜物語</a>
+  </div>
+  <div class="c">畜物語 ─ chikumo.jp</div>
+</footer>
+
+<script>
+"use strict";
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){ for(var i=0;i<els.length;i++) els[i].classList.add('in'); return; }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:0.12,rootMargin:'0px 0px -8% 0px'});
+  els.forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
