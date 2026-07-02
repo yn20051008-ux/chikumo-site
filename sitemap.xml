@@ -31,6 +31,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://chikumo.jp/rescue2/</loc>
+    <lastmod>2026-07-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://chikumo.jp/graze/</loc>
     <lastmod>2026-06-07</lastmod>
     <changefreq>weekly</changefreq>
