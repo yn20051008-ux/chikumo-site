@@ -1751,31 +1751,174 @@ function drawStage(){
   const g=ctx.createLinearGradient(0,0,0,H);
   g.addColorStop(0,st.sky[0]); g.addColorStop(1,st.sky[1]);
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
-  // 遠景（パララックス0.3）
+  if(st.deco==='saidan') drawSaidanScene();
+  else if(st.deco==='sora') drawSoraScene();
+  else drawOoedaScene();
+  drawPlatforms(st);
+}
+/* ===== 終の祭壇：星空・神殿シルエット・紋章・柱 ===== */
+function drawSaidanScene(){
+  const st=G.stage;
   ctx.save();
-  const px=W/2-cam.x*cam.s*0.3, py=H/2-cam.y*cam.s*0.3;
-  ctx.globalAlpha=0.5;
-  if(st.deco==='saidan'){
-    for(let i=0;i<5;i++){ const sx=px+((i*431)%1600-800)*cam.s, sy=py+((i*263)%500-380)*cam.s;
-      ctx.fillStyle='rgba(255,214,140,'+(0.25+0.1*Math.sin(G.time/40+i))+')';
-      ctx.beginPath(); ctx.arc(sx,sy,3*cam.s+1,0,TAU); ctx.fill(); }
-    ctx.fillStyle='rgba(90,60,130,.5)';
-    ctx.fillRect(px-700*cam.s,py+40*cam.s,180*cam.s,400*cam.s);
-    ctx.fillRect(px+520*cam.s,py+40*cam.s,180*cam.s,400*cam.s);
-  } else if(st.deco==='sora'){
-    ctx.fillStyle='rgba(255,255,255,.5)';
-    for(let i=0;i<6;i++){ const sx=px+(((i*373)+G.time*0.2)%1800-900)*cam.s, sy=py+((i*197)%460-350)*cam.s;
-      ctx.beginPath(); ctx.ellipse(sx,sy,70*cam.s,22*cam.s,0,0,TAU); ctx.fill(); }
-    ctx.fillStyle='rgba(255,240,180,.8)'; ctx.beginPath(); ctx.arc(px+560*cam.s,py-320*cam.s,44*cam.s,0,TAU); ctx.fill();
-  } else {
-    ctx.fillStyle='rgba(30,70,45,.7)';
-    ctx.fillRect(px-120*cam.s,py-600*cam.s,240*cam.s,1200*cam.s);
-    for(let i=0;i<7;i++){ const sx=px+((i*311)%1500-750)*cam.s, sy=py+(((i*157)+G.time*0.4)%700-380)*cam.s;
-      ctx.fillStyle='rgba(140,200,110,.35)';
-      ctx.beginPath(); ctx.ellipse(sx,sy,7*cam.s,3.4*cam.s,i,0,TAU); ctx.fill(); }
+  // 星（視差0.15・きらめき）
+  const px1=W/2-cam.x*cam.s*0.15, py1=H/2-cam.y*cam.s*0.15;
+  for(let i=0;i<44;i++){
+    const sx=px1+((i*257)%2200-1100)*cam.s*0.7, sy=py1+((i*613)%760-600)*cam.s*0.7;
+    const tw=0.3+0.35*Math.sin(G.time/50+i*1.7);
+    ctx.globalAlpha=tw; ctx.fillStyle='#e6dcff';
+    const r=(i%5===0?1.7:0.9);
+    ctx.beginPath(); ctx.arc(sx,sy,r*cam.s+0.4,0,TAU); ctx.fill();
+  }
+  // 奥の神殿シルエット（視差0.22）
+  const px2=W/2-cam.x*cam.s*0.22, py2=H/2-cam.y*cam.s*0.22, by=py2+150*cam.s;
+  ctx.globalAlpha=0.6; ctx.fillStyle='rgba(38,20,58,0.92)';
+  ctx.beginPath();
+  ctx.moveTo(px2-380*cam.s,by+150*cam.s); ctx.lineTo(px2-380*cam.s,by+40*cam.s);
+  ctx.lineTo(px2-270*cam.s,by+40*cam.s); ctx.lineTo(px2-270*cam.s,by-40*cam.s);
+  ctx.lineTo(px2-160*cam.s,by-40*cam.s); ctx.lineTo(px2-160*cam.s,by-120*cam.s);
+  ctx.lineTo(px2,by-210*cam.s); ctx.lineTo(px2+160*cam.s,by-120*cam.s);
+  ctx.lineTo(px2+160*cam.s,by-40*cam.s); ctx.lineTo(px2+270*cam.s,by-40*cam.s);
+  ctx.lineTo(px2+270*cam.s,by+40*cam.s); ctx.lineTo(px2+380*cam.s,by+40*cam.s);
+  ctx.lineTo(px2+380*cam.s,by+150*cam.s); ctx.closePath(); ctx.fill();
+  ctx.globalAlpha=0.35; ctx.fillStyle='rgba(255,200,120,0.9)';
+  ctx.beginPath(); ctx.arc(px2,by-190*cam.s,7*cam.s,0,TAU); ctx.fill();
+  ctx.restore();
+  // 台座下の紋章（ワールド座標固定）
+  const rx=wx(0), ry=wy(st.main.y)+16*cam.s, rt=G.time/90;
+  ctx.save();
+  ctx.globalAlpha=0.32+0.1*Math.sin(G.time/30);
+  ctx.strokeStyle='rgba(196,168,130,0.85)'; ctx.lineWidth=Math.max(1,2*cam.s);
+  ctx.beginPath(); ctx.ellipse(rx,ry,300*cam.s,44*cam.s,0,0,TAU); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(rx,ry,225*cam.s,32*cam.s,0,0,TAU); ctx.stroke();
+  for(let i=0;i<12;i++){ const a=rt+i/12*TAU;
+    ctx.beginPath(); ctx.arc(rx+Math.cos(a)*300*cam.s, ry+Math.sin(a)*44*cam.s, 2.2*cam.s, 0, TAU);
+    ctx.fillStyle='rgba(228,208,172,0.9)'; ctx.fill(); }
+  ctx.restore();
+  // 左右の柱（台座の縁＝ワールド座標固定。ステージのどの位置からでも必ずここに立っている）
+  const pillarY=wy(st.main.y);
+  saidanPillar(wx(st.main.x1-90),pillarY,0);
+  saidanPillar(wx(st.main.x2+90),pillarY,1);
+  // 漂う残り火（視差0.32）
+  const px4=W/2-cam.x*cam.s*0.32, py4=H/2-cam.y*cam.s*0.32;
+  for(let i=0;i<10;i++){ const sx=px4+((i*431)%1700-850)*cam.s, sy=py4+((i*263+G.time*0.6)%620-460)*cam.s;
+    ctx.globalAlpha=0.25+0.15*Math.sin(G.time/34+i);
+    ctx.fillStyle='rgba(255,204,140,0.9)';
+    ctx.beginPath(); ctx.arc(sx,sy,(2.4+Math.sin(i)*1)*cam.s+1,0,TAU); ctx.fill(); }
+  ctx.globalAlpha=1;
+}
+function saidanPillar(cx,py,side){
+  const w=64*cam.s, h=380*cam.s, topY=py-220*cam.s;
+  ctx.save();
+  const grad=ctx.createLinearGradient(cx-w/2,0,cx+w/2,0);
+  grad.addColorStop(0,'rgba(64,42,90,0.88)'); grad.addColorStop(0.5,'rgba(122,88,152,0.92)'); grad.addColorStop(1,'rgba(56,36,78,0.88)');
+  ctx.globalAlpha=0.9; ctx.fillStyle=grad;
+  ctx.fillRect(cx-w/2,topY,w,h);
+  ctx.strokeStyle='rgba(18,10,28,0.4)'; ctx.lineWidth=Math.max(1,1.3*cam.s);
+  for(let i=1;i<5;i++){ const lx=cx-w/2+w*i/5;
+    ctx.beginPath(); ctx.moveTo(lx,topY+8*cam.s); ctx.lineTo(lx,topY+h-8*cam.s); ctx.stroke(); }
+  ctx.fillStyle='rgba(196,168,130,0.9)';
+  ctx.fillRect(cx-w/2-13*cam.s,topY-14*cam.s,w+26*cam.s,14*cam.s);
+  ctx.fillRect(cx-w/2-9*cam.s,topY+h,w+18*cam.s,12*cam.s);
+  ctx.globalAlpha=0.5+0.2*Math.sin(G.time/25+side*3);
+  ctx.fillStyle='rgba(255,224,170,0.95)';
+  ctx.beginPath(); ctx.arc(cx,topY-18*cam.s,7*cam.s,0,TAU); ctx.fill();
+  ctx.restore();
+}
+/* ===== そらの島：山並み・雲の二層・太陽・鳥 ===== */
+function drawSoraScene(){
+  ctx.save();
+  // 遠い山並み（視差0.1）
+  const px0=W/2-cam.x*cam.s*0.1, py0=H/2-cam.y*cam.s*0.1;
+  ctx.globalAlpha=0.32; ctx.fillStyle='#1c3a68';
+  ctx.beginPath(); ctx.moveTo(px0-1400*cam.s,py0+240*cam.s);
+  for(let i=0;i<=10;i++){ const x=px0+(-1400+i*280)*cam.s, hgt=(140+Math.sin(i*1.7)*60)*cam.s;
+    ctx.lineTo(x,py0+240*cam.s-hgt); }
+  ctx.lineTo(px0+1400*cam.s,py0+240*cam.s); ctx.closePath(); ctx.fill();
+  // 太陽（グロー）
+  const px1=W/2-cam.x*cam.s*0.15, py1=H/2-cam.y*cam.s*0.15;
+  const sunX=px1+540*cam.s, sunY=py1-300*cam.s;
+  const sg=ctx.createRadialGradient(sunX,sunY,0,sunX,sunY,90*cam.s);
+  sg.addColorStop(0,'rgba(255,250,220,0.95)'); sg.addColorStop(0.4,'rgba(255,236,170,0.5)'); sg.addColorStop(1,'rgba(255,236,170,0)');
+  ctx.globalAlpha=1; ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(sunX,sunY,90*cam.s,0,TAU); ctx.fill();
+  ctx.fillStyle='rgba(255,250,225,0.95)'; ctx.beginPath(); ctx.arc(sunX,sunY,40*cam.s,0,TAU); ctx.fill();
+  // 遠い雲（視差0.2・小さくゆっくり）
+  const px2=W/2-cam.x*cam.s*0.2, py2=H/2-cam.y*cam.s*0.2;
+  ctx.globalAlpha=0.4; ctx.fillStyle='#fff';
+  for(let i=0;i<8;i++){ const sx=px2+(((i*271)+G.time*0.12)%1900-950)*cam.s, sy=py2+((i*151)%420-320)*cam.s;
+    cloudPuff(sx,sy,36*cam.s); }
+  // 近い雲（視差0.34・大きく速い。ただし主役の視界を邪魔しないよう控えめな不透明度に）
+  const px3=W/2-cam.x*cam.s*0.34, py3=H/2-cam.y*cam.s*0.34;
+  ctx.globalAlpha=0.4;
+  for(let i=0;i<5;i++){ const sx=px3+(((i*373)+G.time*0.32)%1900-950)*cam.s, sy=py3+((i*197)%460-340)*cam.s-140*cam.s;
+    cloudPuff(sx,sy,50*cam.s); }
+  // 鳥（視差0.4）
+  const px4=W/2-cam.x*cam.s*0.4, py4=H/2-cam.y*cam.s*0.4;
+  ctx.globalAlpha=0.55; ctx.strokeStyle='rgba(40,40,60,0.8)'; ctx.lineWidth=Math.max(1,1.6*cam.s);
+  for(let i=0;i<4;i++){ const sx=px4+(((i*541)+G.time*0.5)%1700-850)*cam.s, sy=py4+((i*233)%260-200)*cam.s+Math.sin(G.time/12+i)*4*cam.s;
+    ctx.beginPath(); ctx.moveTo(sx-9*cam.s,sy); ctx.quadraticCurveTo(sx-3*cam.s,sy-6*cam.s,sx,sy);
+    ctx.quadraticCurveTo(sx+3*cam.s,sy-6*cam.s,sx+9*cam.s,sy); ctx.stroke(); }
+  ctx.restore();
+}
+function cloudPuff(x,y,r){
+  ctx.beginPath();
+  ctx.ellipse(x,y,r,r*0.55,0,0,TAU);
+  ctx.ellipse(x-r*0.55,y+r*0.12,r*0.62,r*0.4,0,0,TAU);
+  ctx.ellipse(x+r*0.6,y+r*0.1,r*0.58,r*0.38,0,0,TAU);
+  ctx.fill();
+}
+/* ===== ゆれる大枝：森の奥行き・大樹・落ち葉 ===== */
+function drawOoedaScene(){
+  const st=G.stage;
+  ctx.save();
+  // 奥の森陰（視差0.12）
+  const px0=W/2-cam.x*cam.s*0.12, py0=H/2-cam.y*cam.s*0.12;
+  ctx.globalAlpha=0.4; ctx.fillStyle='#0e2a20';
+  for(let i=0;i<9;i++){ const sx=px0+((i*331)%1700-850)*cam.s, sy=py0+90*cam.s;
+    ctx.beginPath(); ctx.ellipse(sx,sy,120*cam.s,150*cam.s,0,0,TAU); ctx.fill(); }
+  // 大樹の幹（ワールド座標固定・画面外の左に根を張る）
+  const tx=wx(-760), ty=wy(st.main.y);
+  ctx.globalAlpha=0.85;
+  const trGrad=ctx.createLinearGradient(tx-90*cam.s,0,tx+130*cam.s,0);
+  trGrad.addColorStop(0,'#2a180e'); trGrad.addColorStop(0.5,'#4a2e18'); trGrad.addColorStop(1,'#2a180e');
+  ctx.fillStyle=trGrad;
+  ctx.beginPath();
+  ctx.moveTo(tx-70*cam.s,ty+260*cam.s); ctx.quadraticCurveTo(tx-110*cam.s,ty-120*cam.s,tx-30*cam.s,ty-460*cam.s);
+  ctx.lineTo(tx+90*cam.s,ty-460*cam.s); ctx.quadraticCurveTo(tx+150*cam.s,ty-100*cam.s,tx+110*cam.s,ty+260*cam.s);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle='rgba(20,10,6,0.5)'; ctx.lineWidth=Math.max(1,2*cam.s);
+  for(let i=0;i<4;i++){ const lx=tx-50*cam.s+i*45*cam.s;
+    ctx.beginPath(); ctx.moveTo(lx,ty+220*cam.s); ctx.quadraticCurveTo(lx+10*cam.s,ty-100*cam.s,lx-6*cam.s,ty-420*cam.s); ctx.stroke(); }
+  // 葉の茂み（幹の上）
+  ctx.globalAlpha=0.8; ctx.fillStyle='#2f6a3a';
+  for(let i=0;i<6;i++){ const a=i/6*TAU;
+    ctx.beginPath(); ctx.ellipse(tx+Math.cos(a)*120*cam.s, ty-500*cam.s+Math.sin(a)*70*cam.s, 110*cam.s,80*cam.s,0,0,TAU); ctx.fill(); }
+  ctx.fillStyle='#3a7d46';
+  ctx.beginPath(); ctx.ellipse(tx,ty-520*cam.s,160*cam.s,110*cam.s,0,0,TAU); ctx.fill();
+  ctx.restore();
+  // 木漏れ日（視差0.25）
+  ctx.save();
+  const px1=W/2-cam.x*cam.s*0.25, py1=H/2-cam.y*cam.s*0.25;
+  ctx.globalAlpha=0.14;
+  for(let i=0;i<6;i++){ const sx=px1+((i*467)%1600-800)*cam.s, sy=py1+((i*211+G.time*0.3)%700-380)*cam.s;
+    ctx.fillStyle='#ffe9a0'; ctx.beginPath(); ctx.ellipse(sx,sy,30*cam.s,54*cam.s,0.3,0,TAU); ctx.fill(); }
+  ctx.restore();
+  // 落ち葉（連続ループ・視差0.3）
+  ctx.save();
+  const px2=W/2-cam.x*cam.s*0.3, py2=H/2-cam.y*cam.s*0.3;
+  const leafCol=['#e0a840','#c8783a','#7fae4a'];
+  for(let i=0;i<9;i++){
+    const cyc=900, ph=(i*233+G.time*1.3)%cyc;
+    const sx=px2+((i*151)%1500-750)*cam.s+Math.sin(G.time/24+i)*18*cam.s, sy=py2-360*cam.s+ph*cam.s;
+    if(sy>py2+420*cam.s) continue;
+    ctx.save(); ctx.translate(sx,sy); ctx.rotate(G.time/20+i);
+    ctx.globalAlpha=0.7; ctx.fillStyle=leafCol[i%3];
+    ctx.beginPath(); ctx.ellipse(0,0,6*cam.s,3.2*cam.s,0,0,TAU); ctx.fill();
+    ctx.restore();
   }
   ctx.restore();
-  // 足場
+}
+/* ===== 足場（ステージごとに見た目を出し分け） ===== */
+function drawPlatforms(st){
   for(const p of platsNow()){
     const x1=wx(p.x1),x2=wx(p.x2),y=wy(p.y);
     if(p.main){
@@ -1787,12 +1930,57 @@ function drawStage(){
       ctx.lineTo(x2-40*cam.s,y+depth); ctx.lineTo(x1+40*cam.s,y+depth); ctx.closePath(); ctx.fill();
       ctx.fillStyle=st.grass; ctx.fillRect(x1,y-4*cam.s,x2-x1,7*cam.s);
       ctx.fillStyle='rgba(255,255,255,.25)'; ctx.fillRect(x1,y-4*cam.s,x2-x1,2*cam.s);
+      if(st.deco==='saidan'){   // 石畳の目地
+        ctx.strokeStyle='rgba(20,12,30,0.25)'; ctx.lineWidth=Math.max(1,1.2*cam.s);
+        for(let lx=x1+30*cam.s;lx<x2;lx+=60*cam.s){ ctx.beginPath(); ctx.moveTo(lx,y+3*cam.s); ctx.lineTo(lx-14*cam.s,y+depth*0.6); ctx.stroke(); }
+      } else if(st.deco==='sora'){   // 島の下＝土と根
+        drawIslandUnderside(x1,x2,y,depth,false);
+      } else {   // 苔と木肌の起伏
+        ctx.fillStyle='rgba(20,30,15,0.35)';
+        for(let lx=x1+20*cam.s;lx<x2;lx+=70*cam.s) { ctx.beginPath(); ctx.ellipse(lx,y+5*cam.s,16*cam.s,5*cam.s,0,0,TAU); ctx.fill(); }
+      }
+    } else if(st.deco==='sora'){   // 浮き島（丸い土台＋草＋垂れた根）
+      drawIslandUnderside(x1,x2,y,60*cam.s,true);
+      ctx.fillStyle=st.grass; ctx.fillRect(x1,y-3*cam.s,x2-x1,6*cam.s);
+      ctx.fillStyle='rgba(255,255,255,.3)'; ctx.fillRect(x1,y-3*cam.s,x2-x1,2*cam.s);
+      ctx.fillStyle='rgba(255,240,180,.8)';
+      for(let lx=x1+10*cam.s;lx<x2;lx+=34*cam.s) { ctx.beginPath(); ctx.arc(lx,y-2*cam.s,2*cam.s,0,TAU); ctx.fill(); }
+    } else if(st.deco==='ooeda'){   // 枝（樹皮のかたまり・両端に葉）
+      const h=16*cam.s, midY=y+h/2;
+      ctx.save();
+      const bg=ctx.createLinearGradient(0,y,0,y+h);
+      bg.addColorStop(0,'#6a4526'); bg.addColorStop(1,'#3a2414');
+      ctx.fillStyle=bg;
+      ctx.beginPath(); ctx.moveTo(x1+6*cam.s,y); ctx.lineTo(x2-6*cam.s,y);
+      ctx.quadraticCurveTo(x2,y+h/2,x2-6*cam.s,y+h); ctx.lineTo(x1+6*cam.s,y+h);
+      ctx.quadraticCurveTo(x1,y+h/2,x1+6*cam.s,y); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle='rgba(20,10,4,0.4)'; ctx.lineWidth=Math.max(1,1*cam.s);
+      for(let lx=x1+14*cam.s;lx<x2-10*cam.s;lx+=22*cam.s){ ctx.beginPath(); ctx.ellipse(lx,midY,7*cam.s,h*0.32,0,0,TAU); ctx.stroke(); }
+      ctx.fillStyle='#3f7d47';
+      ctx.beginPath(); ctx.ellipse(x1+2*cam.s,y-4*cam.s,20*cam.s,14*cam.s,-0.4,0,TAU); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(x2-2*cam.s,y-4*cam.s,20*cam.s,14*cam.s,0.4,0,TAU); ctx.fill();
+      ctx.restore();
     } else {
       ctx.fillStyle='rgba(255,255,255,.16)';
       ctx.fillRect(x1,y,x2-x1,9*cam.s);
       ctx.fillStyle=st.grass; ctx.fillRect(x1,y-3*cam.s,x2-x1,5*cam.s);
     }
   }
+}
+function drawIslandUnderside(x1,x2,y,depth,small){
+  const cx=(x1+x2)/2, w=x2-x1;
+  ctx.save();
+  const gg=ctx.createLinearGradient(0,y,0,y+depth);
+  gg.addColorStop(0,'#5a4326'); gg.addColorStop(0.5,'#3c2c1a'); gg.addColorStop(1,'rgba(20,14,10,0)');
+  ctx.fillStyle=gg;
+  ctx.beginPath();
+  ctx.moveTo(x1,y);
+  ctx.quadraticCurveTo(cx,y+depth*(small?1.4:1.1),x2,y);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle='rgba(0,0,0,0.18)';
+  for(let i=0;i<Math.max(2,Math.floor(w/70));i++){ const rx=x1+20*cam.s+((i*53)%Math.max(1,w-40*cam.s));
+    ctx.beginPath(); ctx.arc(rx,y+depth*0.45,4*cam.s,0,TAU); ctx.fill(); }
+  ctx.restore();
 }
 function drawFighter(f){
   if(f.dead) return;
