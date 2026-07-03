@@ -517,11 +517,20 @@ const Sound=(function(){
     o.type=t||'sawtooth'; o.frequency.setValueAtTime(f0,n); o.frequency.exponentialRampToValueAtTime(Math.max(40,f1),n+d);
     g.gain.setValueAtTime(.0001,n); g.gain.exponentialRampToValueAtTime(v||.3,n+d*0.85); g.gain.exponentialRampToValueAtTime(.0001,n+d+.05);
     o.connect(g); g.connect(master); o.start(n); o.stop(n+d+.07); }
-  /* BGM: 乱闘の疾走ループ。intense で半音上げ＋テンポ増 */
-  let bg=null,bt=null,bs=0,bn=0,bon=false,intense=false;
-  function SD(){ return 60/(intense?164:140)/2; }
-  const BASS=[98,98,123.47,98, 130.81,130.81,146.83,164.81];   // G G B G C C D E
-  const ARP =[392,493.88,587.33,783.99, 523.25,659.25,783.99,987.77];
+  /* BGM: ステージごとに音色・音域・テンポが違う3つのテーマ。intense で半音上げ＋テンポ増 */
+  let bg=null,bt=null,bs=0,bn=0,bon=false,intense=false,themeId='saidan';
+  const THEMES={
+    saidan:{ bpm:140, sub:'sine', arpV:'triangle', hat:6500,   // 終の祭壇：現行そのまま（荘厳・低め）
+      bass:[98,98,123.47,98, 130.81,130.81,146.83,164.81],
+      arp: [392,493.88,587.33,783.99, 523.25,659.25,783.99,987.77] },
+    sora:{ bpm:150, sub:'sine', arpV:'sine', hat:9000,          // そらの島：高音域・明るい長調寄り
+      bass:[146.83,146.83,164.81,146.83, 196.00,196.00,220.00,246.94],
+      arp: [587.33,739.99,880.00,1174.66, 783.99,987.77,1174.66,1479.98] },
+    ooeda:{ bpm:132, sub:'triangle', arpV:'square', hat:4200,   // ゆれる大枝：低音域・木質でパーカッシブ
+      bass:[87.31,87.31,103.83,87.31, 116.54,116.54,130.81,146.83],
+      arp: [349.23,415.30,523.25,698.46, 466.16,587.33,698.46,880.00] },
+  };
+  function SD(){ return 60/((THEMES[themeId]||THEMES.saidan).bpm*(intense?1.17:1))/2; }
   function bnote(f,t,d,ty,v){ const o=ac.createOscillator(),g=ac.createGain(); o.type=ty; o.frequency.setValueAtTime(f,t);
     g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(v,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+d);
     o.connect(g); g.connect(bg); o.start(t); o.stop(t+d+.02); }
@@ -529,12 +538,12 @@ const Sound=(function(){
     for(let i=0;i<len;i++)dt[i]=(Math.random()*2-1)*(1-i/len);
     const s=ac.createBufferSource(); s.buffer=b; const fl=ac.createBiquadFilter(); fl.type='highpass'; fl.frequency.value=f||6500;
     const g=ac.createGain(); g.gain.value=v; s.connect(fl); fl.connect(g); g.connect(bg); s.start(t); }
-  function bstep(i,t){ const sd=SD(), k=intense?1.122:1;
-    bnote(BASS[i%8]*k, t, sd*1.5, 'square', .15);
-    if(i%2===0) bnote(BASS[i%8]/2*k, t, sd*1.8, 'sine', .3);
-    bnote(ARP[(i*5)%8]*k, t, sd*0.9, 'triangle', .09);
-    if(i%8===6) bnote(ARP[(i*3)%8]*k*2, t, sd*1.4, 'sawtooth', .05);
-    bnoise(t, .03, i%4===2?.10:.05);
+  function bstep(i,t){ const th=THEMES[themeId]||THEMES.saidan, sd=SD(), k=intense?1.122:1;
+    bnote(th.bass[i%8]*k, t, sd*1.5, 'square', .15);
+    if(i%2===0) bnote(th.bass[i%8]/2*k, t, sd*1.8, th.sub, .3);
+    bnote(th.arp[(i*5)%8]*k, t, sd*0.9, th.arpV, .09);
+    if(i%8===6) bnote(th.arp[(i*3)%8]*k*2, t, sd*1.4, 'sawtooth', .05);
+    bnoise(t, .03, i%4===2?.10:.05, th.hat);
   }
   function bsched(){ if(!ac||!bon)return; while(bn<ac.currentTime+0.22){ bstep(bs,bn); bn+=SD(); bs=(bs+1)%64; } }
   function startBGM(){ if(!ac||muted)return; if(!bg){bg=ac.createGain(); bg.gain.value=.0001; bg.connect(master);}
@@ -544,12 +553,17 @@ const Sound=(function(){
   function stopBGM(){ bon=false; intense=false; if(bt){clearInterval(bt);bt=null;} if(bg){try{bg.gain.cancelScheduledValues(ac.currentTime); bg.gain.linearRampToValueAtTime(.0001,ac.currentTime+0.4);}catch(e){}} }
   return { init, resume(){ if(ac&&ac.state==='suspended')ac.resume(); }, setMuted(b){muted=b; if(b)stopBGM();}, startBGM, stopBGM,
     setIntense(b){ intense=b; },
+    setTheme(id){ themeId=THEMES[id]?id:'saidan'; },
+    getTheme(){ return themeId; },
     hit(p){ noise(.05,.3,2400); tone(320+Math.min(p||0,200),0.07,'square',0.2,120); },
     heavy(){ tone(95,0.16,'square',0.42,44); noise(.13,.36,1600); tone(1500,0.1,'sawtooth',0.2,300); },
     smashHit(){ tone(70,0.22,'square',0.5,36); noise(.2,.42,1400); tone(2100,0.14,'sawtooth',0.26,240);
       setTimeout(()=>noise(.14,.2,900),40); },
     whoosh(){ noise(.11,.2,900,true); },
     jump(){ tone(300,0.1,'sine',0.16,600); },
+    // 着地の踏み込み音：落下速度に応じて厚みと低さが増す（毎回鳴る／速く落ちるほど重い）
+    land(spd){ const k=Math.min(1,(spd||8)/22);
+      noise(.05+k*.06,.10+k*.22,760-k*380); tone(150-k*40,0.07+k*.06,'sine',0.10+k*.16,42); },
     shield(){ tone(300,0.1,'sine',0.2); noise(.05,.12,3000); },
     shieldBreak(){ tone(1200,0.4,'sawtooth',0.35,120); noise(.4,.3,800); },
     dodge(){ noise(.08,.14,4200,true); tone(900,0.06,'sine',0.1,1400); },
@@ -557,6 +571,12 @@ const Sound=(function(){
     charge(k){ tone(180+k*3,0.05,'square',0.07); },
     egg(){ tone(700,0.07,'sine',0.16,1050); },
     boom(){ tone(70,0.3,'square',0.45,30); noise(.3,.4,900); },
+    // 必殺わざ固有音（6キャラの持ちわざを聴き分けられるように）
+    seedShot(){ [0,1,2].forEach(i=>setTimeout(()=>{ tone(900+i*140,0.035,'square',0.15); noise(.02,.09,4600); },i*38)); },
+    windGust(){ noise(.24,.24,1500,true); tone(480,0.24,'triangle',0.13,880); },
+    bombToss(){ tone(300,0.1,'sine',0.15,170); noise(.05,.12,1100); setTimeout(()=>tone(1500,0.03,'square',0.06),70); },
+    rocketLaunch(){ swell(140,900,0.22,0.3,'sawtooth'); noise(.18,.22,2200,true); },
+    grabCatch(){ tone(180,0.09,'square',0.22,110); noise(.06,.16,1300); },
     ko(){ tone(60,0.5,'square',0.5,24); noise(.5,.5,700); swell(200,3200,0.5,0.24,'sawtooth');
       setTimeout(()=>noise(.7,.28,2400),120); },   // 爆発＋歓声
     lost(){ tone(220,0.4,'sine',0.28,60); noise(.3,.14,500); },
@@ -811,6 +831,12 @@ function addBurstRay(x,y,col){ // 場外ふっとび爆発（スマブラ式の�
   for(let i=0;i<18;i++){ const a=rnd(0,TAU);
     sparks.push({x,y,vx:Math.cos(a)*rnd(6,20),vy:Math.sin(a)*rnd(6,20),life:rnd(.3,.8),max:.8,r:rnd(3,8),col}); }
 }
+function addDust(x,y,n,heavy){ // 着地の土けむり（毎回・大きく落ちるほど濃く低く広がる）
+  const col=heavy?'rgba(210,195,165,.62)':'rgba(220,208,185,.42)';
+  for(let i=0;i<n;i++){ const a=rnd(Math.PI*0.08,Math.PI*0.92);   // 左右に低く広がる半円
+    sparks.push({x,y,vx:Math.cos(a)*rnd(2,heavy?7:4.2),
+      vy:-rnd(0.4,heavy?3.2:1.6),life:rnd(.22,heavy?.5:.34),max:heavy?.5:.34,r:rnd(3,heavy?8:5),col}); }
+}
 function setAnn(txt,dur,col,size){ G.ann={txt,t:0,dur:dur||60,col:col||'#ffd24d',size:size||1}; }
 
 /* ===== 試合開始 ===== */
@@ -843,7 +869,7 @@ function startMatch(){
   cam.x=0; cam.y=G.stage.main.y-180; cam.s=Math.min(W/1400,H/900);
   G.state='count'; G.countT=150; G.paused=false;
   show(null); updatePadVis();
-  Sound.init(); Sound.resume(); Sound.stopBGM(); Sound.setIntense(false);
+  Sound.init(); Sound.resume(); Sound.stopBGM(); Sound.setIntense(false); Sound.setTheme(G.stage.id);
 }
 function spawnMook(x){
   const m=mkFighter(++mookSeq,MOOKCH,{team:1,dark:true,cpu:true,lvl:3,mook:true,x:x,facing:x>0?-1:1,percent:35,stocks:1});
@@ -960,20 +986,20 @@ function fireNB(f){
     projs.push({type:'egg',x:f.x+30*f.facing,y:f.y-h*0.72,vx:10*f.facing,vy:-5.5,g:0.33,r:13,team:f.team,own:f,
       dmg:8,bkb:4,ks:.09,ang:44,life:2.4});
     dummyAtk(f,6,14);
-  } else if(t==='seed'){ Sound.egg();
+  } else if(t==='seed'){ Sound.seedShot();
     for(let i=0;i<3;i++) projs.push({type:'seed',x:f.x+26*f.facing-i*18*f.facing,y:f.y-h*0.62,vx:(12+i*0.8)*f.facing,vy:0,g:0,r:6,team:f.team,own:f,
       dmg:2.5,bkb:1.6,ks:.02,ang:18,life:0.8});
     dummyAtk(f,5,12); f.nbCd=22;
   } else if(t==='boom'){ startAttack(f,'boomB'); Sound.boom(); f.nbCd=48;
-  } else if(t==='wind'){ Sound.whoosh();
+  } else if(t==='wind'){ Sound.windGust();
     projs.push({type:'wind',x:f.x+34*f.facing,y:f.y-h*0.6,vx:9*f.facing,vy:0,g:0,r:34,team:f.team,own:f,
       dmg:2,bkb:7.5,ks:.02,ang:16,life:0.9,pierce:true});
     dummyAtk(f,6,14);
-  } else if(t==='bomb'){ if(f.bombOut){ f.nbCd=8; return; } Sound.egg(); f.bombOut=true;
+  } else if(t==='bomb'){ if(f.bombOut){ f.nbCd=8; return; } Sound.bombToss(); f.bombOut=true;
     projs.push({type:'bomb',x:f.x+26*f.facing,y:f.y-h*0.75,vx:6.5*f.facing,vy:-8.5,g:0.38,r:14,team:f.team,own:f,
       dmg:13,bkb:5.6,ks:.12,ang:52,life:1.6,bomb:true});
     dummyAtk(f,7,16);
-  } else if(t==='ram'){ startAttack(f,'ramB'); f.nbCd=40; }
+  } else if(t==='ram'){ startAttack(f,'ramB'); Sound.rocketLaunch(); f.nbCd=40; }
 }
 function dummyAtk(f,su,rc){ f.state='attack'; f.atk={name:'nB',def:{su,ac:0,rc,off:0,oy:0,w:0,h:0},t:0,active:false,hitset:{},charge:1}; }
 function explodeBomb(p){
@@ -1349,8 +1375,10 @@ function landCheck(f,c){
     for(const p of platsNow()){
       if(f.x>p.x1-w*0.3&&f.x<p.x2+w*0.3){
         if(wasFeet<=p.y+7&&f.y>=p.y&&!( !p.main&&c&&c.down&&f.dropThru<=0&&f.state==='idle')){
+          const landVy=f.vy;
           f.y=p.y; f.vy=0;
           if(!f.onGround){ f.onGround=true; f.jumps=f.ch.jumps; f.squash=0.28;
+            Sound.land(landVy); addDust(f.x,f.y,landVy>14?9:5,landVy>14);
             if(f.state==='helpless')f.state='idle';
             if(f.state==='hit'&&f.hitstun>18){
               if(c&&c.shield){ // 受け身：直前に盾を入れていれば即立て直し＋無敵
@@ -1408,7 +1436,7 @@ function resolveHits(){
           if(!v.onGround||v.invuln>0||(v.state==='dodge'&&v.dodgeInv)||v.state==='grabbed'||v.koT>0) continue;
           a.atk=null; a.state='grabHold'; a.grabT=0; a.grabVic=v;
           v.state='grabbed'; v.grabBy=a; v.grabT=0; v.atk=null; v.chargeT=0; v.hitstun=0; v.ledge=null;
-          Sound.hit(0); addSpark((a.x+v.x)/2,v.y-FH(v)/2,'#fff',8); G.hitstop=Math.max(G.hitstop,6);
+          Sound.grabCatch(); addSpark((a.x+v.x)/2,v.y-FH(v)/2,'#fff',8); G.hitstop=Math.max(G.hitstop,6);
           break;
         }
         const dir = d.both ? (v.x>=a.x?1:-1) : (d.back? -a.facing : a.facing);
@@ -2156,7 +2184,9 @@ window.__smash={
   fighters:()=>F, G:()=>G, cam:()=>cam,
   mooks:()=>F.filter(f=>f.mook&&!f.dead).length,
   projs:()=>projs,
-  spawnProj:(o)=>{ projs.push(Object.assign({type:'wind',g:0,r:34,life:1.5,pierce:true},o)); }
+  spawnProj:(o)=>{ projs.push(Object.assign({type:'wind',g:0,r:34,life:1.5,pierce:true},o)); },
+  sparks:()=>sparks,
+  bgmTheme:()=>Sound.getTheme()
 };
 
 /* ===== Boot ===== */
