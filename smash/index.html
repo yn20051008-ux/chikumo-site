@@ -775,6 +775,8 @@ const G={state:'title', mode:'cpu', level:5, stocks:3, stageI:0, stage:STAGES[0]
   hitstop:0, shake:0, flash:0, koFlashT:0, ann:null, cutin:null, time:0};
 let F=[], projs=[], sparks=[], rings=[], floats=[], stars=[], petals=[];
 let mookSpawnT=0, mookSeq=100;
+let ledgeOwner={};   // ガケの早取り：side(-1/1)ごとに今つかまっているファイター1体だけを記録
+function releaseLedge(f){ if(f.ledge){ const k=f.ledge.side; if(ledgeOwner[k]===f) ledgeOwner[k]=null; f.ledge=null; } }
 const cam={x:0,y:80,s:0.8};
 let tscaleCheat=1;
 try{ G.best=+localStorage.getItem('coccoSmashBest')||0; }catch(e){}
@@ -816,7 +818,7 @@ function startMatch(){
   G.stage=STAGES[G.stageI];
   F=[]; projs=[]; sparks=[]; rings=[]; floats=[]; stars=[]; petals=[];
   G.hitstop=0; G.shake=0; G.flash=0; G.koFlashT=0; G.ann=null; G.cutin=null;
-  G.suddenDeath=false; G.winner=-1; G.score=0; G.kumiteKos=0; G.time=0; mookSpawnT=0;
+  G.suddenDeath=false; G.winner=-1; G.score=0; G.kumiteKos=0; G.time=0; mookSpawnT=0; ledgeOwner={};
   const ch1=CHARS[G.c1];
   if(G.mode==='kumite'){
     G.stage=STAGES[0]; G.stageI=0;
@@ -923,7 +925,7 @@ function applyHit(att,vic,d,o){
   if(d.spike&&!vic.onGround){ vic.vy=Math.abs(kb)*0.8; vic.vx=Math.cos(ang)*kb*dir*0.5; }
   vic.hitstun=Math.floor(clamp(8+kb*1.7,8,72));
   vic.state='hit'; vic.onGround=false; vic.hitFlash=1; vic.atk=null; vic.chargeT=0;
-  vic.ledge=null;
+  releaseLedge(vic);   // ガケつかまり中に被弾したら早取り管理からも外す（塞ぎっぱなし防止）
   // 被弾者が誰かをつかんでいたら、ほどける
   if(vic.grabVic){ const gv=vic.grabVic; if(gv.state==='grabbed'){ gv.state='idle'; gv.grabBy=null; } vic.grabVic=null; }
   vic.grabBy=null;
@@ -1037,7 +1039,7 @@ function koFighter(f){
 function respawn(f){
   f.x=0; f.y=G.stage.main.y-300; f.vx=0; f.vy=0; f.percent=0;
   f.state='idle'; f.atk=null; f.hitstun=0; f.onGround=false; f.jumps=f.ch.jumps;
-  f.invuln=120; f.shieldHP=60; f.dizzyT=0; f.ledge=null;
+  f.invuln=120; f.shieldHP=60; f.dizzyT=0; releaseLedge(f);
 }
 function gameSet(winner){
   G.winner=winner; G.state='set'; G.setT=130;
@@ -1150,14 +1152,14 @@ function stepFighter(f){
     if(f.ledgeT>6){
       const toStage = (L.side<0&&c.right)||(L.side>0&&c.left);
       if(upE||toStage){ f.x=L.x-L.side*46; f.y=L.y; f.onGround=true; f.jumps=f.ch.jumps;
-        f.state='idle'; f.invuln=Math.max(f.invuln,18); f.ledge=null; f.squash=0.2; Sound.jump(); }
+        f.state='idle'; f.invuln=Math.max(f.invuln,18); releaseLedge(f); f.squash=0.2; Sound.jump(); }
       else if(atkE){ f.x=L.x-L.side*40; f.y=L.y; f.onGround=true; f.jumps=f.ch.jumps;
-        f.ledge=null; f.invuln=Math.max(f.invuln,10); startAttack(f,'ledgeAtk'); }
+        releaseLedge(f); f.invuln=Math.max(f.invuln,10); startAttack(f,'ledgeAtk'); }
       else if(shE){ // のぼり回避：無敵のまま内側へ転がり込む
         f.x=L.x-L.side*104; f.y=L.y; f.onGround=true; f.jumps=f.ch.jumps;
-        f.state='idle'; f.invuln=Math.max(f.invuln,26); f.ledge=null; Sound.dodge(); }
+        f.state='idle'; f.invuln=Math.max(f.invuln,26); releaseLedge(f); Sound.dodge(); }
       else if(c.down||(L.side<0&&c.left)||(L.side>0&&c.right)||f.ledgeT>240){
-        f.state='idle'; f.ledge=null; f.ledgeCd=40; f.vy=2; f.x+=L.side*8; f.onGround=false; }
+        f.state='idle'; releaseLedge(f); f.ledgeCd=40; f.vy=2; f.x+=L.side*8; f.onGround=false; }
     }
     return;
   }
@@ -1298,13 +1300,21 @@ function stepFighter(f){
   f.x+=f.vx; f.y+=f.vy;
   landCheck(f,c);
 
-  // ガケつかまり判定
+  // ガケつかまり判定（早取り＝ガケは同時に1体だけ。あとから来た方が奪う）
   if(!f.onGround&&f.ledgeCd<=0&&f.hitstun<=0&&(f.state==='idle'||f.state==='helpless')&&f.vy>-2){
     for(const L of stageLedges()){
       const inX = L.side<0 ? (f.x>L.x-54&&f.x<L.x+6) : (f.x<L.x+54&&f.x>L.x-6);
       if(inX&&f.y>L.y-6&&f.y<L.y+120){
+        const cur=ledgeOwner[L.side];
+        if(cur&&cur!==f&&!cur.dead&&cur.koT<=0&&cur.state==='ledge'){
+          // ガケの早取り：先客を無防備に弾き飛ばす
+          cur.state='idle'; cur.ledge=null; cur.invuln=0; cur.ledgeCd=30;
+          cur.vy=-6; cur.vx=-L.side*3.2; cur.onGround=false;
+          addSpark(L.x,L.y+40,'#fff',6,5); Sound.hit(0);
+        }
         f.state='ledge'; f.ledge=L; f.ledgeT=0; f.x=L.x+L.side*20; f.y=L.y+60;
         f.vx=0; f.vy=0; f.jumps=f.ch.jumps; f.invuln=Math.max(f.invuln,40);
+        ledgeOwner[L.side]=f;
         break;
       }
     }
@@ -1601,13 +1611,19 @@ function stepFx(){
 }
 function timeUp(){
   if(G.mode==='kumite'){ G.state='set'; G.setT=90; G.winner=0; Sound.stopBGM(); Sound.gameset(); setAnn('TIME UP!',80,'#ffd24d',1.3); return; }
-  const ps=F.filter(x=>!x.mook).slice().sort((a,b)=> b.stocks-a.stocks || a.percent-b.percent);
-  if(ps.length>=2&&(ps[0].stocks!==ps[1].stocks||Math.round(ps[0].percent)!==Math.round(ps[1].percent))){
+  const ps=F.filter(x=>!x.mook&&!x.dead).slice().sort((a,b)=> b.stocks-a.stocks || a.percent-b.percent);
+  if(ps.length<=1){ gameSet(ps.length?ps[0].team:0); return; }
+  if(ps[0].stocks!==ps[1].stocks||Math.round(ps[0].percent)!==Math.round(ps[1].percent)){
     gameSet(ps[0].team); return;
   }
-  // サドンデス（生き残り全員300%・1スト）
+  // サドンデス：1位と完全に同着の者だけが進む。それ以外（3位以下）はここで敗退（FFAの3人以上タイ対策）
+  const tied=new Set(ps.filter(p=>p.stocks===ps[0].stocks&&Math.round(p.percent)===Math.round(ps[0].percent)).map(p=>p.team));
   G.suddenDeath=true; G.matchT=99*3600;
-  for(const f of F){ if(f.mook||f.dead)continue; f.stocks=1; respawn(f); f.percent=300; f.pctBump=1; f.invuln=60; }
+  for(const f of F){
+    if(f.mook||f.dead) continue;
+    if(!tied.has(f.team)){ releaseLedge(f); f.dead=true; continue; }
+    f.stocks=1; respawn(f); f.percent=300; f.pctBump=1; f.invuln=60;
+  }
   setAnn('SUDDEN DEATH!',90,'#ff5e3a',1.3); Sound.heavy();
 }
 function finishKumite(){
@@ -1917,7 +1933,7 @@ function drawHUD(){
         ctx.fillText(p.comboN+' COMBO',scx,st+58*hs);
       }
     } else {
-      const ps=F.filter(f=>!f.mook);
+      const ps=F.filter(f=>!f.mook&&!f.dead);   // 脱落済み（0ストック）はパネルから外す＝残りの枠だけ詰めて表示
       const n=ps.length, phs=hs*(n>2?0.8:1), gap=(n>2?190:220)*phs;
       ps.forEach((f,i)=>drawPanel(f,W/2+(i-(n-1)/2)*gap,H-sb-8,phs));
     }
