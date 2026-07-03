@@ -583,13 +583,18 @@ const Sound=(function(){
     cnt(n){ tone(n===0?1046.5:659.25,0.14,'square',0.3); },
     go(){ swell(300,1200,0.28,0.4,'square'); tone(1318.5,0.4,'square',0.3);
       setTimeout(()=>noise(.5,.2,3000),60); },
-    gameset(){ tone(523.25,0.5,'triangle',0.35); setTimeout(()=>tone(659.25,0.5,'triangle',0.35),160);
-      setTimeout(()=>tone(783.99,0.7,'triangle',0.4),320); setTimeout(()=>noise(.8,.24,2600),340);
-      setTimeout(()=>tone(1046.5,0.9,'triangle',0.4),520); },
+    // GAME SETファンファーレ：半音移調(semi)で勝者ごとに音の高さが変わる／tyで音色も変える（軽量級は明るいsine、重量級は太いsquare）
+    gameset(semi,ty){ const r=Math.pow(2,(semi||0)/12), t=ty||'triangle';
+      tone(523.25*r,0.5,t,0.35); setTimeout(()=>tone(659.25*r,0.5,t,0.35),160);
+      setTimeout(()=>tone(783.99*r,0.7,t,0.4),320); setTimeout(()=>noise(.8,.24,2600),340);
+      setTimeout(()=>tone(1046.5*r,0.9,t,0.4),520); },
     finalGo(){ swell(120,2600,0.6,0.4,'sawtooth'); noise(.6,.3,2600);
       [523.25,659.25,783.99,1046.5].forEach((f,i)=>setTimeout(()=>tone(f,0.3,'triangle',0.3),200+i*90)); },
     gauge(){ tone(1760,0.16,'triangle',0.24); setTimeout(()=>tone(2349,0.2,'triangle',0.24),90); },
     firework(){ noise(.28,.22,2600); tone(1400+Math.random()*500,0.06,'sine',0.1,3000); },
+    // 観客のどよめき：帯域の違うノイズ塊を少しずつずらして重ね、歓声の厚みを出す
+    crowd(big){ const n=big?7:4;
+      for(let i=0;i<n;i++) setTimeout(()=>noise(0.45+Math.random()*0.3,(big?0.11:0.06)+Math.random()*0.04,480+Math.random()*680),i*(big?26:34)); },
     roll(){ if(!ac||muted)return; let i=0; const iv=setInterval(()=>{ tone(200+Math.random()*900,0.03,'square',0.12); if(++i>14)clearInterval(iv); },70); },
     rankin(){ tone(880,0.12,'square',0.3); setTimeout(()=>tone(1174.7,0.12,'square',0.3),110);
       setTimeout(()=>tone(1568,0.3,'square',0.34),220); setTimeout(()=>noise(.4,.2,4000),240); },
@@ -610,6 +615,9 @@ const CHARS=[
 ];
 const MOOKCH={id:'mook',name:'かげ',tag:'',weight:58,run:5.4,air:5.0,jumps:2,jump:14.5,pow:0.55,scale:0.78,uBk:1.0,nB:'none',tint:null,acc:'none'};
 const NBNAME={egg:'たまごなげ',seed:'たねマシンガン',boom:'じならし衝撃',wind:'かぜおこし',bomb:'ばくだんたまご',ram:'ロケットずつき',none:''};
+// 勝利ファンファーレの半音移調・音色：軽量級ほど高く明るい音色、重量級ほど低く太い音色になる
+const VICTORY_JINGLE={cocco:{semi:0,ty:'triangle'}, piyo:{semi:5,ty:'sine'}, oyabun:{semi:-7,ty:'square'},
+  sora:{semi:7,ty:'sine'}, tamagon:{semi:-5,ty:'square'}, genki:{semi:2,ty:'triangle'}, mook:{semi:-2,ty:'sawtooth'}};
 
 /* ===== 技表（サイズはファイターのscaleで伸縮、威力はpowで補正） ===== */
 const BASEATK={
@@ -1039,6 +1047,7 @@ function koFighter(f){
   const col = f.dark?'#b46bff':'#ffd84d';
   if(topKO){ stars.push({x:clamp(f.x,bl.l+80,bl.r-80),y:bl.t+60,t:0,dur:0.9,col}); Sound.lost(); }
   else { addBurstRay(bx,by,col); Sound.ko(); }
+  if(!f.mook) Sound.crowd(false);   // 影の雑魚以外がふっとぶたび、観客がどよめく
   G.shake=Math.min(G.shake+18,30); G.koFlashT=0.9;
   f.comboN=0; f.comboT=0;
   // 攻撃側のKOカウント
@@ -1071,9 +1080,10 @@ function respawn(f){
 const VICTORY_PAL=['#ffd24d','#ff5d6c','#7ce0ff','#b15bff','#9affc0','#ff9e5b','#fff3d0'];
 function gameSet(winner){
   G.winner=winner; G.state='set'; G.setT=130; G.victoryFwT=20;
-  Sound.stopBGM(); Sound.gameset(); setAnn('GAME SET!!',120,'#ffd24d',1.4);
-  G.flash=0.8;
   const wf=F.find(f=>f.team===winner&&!f.dead);
+  const jingle=VICTORY_JINGLE[wf?wf.ch.id:'cocco']||VICTORY_JINGLE.cocco;
+  Sound.stopBGM(); Sound.gameset(jingle.semi,jingle.ty); Sound.crowd(true); setAnn('GAME SET!!',120,'#ffd24d',1.4);
+  G.flash=0.8;
   if(wf){
     const cx=wf.x, cy=wf.y-FH(wf)*0.6;
     addRing(cx,cy,20,340,'#ffd24d',0.6);
@@ -1660,7 +1670,9 @@ function stepFx(){
   petals=petals.filter(p=>p.t<p.dur);
 }
 function timeUp(){
-  if(G.mode==='kumite'){ G.state='set'; G.setT=90; G.winner=0; Sound.stopBGM(); Sound.gameset(); setAnn('TIME UP!',80,'#ffd24d',1.3); return; }
+  if(G.mode==='kumite'){ G.state='set'; G.setT=90; G.winner=0;
+    const jg=VICTORY_JINGLE[F[0]?F[0].ch.id:'cocco']||VICTORY_JINGLE.cocco;
+    Sound.stopBGM(); Sound.gameset(jg.semi,jg.ty); setAnn('TIME UP!',80,'#ffd24d',1.3); return; }
   const ps=F.filter(x=>!x.mook&&!x.dead).slice().sort((a,b)=> b.stocks-a.stocks || a.percent-b.percent);
   if(ps.length<=1){ gameSet(ps.length?ps[0].team:0); return; }
   if(ps[0].stocks!==ps[1].stocks||Math.round(ps[0].percent)!==Math.round(ps[1].percent)){
@@ -1705,7 +1717,7 @@ function showVsResult(){
 function updateCam(){
   const st=G.stage;
   let x1=1e9,x2=-1e9,y1=1e9,y2=-1e9,n=0;
-  for(const f of F){ if(f.dead||f.koT>30)continue;
+  for(const f of F){ if(f.dead||f.koT>0)continue;   // 復活前（画面に見えていない間）はカメラに含めない＝復帰直前の不要な揺り戻しを防ぐ
     x1=Math.min(x1,f.x); x2=Math.max(x2,f.x);
     y1=Math.min(y1,f.y-FH(f)); y2=Math.max(y2,f.y); n++; }
   if(G.state==='set'&&G.winner>=0){
