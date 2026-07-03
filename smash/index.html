@@ -1039,7 +1039,7 @@ function koFighter(f){
 function respawn(f){
   f.x=0; f.y=G.stage.main.y-300; f.vx=0; f.vy=0; f.percent=0;
   f.state='idle'; f.atk=null; f.hitstun=0; f.onGround=false; f.jumps=f.ch.jumps;
-  f.invuln=120; f.shieldHP=60; f.dizzyT=0; f.ledge=null;
+  f.invuln=120; f.shieldHP=60; f.dizzyT=0; releaseLedge(f);
 }
 function gameSet(winner){
   G.winner=winner; G.state='set'; G.setT=130;
@@ -1621,7 +1621,7 @@ function timeUp(){
   G.suddenDeath=true; G.matchT=99*3600;
   for(const f of F){
     if(f.mook||f.dead) continue;
-    if(!tied.has(f.team)){ f.dead=true; continue; }
+    if(!tied.has(f.team)){ releaseLedge(f); f.dead=true; continue; }
     f.stocks=1; respawn(f); f.percent=300; f.pctBump=1; f.invuln=60;
   }
   setAnn('SUDDEN DEATH!',90,'#ff5e3a',1.3); Sound.heavy();
