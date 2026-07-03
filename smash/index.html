@@ -419,7 +419,8 @@
       ◆ ジャンプは<b>すぐはなすと小ジャンプ</b>。空中では<b>ニュートラル/前/後ろ/上/下</b>の空中攻撃。下空中は<b>メテオ</b>！<br><br>
       ◆ <b>必殺わざ</b>はファイターごと（たまご・たね・しょうげき・かぜ・ばくだん・ずつき）。<b>上＋必殺</b>＝復帰、<b>下＋必殺</b>＝カウンター（飛び道具は反射）！<br><br>
       ◆ <b>盾</b>でガード──出した瞬間に受けると<b>ジャストガード</b>で反撃チャンス。盾＋よこ＝<b>ローリング</b>、盾＋した＝その場回避。<b>盾＋攻撃＝つかみ</b>──方向で<b>前/後ろ/上/下投げ</b>（つかみは盾ごしに通る）！くずされると気絶。<br><br>
-      ◆ ふっとばされ中も<b>方向キーで軌道をずらせる</b>（ずらし）。落ちたら<b>ガケつかまり</b>──上=のぼる／攻撃=のぼり攻撃／盾=のぼり回避。<br><br>
+      ◆ ふっとばされ中も<b>方向キーで軌道をずらせる</b>（ずらし）。着地の瞬間に<b>盾を入れると受け身</b>成功で即立て直り、入れなければダウン（方向キーで転がり起き上がり）。落ちたら<b>ガケつかまり</b>──上=のぼる／攻撃=のぼり攻撃／盾=のぼり回避。<br><br>
+      ◆ 空中技はきれいに決めないと<b>着地硬直</b>が出る（振り終わりで着地すれば硬直なし）。<b>つかみは空中の相手にはすかる</b>ので地上戦の読み合いに使おう。<br><br>
       ◆ <b class="bad">キズナゲージ</b>が満ちたら必殺ボタンで<b>切りふだ「キズナスマッシュ」</b>！<br><br>
       ◆ 敵はいつも<b class="bad">ブラックこっこ＝自分の影</b>。「みだれ乱闘」は影×3が入り乱れるFFA、2Pは影となって稽古する（親子で遊んでね）。<br><br>
       ◆ キーボード1P：移動 A/D・ジャンプ W/Space・しゃがみ S・攻撃 F・必殺 G・盾 V（矢印＋Z/X/CもOK）。<br>
@@ -898,8 +899,10 @@ function applyHit(att,vic,d,o){
       addFloat(vic.x,vic.y-FH(vic)-18,'ジャスト!','#bfe9ff',20);
       G.hitstop=Math.max(G.hitstop,8);
       vic.shieldStun=0;
-      if(att.atk&&att.atk.def&&att.atk.def.su!=null){ att.atk.t=Math.max(att.atk.t,att.atk.def.su+att.atk.def.ac); }
-      if(att.vx!=null) att.vx-=2.5*dir;
+      if(!o.proj){ // 近接のみ攻撃側に反確（飛び道具は本人の別の技に触らない）
+        if(att.atk&&att.atk.def&&att.atk.def.su!=null){ att.atk.t=Math.max(att.atk.t,att.atk.def.su+att.atk.def.ac); }
+        if(att.vx!=null) att.vx-=2.5*dir;
+      }
       return true;
     }
     Sound.shield(); vic.shieldHP-=dmg*0.9; vic.shieldStun=Math.floor(4+dmg*0.5);
@@ -1115,6 +1118,23 @@ function stepFighter(f){
     }
     keepOnGround(f,c); blastCheck(f); return;
   }
+  // 着地硬直（空中技の隙）
+  if(f.state==='landlag'){
+    f.landlagT--; f.vx*=0.82; keepOnGround(f,c);
+    if(f.landlagT<=0) f.state='idle';
+    blastCheck(f); return;
+  }
+  // ダウン→起き上がり（そのまま／転がり）
+  if(f.state==='down'){
+    f.downT--;
+    f.vx*=0.8; keepOnGround(f,c);
+    if(f.downT<=26){
+      if(c.left||c.right){ // 転がり起き（無敵つき）
+        f.state='dodge'; f.dodgeT=0; f.dodgeType=1; f.dodgeDir=c.right?1:-1; f.dodgeInv=false; Sound.dodge();
+      } else if(upE||atkE||f.downT<=0){ f.state='idle'; f.invuln=Math.max(f.invuln,14); }
+    }
+    blastCheck(f); return;
+  }
   // 気絶
   if(f.dizzyT>0){ f.dizzyT--;
     if(!f.onGround){ f.vy+=GRAV; f.y+=f.vy; landCheck(f,c); }
@@ -1322,9 +1342,24 @@ function landCheck(f,c){
           f.y=p.y; f.vy=0;
           if(!f.onGround){ f.onGround=true; f.jumps=f.ch.jumps; f.squash=0.28;
             if(f.state==='helpless')f.state='idle';
+            if(f.state==='hit'&&f.hitstun>18){
+              if(c&&c.shield){ // 受け身：直前に盾を入れていれば即立て直し＋無敵
+                f.hitstun=0; f.state='idle'; f.invuln=Math.max(f.invuln,18);
+                addFloat(f.x,f.y-FH(f),'うけみ!','#bfe9ff',18); Sound.dodge();
+              } else { // ダウン
+                f.state='down'; f.downT=40; f.hitstun=0; f.vx*=0.3;
+                f.invuln=Math.max(f.invuln,18); Sound.hit(0);
+              }
+            }
             if(f.state==='hit'&&f.hitstun<=0)f.state='idle';
-            if(f.state==='attack'&&f.atk&&f.atk.def.air){ f.atk=null; f.state='idle'; }
-            f.bombOut=f.bombOut; }
+            if(f.state==='attack'&&f.atk&&f.atk.def.air){
+              // 着地硬直（オートキャンセル）：技の終盤で着地すれば硬直なし、途中で降りると隙が生まれる
+              const d=f.atk.def, total=d.su+d.ac+d.rc, t=f.atk.t;
+              const autoCancel = t<=2 || t>=total*0.82;
+              f.atk=null;
+              if(autoCancel){ f.state='idle'; }
+              else{ f.state='landlag'; f.landlagT=Math.min(28,Math.round((total-t)*0.42)+6); addSpark(f.x,f.y,'#fff',3,3); }
+            } }
           f.plat=p; return;
         }
       }
@@ -1359,8 +1394,8 @@ function resolveHits(){
       if(v===a||v.team===a.team||v.dead||v.koT>0) continue;
       if(a.atk.hitset['f'+v.id]) continue;
       if(overlap(box,hurtbox(v))){
-        if(d.grab){ // つかみ成立：盾を無視する（三すくみ）
-          if(v.invuln>0||(v.state==='dodge'&&v.dodgeInv)||v.state==='grabbed'||v.koT>0) continue;
+        if(d.grab){ // つかみ成立：盾を無視する（三すくみ）／空中の相手はすかる
+          if(!v.onGround||v.invuln>0||(v.state==='dodge'&&v.dodgeInv)||v.state==='grabbed'||v.koT>0) continue;
           a.atk=null; a.state='grabHold'; a.grabT=0; a.grabVic=v;
           v.state='grabbed'; v.grabBy=a; v.grabT=0; v.atk=null; v.chargeT=0; v.hitstun=0; v.ledge=null;
           Sound.hit(0); addSpark((a.x+v.x)/2,v.y-FH(v)/2,'#fff',8); G.hitstop=Math.max(G.hitstop,6);
@@ -1376,19 +1411,20 @@ function resolveHits(){
   // 飛び道具
   for(const p of projs){
     if(p.hit) continue;
+    if(!p.hits) p.hits={};
     for(const v of F){
       if(v.team===p.team||v.dead||v.koT>0) continue;
+      if(p.hits['f'+v.id]) continue;   // 貫通弾も同じ相手には一度だけ
       const hb=hurtbox(v);
       if(p.x>hb.x-p.r&&p.x<hb.x+hb.w+p.r&&p.y>hb.y-p.r&&p.y<hb.y+hb.h+p.r){
         if(v.state==='counter'&&v.counterT>=3&&v.counterT<=20){ // 反射
-          p.vx*=-1.3; p.team=v.team; p.own=v; Sound.counter(); addRing(v.x,v.y-FH(v)/2,16,110,'#9fd7ff',0.35);
+          p.vx*=-1.3; p.team=v.team; p.own=v; p.hits={}; Sound.counter(); addRing(v.x,v.y-FH(v)/2,16,110,'#9fd7ff',0.35);
           break;
         }
         if(p.bomb){ p.hit=true; explodeBomb(p); break; }
         const ok=applyHit(p.own||{facing:p.vx>=0?1:-1,ch:null},v,
-          {dmg:p.dmg,bkb:p.bkb,ks:p.ks,ang:p.ang,name:p.type},{dir:p.vx>=0?1:-1});
-        if(ok&&!p.pierce){ p.hit=true; addSpark(p.x,p.y,'#ffe9a8',8); }
-        if(ok&&p.pierce) p.hitCd=10;
+          {dmg:p.dmg,bkb:p.bkb,ks:p.ks,ang:p.ang,name:p.type},{dir:p.vx>=0?1:-1,proj:true});
+        if(ok){ p.hits['f'+v.id]=true; if(!p.pierce){ p.hit=true; addSpark(p.x,p.y,'#ffe9a8',8); } }
         break;
       }
     }
@@ -1435,6 +1471,10 @@ function runAI(f){
   if(f.state==='ledge'){ if(f.ai.t%24<6) o.up=true; return; }
   if(f.hitstun>4){ if(f.y>main.y) o.up=true; return; }
   if(f.state==='charge'){ if(f.chargeT<10+L*3) o.attack=true; return; }
+  // ダウン中：転がり起き上がり（追跡側を読んで反対へ）
+  if(f.state==='down'){ o[dx>=0?'left':'right']=true; return; }
+  // 相手がダウン中：追い打ち（起き上がり狩り）
+  if(L>=3&&hu.state==='down'&&ad<170){ o[dx>0?'right':'left']=true; if(ad<70)o.attack=true; return; }
   // 切りふだ
   if(!f.mook&&f.gauge>=100&&ad<420&&Math.random()<0.05+L*0.01){ o.special=true; return; }
   // ガード反応
@@ -1700,7 +1740,8 @@ function drawFighter(f){
   ctx.translate(x,y);
   const sq=Math.max(0,f.squash);
   let rot=0;
-  if(f.hitstun>14||f.state==='helpless') rot=f.anim*0.4*(f.facing);
+  if(f.state==='down') rot=f.facing*1.5;
+  else if(f.hitstun>14||f.state==='helpless') rot=f.anim*0.4*(f.facing);
   else if(f.state==='attack'&&f.atk&&f.atk.def.rush) rot=0.5*f.facing*Math.sin(f.atk.t*0.5);
   else if(f.onGround&&Math.abs(f.vx)>1) rot=Math.sin(f.anim*0.4)*0.07;
   ctx.rotate(rot);
@@ -2097,7 +2138,9 @@ window.__smash={
   finishNow:()=>{ if(G.state==='play')G.matchT=1; },
   tscale:(k)=>{ tscaleCheat=+k||1; },
   fighters:()=>F, G:()=>G, cam:()=>cam,
-  mooks:()=>F.filter(f=>f.mook&&!f.dead).length
+  mooks:()=>F.filter(f=>f.mook&&!f.dead).length,
+  projs:()=>projs,
+  spawnProj:(o)=>{ projs.push(Object.assign({type:'wind',g:0,r:34,life:1.5,pierce:true},o)); }
 };
 
 /* ===== Boot ===== */
