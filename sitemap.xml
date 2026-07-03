@@ -151,6 +151,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://chikumo.jp/origami/</loc>
+    <lastmod>2026-07-03</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://chikumo.jp/koro/</loc>
     <lastmod>2026-06-23</lastmod>
     <changefreq>weekly</changefreq>
