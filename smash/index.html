@@ -368,6 +368,8 @@
     <div class="modes">
       <div class="modecard" id="mCpu"><span class="ic">🥊</span>
         <div><div class="tt">ひとりで大乱闘</div><div class="dd">影のブラックこっこ（CPU）と1対1。3ストック＋2分で必ず決着。</div></div></div>
+      <div class="modecard" id="mFfa"><span class="ic">💥</span>
+        <div><div class="tt">みだれ乱闘（1 vs 影×3）</div><div class="dd">影の三体が入り乱れてつぶし合う4体の大乱闘。さいごまで立っていたら勝ち。</div></div></div>
       <div class="modecard" id="mKumite"><span class="ic">👊</span>
         <div><div class="tt">60秒くみて 🏆</div><div class="dd">影の軍団を60秒でどれだけふっとばせるか。世界ランキングの祭壇。</div></div></div>
       <div class="modecard" id="m2p"><span class="ic">🤝</span>
@@ -412,12 +414,14 @@
     <div class="logo small">あそびかた</div>
     <div class="desc" style="max-width:400px;text-align:left;">
       ◆ あいての<b>%（ダメージ）</b>を高くするほど、攻撃でよくふっとぶ。<b>場外までふっとばすと1ストック</b>！<br><br>
-      ◆ <b>攻撃＋よこ/うえ/した＝スマッシュ攻撃</b>。おしっぱなしで<b>ため</b>て、はなすと大爆発！<br><br>
-      ◆ 空中では<b>ニュートラル/前/後ろ/上/下</b>の空中攻撃。下空中は<b>メテオ</b>！<br><br>
-      ◆ <b>必殺わざ</b>はファイターごとにちがう（たまご・たね・しょうげき・かぜ・ばくだん・ずつき）。<b>上＋必殺</b>は復帰わざ。<b>下＋必殺</b>はカウンター！<br><br>
-      ◆ <b>盾</b>でガード。盾＋よこ＝<b>ローリング回避</b>、盾＋した＝その場回避。くずされると気絶！<br><br>
-      ◆ 落ちても<b>ガケつかまり</b>でねばれ。<b class="bad">キズナゲージ</b>が満ちたら必殺ボタンで<b>切りふだ「キズナスマッシュ」</b>！<br><br>
-      ◆ 敵はいつも<b class="bad">ブラックこっこ＝自分の影</b>。2Pは影となって稽古する（親子で遊んでね）。<br><br>
+      ◆ 方向ちょい倒し＝<b>あるく</b>、<b>すばやく2回はじく（スティックおく倒し）＝はしる</b>。走り中の攻撃は<b>ダッシュ攻撃</b>！<br><br>
+      ◆ あるき／立ち＋方向＋攻撃＝<b>強攻撃</b>。方向を<b>はじいた直後に攻撃＝スマッシュ攻撃</b>──おしっぱなしで<b>ため</b>て、はなすと大爆発！攻撃連打で<b>ジャブ2段</b>。<br><br>
+      ◆ ジャンプは<b>すぐはなすと小ジャンプ</b>。空中では<b>ニュートラル/前/後ろ/上/下</b>の空中攻撃。下空中は<b>メテオ</b>！<br><br>
+      ◆ <b>必殺わざ</b>はファイターごと（たまご・たね・しょうげき・かぜ・ばくだん・ずつき）。<b>上＋必殺</b>＝復帰、<b>下＋必殺</b>＝カウンター（飛び道具は反射）！<br><br>
+      ◆ <b>盾</b>でガード──出した瞬間に受けると<b>ジャストガード</b>で反撃チャンス。盾＋よこ＝<b>ローリング</b>、盾＋した＝その場回避。<b>盾＋攻撃＝つかみ</b>──方向で<b>前/後ろ/上/下投げ</b>（つかみは盾ごしに通る）！くずされると気絶。<br><br>
+      ◆ ふっとばされ中も<b>方向キーで軌道をずらせる</b>（ずらし）。落ちたら<b>ガケつかまり</b>──上=のぼる／攻撃=のぼり攻撃／盾=のぼり回避。<br><br>
+      ◆ <b class="bad">キズナゲージ</b>が満ちたら必殺ボタンで<b>切りふだ「キズナスマッシュ」</b>！<br><br>
+      ◆ 敵はいつも<b class="bad">ブラックこっこ＝自分の影</b>。「みだれ乱闘」は影×3が入り乱れるFFA、2Pは影となって稽古する（親子で遊んでね）。<br><br>
       ◆ キーボード1P：移動 A/D・ジャンプ W/Space・しゃがみ S・攻撃 F・必殺 G・盾 V（矢印＋Z/X/CもOK）。<br>
       　 2P：矢印キー＋攻撃 . ・必殺 / ・盾 ,
     </div>
@@ -588,6 +592,11 @@ const NBNAME={egg:'たまごなげ',seed:'たねマシンガン',boom:'じなら
 /* ===== 技表（サイズはファイターのscaleで伸縮、威力はpowで補正） ===== */
 const BASEATK={
   jab:   {su:3, ac:4, rc:9,  dmg:3,  bkb:2.4, ks:.045, ang:20,  off:56, oy:62,  w:76,  h:58},
+  jab2:  {su:3, ac:4, rc:12, dmg:4,  bkb:3.4, ks:.065, ang:34,  off:58, oy:62,  w:82,  h:60},
+  ftilt: {su:5, ac:4, rc:12, dmg:8,  bkb:3.5, ks:.085, ang:30,  off:62, oy:60,  w:90,  h:66},
+  utilt: {su:5, ac:5, rc:12, dmg:7,  bkb:3.6, ks:.09,  ang:84,  off:8,  oy:118, w:88,  h:102},
+  dtilt: {su:4, ac:4, rc:10, dmg:6,  bkb:2.9, ks:.075, ang:22,  off:56, oy:22,  w:90,  h:40},
+  grab:  {su:6, ac:4, rc:22, dmg:0,  bkb:0,   ks:0,    ang:0,   off:46, oy:60,  w:66,  h:72,  grab:true},
   dash:  {su:5, ac:6, rc:16, dmg:9,  bkb:4.2, ks:.09,  ang:38,  off:64, oy:56,  w:96,  h:70},
   fsmash:{su:11,ac:5, rc:22, dmg:15, bkb:5.6, ks:.145, ang:34,  off:80, oy:58,  w:110, h:80,  smash:true},
   usmash:{su:9, ac:6, rc:20, dmg:13, bkb:5.2, ks:.135, ang:84,  off:10, oy:138, w:100, h:124, smash:true},
@@ -602,6 +611,13 @@ const BASEATK={
   boomB: {su:16,ac:6, rc:24, dmg:13, bkb:5.4, ks:.13,  ang:52,  off:0,  oy:40,  w:250, h:150, both:true},
   ramB:  {su:13,ac:10,rc:18, dmg:14, bkb:5.2, ks:.12,  ang:40,  off:52, oy:60,  w:92,  h:84,  rush:true, ram:true},
   ledgeAtk:{su:6,ac:5,rc:14, dmg:8,  bkb:3.6, ks:.08,  ang:38,  off:52, oy:52,  w:90,  h:66},
+};
+/* 投げ（つかみから4方向） */
+const THROWS={
+  f:{dmg:7,bkb:5.0,ks:.100,ang:44,name:'fthrow'},
+  b:{dmg:8,bkb:5.4,ks:.105,ang:42,name:'bthrow'},
+  u:{dmg:7,bkb:5.2,ks:.105,ang:88,name:'uthrow'},
+  d:{dmg:6,bkb:4.2,ks:.085,ang:62,name:'dthrow'},
 };
 
 /* ===== ステージ ===== */
@@ -682,7 +698,7 @@ window.addEventListener('keydown',e=>{ keys[e.code]=true;
   Sound.init(); Sound.resume();
 });
 window.addEventListener('keyup',e=>{ keys[e.code]=false; });
-const touch={left:false,right:false,up:false,down:false,attack:false,special:false,shield:false};
+const touch={left:false,right:false,up:false,down:false,attack:false,special:false,shield:false,run:false};
 /* 仮想スティック */
 (function(){
   const zone=$('stickZone'), base=$('stickBase'), nub=$('stickNub');
@@ -692,6 +708,7 @@ const touch={left:false,right:false,up:false,down:false,attack:false,special:fal
     const dz=14;
     touch.left = dx<-dz; touch.right = dx>dz;
     touch.up = dy<-26; touch.down = dy>26;
+    touch.run = Math.abs(dx)>40;   // スティックのおく倒し＝はしる
   }
   zone.addEventListener('pointerdown',e=>{ e.preventDefault(); if(pid!==null)return;
     pid=e.pointerId; ox=e.clientX; oy=e.clientY;
@@ -708,7 +725,7 @@ const touch={left:false,right:false,up:false,down:false,attack:false,special:fal
   });
   const end=e=>{ if(e.pointerId!==pid)return; pid=null;
     base.style.display='none'; nub.style.display='none';
-    touch.left=touch.right=touch.up=touch.down=false; };
+    touch.left=touch.right=touch.up=touch.down=touch.run=false; };
   window.addEventListener('pointerup',end); window.addEventListener('pointercancel',end);
 })();
 function bindBtn(id,key){ const el=$(id); if(!el)return;
@@ -741,7 +758,9 @@ function kbInput(i,solo){
 }
 function controlFor(f){
   if(f.padOv) return f.padOv;
-  if(f.cpu) return f.ai.out||{left:false,right:false,up:false,down:false,attack:false,special:false,shield:false};
+  if(f.cpu){ const a=f.ai.out||{left:false,right:false,up:false,down:false,attack:false,special:false,shield:false};
+    if(a.left||a.right) a.run=true;   // CPUは移動＝ダッシュ
+    return a; }
   const k=kbInput(f.id, G.mode!=='2p');
   if(f.id===0){ for(const key in touch) if(touch[key]) k[key]=true; }
   return k;
@@ -769,6 +788,8 @@ function mkFighter(id,ch,o){
     state:'idle', atk:null, chargeT:0, chargeAtk:null,
     hitstun:0, invuln:0, shieldHP:60, shieldStun:0,
     dodgeT:0, dodgeType:0, dodgeDir:0, counterT:0, dizzyT:0,
+    hDirT:99, uDirT:99, dDirT:99, shopT:0, shieldT:99, grabT:0, grabVic:null, grabBy:null,
+    runMode:false, dtapT:99, dtapDir:0,
     ledge:null, ledgeT:0, ledgeCd:0, koT:0, dead:false, dropThru:0, nbCd:0, bombOut:false,
     gauge:0, gaugeFull:false,
     dealt:0, kos:0, falls:0, comboN:0, comboT:0, maxCombo:0,
@@ -801,6 +822,15 @@ function startMatch(){
     F.push(mkFighter(0,ch1,{team:0,x:-40,facing:1,stocks:1}));
     G.matchT=60*60;
     for(let i=0;i<2;i++) spawnMook(i===0?300:-340);
+  } else if(G.mode==='ffa'){
+    // みだれ乱闘：1P vs 影×3（影同士もつぶし合うFFA）
+    F.push(mkFighter(0,ch1,{team:0,x:-330,facing:1,stocks:G.stocks}));
+    const xs=[330,-110,110];
+    for(let i=0;i<3;i++){
+      const ch=CHARS[Math.floor(Math.random()*CHARS.length)];
+      F.push(mkFighter(i+1,ch,{team:i+1,dark:true,cpu:true,lvl:G.level,x:xs[i],facing:xs[i]>0?-1:1,stocks:G.stocks}));
+    }
+    G.matchT=120*60;
   } else {
     const ch2=CHARS[G.c2];
     F.push(mkFighter(0,ch1,{team:0,x:-250,facing:1,stocks:G.stocks}));
@@ -856,8 +886,22 @@ function applyHit(att,vic,d,o){
     counterTrigger(vic,att,dmg); return true;
   }
   const dir=o.dir||att.facing||1;
+  // つかまれ中に第三者から殴られたら、つかみはほどける
+  if(vic.state==='grabbed'){
+    const g=vic.grabBy;
+    if(g&&g!==att){ if(g.grabVic===vic){ g.grabVic=null; if(g.state==='grabHold')g.state='idle'; } vic.grabBy=null; vic.state='idle'; }
+  }
   // シールド
   if(vic.state==='shield'){
+    if(vic.shieldT<=4){ // ジャストガード：削れず反確
+      Sound.counter(); addRing(vic.x,vic.y-FH(vic)/2,14,120,'#bfe9ff',0.3);
+      addFloat(vic.x,vic.y-FH(vic)-18,'ジャスト!','#bfe9ff',20);
+      G.hitstop=Math.max(G.hitstop,8);
+      vic.shieldStun=0;
+      if(att.atk&&att.atk.def&&att.atk.def.su!=null){ att.atk.t=Math.max(att.atk.t,att.atk.def.su+att.atk.def.ac); }
+      if(att.vx!=null) att.vx-=2.5*dir;
+      return true;
+    }
     Sound.shield(); vic.shieldHP-=dmg*0.9; vic.shieldStun=Math.floor(4+dmg*0.5);
     vic.vx+=2.4*dir; addSpark(vic.x,vic.y-FH(vic)/2,'#ffd9a0',8);
     G.hitstop=Math.max(G.hitstop,5);
@@ -877,6 +921,9 @@ function applyHit(att,vic,d,o){
   vic.hitstun=Math.floor(clamp(8+kb*1.7,8,72));
   vic.state='hit'; vic.onGround=false; vic.hitFlash=1; vic.atk=null; vic.chargeT=0;
   vic.ledge=null;
+  // 被弾者が誰かをつかんでいたら、ほどける
+  if(vic.grabVic){ const gv=vic.grabVic; if(gv.state==='grabbed'){ gv.state='idle'; gv.grabBy=null; } vic.grabVic=null; }
+  vic.grabBy=null;
   // キズナゲージ
   if(att.ch&&!att.mook){ const g0=att.gauge; att.gauge=Math.min(100,att.gauge+dmg*0.5);
     if(g0<100&&att.gauge>=100){ Sound.gauge(); addFloat(att.x,att.y-FH(att)-30,'キズナMAX!','#ffd24d',24); } }
@@ -951,6 +998,9 @@ function finalBlast(f){
 /* ===== KO ===== */
 function koFighter(f){
   if(f.koT>0||f.dead) return;
+  // つかみ関係はほどく
+  if(f.grabBy){ const g=f.grabBy; if(g.grabVic===f){ g.grabVic=null; if(g.state==='grabHold')g.state='idle'; } f.grabBy=null; }
+  if(f.grabVic){ const v=f.grabVic; if(v.grabBy===f){ v.grabBy=null; if(v.state==='grabbed')v.state='idle'; } f.grabVic=null; }
   const bl=G.stage.blast;
   const bx=clamp(f.x,bl.l+30,bl.r-30), by=clamp(f.y-FH(f)/2,bl.t+30,bl.b-30);
   const topKO = (f.y-FH(f)/2)<bl.t+40 && f.vy<-16;
@@ -974,7 +1024,11 @@ function koFighter(f){
     return;
   }
   f.falls++; f.stocks--; setAnn('KO!!',44,'#ff5e3a',1.25);
-  if(f.stocks<=0){ f.dead=true; gameSet(f.team===0?1:0); }
+  if(f.stocks<=0){
+    f.dead=true;
+    const alive=[...new Set(F.filter(x=>!x.mook&&!x.dead).map(x=>x.team))];
+    if(alive.length<=1) gameSet(alive.length?alive[0]:(f.team===0?1:0));
+  }
   else f.koT=80;
 }
 function respawn(f){
@@ -994,6 +1048,19 @@ function stepFighter(f){
   const st=G.stage, main=st.main;
   const c=(G.state==='play'&&!f.dead)?controlFor(f):{left:false,right:false,up:false,down:false,attack:false,special:false,shield:false};
   const upE=c.up&&!f._p.up, atkE=c.attack&&!f._p.attack, spE=c.special&&!f._p.special, shE=c.shield&&!f._p.shield;
+  // はじき検出（方向を押した瞬間からの経過フレーム。若い＝はじき入力＝スマッシュ）
+  f.hDirT=((c.left&&!f._p.left)||(c.right&&!f._p.right))?0:f.hDirT+1;
+  f.uDirT=(c.up&&!f._p.up)?0:f.uDirT+1;
+  f.dDirT=(c.down&&!f._p.down)?0:f.dDirT+1;
+  // 2回はじき＝ダッシュ（あるく／はしる の区別）
+  {
+    const hEdgeDir=(c.left&&!f._p.left)?-1:((c.right&&!f._p.right)?1:0);
+    if(hEdgeDir){
+      if(f.dtapDir===hEdgeDir&&f.dtapT<14) f.runMode=true;
+      else if(f.dtapDir!==hEdgeDir) f.runMode=false;
+      f.dtapDir=hEdgeDir; f.dtapT=0;
+    } else f.dtapT++;
+  }
   f._p={left:c.left,right:c.right,up:c.up,down:c.down,attack:c.attack,special:c.special,shield:c.shield};
 
   if(f.dead) return;
@@ -1012,6 +1079,42 @@ function stepFighter(f){
   for(const tr of f.trail) tr.t-=1/60;
   while(f.trail.length&&f.trail[0].t<=0) f.trail.shift();
 
+  // つかまれ中
+  if(f.state==='grabbed'){
+    f.grabT++;
+    const g=f.grabBy;
+    if(!g||g.state!=='grabHold'||g.dead||g.koT>0||f.grabT>70){
+      f.state='idle'; f.grabBy=null; if(g&&g.grabVic===f){ g.grabVic=null; if(g.state==='grabHold')g.state='idle'; }
+    } else {
+      f.x=g.x+(FW(g)*0.5+FW(f)*0.4)*g.facing; f.y=g.y;
+      f.facing=-g.facing; f.vx=0; f.vy=0; f.onGround=g.onGround;
+    }
+    blastCheck(f); return;
+  }
+  // つかみ保持→投げ（方向で前/後ろ/上/下。放置は自動で前投げ）
+  if(f.state==='grabHold'){
+    f.grabT++;
+    const v=f.grabVic;
+    if(!v||v.state!=='grabbed'||v.dead||v.koT>0){ f.state='idle'; f.grabVic=null; }
+    else {
+      let th=null;
+      if(f.grabT>=8){
+        if(c.left||c.right){ th=((c.right?1:-1)===f.facing)?'f':'b'; }
+        else if(c.up) th='u';
+        else if(c.down) th='d';
+        else if(f.grabT>=45) th='f';
+      }
+      if(th){
+        const def=THROWS[th];
+        let dir=f.facing; if(th==='b'){ dir=-f.facing; f.facing=-f.facing; }
+        v.state='idle'; v.grabBy=null; f.grabVic=null;
+        f.state='attack';
+        f.atk={name:'throw',def:{su:0,ac:0,rc:14,off:0,oy:0,w:0,h:0},t:0,active:false,hitset:{},charge:1};
+        Sound.whoosh(); applyHit(f,v,def,{dir});
+      }
+    }
+    keepOnGround(f,c); blastCheck(f); return;
+  }
   // 気絶
   if(f.dizzyT>0){ f.dizzyT--;
     if(!f.onGround){ f.vy+=GRAV; f.y+=f.vy; landCheck(f,c); }
@@ -1030,6 +1133,9 @@ function stepFighter(f){
         f.state='idle'; f.invuln=Math.max(f.invuln,18); f.ledge=null; f.squash=0.2; Sound.jump(); }
       else if(atkE){ f.x=L.x-L.side*40; f.y=L.y; f.onGround=true; f.jumps=f.ch.jumps;
         f.ledge=null; f.invuln=Math.max(f.invuln,10); startAttack(f,'ledgeAtk'); }
+      else if(shE){ // のぼり回避：無敵のまま内側へ転がり込む
+        f.x=L.x-L.side*104; f.y=L.y; f.onGround=true; f.jumps=f.ch.jumps;
+        f.state='idle'; f.invuln=Math.max(f.invuln,26); f.ledge=null; Sound.dodge(); }
       else if(c.down||(L.side<0&&c.left)||(L.side>0&&c.right)||f.ledgeT>240){
         f.state='idle'; f.ledge=null; f.ledgeCd=40; f.vy=2; f.x+=L.side*8; f.onGround=false; }
     }
@@ -1081,11 +1187,13 @@ function stepFighter(f){
   }
 
   const grounded=f.onGround, act=canAct(f);
-  const running=grounded&&Math.abs(f.vx)>f.ch.run*0.72;
+  const runNow=f.runMode||c.run;
+  const running=grounded&&runNow&&Math.abs(f.vx)>f.ch.run*0.5;
 
   // シールド／回避入力
   if(f.state==='shield'){
     if(f.shieldStun>0) f.shieldStun--;
+    f.shieldT++;
     f.shieldHP-=0.12; f.vx*=0.7;
     if(f.shieldHP<=0){ f.state='dizzy'; f.dizzyT=170; f.shieldHP=34; f.vy=-8; f.onGround=false; Sound.shieldBreak(); }
     else if(f.shieldStun<=0){
@@ -1095,36 +1203,55 @@ function stepFighter(f){
       else if(upE){ f.state='idle'; f.vy=-f.ch.jump; f.onGround=false; f.jumps=f.ch.jumps-1; Sound.jump(); }
     }
   }
-  if(act&&shE){
+  if(canAct(f)&&shE){
     if(grounded){
       if(c.left||c.right){ f.state='dodge'; f.dodgeT=0; f.dodgeType=1; f.dodgeDir=c.right?1:-1; f.dodgeInv=false; Sound.dodge(); }
       else if(c.down){ f.state='dodge'; f.dodgeT=0; f.dodgeType=0; f.dodgeDir=0; f.dodgeInv=false; Sound.dodge(); }
-      else f.state='shield';
+      else { f.state='shield'; f.shieldT=0; }
     } else { f.state='dodge'; f.dodgeT=0; f.dodgeType=2; f.dodgeDir=0; f.dodgeInv=false; f.vy*=0.4; Sound.dodge(); }
-  } else if(act&&c.shield&&grounded&&f.state==='idle'){ f.state='shield'; }
+  } else if(c.shield&&grounded&&canAct(f)){ f.state='shield'; f.shieldT=0; }
 
   // 移動
   let mv=(c.right?1:0)-(c.left?1:0);
   const canMove=(f.state==='idle'||f.state==='helpless'||(f.state==='attack'&&!grounded&&!(f.atk&&f.atk.def.rush)));
-  if(f.hitstun>0||f.state==='hit'){ /* 操作不能 */ }
+  if(f.hitstun>0||f.state==='hit'){
+    // ずらし（DI）：ふっとび中もわずかに軌道へ干渉できる
+    f.vx+=mv*0.07;
+    if(c.up)f.vy-=0.055; if(c.down)f.vy+=0.055;
+  }
   else if(canMove){
     if(mv!==0){
-      if(grounded){ f.vx=mv*f.ch.run; if(f.state==='idle')f.facing=mv; }
+      if(grounded){ f.vx=mv*f.ch.run*(runNow?1:0.62); if(f.state==='idle')f.facing=mv; }  // あるく／はしる
       else { f.vx+=mv*0.55; f.vx=clamp(f.vx,-f.ch.air,f.ch.air); if(f.state==='idle')f.facing=mv; }
     } else {
-      if(grounded){ f.vx*=0.45; if(Math.abs(f.vx)<0.05)f.vx=0; }
+      if(grounded){ f.vx*=0.45; if(Math.abs(f.vx)<0.05){f.vx=0; f.runMode=false;} }
       else f.vx*=0.94;
     }
     // ジャンプ
-    if(upE&&f.state!=='helpless'){
-      if(grounded){ f.vy=-f.ch.jump; f.onGround=false; f.jumps=f.ch.jumps-1; f.squash=0.25; Sound.jump(); }
+    if(upE&&f.state!=='helpless'&&!c.attack){
+      if(grounded){ f.vy=-f.ch.jump; f.onGround=false; f.jumps=f.ch.jumps-1; f.squash=0.25; f.shopT=6; Sound.jump(); }
       else if(f.jumps>0){ f.vy=-f.ch.jump*0.92; f.jumps--; f.squash=0.25; Sound.jump(); addSpark(f.x,f.y,'#fff0c8',6); }
     }
+    // 小ジャンプ：踏み切り直後にボタンをはなすと低く跳ぶ
+    if(f.shopT>0){ f.shopT--; if(!c.up&&f.vy<-6){ f.vy*=0.55; f.shopT=0; } }
     if(c.down&&!grounded&&f.vy>1) f.vy=Math.max(f.vy,FASTFALL);
   }
+  else if(grounded&&!(f.state==='attack'&&f.atk&&f.atk.def.rush&&f.atk.active)){
+    // 攻撃の後隙なども地上では摩擦で止まる（滑走しっぱなし防止）
+    f.vx*=0.72; if(Math.abs(f.vx)<0.05)f.vx=0;
+  }
 
-  // 攻撃入力
-  if(atkE&&act){
+  // つかみ（盾＋攻撃。盾ごしにつかめる＝三すくみ）
+  if(atkE&&grounded&&(c.shield||f.state==='shield')&&(canAct(f)||(f.state==='shield'&&f.shieldStun<=0))){
+    f.state='idle'; startAttack(f,'grab');
+  }
+  // ジャブ2段目（1段目の戻り中にもう一度）
+  else if(atkE&&f.state==='attack'&&f.atk&&f.atk.name==='jab'&&f.atk.t>f.atk.def.su+f.atk.def.ac){
+    startAttack(f,'jab2');
+  }
+  // 攻撃入力（はじき＝スマッシュ／おしっぱなし方向＝強攻撃）
+  else if(atkE&&canAct(f)){
+    const smashIn=t=>t<8||c.smash;
     if(!grounded){
       let name='nair';
       if(c.up) name='uair'; else if(c.down) name='dair';
@@ -1132,13 +1259,13 @@ function stepFighter(f){
       else if(mv===-f.facing&&mv!==0) name='bair';
       startAttack(f,name);
     } else if(running&&mv!==0){ startAttack(f,'dash');
-    } else if(c.up){ f.state='charge'; f.chargeT=0; f.chargeAtk='usmash';
-    } else if(c.down){ f.state='charge'; f.chargeT=0; f.chargeAtk='dsmash';
-    } else if(mv!==0){ f.facing=mv; f.state='charge'; f.chargeT=0; f.chargeAtk='fsmash';
+    } else if(c.up){ if(smashIn(f.uDirT)){ f.state='charge'; f.chargeT=0; f.chargeAtk='usmash'; } else startAttack(f,'utilt');
+    } else if(c.down){ if(smashIn(f.dDirT)){ f.state='charge'; f.chargeT=0; f.chargeAtk='dsmash'; } else startAttack(f,'dtilt');
+    } else if(mv!==0){ f.facing=mv; if(smashIn(f.hDirT)){ f.state='charge'; f.chargeT=0; f.chargeAtk='fsmash'; } else startAttack(f,'ftilt');
     } else startAttack(f,'jab');
   }
   // 必殺入力
-  if(spE&&act){
+  if(spE&&canAct(f)){
     if(f.gauge>=100){ doFinal(f); }
     else if(c.up){ startAttack(f,'upB'); }
     else if(c.down&&grounded){ f.state='counter'; f.counterT=0; Sound.whoosh(); }
@@ -1232,6 +1359,13 @@ function resolveHits(){
       if(v===a||v.team===a.team||v.dead||v.koT>0) continue;
       if(a.atk.hitset['f'+v.id]) continue;
       if(overlap(box,hurtbox(v))){
+        if(d.grab){ // つかみ成立：盾を無視する（三すくみ）
+          if(v.invuln>0||(v.state==='dodge'&&v.dodgeInv)||v.state==='grabbed'||v.koT>0) continue;
+          a.atk=null; a.state='grabHold'; a.grabT=0; a.grabVic=v;
+          v.state='grabbed'; v.grabBy=a; v.grabT=0; v.atk=null; v.chargeT=0; v.hitstun=0; v.ledge=null;
+          Sound.hit(0); addSpark((a.x+v.x)/2,v.y-FH(v)/2,'#fff',8); G.hitstop=Math.max(G.hitstop,6);
+          break;
+        }
         const dir = d.both ? (v.x>=a.x?1:-1) : (d.back? -a.facing : a.facing);
         const landed=applyHit(a,v,d,{dir});
         if(!a.atk) break;   // カウンターで反撃され、こちらの攻撃が消えた
@@ -1275,10 +1409,12 @@ function stepProjs(){
 
 /* ===== AI ===== */
 function runAI(f){
-  const o={left:false,right:false,up:false,down:false,attack:false,special:false,shield:false};
+  const o={left:false,right:false,up:false,down:false,attack:false,special:false,shield:false,smash:false};
   f.ai.out=o;
   if(f.dead||f.koT>0) return;
-  const hu=F.find(x=>x.team!==f.team&&!x.dead&&x.koT<=0);
+  let hu=null,huD=1e9;   // いちばん近い敵を狙う（FFA対応）
+  for(const x of F){ if(x.team===f.team||x.dead||x.koT>0)continue;
+    const dd=Math.abs(x.x-f.x); if(dd<huD){huD=dd;hu=x;} }
   if(!hu) return;
   const st=G.stage, main=st.main;
   const dx=hu.x-f.x, dy=hu.y-f.y, ad=Math.abs(dx);
@@ -1330,6 +1466,7 @@ function runAI(f){
     else if(ad>120){ f.ai.act = r<aggr?'approach':(r<aggr+0.15?'jumpapp':(r<aggr+0.3?'sideb':'wait')); }
     else {
       if(dy<-60) f.ai.act='upatk';
+      else if(L>=4&&hu.state==='shield'&&r<0.6) f.ai.act='grabatk';   // 盾にはつかみ
       else if(wantKO&&L>=3&&r<0.55) f.ai.act='smash';
       else if(r<0.5) f.ai.act='atk';
       else if(r<0.7) f.ai.act='smash';
@@ -1344,7 +1481,8 @@ function runAI(f){
   else if(act==='nb'){ o.special=pulse; }
   else if(act==='sideb'){ o[toward]=true; o.special=pulse; }
   else if(act==='atk'){ o[toward]=ad>46; o.attack=pulse; }
-  else if(act==='smash'){ o[toward]=true; o.attack=true; }
+  else if(act==='smash'){ o[toward]=true; o.attack=true; o.smash=true; }
+  else if(act==='grabatk'){ o.shield=true; o.attack=pulse; }
   else if(act==='upatk'){ o.up=false; o.attack=pulse; if(dy<-70&&f.onGround&&f.ai.t%18<3)o.up=true; else if(!f.onGround)o.up=true; }
   else if(act==='roll'){ o.shield=true; o[dx>0?'left':'right']=true; }
 }
@@ -1423,12 +1561,13 @@ function stepFx(){
 }
 function timeUp(){
   if(G.mode==='kumite'){ G.state='set'; G.setT=90; G.winner=0; Sound.stopBGM(); Sound.gameset(); setAnn('TIME UP!',80,'#ffd24d',1.3); return; }
-  const a=F[0],b=F[1];
-  if(a.stocks!==b.stocks){ gameSet(a.stocks>b.stocks?0:1); return; }
-  if(Math.round(a.percent)!==Math.round(b.percent)){ gameSet(a.percent<b.percent?0:1); return; }
-  // サドンデス
+  const ps=F.filter(x=>!x.mook).slice().sort((a,b)=> b.stocks-a.stocks || a.percent-b.percent);
+  if(ps.length>=2&&(ps[0].stocks!==ps[1].stocks||Math.round(ps[0].percent)!==Math.round(ps[1].percent))){
+    gameSet(ps[0].team); return;
+  }
+  // サドンデス（生き残り全員300%・1スト）
   G.suddenDeath=true; G.matchT=99*3600;
-  for(const f of F){ f.stocks=1; respawn(f); f.percent=300; f.pctBump=1; f.invuln=60; }
+  for(const f of F){ if(f.mook||f.dead)continue; f.stocks=1; respawn(f); f.percent=300; f.pctBump=1; f.invuln=60; }
   setAnn('SUDDEN DEATH!',90,'#ff5e3a',1.3); Sound.heavy();
 }
 function finishKumite(){
@@ -1448,7 +1587,7 @@ function showVsResult(){
   const dark=wf.dark;
   try{ $('winImg').src=SPR[wf.ch.id+(dark?'_d':'')].toDataURL(); }catch(e){}
   $('winLine').textContent=(dark?'かげの ':'')+wf.ch.name+' の かち！';
-  const lines=F.map(f=>{
+  const lines=F.filter(x=>!x.mook).map(f=>{
     const nm=(f.dark?'影・':'')+f.ch.name+(f.team===0?'（1P）':(G.mode==='2p'?'（2P）':'（CPU Lv'+G.level+'）'));
     return nm+' ─ 与ダメ <b>'+Math.round(f.dealt)+'%</b> ／ ふっとばし <b>'+f.kos+'</b> ／ 最大コンボ <b>'+f.maxCombo+'</b>';
   });
@@ -1736,9 +1875,10 @@ function drawHUD(){
         ctx.strokeText(p.comboN+' COMBO',scx,st+58*hs);
         ctx.fillText(p.comboN+' COMBO',scx,st+58*hs);
       }
-    } else if(F.length>=2){
-      drawPanel(F[0],W/2-110*hs,H-sb-8,hs);
-      drawPanel(F[1],W/2+110*hs,H-sb-8,hs);
+    } else {
+      const ps=F.filter(f=>!f.mook);
+      const n=ps.length, phs=hs*(n>2?0.8:1), gap=(n>2?190:220)*phs;
+      ps.forEach((f,i)=>drawPanel(f,W/2+(i-(n-1)/2)*gap,H-sb-8,phs));
     }
   }
   // カウントダウン
@@ -1864,6 +2004,7 @@ function pickChar(i){
   Sound.init(); Sound.resume(); Sound.tick();
   if(pickPhase===0){ G.c1=i; pickPhase=1;
     if(G.mode==='kumite'){ refreshRoster(); startMatch(); return; }
+    if(G.mode==='ffa'){ refreshRoster(); openStageSel(); return; }
   } else { G.c2=i; pickPhase=2; refreshRoster(); openStageSel(); return; }
   refreshRoster();
 }
@@ -1898,6 +2039,7 @@ $('rankBack').addEventListener('click',()=>show('titleScreen'));
 $('modeBack').addEventListener('click',()=>show('titleScreen'));
 $('mCpu').addEventListener('click',()=>{ G.mode='cpu'; openCharSel(); });
 $('mKumite').addEventListener('click',()=>{ G.mode='kumite'; openCharSel(); });
+$('mFfa').addEventListener('click',()=>{ G.mode='ffa'; openCharSel(); });
 $('m2p').addEventListener('click',()=>{ G.mode='2p'; openCharSel(); });
 $('lvDown').addEventListener('click',()=>{ G.level=Math.max(1,G.level-1); $('lvVal').textContent='Lv '+G.level; });
 $('lvUp').addEventListener('click',()=>{ G.level=Math.min(9,G.level+1); $('lvVal').textContent='Lv '+G.level; });
@@ -1944,6 +2086,7 @@ window.__smash={
   startCPU:(lv,c1,c2,st)=>{ G.mode='cpu'; G.level=lv||5; G.c1=c1||0; G.c2=c2==null?1:c2; G.stageI=st||0; startMatch(); },
   startKumite:(c1)=>{ G.mode='kumite'; G.c1=c1||0; startMatch(); },
   start2P:(c1,c2,st)=>{ G.mode='2p'; G.c1=c1||0; G.c2=c2==null?1:c2; G.stageI=st||0; startMatch(); },
+  startFFA:(lv,c1,st)=>{ G.mode='ffa'; G.level=lv||5; G.c1=c1||0; G.stageI=st||0; startMatch(); },
   skipCount:()=>{ if(G.state==='count')G.countT=1; },
   pad:(i,o)=>{ if(F[i])F[i].padOv=o; },
   clearPad:(i)=>{ if(F[i])F[i].padOv=null; },
