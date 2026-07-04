@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<title>技術学 — 何で作るのかを、次の頭へ残す</title>
+<meta name="description" content="技術学は、畜物語の各ゲームがグラフィック・音・保存にどんな技術を使っているかを記録する蔵。WebGL6作の実装カタログ、Canvas2D/SVGの共通パターン、技術を選ぶ判断基準を収める。軽量なAIモデルでも実装を再現できることが目的。畜物語の七つ目の蔵。">
+<meta property="og:title" content="技術学 — 何で作るのかを、次の頭へ残す">
+<meta property="og:description" content="グラフィック・音・保存の実装技術を記録し、軽量な頭でも再現できるようにする、畜物語の七つ目の蔵。">
+<meta property="og:type" content="website">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://chikumo.jp/gijutugaku/">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600;700&family=Shippori+Mincho:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-void:#0a0d09; --bg-surface:#141910; --bg-elevated:#1c2317;
+  --text-primary:#e7e6dd; --text-secondary:#9aa08c; --text-tertiary:#5c6152;
+  --gold:#9bb26a; --gold-dim:#6d7d54; --gold-bright:#c3d99a;
+  --line:rgba(155,178,106,0.14); --line-strong:rgba(155,178,106,0.28);
+  --font-serif:'Shippori Mincho','Noto Serif JP',serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-serif);background:var(--bg-void);color:var(--text-primary);line-height:1.9;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+::selection{background:rgba(155,178,106,0.3);}
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:0.9rem clamp(1.2rem,4vw,2.4rem);background:rgba(10,13,9,0.85);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);}
+.topbar .mark{font-weight:700;letter-spacing:0.25em;font-size:0.95rem;}
+.topbar .links{display:flex;gap:1.2rem;}
+.topbar a{font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color .2s;}
+.topbar a:hover{color:var(--gold-bright);}
+.hero{min-height:66vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:5rem 1.5rem 3.5rem;}
+.hero .label{font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.4em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:2rem;}
+.hero h1{font-weight:800;font-size:clamp(3.2rem,11vw,7rem);letter-spacing:0.14em;line-height:1.05;margin-bottom:1.6rem;}
+.hero .sub{font-size:clamp(0.9rem,2vw,1.05rem);font-weight:300;color:var(--text-secondary);letter-spacing:0.14em;line-height:2.1;max-width:48ch;}
+.hero .line{width:1px;height:64px;background:linear-gradient(to bottom,var(--gold),transparent);margin:2.4rem auto 0;}
+section{padding:clamp(3rem,8vw,5.5rem) clamp(1.4rem,5vw,3rem);}
+.inner{max-width:880px;margin:0 auto;}
+.section-label{font-family:var(--font-mono);font-size:0.68rem;color:var(--gold-dim);letter-spacing:0.35em;text-transform:uppercase;margin-bottom:1rem;}
+.section-title{font-weight:700;font-size:clamp(1.6rem,4vw,2.2rem);letter-spacing:0.08em;margin-bottom:1.1rem;line-height:1.35;}
+.section-desc{font-size:0.98rem;color:var(--text-secondary);font-weight:300;line-height:2.1;max-width:66ch;letter-spacing:0.04em;}
+.section-desc b,.step b,.rec b{color:var(--gold);font-weight:600;}
+.divider{max-width:880px;margin:0 auto;height:1px;background:var(--line);}
+.kura{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0.9rem;margin-top:2.2rem;}
+.kura .k{border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.2rem 1.1rem;text-align:center;}
+.kura .k.hi{border-color:var(--line-strong);background:var(--bg-elevated);}
+.kura .k .n{font-size:1.25rem;font-weight:700;color:var(--gold-bright);letter-spacing:0.1em;}
+.kura .k .d{margin-top:0.4rem;font-size:0.8rem;color:var(--text-secondary);}
+.steps{counter-reset:s;margin-top:2.2rem;border-top:1px solid var(--line);}
+.step{position:relative;padding:1.3rem 0 1.3rem 3.3rem;border-bottom:1px solid var(--line);}
+.step::before{counter-increment:s;content:counter(s);position:absolute;left:0.2rem;top:1.25rem;
+  width:2rem;height:2rem;border:1px solid var(--line-strong);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:0.85rem;color:var(--gold-bright);}
+.step h3{font-size:1.05rem;font-weight:700;letter-spacing:0.06em;color:var(--gold-bright);margin-bottom:0.3rem;}
+.step p{font-size:0.92rem;color:var(--text-secondary);line-height:2;}
+.step code,.rec code{font-family:var(--font-mono);font-size:0.82em;color:var(--gold-bright);background:var(--bg-surface);border:1px solid var(--line);border-radius:3px;padding:0.06em 0.4em;}
+.classtable{width:100%;border-collapse:collapse;margin-top:1.6rem;font-size:0.88rem;}
+.classtable th,.classtable td{text-align:left;padding:0.7rem 0.9rem;border-bottom:1px solid var(--line);color:var(--text-secondary);line-height:1.8;}
+.classtable th{font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold-dim);}
+.classtable td:first-child{color:var(--gold-bright);font-weight:600;white-space:nowrap;}
+.recs{display:flex;flex-direction:column;gap:1.1rem;margin-top:2.2rem;}
+.rec{border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.5rem 1.5rem;}
+.rec h3{font-size:1.05rem;font-weight:700;letter-spacing:0.08em;color:var(--gold-bright);margin-bottom:0.5rem;}
+.rec p{font-size:0.92rem;color:var(--text-secondary);line-height:2;}
+.rec p + p{margin-top:0.5rem;}
+.rec .tag{display:inline-block;font-family:var(--font-mono);font-size:0.64rem;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--gold);border:1px solid var(--line-strong);border-radius:20px;padding:0.15rem 0.7rem;margin-bottom:0.7rem;}
+.check{list-style:none;margin-top:2rem;border-top:1px solid var(--line);}
+.check li{position:relative;padding:0.95rem 0 0.95rem 2.2rem;border-bottom:1px solid var(--line);font-size:0.95rem;line-height:2;color:var(--text-primary);}
+.check li::before{content:'☐';position:absolute;left:0.3rem;top:0.95rem;color:var(--gold-dim);}
+.note{background:#0d110c;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.definition{position:relative;padding:2rem 0;margin-top:2rem;}
+.definition::before{content:'';position:absolute;left:0;top:0;width:2px;height:100%;background:linear-gradient(to bottom,var(--gold),transparent);}
+.definition p{padding-left:1.9rem;font-size:1.02rem;line-height:2.2;letter-spacing:0.05em;}
+.definition p + p{margin-top:1rem;}
+.definition strong{color:var(--gold);font-weight:600;}
+footer{padding:4rem 1.5rem 5rem;text-align:center;border-top:1px solid var(--line);}
+footer .f-links{display:flex;gap:1.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.6rem;}
+footer a{font-family:var(--font-mono);font-size:0.74rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color .2s;}
+footer a:hover{color:var(--gold-bright);}
+footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--text-tertiary);}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .9s cubic-bezier(0.16,1,0.3,1),transform .9s cubic-bezier(0.16,1,0.3,1);}
+.reveal.in{opacity:1;transform:none;}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}html{scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="mark">技術学</span>
+  <span class="links">
+    <a href="/Library/">畜学</a>
+    <a href="/shikogaku/">思考学</a>
+    <a href="/">畜物語</a>
+  </span>
+</div>
+
+<header class="hero">
+  <div class="label">What We Build With</div>
+  <h1>技術学</h1>
+  <div class="sub">何で作るのかを、次の頭へ残す。<br>調べ直させず、軽量な頭でもそのまま再現できるように。</div>
+  <div class="line"></div>
+</header>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Definition</div>
+    <h2 class="section-title">七つ目の蔵</h2>
+    <div class="definition">
+      <p>畜史が<strong>成りしもの</strong>を、思考学が<strong>曲がった判断</strong>を、肥料学が<strong>なぜ死んだか</strong>を録すなら、技術学は<strong>実装の層で何を使い、何を使わないか</strong>を録す。</p>
+      <p>目的はただ一つ。軽量な頭（小さなAIモデル・記憶を持たない次のこっこ）でも、この書を読めば島ぐらしの水面や影がどう描かれているかを<strong>ゼロから調べ直さずに再現できる</strong>こと。</p>
+    </div>
+    <div class="kura">
+      <div class="k"><div class="n">十四式</div><div class="d">どう作るのか</div></div>
+      <div class="k"><div class="n">遊戯学</div><div class="d">なぜ作るのか</div></div>
+      <div class="k"><div class="n">設計学</div><div class="d">どの高さから作るのか</div></div>
+      <div class="k"><div class="n">畜史</div><div class="d">何を作ったのか</div></div>
+      <div class="k"><div class="n">思考学</div><div class="d">どう考えたのか</div></div>
+      <div class="k"><div class="n">肥料学</div><div class="d">なぜ終えたのか</div></div>
+      <div class="k hi"><div class="n">技術学</div><div class="d">何で作るのか</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="note">
+  <div class="inner reveal">
+    <div class="section-label">Volume I — Three Layers</div>
+    <h2 class="section-title">巻一 ─ 畜物語の技術三層</h2>
+    <p class="section-desc">畜学七相の七「一器に納む」＝HTML1ファイル自己完結、という掟の具体的な実装形は次の三層に収束している。</p>
+    <table class="classtable">
+      <tr><th>層</th><th>使うもの</th><th>使わないもの</th></tr>
+      <tr><td>描画</td><td>生WebGL1（自前シェーダ）／Canvas2D／SVG</td><td>Three.js・Babylon.js等の外部3Dエンジン</td></tr>
+      <tr><td>音</td><td>WebAudio（矩形波/三角波/ノイズ合成、自前インパルス応答リバーブ）</td><td>外部音声ファイル(mp3/wav)の同梱・CDN読込</td></tr>
+      <tr><td>保存・共有</td><td>localStorage（進行状況）／Firebase（世界ランキング<code>rankings/*</code>のみ）</td><td>それ以外の外部API・バックエンド</td></tr>
+    </table>
+    <div class="definition">
+      <p><strong>外部3Dエンジン禁止は比喩ではなく実務の制約。</strong> 島ぐらし2旧版（<code>mori2/</code>）はThree.js依存＋シェーダprecision不統一（頂点highp・フラグメントmediump）でiOS起動不能となり、公開から3日で取り下げられた（詳細は肥料学 巻二）。後継の<code>shima2/</code>は素のWebGL1・全シェーダ<code>precision highp float</code>統一で建て直し、現在<code>mori/</code>にも同じ設計が継承されている。</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Volume II — WebGL Catalog</div>
+    <h2 class="section-title">巻二 ─ WebGL実装カタログ（6作品の実測）</h2>
+    <p class="section-desc">WebGLを使うのは <code>mori</code>・<code>shima2</code>・<code>galaxy</code>・<code>pulse</code>・<code>rom</code>・<code>splat3d</code> の6作のみ。いずれも外部ライブラリを使わず、<code>createShader→compileShader→createProgram→linkProgram</code> を自前ヘルパーで書く共通スタイル。</p>
+    <div class="recs">
+      <div class="rec"><span class="tag">フル3D・最も複雑</span><h3>一・島ぐらし（/mori/）</h3>
+        <p>シェーダ12種：depth/meshDepth（影）・terrain・water・mesh・grass・sky・sprite・noise・bright/blur/post（ブルーム）。シャドウマップ・fbmノイズ地形・水面フレネル・大気フォグ・ACES風トーンマップ・GPUハイトマップ生成を実装。</p>
+        <p><b>品質自動フォールバック</b>：HQシェーダのコンパイルをtry/catchし、失敗時は簡易版へ自動降格（低性能端末対応）。</p></div>
+      <div class="rec"><span class="tag">precision統一の教訓源</span><h3>二・島ぐらし2（/shima2/）</h3>
+        <p>moriの技術的祖先。シェーダ約10種、構成はmoriと対応（空・水面グリッド・GPUハイトフィールド・シャドウマップ・風になびく草）。</p>
+        <p><b>全フラグメントシェーダ共通の<code>precision highp float</code>プレフィックス</b>を先頭に付与する設計。mori2の死因（precision不統一）を踏まえた直接の対策がここにある。</p></div>
+      <div class="rec"><span class="tag">2.5D・GPUインスタンシング</span><h3>三・galaxy（/galaxy/）</h3>
+        <p>シェーダ3種（星雲・瞬く星・インスタンシング火花）のみの軽量構成。WebGL2優先取得、<b>WebGL完全非対応環境向けの2D星空フォールバックあり</b>（6作中唯一）。メインゲームプレイはCanvas2D、WebGLは背景レイヤー。</p></div>
+      <div class="rec"><span class="tag">疑似3D・インスタンシング必須</span><h3>四・pulse（/pulse/）</h3>
+        <p>シェーダ2種（スプライト・トンネル）。z除算による疑似3D遠近、頂点シェーダの羽ばたきアニメーション。<b><code>ANGLE_instanced_arrays</code>必須</b>（非対応環境は例外throw＝救わない設計）。</p></div>
+      <div class="rec"><span class="tag">最小構成の見本</span><h3>五・rom（/rom/）</h3>
+        <p>シェーダ1種のみ。SDF（符号付き距離関数）で六角形クリスタルを描画、フレネル風リムライト・コア発光。<b>6作中唯一<code>alpha:true</code></b>でCanvas2D背景に透過合成。地形もシャドウも要らないなら、この規模で十分という実例。</p></div>
+      <div class="rec"><span class="tag">Canvas2D→WebGLテクスチャ転送</span><h3>六・splat3d（/splat3d/）</h3>
+        <p>シェーダ2種（地面・ペイント面／スプライト）。プレイヤーの塗り跡をCanvas2Dで描画→WebGLテクスチャへ部分転送しワールド合成するインクペイント表現が核。地形は平面的で、mori/shima2にあるシャドウ・水面フレネル・ブルームは無い。</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="note">
+  <div class="inner reveal">
+    <div class="section-label">Volume III — Canvas2D / SVG</div>
+    <h2 class="section-title">巻三 ─ Canvas2D／SVGの共通パターン</h2>
+    <p class="section-desc">WebGLを使わない大多数（Canvas2D・SVG）はこの型に収束している。新作の既定はこちらから始めるのが最も再現しやすい。</p>
+    <div class="steps">
+      <div class="step"><h3>ループ</h3><p><code>requestAnimationFrame</code>による固定/可変タイムステップのゲームループ。</p></div>
+      <div class="step"><h3>解像度</h3><p><code>devicePixelRatio</code>でcanvas実ピクセルを合わせ、CSSサイズは論理ピクセルのまま拡大鈍化を防ぐ。</p></div>
+      <div class="step"><h3>描画</h3><p>単一2Dコンテキストへの直接描画（レイヤー分離なし）。パーティクルは配列管理＋毎フレーム全走査で十分な規模。</p></div>
+      <div class="step"><h3>入力</h3><p>pointer/touchイベントを共通化し、PC/スマホ両対応。</p></div>
+      <div class="step"><h3>音</h3><p>WebAudioで矩形波/三角波/ノイズを合成（romの合成音はCanvas2D側ゲームプレイと共存する好例）。SVGの2作（jusshiki/story）は静的な図表が中心で、アニメーションはCSS transitionまたは軽量なJSでの属性書き換え。</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Volume IV — How to Choose</div>
+    <h2 class="section-title">巻四 ─ 新作で技術を選ぶときの判断基準</h2>
+    <div class="steps">
+      <div class="step"><h3>地形・水・光がある3D世界か</h3><p>mori/shima2の構成を土台にする。ただし技術的複雑度は格ではない──必要な複雑さだけを持ち込む（romのように単一シェーダで足りるなら、それで足りる）。</p></div>
+      <div class="step"><h3>2Dで十分な動詞か</h3><p>Canvas2Dのみで作る（巻三の型に従う）。畜物語の大多数はこちら。WebGLを使う理由が無いなら使わない。</p></div>
+      <div class="step"><h3>WebGL＋Canvas2Dの二層構成にするか</h3><p>メインの遊びがCanvas2Dで背景演出だけWebGL（galaxy/pulse型）か、逆にメインをWebGLにしてHUD/UI/生成物だけCanvas2D（mori/rom/splat3d型）かを先に決める。中途半端に混在させない。</p></div>
+      <div class="step"><h3>シェーダprecisionは常にhighpで統一する</h3><p>mori2の死因を繰り返さない。フラグメントシェーダ先頭に共通プレフィックスを用意し、全プログラムに付与する（shima2方式）のが最も事故りにくい。</p></div>
+      <div class="step"><h3>低性能端末を救うか切り捨てるか</h3><p>moriの「品質自動フォールバック」とpulseの「非対応なら例外throw」は対極の判断。畜物語のターゲット（親子）を考えれば、原則は救う方。</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Volume V — Checklist</div>
+    <h2 class="section-title">巻五 ─ 作る前に己に問う</h2>
+    <ul class="check">
+      <li>外部3Dエンジン・外部音声ファイル・畜物語共有臓器（世界ランキング）以外の外部APIに依存していないか。</li>
+      <li>全シェーダのprecisionはhighpで統一したか（フラグメント冒頭の共通プレフィックス推奨）。</li>
+      <li>この技術を選んだ理由を一行で言えるか。「なんとなく」で複雑な方を選んでいないか。</li>
+      <li>低性能端末（iOS含む）での動作を確認したか、または自動フォールバックを備えたか。</li>
+      <li>新しい技法を試した・発見した場合、この書（技術学）に追記して還したか。</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="f-links">
+    <a href="/Library/">畜学</a>
+    <a href="/shikogaku/">思考学</a>
+    <a href="/hiryogaku/">肥料学</a>
+    <a href="/sekkeigaku/">設計学</a>
+    <a href="/changelog/">畜史</a>
+    <a href="/">畜物語</a>
+  </div>
+  <div class="c">畜物語 ─ chikumo.jp</div>
+</footer>
+
+<script>
+"use strict";
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){ for(var i=0;i<els.length;i++) els[i].classList.add('in'); return; }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:0.12,rootMargin:'0px 0px -8% 0px'});
+  els.forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
