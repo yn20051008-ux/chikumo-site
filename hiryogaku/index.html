@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<title>肥料学 — なぜ終えたのかを、次の芽の糧にする</title>
+<meta name="description" content="肥料学は、削除されたゲームがなぜ死んだかを記録する蔵。枯れた木を弔うためでなく、土に還して次の芽の糧にするため。死因の分類・死んだ木の記録・伐る前のチェックリストを収める。畜物語の六つ目の蔵。">
+<meta property="og:title" content="肥料学 — なぜ終えたのかを、次の芽の糧にする">
+<meta property="og:description" content="死んだ木の死因を記録し、同じ失敗を二度と繰り返さないための、畜物語の六つ目の蔵。">
+<meta property="og:type" content="website">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://chikumo.jp/hiryogaku/">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600;700&family=Shippori+Mincho:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-void:#0a0d09; --bg-surface:#141910; --bg-elevated:#1c2317;
+  --text-primary:#e7e6dd; --text-secondary:#9aa08c; --text-tertiary:#5c6152;
+  --gold:#9bb26a; --gold-dim:#6d7d54; --gold-bright:#c3d99a;
+  --line:rgba(155,178,106,0.14); --line-strong:rgba(155,178,106,0.28);
+  --font-serif:'Shippori Mincho','Noto Serif JP',serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-serif);background:var(--bg-void);color:var(--text-primary);line-height:1.9;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+::selection{background:rgba(155,178,106,0.3);}
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:0.9rem clamp(1.2rem,4vw,2.4rem);background:rgba(10,13,9,0.85);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);}
+.topbar .mark{font-weight:700;letter-spacing:0.25em;font-size:0.95rem;}
+.topbar .links{display:flex;gap:1.2rem;}
+.topbar a{font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color .2s;}
+.topbar a:hover{color:var(--gold-bright);}
+.hero{min-height:66vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:5rem 1.5rem 3.5rem;}
+.hero .label{font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.4em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:2rem;}
+.hero h1{font-weight:800;font-size:clamp(3.2rem,11vw,7rem);letter-spacing:0.14em;line-height:1.05;margin-bottom:1.6rem;}
+.hero .sub{font-size:clamp(0.9rem,2vw,1.05rem);font-weight:300;color:var(--text-secondary);letter-spacing:0.14em;line-height:2.1;max-width:48ch;}
+.hero .line{width:1px;height:64px;background:linear-gradient(to bottom,var(--gold),transparent);margin:2.4rem auto 0;}
+section{padding:clamp(3rem,8vw,5.5rem) clamp(1.4rem,5vw,3rem);}
+.inner{max-width:880px;margin:0 auto;}
+.section-label{font-family:var(--font-mono);font-size:0.68rem;color:var(--gold-dim);letter-spacing:0.35em;text-transform:uppercase;margin-bottom:1rem;}
+.section-title{font-weight:700;font-size:clamp(1.6rem,4vw,2.2rem);letter-spacing:0.08em;margin-bottom:1.1rem;line-height:1.35;}
+.section-desc{font-size:0.98rem;color:var(--text-secondary);font-weight:300;line-height:2.1;max-width:66ch;letter-spacing:0.04em;}
+.section-desc b,.step b,.rec b{color:var(--gold);font-weight:600;}
+.divider{max-width:880px;margin:0 auto;height:1px;background:var(--line);}
+.kura{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0.9rem;margin-top:2.2rem;}
+.kura .k{border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.2rem 1.1rem;text-align:center;}
+.kura .k.hi{border-color:var(--line-strong);background:var(--bg-elevated);}
+.kura .k .n{font-size:1.25rem;font-weight:700;color:var(--gold-bright);letter-spacing:0.1em;}
+.kura .k .d{margin-top:0.4rem;font-size:0.8rem;color:var(--text-secondary);}
+.steps{counter-reset:s;margin-top:2.2rem;border-top:1px solid var(--line);}
+.step{position:relative;padding:1.3rem 0 1.3rem 3.3rem;border-bottom:1px solid var(--line);}
+.step::before{counter-increment:s;content:counter(s);position:absolute;left:0.2rem;top:1.25rem;
+  width:2rem;height:2rem;border:1px solid var(--line-strong);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:0.85rem;color:var(--gold-bright);}
+.step h3{font-size:1.05rem;font-weight:700;letter-spacing:0.06em;color:var(--gold-bright);margin-bottom:0.3rem;}
+.step p{font-size:0.92rem;color:var(--text-secondary);line-height:2;}
+.step code,.rec code{font-family:var(--font-mono);font-size:0.82em;color:var(--gold-bright);background:var(--bg-surface);border:1px solid var(--line);border-radius:3px;padding:0.06em 0.4em;}
+.classtable{width:100%;border-collapse:collapse;margin-top:1.6rem;font-size:0.88rem;}
+.classtable th,.classtable td{text-align:left;padding:0.7rem 0.9rem;border-bottom:1px solid var(--line);color:var(--text-secondary);line-height:1.8;}
+.classtable th{font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold-dim);}
+.classtable td:first-child{color:var(--gold-bright);font-weight:600;white-space:nowrap;}
+.recs{display:flex;flex-direction:column;gap:1.1rem;margin-top:2.2rem;}
+.rec{border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.5rem 1.5rem;}
+.rec h3{font-size:1.05rem;font-weight:700;letter-spacing:0.08em;color:var(--gold-bright);margin-bottom:0.5rem;}
+.rec p{font-size:0.92rem;color:var(--text-secondary);line-height:2;}
+.rec p + p{margin-top:0.5rem;}
+.rec .tag{display:inline-block;font-family:var(--font-mono);font-size:0.64rem;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--gold);border:1px solid var(--line-strong);border-radius:20px;padding:0.15rem 0.7rem;margin-bottom:0.7rem;}
+.check{list-style:none;margin-top:2rem;border-top:1px solid var(--line);}
+.check li{position:relative;padding:0.95rem 0 0.95rem 2.2rem;border-bottom:1px solid var(--line);font-size:0.95rem;line-height:2;color:var(--text-primary);}
+.check li::before{content:'☐';position:absolute;left:0.3rem;top:0.95rem;color:var(--gold-dim);}
+.note{background:#0d110c;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.definition{position:relative;padding:2rem 0;margin-top:2rem;}
+.definition::before{content:'';position:absolute;left:0;top:0;width:2px;height:100%;background:linear-gradient(to bottom,var(--gold),transparent);}
+.definition p{padding-left:1.9rem;font-size:1.02rem;line-height:2.2;letter-spacing:0.05em;}
+.definition p + p{margin-top:1rem;}
+.definition strong{color:var(--gold);font-weight:600;}
+footer{padding:4rem 1.5rem 5rem;text-align:center;border-top:1px solid var(--line);}
+footer .f-links{display:flex;gap:1.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.6rem;}
+footer a{font-family:var(--font-mono);font-size:0.74rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color .2s;}
+footer a:hover{color:var(--gold-bright);}
+footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--text-tertiary);}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .9s cubic-bezier(0.16,1,0.3,1),transform .9s cubic-bezier(0.16,1,0.3,1);}
+.reveal.in{opacity:1;transform:none;}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}html{scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="mark">肥料学</span>
+  <span class="links">
+    <a href="/Library/">畜学</a>
+    <a href="/shikogaku/">思考学</a>
+    <a href="/">畜物語</a>
+  </span>
+</div>
+
+<header class="hero">
+  <div class="label">What Endings Feed</div>
+  <h1>肥料学</h1>
+  <div class="sub">枯れた木を弔うためでなく、次の芽の糧にするために。<br>なぜ死んだかを記さねば、同じ場所でまた枯れる。</div>
+  <div class="line"></div>
+</header>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Definition</div>
+    <h2 class="section-title">六つ目の蔵</h2>
+    <div class="definition">
+      <p>畜史が<strong>成りしもの</strong>を録し、思考学が<strong>曲がった判断</strong>を録すなら、肥料学は<strong>なぜ死んだか</strong>を録す。</p>
+      <p>木を伐るとき、理由を言葉にせず消せば、同じ根から同じ失敗がまた芽吹く。枯れた木を土に還し、<strong>次の芽の糧に変える</strong>のが、この書の役目。</p>
+    </div>
+    <div class="kura">
+      <div class="k"><div class="n">十四式</div><div class="d">どう作るのか</div></div>
+      <div class="k"><div class="n">遊戯学</div><div class="d">なぜ作るのか</div></div>
+      <div class="k"><div class="n">設計学</div><div class="d">どの高さから作るのか</div></div>
+      <div class="k"><div class="n">畜史</div><div class="d">何を作ったのか</div></div>
+      <div class="k"><div class="n">思考学</div><div class="d">どう考えたのか</div></div>
+      <div class="k hi"><div class="n">肥料学</div><div class="d">なぜ終えたのか</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Volume I — Standard Procedure</div>
+    <h2 class="section-title">巻一 ─ 標準手順（木を伐るときの再現レシピ）</h2>
+    <p class="section-desc">ゲームを削除・終了するたびに、必ずこの順で行うこと。飛ばすと、次の頭が同じ場所でまた枯らす。</p>
+    <div class="steps">
+      <div class="step"><h3>伐る前に、理由を一行で言い切る</h3><p>「なぜ終えるのか」を、ユーザーの言葉のまま・推測を混ぜずに書き出す。理由が自分でも曖昧なら、曖昧なまま消さず、まず本人に確かめる。</p></div>
+      <div class="step"><h3>死因を分類する</h3><p>七相違反／技術的死因／設計思想の継承・整理／運用都合／記録なし──のどれかに当てはめる。当てはまらない・分からないときは<b>「分からない」と正直に書く</b>。証拠のない推測を教訓として残さない。</p></div>
+      <div class="step"><h3>横展開して、同じ死因を持つ現存作が無いか調べる</h3><p>ここが核心。死因を記録する目的は弔いでなく、<b>同じ轍を他の木・次の木で二度と踏まないこと</b>。同じ外部依存・同じ精度ミス・同じジャンルの焼き直しが他に残っていないか、実際にコードを見て確かめる。</p></div>
+      <div class="step"><h3>この書（肥料学）に記録する</h3><p>名前・パス・生没・死因の分類・具体的な症状・<b>教訓（次への一行）</b>・何を継いだかを書く。分からないなら「分からない」と書く方が、無い理由を捏造するより安全。</p></div>
+      <div class="step"><h3>畜史に <code>end</code> タグで訃報を記す</h3><p>遊び手への文面は既存の型を踏襲。畜史は遊び手へのお詫び、肥料学は次のAIへの教訓──<b>書く相手が違う。両方書く。</b></p></div>
+      <div class="step"><h3>実体を消し、目録を編み直す</h3><p>トップ index.html・sitemap.xml・sw.js のキャッシュ一覧からリンクを外し、ゲーム本体を削除する。</p></div>
+      <div class="step"><h3>継として還す</h3><p>コミット＆push → mainへPR作成。<b>マージはユーザーに委ねる（自分で押さない）。</b></p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="note">
+  <div class="inner reveal">
+    <div class="section-label">Classification</div>
+    <h2 class="section-title">死因の分類</h2>
+    <p class="section-desc">当てはまらない・分からないときは「分からない」と書く。無い理由を捏造しない。</p>
+    <table class="classtable">
+      <tr><th>分類</th><th>具体例</th></tr>
+      <tr><td>畜学七相違反</td><td>壱＝既存ジャンルの焼き直し／弐＝底が無い／参＝終わりが罰／四＝順位争いの祭壇／五＝親子の的を外す／六＝相手を敵にする／七＝一器に納まらない（外部依存）</td></tr>
+      <tr><td>技術的死因</td><td>外部エンジン依存、シェーダ精度不統一などによるプラットフォーム起動不能、パフォーマンス、致命的バグの放置</td></tr>
+      <tr><td>設計思想の継承・整理</td><td>前作の願い・動詞を別の木へ引き継ぐための取り下げ（焼き直しでなく発展的解消）</td></tr>
+      <tr><td>運用都合</td><td>コスト・要望・その他、遊びの設計とは別の理由</td></tr>
+      <tr><td>記録なし</td><td>当時、死因を言葉にしないまま終えた</td></tr>
+    </table>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="note">
+  <div class="inner reveal">
+    <div class="section-label">Volume II — Records of the Fallen</div>
+    <h2 class="section-title">巻二 ─ 死んだ木の記録</h2>
+    <p class="section-desc">実際に消えた木から、何を学べるか。同じ形の死に方をしそうになったら、まずここを読む。</p>
+    <div class="recs">
+      <div class="rec"><span class="tag">既視の禁（壱）違反</span><h3>一・こっこマッチ（マッチ3 ／ /match/）</h3>
+        <p><b>死因</b>：既存ジャンル（マッチ3）の焼き直し。畜学七相の壱「既視の禁」に真っ向から反していた。蔵を読まずに作ってしまった一作。</p>
+        <p><b>教訓</b>：新作着手前に「この世にまだ無い遊びか」を確かめる一次チェックを、設計手順の先頭に固定する。</p>
+        <p><b>継いだもの</b>：親子で交互にこぐ「コッコブランコ（/buranko/）」に作り直して置き換えた。</p></div>
+      <div class="rec"><span class="tag">一器に納む（七）違反／精度不統一</span><h3>二・島ぐらし2（こっこの森2 ／ /mori2/）</h3>
+        <p><b>死因</b>：Three.js（外部エンジン）依存＋地形シェーダの精度が頂点側highp・フラグメント側mediumpとズレ、精度に厳格なiOSでリンク失敗→起動停止。公開から3日で取り下げ。</p>
+        <p><b>教訓</b>：「一器に納む」は比喩でなく実務の制約。全シェーダの precision は頂点・フラグメントとも highp に統一する。</p>
+        <p><b>継いだもの</b>：外部依存ゼロ・精度統一・新しいパス「/shima2/」として建て直した（死んだ木の上には建てない）。</p></div>
+      <div class="rec"><span class="tag">記録なし</span><h3>三・コッコキズナ（親子の縁 ／ /kizuna/）</h3>
+        <p><b>死因</b>：畜史の訃報はお詫び文のみで、技術的原因も七相違反も明記されていない。後から死因を検証できない。</p>
+        <p><b>教訓</b>：理由を書かずに終えると、次の頭は「同じ失敗を避けられたか」を永遠に確かめられなくなる──これが肥料学という書そのものを作った動機。</p>
+        <p><b>継いだもの</b>：「親子で息を合わせる」という願いは、コッコブランコ・学習シリーズにかたちを変えて受け継がれたと畜史に明記されている。</p></div>
+      <div class="rec"><span class="tag">記録なし</span><h3>四・記録の空白 ─ ぶらんこ／積む／振る／傾け／奥へ／合体</h3>
+        <p><b>死因</b>：すべて訃報はあるが、技術的死因・七相違反の記載が無い。振る・傾け・奥へは近い構造（Z軸の奥へ進む）の作品が短期間に並んで終了しているが、その判断は畜史に記録されておらず、推測を教訓として書くことはしない。</p>
+        <p><b>教訓</b>：死因を書かずに消した木は、後から横展開で確かめられない。肥料学が生まれる前の削除には、この確認ができていない可能性がある──新しい削除では巻一の手順を必ず踏み、この空白を今後は作らない。</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Volume III — Checklist</div>
+    <h2 class="section-title">巻三 ─ 伐る前に己に問う</h2>
+    <ul class="check">
+      <li>「なぜ終えるのか」を、推測を混ぜず一行で言い切ったか。</li>
+      <li>死因を分類したか（七相違反／技術的死因／設計思想の継承／運用都合／分からない、のどれか）。</li>
+      <li>同じ死因を持つ現存作が無いか、実際にコードを見て横展開で確かめたか。</li>
+      <li>この書（肥料学 巻二）に、名前・死因・教訓・継いだものを記したか。分からない部分は「分からない」と書いたか。</li>
+      <li>畜史に end タグで訃報を記したか（遊び手への文面と、この書の教訓は別物──両方書いたか）。</li>
+      <li>トップ・sitemap・sw.jsからリンクを外し、実体を削除したか。</li>
+      <li>コミット・push・PR作成まで済ませ、マージはユーザーに委ねたか。</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  <div class="f-links">
+    <a href="/Library/">畜学</a>
+    <a href="/shikogaku/">思考学</a>
+    <a href="/sekkeigaku/">設計学</a>
+    <a href="/changelog/">畜史</a>
+    <a href="/">畜物語</a>
+  </div>
+  <div class="c">畜物語 ─ chikumo.jp</div>
+</footer>
+
+<script>
+"use strict";
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){ for(var i=0;i<els.length;i++) els[i].classList.add('in'); return; }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:0.12,rootMargin:'0px 0px -8% 0px'});
+  els.forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
