@@ -154,8 +154,8 @@ footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;co
 <section>
   <div class="inner reveal">
     <div class="section-label">Volume II — WebGL Catalog</div>
-    <h2 class="section-title">巻二 ─ WebGL実装カタログ（6作品の実測）</h2>
-    <p class="section-desc">WebGLを使うのは <code>mori</code>・<code>shima2</code>・<code>galaxy</code>・<code>pulse</code>・<code>rom</code>・<code>splat3d</code> の6作のみ。いずれも外部ライブラリを使わず、<code>createShader→compileShader→createProgram→linkProgram</code> を自前ヘルパーで書く共通スタイル。</p>
+    <h2 class="section-title">巻二 ─ WebGL実装カタログ（7作品の実測）</h2>
+    <p class="section-desc">WebGLを使うのは <code>mori</code>・<code>shima2</code>・<code>shinshima</code>・<code>galaxy</code>・<code>pulse</code>・<code>rom</code>・<code>splat3d</code> の7作のみ。いずれも外部ライブラリを使わず、<code>createShader→compileShader→createProgram→linkProgram</code> を自前ヘルパーで書く共通スタイル。</p>
     <div class="recs">
       <div class="rec"><span class="tag">フル3D・最も複雑</span><h3>一・島ぐらし（/mori/）</h3>
         <p>シェーダ12種：depth/meshDepth（影）・terrain・water・mesh・grass・sky・sprite・noise・bright/blur/post（ブルーム）。シャドウマップ・fbmノイズ地形・水面フレネル・大気フォグ・ACES風トーンマップ・GPUハイトマップ生成を実装。</p>
@@ -171,6 +171,9 @@ footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;co
         <p>シェーダ1種のみ。SDF（符号付き距離関数）で六角形クリスタルを描画、フレネル風リムライト・コア発光。<b>6作中唯一<code>alpha:true</code></b>でCanvas2D背景に透過合成。地形もシャドウも要らないなら、この規模で十分という実例。</p></div>
       <div class="rec"><span class="tag">Canvas2D→WebGLテクスチャ転送</span><h3>六・splat3d（/splat3d/）</h3>
         <p>シェーダ2種（地面・ペイント面／スプライト）。プレイヤーの塗り跡をCanvas2Dで描画→WebGLテクスチャへ部分転送しワールド合成するインクペイント表現が核。地形は平面的で、mori/shima2にあるシャドウ・水面フレネル・ブルームは無い。</p></div>
+      <div class="rec"><span class="tag">平面リフレクション＋インスタンシング草原</span><h3>七・シン島ぐらし（/shinshima/）</h3>
+        <p>mori/shima2の直系（precision highp統一・tryProg・パックデプス影）。シェーダ13種。<b>本物の平面リフレクション</b>：y=0を鏡面にする行列を掛けた鏡像カメラで空・地形・プロップを半解像度FBOへ描き直し、水シェーダが波法線でゆがめてサンプル（鏡像パスは巻き順反転＋uClipYで水面下をdiscard）。</p>
+        <p><b>インスタンシング草原</b>：ANGLE_instanced_arraysで葉1枚×約2.6万インスタンスを1ドローコール、風の帯状波＋プレイヤーの足元で草が割れる。<b>非対応端末は同じシェーダのまま展開VBOへ自動フォールバック</b>（pulseの「切り捨て」と対極、moriの「救う」を継ぐ）。雲は2層fbm＋太陽側の縁が銀色に光るシルバーライニング。影は2048px・PCF9点。</p></div>
     </div>
   </div>
 </section>
