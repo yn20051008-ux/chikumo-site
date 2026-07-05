@@ -1931,11 +1931,19 @@ function buildAtlas(){
     function porthole(px,py,r){ atx.fillStyle='#bfeaff'; atx.strokeStyle='#c79a00'; atx.lineWidth=4;
       atx.beginPath(); atx.arc(px,py,r,0,TAU); atx.fill(); atx.stroke(); }
     porthole(24,2,17); porthole(-8,6,9); porthole(-30,8,7);
-    // こっこの顔（大きい窓の中）
-    atx.fillStyle='#fff'; atx.beginPath(); atx.arc(24,4,12,0,TAU); atx.fill();
-    atx.fillStyle='#2a2a2a'; atx.beginPath(); atx.arc(20,0,2.4,0,TAU); atx.arc(29,0,2.4,0,TAU); atx.fill();
-    atx.fillStyle='#ff9e2e'; atx.beginPath(); atx.moveTo(22,4); atx.lineTo(27,4); atx.lineTo(24.5,9); atx.closePath(); atx.fill();
-    atx.fillStyle='#e0332e'; atx.beginPath(); atx.arc(24,-10,3.4,0,TAU); atx.fill();  // とさか
+    // こっこの顔（大きい窓の中・公式svgをまどの円でクリップして のぞかせる）
+    if(coccoReady){
+      atx.save();
+      atx.beginPath(); atx.arc(24,2,15.5,0,TAU); atx.clip();
+      const fh=34, fw=fh*AR;
+      atx.drawImage(cocco,24-fw/2,2-fh/2+2,fw,fh);
+      atx.restore();
+    }else{
+      atx.fillStyle='#fff'; atx.beginPath(); atx.arc(24,4,12,0,TAU); atx.fill();
+      atx.fillStyle='#2a2a2a'; atx.beginPath(); atx.arc(20,0,2.4,0,TAU); atx.arc(29,0,2.4,0,TAU); atx.fill();
+      atx.fillStyle='#ff9e2e'; atx.beginPath(); atx.moveTo(22,4); atx.lineTo(27,4); atx.lineTo(24.5,9); atx.closePath(); atx.fill();
+      atx.fillStyle='#e0332e'; atx.beginPath(); atx.arc(24,-10,3.4,0,TAU); atx.fill();  // とさか（読み込み前の仮表示）
+    }
     atx.restore(); }
   gl.bindTexture(gl.TEXTURE_2D,atlasTex);
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);
