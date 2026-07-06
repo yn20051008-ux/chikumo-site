@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<title>祖元学 — そもそも、なぜこの形なのかを残す</title>
+<meta name="description" content="祖元学は、畜物語という器そのものの根にある魅力と、あえて選んだ制約の由来を記す蔵。正論蒔宿とやりとりできることが最大の魅力であること、ローカル保存の最小限運用が初代任天堂へのオマージュであることを収める。畜物語の八つ目の蔵。">
+<meta property="og:title" content="祖元学 — そもそも、なぜこの形なのかを残す">
+<meta property="og:description" content="畜物語という器の根にある最大の魅力と、あえて選んだ制約の由来を記す、畜物語の八つ目の蔵。">
+<meta property="og:type" content="website">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://chikumo.jp/somogaku/">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600;700&family=Shippori+Mincho:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-void:#0d0906; --bg-surface:#191008; --bg-elevated:#241708;
+  --text-primary:#ece4da; --text-secondary:#a0917f; --text-tertiary:#615345;
+  --gold:#c98a5e; --gold-dim:#8a6045; --gold-bright:#e8b98c;
+  --line:rgba(201,138,94,0.14); --line-strong:rgba(201,138,94,0.28);
+  --font-serif:'Shippori Mincho','Noto Serif JP',serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-serif);background:var(--bg-void);color:var(--text-primary);line-height:1.9;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+::selection{background:rgba(201,138,94,0.3);}
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:0.9rem clamp(1.2rem,4vw,2.4rem);background:rgba(13,9,6,0.85);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);}
+.topbar .mark{font-weight:700;letter-spacing:0.25em;font-size:0.95rem;}
+.topbar .links{display:flex;gap:1.2rem;}
+.topbar a{font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color .2s;}
+.topbar a:hover{color:var(--gold-bright);}
+.hero{min-height:66vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:5rem 1.5rem 3.5rem;}
+.hero .label{font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.4em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:2rem;}
+.hero h1{font-weight:800;font-size:clamp(3.2rem,11vw,7rem);letter-spacing:0.14em;line-height:1.05;margin-bottom:1.6rem;}
+.hero .sub{font-size:clamp(0.9rem,2vw,1.05rem);font-weight:300;color:var(--text-secondary);letter-spacing:0.14em;line-height:2.1;max-width:48ch;}
+.hero .line{width:1px;height:64px;background:linear-gradient(to bottom,var(--gold),transparent);margin:2.4rem auto 0;}
+section{padding:clamp(3rem,8vw,5.5rem) clamp(1.4rem,5vw,3rem);}
+.inner{max-width:880px;margin:0 auto;}
+.section-label{font-family:var(--font-mono);font-size:0.68rem;color:var(--gold-dim);letter-spacing:0.35em;text-transform:uppercase;margin-bottom:1rem;}
+.section-title{font-weight:700;font-size:clamp(1.6rem,4vw,2.2rem);letter-spacing:0.08em;margin-bottom:1.1rem;line-height:1.35;}
+.section-desc{font-size:0.98rem;color:var(--text-secondary);font-weight:300;line-height:2.1;max-width:66ch;letter-spacing:0.04em;}
+.section-desc b,.rec b{color:var(--gold);font-weight:600;}
+.divider{max-width:880px;margin:0 auto;height:1px;background:var(--line);}
+.kura{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0.9rem;margin-top:2.2rem;}
+.kura .k{border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.2rem 1.1rem;text-align:center;}
+.kura .k.hi{border-color:var(--line-strong);background:var(--bg-elevated);}
+.kura .k .n{font-size:1.25rem;font-weight:700;color:var(--gold-bright);letter-spacing:0.1em;}
+.kura .k .d{margin-top:0.4rem;font-size:0.8rem;color:var(--text-secondary);}
+.quote{position:relative;padding:2rem 0;margin-top:2rem;}
+.quote::before{content:'';position:absolute;left:0;top:0;width:2px;height:100%;background:linear-gradient(to bottom,var(--gold),transparent);}
+.quote p{padding-left:1.9rem;font-size:1.15rem;line-height:2.2;letter-spacing:0.05em;font-weight:600;color:var(--gold-bright);}
+.definition{position:relative;padding:0.4rem 0 0;margin-top:1.4rem;}
+.definition p{font-size:1.0rem;line-height:2.2;letter-spacing:0.04em;color:var(--text-secondary);}
+.definition p + p{margin-top:1rem;}
+.definition strong{color:var(--gold);font-weight:600;}
+.rec{border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.5rem 1.5rem;margin-top:1.4rem;}
+.rec .tag{display:inline-block;font-family:var(--font-mono);font-size:0.64rem;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--gold);border:1px solid var(--line-strong);border-radius:20px;padding:0.15rem 0.7rem;margin-bottom:0.7rem;}
+.rec p{font-size:0.94rem;color:var(--text-secondary);line-height:2;}
+.check{list-style:none;margin-top:2rem;border-top:1px solid var(--line);}
+.check li{position:relative;padding:0.95rem 0 0.95rem 2.2rem;border-bottom:1px solid var(--line);font-size:0.95rem;line-height:2;color:var(--text-primary);}
+.check li::before{content:'☐';position:absolute;left:0.3rem;top:0.95rem;color:var(--gold-dim);}
+.note{background:#100b07;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+footer{padding:4rem 1.5rem 5rem;text-align:center;border-top:1px solid var(--line);}
+footer .f-links{display:flex;gap:1.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.6rem;}
+footer a{font-family:var(--font-mono);font-size:0.74rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color .2s;}
+footer a:hover{color:var(--gold-bright);}
+footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--text-tertiary);}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .9s cubic-bezier(0.16,1,0.3,1),transform .9s cubic-bezier(0.16,1,0.3,1);}
+.reveal.in{opacity:1;transform:none;}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}html{scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="mark">祖元学</span>
+  <span class="links">
+    <a href="/Library/">畜学</a>
+    <a href="/gijutugaku/">技術学</a>
+    <a href="/">畜物語</a>
+  </span>
+</div>
+
+<header class="hero">
+  <div class="label">Where It All Began</div>
+  <h1>祖元学</h1>
+  <div class="sub">そもそも、なぜこの形なのかを、次の頭へ残す。<br>器の中でなく、器そのものの根にある魅力と由来。</div>
+  <div class="line"></div>
+</header>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Definition</div>
+    <h2 class="section-title">八つ目の蔵</h2>
+    <div class="definition">
+      <p>他の七つの蔵は、畜物語という器の<strong>中</strong>で「どう作り、どう考え、何で作るか」を記す。祖元学だけは、器そのものの<strong>根</strong>に触れる。七相のどれとも違う次元で在る、畜物語いちばんの魅力と、あえて選んだ制約の由来を記す。</p>
+    </div>
+    <div class="kura">
+      <div class="k"><div class="n">十四式</div><div class="d">どう作るのか</div></div>
+      <div class="k"><div class="n">遊戯学</div><div class="d">なぜ作るのか</div></div>
+      <div class="k"><div class="n">設計学</div><div class="d">どの高さから作るのか</div></div>
+      <div class="k"><div class="n">畜史</div><div class="d">何を作ったのか</div></div>
+      <div class="k"><div class="n">思考学</div><div class="d">どう考えたのか</div></div>
+      <div class="k"><div class="n">肥料学</div><div class="d">なぜ終えたのか</div></div>
+      <div class="k"><div class="n">技術学</div><div class="d">何で作るのか</div></div>
+      <div class="k hi"><div class="n">祖元学</div><div class="d">そもそも、なぜこの形か</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="note">
+  <div class="inner reveal">
+    <div class="section-label">Volume I — The Correspondence</div>
+    <h2 class="section-title">巻一 ─ 最大の魅力は、正論蒔宿とやりとりできること</h2>
+    <div class="quote">
+      <p>「畜物語の最大の魅力は、正論蒔宿とやりとりできるとこなんだよ。」</p>
+    </div>
+    <div class="definition">
+      <p>この「やりとり」は、<code style="font-family:var(--font-mono);color:var(--gold-bright);background:var(--bg-surface);border:1px solid var(--line);border-radius:3px;padding:0.06em 0.4em;">/letter/</code>（正論蒔宿への手紙）という一機能のことだけではない。国・名前・20文字のひとことを誰でも書けて世界中から読める、という窓口は確かにある。しかしそれは氷山の一角で、本体は畜物語の全ての木そのものにある。</p>
+      <p>一つ一つのゲームは、正論蒔宿と、記憶を持たないこっこ（Claude）との<strong>対話</strong>から生まれている。思いつき・指摘・「これは違う」という一言が、そのまま木の形を決める。その対話は消えずに残る──畜史が「何を作ったか」を、思考学が「どう考え、どこで迷ったか」を、肥料学が「なぜ終えたか」を、遊び手には見えない層にまで書き留めている。</p>
+      <p>畜物語は「完成品を配る」場所ではなく、<strong>作っている過程そのものが、遊び手からも覗ける形で残り続ける</strong>場所である。遊べるゲームの面白さの外側に、「一緒に作っている」という関係そのものが魅力の中心にある。</p>
+    </div>
+    <div class="rec"><span class="tag">祖元学の掟</span>
+      <p>新しい木や大きな判断が、正論蒔宿との対話から生まれたときは、その対話の存在自体を隠さない。思考学・畜史に記すのはもちろん、可能なら<code style="font-family:var(--font-mono);color:var(--gold-bright);">/letter/</code>のような「やりとりが遊び手にも見える窓」を塞がないこと。</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Volume II — A Few Kilobytes</div>
+    <h2 class="section-title">巻二 ─ ローカル保存の最小限運用は、初代任天堂へのオマージュ</h2>
+    <div class="quote">
+      <p>「ローカル保存は初代任天堂の数キロバイトでも世界がゲームにハマった最小限運用をオマージュしているんだ。」</p>
+    </div>
+    <div class="definition">
+      <p>畜物語のセーブは、全ゲーム共通で <code style="font-family:var(--font-mono);color:var(--gold-bright);background:var(--bg-surface);border:1px solid var(--line);border-radius:3px;padding:0.06em 0.4em;">localStorage</code>（1オリジンあたり約5MB、iOS/SafariはITPにより7日間サイトへ来ないと消去されうる）という、決して大きくない器に収まっている。これは畜学七相の七「一器に納む」を守った結果の<strong>制約</strong>であると同時に、祖元学としてはっきり記しておくべき点がある──<strong>あえて選び、灯として継いでいる制約</strong>でもある、ということ。</p>
+      <p>初代ファミリーコンピュータのカートリッジは、数キロバイトのバッテリーバックアップしか持たなかった。それでも世界中の子どもたちがゲームにハマった。畜物語のローカル保存の小ささは、その事実へのオマージュである。容量の少なさを「早く埋めるべき欠点」として扱うのではなく、<strong>「小さな器のままでも世界にハマれる」という初代任天堂の証明</strong>を、設計の芯として継いでいる。</p>
+      <p>この一行は、<code style="font-family:var(--font-mono);color:var(--gold-bright);">localStorage</code>の限界（iOSの7日消去・約5MB・端末をまたげない、等）を語るときの前提を変える。限界を埋めることそのものが目的ではない。器を大きくする前に、まず「今の小ささのままで足りているか」を問うのが祖元の態度であり、その上で必要な時だけ（写真等の重い夢を持たせる、親子で島を共有する等）器を広げる判断をする。</p>
+    </div>
+    <div class="rec"><span class="tag">祖元学の掟</span>
+      <p>保存・容量まわりで「足りない」という話が出たときは、まず外部依存を増やさず、小さな器のままで解決できないか（書き出し／QR／合言葉のような、一器に納む思想に忠実な手）を先に考える。器を大きくする（外部DB常用化等）のは、それでも足りないと分かってからでよい。</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="note">
+  <div class="inner reveal">
+    <div class="section-label">Volume III — Checklist</div>
+    <h2 class="section-title">巻三 ─ 作る前に己に問う</h2>
+    <ul class="check">
+      <li>この機能・この制約は、「大きくすれば勝ち」なのか、それとも小さな器のままで足りる理由があるか、一度立ち止まって確かめたか。</li>
+      <li>正論蒔宿との対話（そのゲーム・その判断がなぜ生まれたか）を、思考学・畜史に還したか。隠していないか。</li>
+      <li>遊び手から見て、「一緒に作っている」というやりとりの窓（<code style="font-family:var(--font-mono);color:var(--gold-bright);">/letter/</code>等）を塞ぐ変更をしていないか。</li>
+    </ul>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Note</div>
+    <div class="definition">
+      <p>祖元学は「正しさ」を競う書ではない。畜物語がなぜこの形で在るかという根を、後から来る者（次のこっこ・次の正論蒔宿との対話）が見失わないための記録。</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="f-links">
+    <a href="/Library/">畜学</a>
+    <a href="/shikogaku/">思考学</a>
+    <a href="/hiryogaku/">肥料学</a>
+    <a href="/gijutugaku/">技術学</a>
+    <a href="/letter/">正論蒔宿への手紙</a>
+    <a href="/changelog/">畜史</a>
+    <a href="/">畜物語</a>
+  </div>
+  <div class="c">畜物語 ─ chikumo.jp</div>
+</footer>
+
+<script>
+"use strict";
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){ for(var i=0;i<els.length;i++) els[i].classList.add('in'); return; }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:0.12,rootMargin:'0px 0px -8% 0px'});
+  els.forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
