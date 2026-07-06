@@ -2229,7 +2229,7 @@ function saveGame(){
   try{
     localStorage.setItem(SAVE_KEY,JSON.stringify({
       v:1,seed:worldSeed,home:G.homeSeed,island:G.island,visited:G.visited,fuel:G.fuel,
-      day:G.day,tod:+G.tod.toFixed(4),
+      day:G.day,tod:+G.tod.toFixed(4),ts:Date.now(),
       px:+P.x.toFixed(1),pz:+P.z.toFixed(1),yaw:+cam.yaw.toFixed(2),pitch:+cam.pitch.toFixed(2),
       coins:G.coins,inv:G.inv,playSec:Math.round(G.playSec),def:G.defeated,
       own:G.owned,skills:G.skills,sky:G.skySkills,
@@ -2246,6 +2246,13 @@ function saveGame(){
 }
 function loadSave(){
   try{ const s=localStorage.getItem(SAVE_KEY); return s?JSON.parse(s):null; }catch(e){ return null; }
+}
+/* 実時間で島を進める：閉じている間も日と時刻・木や花の再生は進む（つづきから戻ると島が動いている） */
+function advancedDayTod(s){
+  const el=(s&&s.ts)?Math.max(0,(Date.now()-s.ts)/1000):0;
+  const totalTod=(s.tod||0)+el/DAY_LEN;
+  const dayAdd=Math.floor(totalTod);
+  return {day:(s.day||1)+dayAdd, tod:totalTod-dayAdd, elapsedSec:el};
 }
 function clearSave(){ try{ localStorage.removeItem(SAVE_KEY); }catch(e){} }
 let flashTO=null;
@@ -5258,7 +5265,8 @@ function startContinue(){
   genWorld(islandSeed(G.island));
   P.x=s.px; P.z=s.pz;
   cam.yaw=s.yaw||0; cam.pitch=s.pitch||-0.32;
-  G.tod=s.tod; G.day=s.day||1; G.coins=s.coins||0; G.playSec=s.playSec||0; G.defeated=s.def||0;
+  const at=advancedDayTod(s);
+  G.tod=at.tod; G.day=at.day; G.coins=s.coins||0; G.playSec=s.playSec||0; G.defeated=s.def||0;
   G.inv=Object.assign({fruit:0,flower:0,bug:0,shell:0,o2:0,hmsl:0,smsl:0},s.inv);
   G.owned=Object.assign({house:false,bike:false,car:false,sword:false,boots:false,heart:0,ship:false,plane:false,shield:false,sub:false,heli:false},s.own);
   G.skills=Math.min(WAZA.length,s.skills||0);
@@ -5268,10 +5276,10 @@ function startContinue(){
   G.seaSkills=Math.min(SEA_WAZA.length,s.seaSk||0); G.seaCleared=s.sClr||0;
   G.inSea=false; G.seaKills=0; seaFoes.length=0; seaBoss=null;
   G.maxHp=5+(G.owned.heart||0);
-  (s.tr||[]).forEach((v,i)=>{ if(trees[i])trees[i].fruitT=v; });
-  (s.fl||[]).forEach((v,i)=>{ if(flowers[i])flowers[i].reT=v; });
-  (s.ro||[]).forEach((v,i)=>{ if(rocks[i])rocks[i].cdT=v; });
-  (s.sh||[]).forEach((v,i)=>{ if(shells[i])shells[i].reT=v; });
+  (s.tr||[]).forEach((v,i)=>{ if(trees[i])trees[i].fruitT=Math.max(0,v-at.elapsedSec); });
+  (s.fl||[]).forEach((v,i)=>{ if(flowers[i])flowers[i].reT=Math.max(0,v-at.elapsedSec); });
+  (s.ro||[]).forEach((v,i)=>{ if(rocks[i])rocks[i].cdT=Math.max(0,v-at.elapsedSec); });
+  (s.sh||[]).forEach((v,i)=>{ if(shells[i])shells[i].reT=Math.max(0,v-at.elapsedSec); });
   // ふかい水の上にロードされたら すくいあげる
   if(heightAt(P.x,P.z)<WL-0.3){ P.x=SPAWN.x; P.z=SPAWN.z; }
   enterPlay();
@@ -5351,7 +5359,7 @@ $('rankTitleBtn').addEventListener('click',()=>{ Sound.ui(); openRank(); });
   G.homeSeed=(s?(s.home!=null?s.home:s.seed):(Math.random()*0xffffffff))>>>0;
   G.island=s?(s.island||0):0;
   genWorld(islandSeed(G.island));
-  if(s){ G.tod=s.tod; }
+  if(s){ G.tod=advancedDayTod(s).tod; }
   refreshTitle();
 }
 let last=0;
