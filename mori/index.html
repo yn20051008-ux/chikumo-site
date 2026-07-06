@@ -5094,15 +5094,10 @@ function render(){
     gl.drawArrays(gl.TRIANGLES,0,sprN*6);
     gl.depthMask(true);
   }
-  /* --- 太陽・月（フォグなし） --- */
+  /* --- 月（フォグなし）。太陽は空シェーダ（SKY_FS_ATMO）が本物のディスク＋グローを描くため、絵文字ビルボードは廃止 --- */
   {
     sprN=0;
     const h=G.tod*24;
-    if(DL.dayF>0.05){
-      const ang=(h-6)/12*Math.PI;
-      const sx=eye[0]-Math.cos(ang)*100, sy=eye[1]+Math.sin(ang)*90+8, sz=eye[2]-55;
-      spriteBB(sx,sy,sz,16,16,20,1,1,1,DL.dayF);
-    }
     if(DL.dayF<0.6){
       const na=((h+12)%24-6)/12*Math.PI;
       const mx=eye[0]-Math.cos(na)*100, my=eye[1]+Math.sin(na)*90+8, mz=eye[2]-55;
