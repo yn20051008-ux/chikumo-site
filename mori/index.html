@@ -1050,14 +1050,14 @@ float shadowAt(vec4 lp,float ndl){
   if(uShOn<0.5) return 1.0;
   vec3 p=lp.xyz/lp.w*0.5+0.5;
   if(p.x<0.005||p.x>0.995||p.y<0.005||p.y>0.995||p.z>0.995) return 1.0;
-  float bias=max(0.0035*(1.0-ndl),0.0012);
+  float bias=max(0.0032*(1.0-ndl),0.0011);
   float s=0.0;
-  for(int i=0;i<4;i++){
-    vec2 o=vec2(float(i==1||i==3),float(i==2||i==3))*uShPx*1.4-uShPx*0.7;
+  for(int i=0;i<3;i++)for(int j=0;j<3;j++){
+    vec2 o=(vec2(float(i),float(j))-1.0)*uShPx*1.15;
     float d=unpackD(texture2D(uShTex,p.xy+o));
     s+=(p.z-bias>d)?0.0:1.0;
   }
-  return s*0.25;
+  return s/9.0;
 }`;
 /* 深度パス（影用）：地形と、風で揺れるプロップメッシュそれぞれ用 */
 const depthProg=tryProg(
@@ -1083,7 +1083,7 @@ const dA=depthProg?{pos:gl.getAttribLocation(depthProg,'aPos')}:null;
 const mdU=meshDepthProg?{lvp:gl.getUniformLocation(meshDepthProg,'uLVP'),time:gl.getUniformLocation(meshDepthProg,'uTime')}:null;
 const mdA=meshDepthProg?{pos:gl.getAttribLocation(meshDepthProg,'aPos'),wind:gl.getAttribLocation(meshDepthProg,'aWind')}:null;
 /* 画質まわりの設定（描画のみに影響・当たり判定やゲームバランスとは無関係） */
-const QUALITY={shadowRes:1024,grassMul:1};
+const QUALITY={shadowRes:2048,grassMul:1,reflOn:true};   // シン島ぐらしから移植：影2048px・水面リフレクション
 let shadowFBO=null, shadowTex=null, shadowDepthRB=null, SHADOW_OK=false;
 function initShadow(){
   if(!depthProg){ SHADOW_OK=false; return; }
@@ -1145,8 +1145,9 @@ ${SHADOWFN}
 ${FOGFN}
 varying vec3 vAlb; varying vec3 vNrm; varying vec3 vWpos; varying float vFog; varying vec4 vLp;
 uniform vec3 uCam; uniform vec3 uLight; uniform vec3 uSun; uniform vec3 uAmb; uniform float uWL;
-uniform float uUnder; uniform float uT2;
+uniform float uUnder; uniform float uT2; uniform float uClipY;
 void main(){
+  if(uClipY>-900.0 && vWpos.y<uClipY) discard;   // 🌊 水面リフレクションの鏡像パス用（通常は-1000で無効）
   vec3 N=normalize(vNrm);
   vec3 L=normalize(uLight);
   vec3 V=normalize(uCam-vWpos);
@@ -1182,6 +1183,7 @@ void main(){
   gl_FragColor=vec4(aces(col),1.0);
 }`;
 const terraProg=tryProg(TERRA_VS,TERRA_FS)||makeProg(TERRA_VS_BASE,TERRA_FS_BASE);
+const terraHQ=!!tryProg(TERRA_VS,TERRA_FS);
 
 /* 水面 ── 基本（単純な波色）を fallback に、フレネル反射＋太陽きらめき版を試す */
 const WATER_VS=
@@ -1206,9 +1208,10 @@ ${ACES}
 ${GNOISE}
 ${FOGFN}
 varying vec2 vXZ;
-uniform float uT; uniform float uWL; uniform vec3 uCam;
+uniform float uT; uniform mediump float uWL; uniform vec3 uCam;
 uniform vec3 uWCol; uniform vec3 uWCol2; uniform vec3 uLight; uniform vec3 uSun;
 uniform sampler2D uHTex; uniform float uHMax; uniform float uHalf;
+uniform sampler2D uRefl; uniform vec2 uRes; uniform float uReflOn;
 float terraH(vec2 p){
   vec2 uv=p/(uHalf*2.0)+0.5;
   return texture2D(uHTex,uv).r*uHMax;
@@ -1228,8 +1231,15 @@ void main(){
   float depth=clamp((uWL-terraH(vXZ))/6.0,0.0,1.0);
   vec3 body=mix(uWCol2,uWCol,smoothstep(0.02,0.7,depth));
   float fres=0.02+0.98*pow(1.0-max(dot(N,V),0.0),5.0);   // フレネル
-  vec3 refl=uFogCol*1.1+uSun*0.06;                        // 空の反射
-  vec3 c=mix(body,refl,clamp(fres*0.85,0.0,1.0));
+  vec3 refl=uFogCol*1.1+uSun*0.06;                        // 空の反射（近似・フォールバック）
+  // 🌊 本物の水面リフレクション（シン島ぐらしから移植）：鏡像パスのテクスチャを波法線でゆがめて参照
+  if(uReflOn>0.5){
+    vec2 ruv=gl_FragCoord.xy/uRes;
+    ruv+=N.xz*vec2(0.045,0.07);
+    ruv=clamp(ruv,vec2(0.002),vec2(0.998));
+    refl=texture2D(uRefl,ruv).rgb;
+  }
+  vec3 c=mix(body,refl,clamp(fres*0.85+uReflOn*0.07,0.0,1.0));
   // 波打ちぎわの泡（浅いほど濃い）＋流れる泡（fbmノイズ）
   float shore=1.0-smoothstep(0.0,0.18,depth);
   float band=sin(depth*40.0-uT*2.0)*0.5+0.5;
@@ -1268,8 +1278,9 @@ ${PACK}
 ${SHADOWFN}
 ${FOGFN}
 varying vec3 vAlb; varying vec3 vNrm; varying vec3 vWpos; varying vec4 vLp;
-uniform vec3 uCam; uniform vec3 uLight; uniform vec3 uSun; uniform vec3 uAmb;
+uniform vec3 uCam; uniform vec3 uLight; uniform vec3 uSun; uniform vec3 uAmb; uniform float uClipY;
 void main(){
+  if(uClipY>-900.0 && vWpos.y<uClipY) discard;   // 🌊 鏡像パス用
   vec3 N=normalize(vNrm);
   vec3 L=normalize(uLight);
   vec3 V=normalize(uCam-vWpos);
@@ -1299,25 +1310,31 @@ const meshHQ=!!tryProg(MESH_VS,MESH_FS);
 /* 草原（GPU一括インスタンス・風になびく葉形ビルボード・島ぐらし2から移植） */
 const GRASS_VS=
 `attribute vec3 aBase; attribute vec2 aQuv; attribute vec3 aCol; attribute vec2 aDir; attribute float aH;
-uniform mat4 uVP; uniform float uTime; uniform vec3 uCam;
+uniform mat4 uVP; uniform float uTime; uniform vec3 uCam; uniform vec3 uPlayer;
 varying vec2 vUV; varying vec3 vCol; varying vec3 vWpos; varying float vFade;
 void main(){
   float u=aQuv.x, v=aQuv.y;
   vec3 side=vec3(aDir.x,0.0,aDir.y)*0.4;
   vec3 p=aBase+side*(u-0.5)*2.0+vec3(0.0,aH*v,0.0);
-  float ph=aBase.x*0.6+aBase.z*0.5;
-  float sw=(sin(uTime*1.8+ph)+sin(uTime*2.9+ph*1.6)*0.5)*0.2*v*v;
-  p.x+=sw; p.z+=sw*0.6;
+  /* 島をわたる帯状の風の波＋そよぎ（シン島ぐらしから移植） */
+  float wave=sin(dot(aBase.xz,vec2(0.11,0.07))-uTime*1.9);
+  float sw=(wave*0.55+sin(uTime*2.7+aBase.x*0.9+aBase.z*0.8)*0.3)*0.28*v*v;
+  p.x+=sw; p.z+=sw*0.62;
+  /* こっこが通ると足元で草が割れる */
+  vec2 dp=p.xz-uPlayer.xz;
+  float pd=length(dp);
+  float bend=(1.0-smoothstep(0.0,1.5,pd))*step(abs(uPlayer.y-aBase.y),2.2)*v;
+  p.xz+=normalize(dp+vec2(0.001))*bend*0.7; p.y-=bend*0.25*aH;
   gl_Position=uVP*vec4(p,1.0);
-  vUV=aQuv; vCol=aCol; vWpos=p;
-  vFade=1.0-smoothstep(34.0,52.0,distance(aBase,uCam));
+  vUV=aQuv; vCol=aCol*(1.0+wave*0.09); vWpos=p;
+  vFade=1.0-smoothstep(44.0,68.0,distance(aBase,uCam));
 }`;
 const GRASS_FS=
 `precision mediump float;
 ${ACES}
 ${FOGFN}
 varying vec2 vUV; varying vec3 vCol; varying vec3 vWpos; varying float vFade;
-uniform vec3 uCam; uniform vec3 uLight; uniform vec3 uSun; uniform vec3 uAmb;
+uniform highp vec3 uCam; uniform vec3 uLight; uniform vec3 uSun; uniform vec3 uAmb;
 void main(){
   float w=0.5-abs(vUV.x-0.5);
   if(vUV.y>1.0-smoothstep(0.0,1.0,w*4.0)) discard;
@@ -1361,14 +1378,22 @@ void main(){
   sky+=uSunCol*(pow(sd,8.0)*0.35+pow(sd,400.0)*4.0+pow(sd,900.0)*3.0);
   sky+=uSunGlow*pow(1.0-h,3.0);
   sky+=vec3(1.0,0.5,0.25)*pow(1.0-h,4.0)*uDusk*0.5;   // 夕焼けの地平線ぼかし
-  // 流れる雲（視線を空の平面へ投影して fbm・2オクターブ）
+  // 立体感のある雲（シン島ぐらしから移植：fbmを太陽方向へ少しずらしてもう一度引き、
+  // 差分＝太陽側の縁を銀色に光らせる「シルバーライニング」）
   float above=smoothstep(0.02,0.30,dir.y);
   if(above>0.0){
-    vec2 cuv=dir.xz/(dir.y+0.18)*0.55+vec2(uTime*0.006,uTime*0.004);
-    float cl=smoothstep(0.52,0.92,fbm2(cuv*1.7))*above*uDayF;
-    float cl2=smoothstep(0.55,0.95,fbm2(cuv*3.6+7.7))*0.45*above*uDayF;
-    vec3 cloudCol=mix(vec3(1.0),uSunCol*0.5+vec3(0.55),0.35);
-    sky=mix(sky,cloudCol,clamp(cl*0.85+cl2*0.4,0.0,1.0));
+    vec3 SD=normalize(uSunDir);
+    vec2 cuv=dir.xz/(dir.y+0.20)*0.55+vec2(uTime*0.006,uTime*0.004);
+    float cl=fbm2(cuv*1.6);
+    float den=smoothstep(0.48,0.80,cl);
+    float cl_s=fbm2(cuv*1.6+SD.xz*0.05);
+    float lit=clamp((cl-cl_s)*7.0,0.0,1.0);
+    float den2=smoothstep(0.55,0.95,fbm2(cuv*3.5+7.7))*0.5;
+    vec3 cbase=mix(vec3(0.42,0.46,0.56),vec3(1.04,1.02,1.0),0.35+0.65*lit);
+    cbase=mix(cbase,uSunCol*1.15,lit*0.45+uDusk*0.3);
+    cbase=mix(cbase*0.22+vec3(0.07,0.08,0.15),cbase,clamp(uDayF+uDusk*0.5,0.0,1.0));
+    float amt=clamp(den*0.9+den2*0.45,0.0,1.0)*above;
+    sky=mix(sky,cbase,amt*0.9);
   }
   // 夜の星（またたき付き）
   float night=1.0-uDayF;
@@ -1431,7 +1456,8 @@ const tU={ vp:gl.getUniformLocation(terraProg,'uVP'), lvp:gl.getUniformLocation(
   sunFog:gl.getUniformLocation(terraProg,'uSunFog'), wl:gl.getUniformLocation(terraProg,'uWL'),
   sh:gl.getUniformLocation(terraProg,'uShTex'), shPx:gl.getUniformLocation(terraProg,'uShPx'),
   shOn:gl.getUniformLocation(terraProg,'uShOn'),
-  under:gl.getUniformLocation(terraProg,'uUnder'), t2:gl.getUniformLocation(terraProg,'uT2') };
+  under:gl.getUniformLocation(terraProg,'uUnder'), t2:gl.getUniformLocation(terraProg,'uT2'),
+  clip:gl.getUniformLocation(terraProg,'uClipY') };
 const tA={ pos:gl.getAttribLocation(terraProg,'aPos'), nrm:gl.getAttribLocation(terraProg,'aNrm'),
   col:gl.getAttribLocation(terraProg,'aCol') };
 const wU={ vp:gl.getUniformLocation(waterProg,'uVP'), wl:gl.getUniformLocation(waterProg,'uWL'),
@@ -1440,7 +1466,9 @@ const wU={ vp:gl.getUniformLocation(waterProg,'uVP'), wl:gl.getUniformLocation(w
   c2:gl.getUniformLocation(waterProg,'uWCol2'),
   light:gl.getUniformLocation(waterProg,'uLight'), sun:gl.getUniformLocation(waterProg,'uSun'),
   sunFog:gl.getUniformLocation(waterProg,'uSunFog'), htex:gl.getUniformLocation(waterProg,'uHTex'),
-  hmax:gl.getUniformLocation(waterProg,'uHMax'), half:gl.getUniformLocation(waterProg,'uHalf') };
+  hmax:gl.getUniformLocation(waterProg,'uHMax'), half:gl.getUniformLocation(waterProg,'uHalf'),
+  refl:gl.getUniformLocation(waterProg,'uRefl'), res:gl.getUniformLocation(waterProg,'uRes'),
+  reflOn:gl.getUniformLocation(waterProg,'uReflOn') };
 const wA={ pos:gl.getAttribLocation(waterProg,'aPos') };
 const mU={ vp:gl.getUniformLocation(meshProg,'uVP'), lvp:gl.getUniformLocation(meshProg,'uLVP'),
   cam:gl.getUniformLocation(meshProg,'uCam'), time:gl.getUniformLocation(meshProg,'uTime'),
@@ -1449,11 +1477,13 @@ const mU={ vp:gl.getUniformLocation(meshProg,'uVP'), lvp:gl.getUniformLocation(m
   sunFog:gl.getUniformLocation(meshProg,'uSunFog'),
   sh:gl.getUniformLocation(meshProg,'uShTex'), shPx:gl.getUniformLocation(meshProg,'uShPx'),
   shOn:gl.getUniformLocation(meshProg,'uShOn'),
-  shakeC:gl.getUniformLocation(meshProg,'uShakeC'), shakeAmt:gl.getUniformLocation(meshProg,'uShakeAmt') };
+  shakeC:gl.getUniformLocation(meshProg,'uShakeC'), shakeAmt:gl.getUniformLocation(meshProg,'uShakeAmt'),
+  clip:gl.getUniformLocation(meshProg,'uClipY') };
 const mA={ pos:gl.getAttribLocation(meshProg,'aPos'), nrm:gl.getAttribLocation(meshProg,'aNrm'),
   col:gl.getAttribLocation(meshProg,'aCol'), wind:gl.getAttribLocation(meshProg,'aWind') };
 const gU=grassProg?{ vp:gl.getUniformLocation(grassProg,'uVP'), time:gl.getUniformLocation(grassProg,'uTime'),
-  cam:gl.getUniformLocation(grassProg,'uCam'), light:gl.getUniformLocation(grassProg,'uLight'),
+  cam:gl.getUniformLocation(grassProg,'uCam'), player:gl.getUniformLocation(grassProg,'uPlayer'),
+  light:gl.getUniformLocation(grassProg,'uLight'),
   sun:gl.getUniformLocation(grassProg,'uSun'), amb:gl.getUniformLocation(grassProg,'uAmb'),
   fog:gl.getUniformLocation(grassProg,'uFogCol'), sunFog:gl.getUniformLocation(grassProg,'uSunFog') }:null;
 const gA=grassProg?{ base:gl.getAttribLocation(grassProg,'aBase'), quv:gl.getAttribLocation(grassProg,'aQuv'),
@@ -1571,10 +1601,22 @@ function ensureSceneFBO(){
   bloomFBO=[b0.fbo,b1.fbo]; bloomTex=[b0.tex,b1.tex];
   POST_OK=true;
 }
+/* 🌊 水面リフレクション用FBO（半解像度。HQシェーダが揃った端末のみ＝描画のみの追加機能） */
+let reflFBO=null, reflTex=null, reflW=0, reflH=0, REFL_OK=false;
+function ensureReflFBO(){
+  if(!waterHQ||!terraHQ||!QUALITY.reflOn){ REFL_OK=false; return; }
+  const w=Math.max(2,cv.width>>1), h=Math.max(2,cv.height>>1);
+  if(reflFBO&&reflW===w&&reflH===h){ REFL_OK=true; return; }
+  reflW=w; reflH=h;
+  const r=makeTexFBO(w,h,true);
+  if(!r){ REFL_OK=false; return; }
+  reflFBO=r.fbo; reflTex=r.tex; REFL_OK=true;
+}
 
 /* ===== 行列 ===== */
 const Mvp=new Float32Array(16), Mp=new Float32Array(16), Mv=new Float32Array(16);
 const Mlvp=new Float32Array(16), Mlv=new Float32Array(16), Mlp=new Float32Array(16);
+const Mrvp=new Float32Array(16), Mmir=new Float32Array(16);   // 🌊 水面リフレクション（y=WLを鏡面に）
 function perspective(out,fovy,asp,near,far){
   const f=1/Math.tan(fovy/2), nf=1/(near-far);
   out.fill(0);
@@ -1607,6 +1649,8 @@ function ortho(out,l,r,b,t,n,f){
 const SIZE=240, HALF=SIZE/2;
 const HN=128, CELL=SIZE/(HN-1);   // 高さサンプル格子
 const HMAX=15, WL=3.2;            // 最大標高・水面の高さ
+/* 🌊 y=WL を鏡面にする行列（シン島ぐらしから移植。moriの水面はy=3.2なので平行移動つき） */
+Mmir.fill(0); Mmir[0]=1; Mmir[5]=-1; Mmir[10]=1; Mmir[15]=1; Mmir[13]=2*WL;
 const DAY_LEN=480;                // 1日＝8分
 
 /* ===== ハイトマップ生成（GPUで計算→読みもどし） ===== */
@@ -1838,34 +1882,60 @@ function buildPropMeshes(seed){
 /* ===== 草原（GPU一括・風になびく・純粋な見た目の追加でありゲームには影響しない）===== */
 const grassBuf=gl.createBuffer();
 let grassN=0;
+/* 大草原（シン島ぐらしから移植）：ANGLE_instanced_arraysで葉1枚×数万インスタンスを1ドローコール。
+   非対応端末は従来どおりの展開VBOへ自動フォールバック（見た目のみ・配置ルールは従来と同一） */
+const INST=gl.getExtension('ANGLE_instanced_arrays');
+const grassGeoBuf=gl.createBuffer();
+let grassInstN=0, GRASS_INSTANCED=false;
+const GFLOWERS=[[1,0.91,0.95],[1,0.95,0.69],[1,0.84,0.9],[0.93,0.96,1]];
 function buildGrass(seed){
-  if(!grassProg){ grassN=0; return; }
+  if(!grassProg){ grassN=0; grassInstN=0; return; }
   const rng=mulberry32((seed^0x5f3759df)>>>0);
-  const want=Math.floor(2600*QUALITY.grassMul);
-  const v=new Float32Array(want*2*6*11);
+  const want=Math.floor((INST?26000:2600)*QUALITY.grassMul);
+  const inst=new Float32Array(want*9);
   let n=0;
   for(let i=0;i<want*3&&n<want;i++){
     const x=rng()*SIZE-HALF, z=rng()*SIZE-HALF;
     const h=heightAt(x,z);
     if(h<WL+0.7||h>WL+7||slopeAt(x,z)>0.5) continue;
-    const gh=0.45+rng()*0.6;
-    const gcol=mix3(mix3(GRASS1,GRASS2,rng()),[1,1,0.5],rng()*0.16);
-    for(let b=0;b<2;b++){
-      const da=rng()*TAU, dx=Math.cos(da), dz=Math.sin(da);
-      const quv=[[0,0],[1,0],[1,1],[0,0],[1,1],[0,1]];
-      for(let q=0;q<6;q++){
-        const o=(n*2+b)*66+q*11;
-        v[o]=x; v[o+1]=h-0.05; v[o+2]=z;
-        v[o+3]=quv[q][0]; v[o+4]=quv[q][1];
-        v[o+5]=gcol[0]; v[o+6]=gcol[1]; v[o+7]=gcol[2];
-        v[o+8]=dx; v[o+9]=dz; v[o+10]=gh;
-      }
-    }
+    const flower=INST&&rng()<0.06;
+    const gh=flower?0.32+rng()*0.22:0.45+rng()*0.6;
+    const gcol=flower?GFLOWERS[(rng()*4)|0]:mix3(mix3(GRASS1,GRASS2,rng()),[1,1,0.5],rng()*0.16);
+    const da=rng()*TAU;
+    const o=n*9;
+    inst[o]=x; inst[o+1]=h-0.05; inst[o+2]=z;
+    inst[o+3]=gcol[0]; inst[o+4]=gcol[1]; inst[o+5]=gcol[2];
+    inst[o+6]=Math.cos(da); inst[o+7]=Math.sin(da); inst[o+8]=gh;
     n++;
   }
-  grassN=n*2*6;
-  gl.bindBuffer(gl.ARRAY_BUFFER,grassBuf);
-  gl.bufferData(gl.ARRAY_BUFFER,v.subarray(0,n*2*66),gl.STATIC_DRAW);
+  if(INST){
+    GRASS_INSTANCED=true; grassInstN=n; grassN=0;
+    gl.bindBuffer(gl.ARRAY_BUFFER,grassGeoBuf);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([0,0, 1,0, 1,1, 0,0, 1,1, 0,1]),gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER,grassBuf);
+    gl.bufferData(gl.ARRAY_BUFFER,inst.subarray(0,n*9),gl.STATIC_DRAW);
+  }else{
+    GRASS_INSTANCED=false; grassInstN=0;
+    const quv=[[0,0],[1,0],[1,1],[0,0],[1,1],[0,1]];
+    const v=new Float32Array(n*2*6*11);
+    for(let k=0;k<n;k++){
+      const o9=k*9;
+      for(let b=0;b<2;b++){
+        const da2=(b?Math.atan2(inst[o9+7],inst[o9+6])+1.3:Math.atan2(inst[o9+7],inst[o9+6]));
+        const dx=Math.cos(da2), dz=Math.sin(da2);
+        for(let q=0;q<6;q++){
+          const o=(k*2+b)*66+q*11;
+          v[o]=inst[o9]; v[o+1]=inst[o9+1]; v[o+2]=inst[o9+2];
+          v[o+3]=quv[q][0]; v[o+4]=quv[q][1];
+          v[o+5]=inst[o9+3]; v[o+6]=inst[o9+4]; v[o+7]=inst[o9+5];
+          v[o+8]=dx; v[o+9]=dz; v[o+10]=inst[o9+8];
+        }
+      }
+    }
+    grassN=n*2*6;
+    gl.bindBuffer(gl.ARRAY_BUFFER,grassBuf);
+    gl.bufferData(gl.ARRAY_BUFFER,v.subarray(0,n*2*66),gl.STATIC_DRAW);
+  }
 }
 
 /* ===== スプライトアトラス（こっこちゃん＋絵文字フル活用） ===== */
@@ -4638,6 +4708,100 @@ function resize(){
 window.addEventListener('resize',resize);
 
 /* 影のライト行列（島全体を包むオルソ投影）。地形＋プロップメッシュだけを深度パスへ描く */
+/* 🌊 鏡像パス（シン島ぐらしから移植）：空・地形・木々を y=WL で反転して半解像度FBOへ描き、
+   水シェーダが波法線でゆがめて参照する。描画のみの追加＝当たり判定・遊びには一切影響しない。 */
+function renderReflPass(shadowed){
+  ensureReflFBO();
+  if(!REFL_OK||G.inSea||G.inSora) return false;   // 深海・雲の上では水面が見えないのでスキップ
+  matMul(Mrvp,Mvp,Mmir);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,reflFBO);
+  gl.viewport(0,0,reflW,reflH);
+  gl.clearColor(DL.sky[0],DL.sky[1],DL.sky[2],1);
+  gl.enable(gl.DEPTH_TEST);
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  gl.frontFace(gl.CW);   // 鏡像＝巻き順が反転する
+  // 鏡像の空（視線レイの基底のy成分を反転）
+  if(skyProg){
+    gl.useProgram(skyProg);
+    gl.disable(gl.DEPTH_TEST); gl.depthMask(false); gl.disable(gl.BLEND);
+    gl.uniform3fv(skyU.top,DL.skyTop); gl.uniform3fv(skyU.hor,DL.skyHorizon); gl.uniform3fv(skyU.glow,DL.sunGlow);
+    if(skyU.sunDir) gl.uniform3fv(skyU.sunDir,DL.light);
+    if(skyU.sunCol) gl.uniform3fv(skyU.sunCol,DL.sun);
+    if(skyU.camF) gl.uniform3f(skyU.camF,camF[0],-camF[1],camF[2]);
+    if(skyU.camR) gl.uniform3f(skyU.camR,camR[0],-camR[1],camR[2]);
+    if(skyU.camU) gl.uniform3f(skyU.camU,camU[0],-camU[1],camU[2]);
+    if(skyU.tanHF) gl.uniform1f(skyU.tanHF,SKY_TANHF);
+    if(skyU.asp) gl.uniform1f(skyU.asp,W/H);
+    if(skyU.dayF) gl.uniform1f(skyU.dayF,DL.dayF);
+    if(skyU.time) gl.uniform1f(skyU.time,G.time);
+    if(skyU.dusk) gl.uniform1f(skyU.dusk,DL.dusk);
+    gl.bindBuffer(gl.ARRAY_BUFFER,quadBuf);
+    gl.enableVertexAttribArray(skyA.pos); gl.vertexAttribPointer(skyA.pos,2,gl.FLOAT,false,8,0);
+    gl.drawArrays(gl.TRIANGLES,0,6);
+    gl.disableVertexAttribArray(skyA.pos);
+    gl.depthMask(true); gl.enable(gl.DEPTH_TEST);
+  }
+  // 地形（水面より上だけ＝uClipY）
+  gl.useProgram(terraProg);
+  gl.uniformMatrix4fv(tU.vp,false,Mrvp);
+  if(tU.lvp) gl.uniformMatrix4fv(tU.lvp,false,Mlvp);
+  gl.uniform3f(tU.cam,camEyeNow[0],camEyeNow[1],camEyeNow[2]);
+  gl.uniform3fv(tU.light,DL.light);
+  gl.uniform3fv(tU.sun,DL.sun);
+  gl.uniform3fv(tU.amb,DL.amb);
+  gl.uniform3fv(tU.fog,DL.sky);
+  if(tU.sunFog) gl.uniform3fv(tU.sunFog,DL.sunFog);
+  if(tU.wl) gl.uniform1f(tU.wl,WL);
+  if(tU.under) gl.uniform1f(tU.under,0);
+  if(tU.t2) gl.uniform1f(tU.t2,G.time);
+  if(tU.clip) gl.uniform1f(tU.clip,WL+0.02);
+  if(tU.sh){
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D,shadowTex);
+    gl.uniform1i(tU.sh,1);
+    gl.uniform1f(tU.shPx,1/QUALITY.shadowRes);
+    gl.uniform1f(tU.shOn,shadowed?1:0);
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER,terraBuf);
+  gl.enableVertexAttribArray(tA.pos); gl.vertexAttribPointer(tA.pos,3,gl.FLOAT,false,36,0);
+  gl.enableVertexAttribArray(tA.nrm); gl.vertexAttribPointer(tA.nrm,3,gl.FLOAT,false,36,12);
+  gl.enableVertexAttribArray(tA.col); gl.vertexAttribPointer(tA.col,3,gl.FLOAT,false,36,24);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,terraIdx);
+  gl.disable(gl.BLEND);
+  gl.drawElements(gl.TRIANGLES,terraIdxN,gl.UNSIGNED_SHORT,0);
+  gl.disableVertexAttribArray(tA.nrm); gl.disableVertexAttribArray(tA.col);
+  // 木・岩（プロップ）
+  if(propN>0){
+    gl.useProgram(meshProg);
+    gl.uniformMatrix4fv(mU.vp,false,Mrvp);
+    if(mU.lvp) gl.uniformMatrix4fv(mU.lvp,false,Mlvp);
+    gl.uniform3f(mU.cam,camEyeNow[0],camEyeNow[1],camEyeNow[2]);
+    gl.uniform1f(mU.time,G.time);
+    gl.uniform3fv(mU.light,DL.light);
+    gl.uniform3fv(mU.sun,DL.sun);
+    gl.uniform3fv(mU.amb,DL.amb);
+    gl.uniform3fv(mU.fog,DL.sky);
+    if(mU.sunFog) gl.uniform3fv(mU.sunFog,DL.sunFog);
+    if(mU.clip) gl.uniform1f(mU.clip,WL+0.02);
+    if(mU.shakeC){ gl.uniform3f(mU.shakeC,1e4,0,1e4); gl.uniform1f(mU.shakeAmt,0); }
+    if(mU.sh){
+      gl.activeTexture(gl.TEXTURE1);
+      gl.bindTexture(gl.TEXTURE_2D,shadowTex);
+      gl.uniform1i(mU.sh,1);
+      gl.uniform1f(mU.shPx,1/QUALITY.shadowRes);
+      gl.uniform1f(mU.shOn,shadowed?1:0);
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER,propBuf);
+    gl.enableVertexAttribArray(mA.pos); gl.vertexAttribPointer(mA.pos,3,gl.FLOAT,false,40,0);
+    gl.enableVertexAttribArray(mA.nrm); gl.vertexAttribPointer(mA.nrm,3,gl.FLOAT,false,40,12);
+    gl.enableVertexAttribArray(mA.col); gl.vertexAttribPointer(mA.col,3,gl.FLOAT,false,40,24);
+    gl.enableVertexAttribArray(mA.wind); gl.vertexAttribPointer(mA.wind,1,gl.FLOAT,false,40,36);
+    gl.drawArrays(gl.TRIANGLES,0,propN);
+    gl.disableVertexAttribArray(mA.nrm); gl.disableVertexAttribArray(mA.col); gl.disableVertexAttribArray(mA.wind);
+  }
+  gl.frontFace(gl.CCW);
+  return true;
+}
 function renderShadowPass(){
   if(!SHADOW_OK) return false;
   const L=DL.light;
@@ -4725,6 +4889,11 @@ function render(){
   camU=[Mv[1],Mv[5],Mv[9]];
   camF=[-Mv[2],-Mv[6],-Mv[10]];
 
+  /* --- 🌊 水面リフレクション（鏡像パス→本描画で参照） --- */
+  const reflDrawn=renderReflPass(shadowed);
+  gl.bindFramebuffer(gl.FRAMEBUFFER, POST_OK?sceneFBO:null);
+  gl.viewport(0,0,cv.width,cv.height);
+
   /* --- 空（視線レイの大気＋太陽＋雲＋星。全画面・深度書き込みなし） --- */
   if(skyProg){
     gl.useProgram(skyProg);
@@ -4759,6 +4928,7 @@ function render(){
   if(tU.sunFog) gl.uniform3fv(tU.sunFog,DL.sunFog);
   if(tU.wl) gl.uniform1f(tU.wl,WL);
   if(tU.under) gl.uniform1f(tU.under,G.inSea?1:0);
+  if(tU.clip) gl.uniform1f(tU.clip,-1000);
   if(tU.t2) gl.uniform1f(tU.t2,G.time);
   if(tU.sh){
     gl.activeTexture(gl.TEXTURE1);
@@ -4788,6 +4958,7 @@ function render(){
     gl.uniform3fv(mU.amb,DL.amb);
     gl.uniform3fv(mU.fog,DL.sky);
     if(mU.sunFog) gl.uniform3fv(mU.sunFog,DL.sunFog);
+    if(mU.clip) gl.uniform1f(mU.clip,-1000);
     if(mU.sh){
       gl.activeTexture(gl.TEXTURE1);
       gl.bindTexture(gl.TEXTURE_2D,shadowTex);
@@ -4810,25 +4981,41 @@ function render(){
   }
 
   /* --- 草原 --- */
-  if(grassProg&&grassN>0){
+  if(grassProg&&(GRASS_INSTANCED?grassInstN>0:grassN>0)){
     gl.useProgram(grassProg);
     gl.uniformMatrix4fv(gU.vp,false,Mvp);
     gl.uniform1f(gU.time,G.time);
     gl.uniform3f(gU.cam,eye[0],eye[1],eye[2]);
+    if(gU.player) gl.uniform3f(gU.player,P.x,P.y,P.z);
     gl.uniform3fv(gU.light,DL.light);
     gl.uniform3fv(gU.sun,DL.sun);
     gl.uniform3fv(gU.amb,DL.amb);
     gl.uniform3fv(gU.fog,DL.sky);
     if(gU.sunFog) gl.uniform3fv(gU.sunFog,DL.sunFog);
-    gl.bindBuffer(gl.ARRAY_BUFFER,grassBuf);
-    gl.enableVertexAttribArray(gA.base); gl.vertexAttribPointer(gA.base,3,gl.FLOAT,false,44,0);
-    gl.enableVertexAttribArray(gA.quv); gl.vertexAttribPointer(gA.quv,2,gl.FLOAT,false,44,12);
-    gl.enableVertexAttribArray(gA.col); gl.vertexAttribPointer(gA.col,3,gl.FLOAT,false,44,20);
-    gl.enableVertexAttribArray(gA.dir); gl.vertexAttribPointer(gA.dir,2,gl.FLOAT,false,44,32);
-    gl.enableVertexAttribArray(gA.h); gl.vertexAttribPointer(gA.h,1,gl.FLOAT,false,44,40);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
-    gl.drawArrays(gl.TRIANGLES,0,grassN);
+    if(GRASS_INSTANCED){
+      gl.bindBuffer(gl.ARRAY_BUFFER,grassGeoBuf);
+      gl.enableVertexAttribArray(gA.quv); gl.vertexAttribPointer(gA.quv,2,gl.FLOAT,false,8,0);
+      gl.bindBuffer(gl.ARRAY_BUFFER,grassBuf);
+      gl.enableVertexAttribArray(gA.base); gl.vertexAttribPointer(gA.base,3,gl.FLOAT,false,36,0);
+      gl.enableVertexAttribArray(gA.col);  gl.vertexAttribPointer(gA.col,3,gl.FLOAT,false,36,12);
+      gl.enableVertexAttribArray(gA.dir);  gl.vertexAttribPointer(gA.dir,2,gl.FLOAT,false,36,24);
+      gl.enableVertexAttribArray(gA.h);    gl.vertexAttribPointer(gA.h,1,gl.FLOAT,false,36,32);
+      INST.vertexAttribDivisorANGLE(gA.base,1); INST.vertexAttribDivisorANGLE(gA.col,1);
+      INST.vertexAttribDivisorANGLE(gA.dir,1);  INST.vertexAttribDivisorANGLE(gA.h,1);
+      INST.drawArraysInstancedANGLE(gl.TRIANGLES,0,6,grassInstN);
+      INST.vertexAttribDivisorANGLE(gA.base,0); INST.vertexAttribDivisorANGLE(gA.col,0);
+      INST.vertexAttribDivisorANGLE(gA.dir,0);  INST.vertexAttribDivisorANGLE(gA.h,0);
+    }else{
+      gl.bindBuffer(gl.ARRAY_BUFFER,grassBuf);
+      gl.enableVertexAttribArray(gA.base); gl.vertexAttribPointer(gA.base,3,gl.FLOAT,false,44,0);
+      gl.enableVertexAttribArray(gA.quv); gl.vertexAttribPointer(gA.quv,2,gl.FLOAT,false,44,12);
+      gl.enableVertexAttribArray(gA.col); gl.vertexAttribPointer(gA.col,3,gl.FLOAT,false,44,20);
+      gl.enableVertexAttribArray(gA.dir); gl.vertexAttribPointer(gA.dir,2,gl.FLOAT,false,44,32);
+      gl.enableVertexAttribArray(gA.h); gl.vertexAttribPointer(gA.h,1,gl.FLOAT,false,44,40);
+      gl.drawArrays(gl.TRIANGLES,0,grassN);
+    }
     gl.disable(gl.BLEND);
     gl.disableVertexAttribArray(gA.base); gl.disableVertexAttribArray(gA.quv);
     gl.disableVertexAttribArray(gA.col); gl.disableVertexAttribArray(gA.dir); gl.disableVertexAttribArray(gA.h);
@@ -4853,6 +5040,15 @@ function render(){
     gl.uniform1i(wU.htex,2);
     gl.uniform1f(wU.hmax,HMAX);
     gl.uniform1f(wU.half,HALF);
+  }
+  if(wU.refl){
+    if(reflDrawn&&reflTex){
+      gl.activeTexture(gl.TEXTURE3);
+      gl.bindTexture(gl.TEXTURE_2D,reflTex);
+    }
+    gl.uniform1i(wU.refl,3);
+    if(wU.res) gl.uniform2f(wU.res,cv.width,cv.height);
+    if(wU.reflOn) gl.uniform1f(wU.reflOn,(reflDrawn&&reflTex)?1:0);
   }
   gl.bindBuffer(gl.ARRAY_BUFFER,waterBuf);
   gl.enableVertexAttribArray(wA.pos); gl.vertexAttribPointer(wA.pos,2,gl.FLOAT,false,8,0);
@@ -5154,9 +5350,15 @@ $('rankTitleBtn').addEventListener('click',()=>{ Sound.ui(); openRank(); });
   refreshTitle();
 }
 let last=0;
+let slowAcc=0;
 function frame(ts){
   let dt=Math.min(0.05,(ts-last)/1000||0.016); last=ts;
   const raw=dt;
+  // アダプティブ品質：重い端末では水面リフレクションを自動で切る（描画のみ・遊びには無関係）
+  if(QUALITY.reflOn){
+    if(raw>0.034) slowAcc+=raw; else slowAcc=Math.max(0,slowAcc-raw*2);
+    if(slowAcc>2.5){ QUALITY.reflOn=false; REFL_OK=false; }
+  }
   // ヒットストップ（命中の瞬間だけ時間をギュッと止める）＋わざのスローモー
   if(G.hitStop>0){ G.hitStop-=raw; dt*=0.08; }
   else if(G.slow>0){ dt*=0.4; }
@@ -5200,6 +5402,10 @@ window.__mori={
   killFoes(n){ let k=0; for(const f of seaFoes){ if(f.dead)continue; hurtSeaFoe(f,9999,true); if(++k>=(n||99))break; } },
   hurtBoss(d){ hurtSeaBoss(d||9999); },
   shopSpot(){ return shopSpot; },
+  gfx(){ return { reflOn:QUALITY.reflOn, reflOK:REFL_OK, shadowRes:QUALITY.shadowRes,
+    grassInstanced:GRASS_INSTANCED, grassInstN:grassInstN, grassN:grassN,
+    terraHQ:!!terraHQ, waterHQ:!!waterHQ }; },
+  reflForce(v){ QUALITY.reflOn=!!v; slowAcc=-1e9; },
 };
 })();
 </script>
