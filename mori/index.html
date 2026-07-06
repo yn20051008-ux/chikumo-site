@@ -4638,16 +4638,25 @@ function drawRadar(){
   if(G.owned.house&&G.island===0) marker(houseSpot.x,houseSpot.z,'rgba(120,210,255,.95)','H');
   marker(portSpot.x,portSpot.z,'rgba(150,235,255,.95)','⚓');
   marker(airportSpot.x,airportSpot.z,'rgba(235,200,255,.95)','✈');
-  // ブラックこっこ（赤い点・アグロ中は脈動リング）
-  for(const e of enemies){
-    if(e.dead) continue;
+  // ブラックこっこ（赤い点・アグロ中は脈動リング）。地上/深海/雲の上、今いるステージの群れを映す
+  const pulse0=0.5+0.5*Math.sin(G.time*6);
+  function enemyDot(e,big){
     const [bx,by]=radarPt(e.x,e.z,cx,cy,R);
-    const pulse=0.5+0.5*Math.sin(G.time*6);
-    if(e.aggro){ rcx.strokeStyle='rgba(255,80,80,'+(0.45*(1-pulse))+')'; rcx.lineWidth=1.6;
-      rcx.beginPath(); rcx.arc(bx,by,4.5+pulse*5,0,TAU); rcx.stroke(); }
-    rcx.fillStyle='rgba(255,60,60,'+(e.aggro?0.7+0.3*pulse:0.9)+')';
-    rcx.beginPath(); rcx.arc(bx,by,3.2,0,TAU); rcx.fill();
-    rcx.fillStyle='rgba(120,0,0,.9)'; rcx.beginPath(); rcx.arc(bx,by,1.3,0,TAU); rcx.fill();
+    const rr=big?5.4:3.2, rr2=big?2.3:1.3;
+    if(e.aggro){ rcx.strokeStyle='rgba(255,80,80,'+(0.45*(1-pulse0))+')'; rcx.lineWidth=1.6;
+      rcx.beginPath(); rcx.arc(bx,by,rr+1.3+pulse0*5,0,TAU); rcx.stroke(); }
+    rcx.fillStyle='rgba(255,60,60,'+(e.aggro?0.7+0.3*pulse0:0.9)+')';
+    rcx.beginPath(); rcx.arc(bx,by,rr,0,TAU); rcx.fill();
+    rcx.fillStyle='rgba(120,0,0,.9)'; rcx.beginPath(); rcx.arc(bx,by,rr2,0,TAU); rcx.fill();
+  }
+  if(G.inSea){
+    for(const e of seaFoes){ if(!e.dead) enemyDot(e,false); }
+    if(seaBoss) enemyDot(seaBoss,true);
+  }else if(G.inSora){
+    for(const e of soraFoes){ if(!e.dead) enemyDot(e,false); }
+    if(soraBoss) enemyDot(soraBoss,true);
+  }else{
+    for(const e of enemies){ if(!e.dead) enemyDot(e,false); }
   }
   // プレイヤー（こっこちゃん本体・向きをしめす視界コーン＋アイコン）
   const [px,py]=radarPt(P.x,P.z,cx,cy,R);
