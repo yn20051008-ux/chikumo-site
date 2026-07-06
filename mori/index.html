@@ -2954,6 +2954,7 @@ function updateSky(dt){
    でかい「そらの王」に挑む。🚀ミサイル（あらし島限定・99個まで）でヘリから攻撃できる。 */
 const SORA_ALT=60;                       // この高度まで昇りきると 雲をつきぬける
 const FOE_ALT=55;                        // この高度から 空飛ぶブラックこっこが 妨害
+const HELI_CEIL=140;                     // 🚁ヘリの上昇天井（雲の大地からの高さ）。そらわざ最高段(月光レーザー alt120)＋宇宙オーバーレイの飽和(alt~120)まで届く高さ
 function spawnSkyFoe(fromBoss){
   let x,y,z;
   if(fromBoss&&soraBoss){ x=soraBoss.x+rnd(-3,3); y=soraBoss.y+rnd(-1,1); z=soraBoss.z+rnd(-3,3); }
@@ -3158,7 +3159,7 @@ function updateSora(dt){
     P.y+=P.vy*dt;
     const fl=heightAt(P.x,P.z)+1.1;
     if(P.y<fl){ P.y=fl; if(P.vy<0)P.vy=0; }
-    if(P.y>fl+30){ P.y=fl+30; if(P.vy>0)P.vy=0; }
+    if(P.y>fl+HELI_CEIL){ P.y=fl+HELI_CEIL; if(P.vy>0)P.vy=0; }
     G.gauge-=dt/70;
     G.seaUiT-=dt;
     if(G.seaUiT<=0){ G.seaUiT=0.15; updateWazaUI(); }
