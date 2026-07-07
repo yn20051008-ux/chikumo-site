@@ -90,12 +90,16 @@
   /* ===== HUD ===== */
   #hud{position:absolute;inset:0;z-index:8;pointer-events:none;display:none;}
   #hud.on{display:block;}
-  #hudTime{position:absolute;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);
-    font-size:30px;font-weight:900;font-variant-numeric:tabular-nums;font-style:italic;
+  /* 丸いリングタイマー（こっこGP2から移植：残り時間を円の減りで視覚的に示す） */
+  #timeWrap{position:absolute;top:calc(2px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);
+    width:84px;height:84px;}
+  #timeWrap svg{width:100%;height:100%;transform:rotate(-90deg);}
+  #hudTime{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-size:27px;font-weight:900;font-variant-numeric:tabular-nums;font-style:italic;
     text-shadow:0 2px 8px rgba(0,0,0,.6),0 0 18px rgba(255,220,90,.35);}
   #hudTime.caution{color:#ffb14d;}
   #hudTime.warn{color:#ff7d6c;animation:tpulse .5s ease-in-out infinite;}
-  @keyframes tpulse{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.12)}}
+  @keyframes tpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
   /* ラスト5秒の鼓動（こっこGP2から移植） */
   #urgVin{position:absolute;inset:0;z-index:10;pointer-events:none;opacity:0;transition:opacity .3s;
     background:radial-gradient(ellipse at center,transparent 48%,rgba(255,30,30,.46) 100%);}
@@ -366,7 +370,14 @@
 
   <!-- HUD -->
   <div id="hud">
-    <div id="hudTime">120</div>
+    <div id="timeWrap">
+      <svg viewBox="0 0 84 84">
+        <circle cx="42" cy="42" r="36" fill="rgba(10,4,20,.35)" stroke="rgba(255,255,255,.16)" stroke-width="6"/>
+        <circle id="timeArc" cx="42" cy="42" r="36" fill="none" stroke="#ffd36b" stroke-width="6" stroke-linecap="round"
+          stroke-dasharray="226.19" stroke-dashoffset="0"/>
+      </svg>
+      <div id="hudTime">120</div>
+    </div>
     <div id="hudScore">SCORE 0</div>
     <div id="hudHp">❤️❤️❤️</div>
     <div id="hudRescue"><img src="/chikumo.svg" alt="こっこ"> 0 / 3</div>
@@ -660,6 +671,7 @@ const PTEX=1024, PSCALE=PTEX/SIZE;
 const GRID=128, GCELL=SIZE/GRID;
 const TIME=120, CAGES=3, BOMB_CD=7;
 const STORE_PRICE=100, STORE_MONEY_PER_KO=30, AIR_KICK_COST=0.16, AIR_KICK_VY=8.2, O2_REGEN=0.05;
+const TIME_ARC_C=226.19; // 2*PI*36（丸いリングタイマーの円周）
 
 /* ===== インクペイント面（キャンバス→テクスチャ部分転送） ===== */
 const paintCv=document.createElement('canvas'); paintCv.width=PTEX; paintCv.height=PTEX;
@@ -1207,6 +1219,7 @@ function update(dt){
   updateFx(dt);
   updateRadar();
   updateBuyPrompt();
+  updateTimeRing();
 }
 function updateFx(dt){
   for(let i=parts.length-1;i>=0;i--){ const p=parts[i]; p.t+=dt;
@@ -1219,6 +1232,12 @@ function updateFx(dt){
 /* ===== HUD ===== */
 function hudTime(){ const s=Math.max(0,Math.ceil(G.t)); const el=$('hudTime');
   el.textContent=s; el.classList.toggle('caution',s<=25); el.classList.toggle('warn',s<=10); }
+/* 丸いリングタイマー：残り時間ぶんだけ円が減っていく（こっこGP2から移植） */
+function updateTimeRing(){
+  const left=Math.max(0,G.t), arc=$('timeArc');
+  arc.style.strokeDashoffset=String(TIME_ARC_C*(1-left/TIME));
+  arc.style.stroke=left<=10?'#ff7d6c':left<=25?'#ffb14d':'#ffd36b';
+}
 function hudScore(){ $('hudScore').textContent='SCORE '+G.score.toLocaleString(); }
 function hudHp(){ let h='';
   for(let i=0;i<3;i++) h+='<span'+(i<P.hp?'':' class="lost"')+'>❤️</span>';
@@ -1667,7 +1686,7 @@ function start(){
   G.t=TIME; G.score=0; G.rescued=0; G.kos=0; G.shake=0; G.paused=false; G.win=false; G.money=0;
   G.phase='count'; G.countT=3.4;
   input.firing=false; input.btnFire=false; input.mouseFire=false; input.stick.active=false; input.look.active=false;
-  hudTime(); hudScore(); hudHp(); hudRescue(); hudMoney(); hudO2(); bombUI();
+  hudTime(); hudScore(); hudHp(); hudRescue(); hudMoney(); hudO2(); updateTimeRing(); bombUI();
   $('buyPrompt').classList.add('hidden');
   $('urgVin').classList.remove('on');
   show(null);
