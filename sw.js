@@ -4,7 +4,7 @@
    ・静的資産 = cache-first（あれば即返す。無ければ取得して保存）
    ・外部資産(Firebase/Googleフォント) もキャッシュ対象に含める（opaqueも保存）
    ・メッセージ PRECACHE_ALL で全ゲームを一括ダウンロード（オフライン保存ボタン用） */
-const CACHE = 'chikumonogatari-v114';
+const CACHE = 'chikumonogatari-v115';
 const SHELL = [
   './',
   './index.html',
