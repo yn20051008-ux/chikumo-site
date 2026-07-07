@@ -139,6 +139,12 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>https://chikumo.jp/monogatari/</loc>
+    <lastmod>2026-07-07</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>https://chikumo.jp/derby/</loc>
     <lastmod>2026-06-18</lastmod>
     <changefreq>weekly</changefreq>

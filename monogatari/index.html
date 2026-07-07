@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<title>畜物語 — 作品の森</title>
+<meta name="description" content="畜物語は、畜学の十冊目。他の九つの蔵がどれも規則・掟を記すのに対し、この本だけは規則ではなく、設計学でいう「森」──畜物語という作品世界の姿そのものを、規則に切り分ける前の一つの森のまま留めておく場所。内容は思いついたときに追記されていく。">
+<meta property="og:title" content="畜物語 — 作品の森">
+<meta property="og:description" content="規則ではなく、畜物語という作品世界の姿そのものを記す、畜学の十冊目。内容は思いついたときに追記されていく。">
+<meta property="og:type" content="website">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://chikumo.jp/monogatari/">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600;700&family=Shippori+Mincho:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-void:#070c09; --bg-surface:#0e1710; --bg-elevated:#13221a;
+  --text-primary:#e3ece2; --text-secondary:#8ea38c; --text-tertiary:#4a5c49;
+  --gold:#5e9c6b; --gold-dim:#3e6e48; --gold-bright:#9adba2;
+  --line:rgba(94,156,107,0.16); --line-strong:rgba(94,156,107,0.32);
+  --font-serif:'Shippori Mincho','Noto Serif JP',serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-serif);background:var(--bg-void);color:var(--text-primary);line-height:1.9;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+::selection{background:rgba(94,156,107,0.3);}
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:0.9rem clamp(1.2rem,4vw,2.4rem);background:rgba(7,12,9,0.85);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);}
+.topbar .mark{font-weight:700;letter-spacing:0.25em;font-size:0.95rem;}
+.topbar .links{display:flex;gap:1.2rem;}
+.topbar a{font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color .2s;}
+.topbar a:hover{color:var(--gold-bright);}
+.hero{min-height:66vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:5rem 1.5rem 3.5rem;position:relative;}
+.hero .label{font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.4em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:2rem;}
+.hero h1{font-weight:800;font-size:clamp(3.2rem,11vw,7rem);letter-spacing:0.14em;line-height:1.05;margin-bottom:1.6rem;}
+.hero .sub{font-size:clamp(0.9rem,2vw,1.05rem);font-weight:300;color:var(--text-secondary);letter-spacing:0.14em;line-height:2.1;max-width:48ch;}
+.hero .line{width:1px;height:64px;background:linear-gradient(to bottom,var(--gold),transparent);margin:2.4rem auto 0;}
+section{padding:clamp(3rem,8vw,5.5rem) clamp(1.4rem,5vw,3rem);}
+.inner{max-width:880px;margin:0 auto;}
+.section-label{font-family:var(--font-mono);font-size:0.68rem;color:var(--gold-dim);letter-spacing:0.35em;text-transform:uppercase;margin-bottom:1rem;}
+.section-title{font-weight:700;font-size:clamp(1.6rem,4vw,2.2rem);letter-spacing:0.08em;margin-bottom:1.1rem;line-height:1.35;}
+.divider{max-width:880px;margin:0 auto;height:1px;background:var(--line);}
+.kura{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0.9rem;margin-top:2.2rem;}
+.kura .k{border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.2rem 1.1rem;text-align:center;}
+.kura .k.hi{border-color:var(--line-strong);background:var(--bg-elevated);}
+.kura .k .n{font-size:1.25rem;font-weight:700;color:var(--gold-bright);letter-spacing:0.1em;}
+.kura .k .d{margin-top:0.4rem;font-size:0.8rem;color:var(--text-secondary);}
+.quote{position:relative;padding:2rem 0;margin-top:2rem;}
+.quote::before{content:'';position:absolute;left:0;top:0;width:2px;height:100%;background:linear-gradient(to bottom,var(--gold),transparent);}
+.quote p{padding-left:1.9rem;font-size:1.15rem;line-height:2.2;letter-spacing:0.05em;font-weight:600;color:var(--gold-bright);}
+.definition{position:relative;padding:0.4rem 0 0;margin-top:1.4rem;}
+.definition p{font-size:1.0rem;line-height:2.2;letter-spacing:0.04em;color:var(--text-secondary);}
+.definition p + p{margin-top:1rem;}
+.definition strong{color:var(--gold);font-weight:600;}
+.note{background:#0a120c;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.empty-forest{border:1px dashed var(--line-strong);border-radius:6px;padding:clamp(2.6rem,8vw,4rem) 1.6rem;margin-top:2rem;text-align:center;}
+.empty-forest .trees{font-size:clamp(1.6rem,5vw,2.2rem);letter-spacing:0.5em;opacity:0.5;margin-bottom:1.6rem;}
+.empty-forest p{font-size:0.98rem;color:var(--text-secondary);line-height:2.1;max-width:52ch;margin:0 auto;letter-spacing:0.04em;}
+.empty-forest .k{font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.3em;color:var(--gold-dim);text-transform:uppercase;margin-top:1.6rem;}
+footer{padding:4rem 1.5rem 5rem;text-align:center;border-top:1px solid var(--line);}
+footer .f-links{display:flex;gap:1.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.6rem;}
+footer a{font-family:var(--font-mono);font-size:0.74rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color .2s;}
+footer a:hover{color:var(--gold-bright);}
+footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--text-tertiary);}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .9s cubic-bezier(0.16,1,0.3,1),transform .9s cubic-bezier(0.16,1,0.3,1);}
+.reveal.in{opacity:1;transform:none;}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}html{scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="mark">畜物語</span>
+  <span class="links">
+    <a href="/Library/">畜学</a>
+    <a href="/sekkeigaku/">設計学</a>
+    <a href="/">畜物語</a>
+  </span>
+</div>
+
+<header class="hero">
+  <div class="label">The Forest of Works</div>
+  <h1>畜物語</h1>
+  <div class="sub">規則ではなく、森そのものを記す。<br>畜物語という作品世界の姿を、切り分ける前のまま留めておく本。</div>
+  <div class="line"></div>
+</header>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Definition</div>
+    <h2 class="section-title">十冊目の蔵、ただし規則ではない</h2>
+    <div class="definition">
+      <p>他の九つの蔵は、畜物語という森の中に立つ個々の掟を記す。<strong>畜物語だけは掟ではない</strong>。設計学でいう<strong>森（全体＝十四式の家、世界・掟・共有の臓器）</strong>そのものを、規則の形に切り分ける前の一つの姿のまま留めておく本である。</p>
+    </div>
+    <div class="kura">
+      <div class="k"><div class="n">十四式</div><div class="d">どう作るのか</div></div>
+      <div class="k"><div class="n">遊戯学</div><div class="d">なぜ作るのか</div></div>
+      <div class="k"><div class="n">設計学</div><div class="d">どの高さから作るのか</div></div>
+      <div class="k"><div class="n">畜史</div><div class="d">何を作ったのか</div></div>
+      <div class="k"><div class="n">思考学</div><div class="d">どう考えたのか</div></div>
+      <div class="k"><div class="n">肥料学</div><div class="d">なぜ終えたのか</div></div>
+      <div class="k"><div class="n">技術学</div><div class="d">何で作るのか</div></div>
+      <div class="k"><div class="n">祖元学</div><div class="d">そもそも、なぜこの形か</div></div>
+      <div class="k"><div class="n">標準学</div><div class="d">何を土台に選ぶのか</div></div>
+      <div class="k hi"><div class="n">畜物語</div><div class="d">作品の森そのもの</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="note">
+  <div class="inner reveal">
+    <div class="section-label">Volume — Not Yet Written</div>
+    <h2 class="section-title">巻 ─ いまはまだ、森は空である</h2>
+    <div class="empty-forest">
+      <div class="trees">🌲 　 🌲 　 🌲</div>
+      <p>ここにはまだ、巻が一つも無い。<br>それはこの本が未完成だからではなく、<strong>森がまだそのままの姿でいる</strong>、ということ。</p>
+      <p>正論蒔宿と対話するうちに、畜物語という森の輪郭が一つ見えたとき、ここに巻として記す。急いで埋める場所ではない。</p>
+      <div class="k">Volumes will grow here, one at a time</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Note</div>
+    <div class="definition">
+      <p>畜物語は「答えを先取りする」書ではない。他の九つの蔵が言葉にできた規則を運ぶのに対し、この本は<strong>まだ規則になる前の、森そのものの姿</strong>を待つ。空であることが、いまのこの本の正しい姿である。</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="f-links">
+    <a href="/Library/">畜学</a>
+    <a href="/sekkeigaku/">設計学</a>
+    <a href="/somogaku/">祖元学</a>
+    <a href="/hyojungaku/">標準学</a>
+    <a href="/changelog/">畜史</a>
+    <a href="/">畜物語（サイト）</a>
+  </div>
+  <div class="c">畜物語 ─ chikumo.jp</div>
+</footer>
+
+<script>
+"use strict";
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){ for(var i=0;i<els.length;i++) els[i].classList.add('in'); return; }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:0.12,rootMargin:'0px 0px -8% 0px'});
+  els.forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
