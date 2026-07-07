@@ -695,7 +695,7 @@ const SIZE=170, HALF=SIZE/2;
 const PTEX=1024, PSCALE=PTEX/SIZE;
 const GRID=128, GCELL=SIZE/GRID;
 const TIME=120, CAGES=3;
-const O2_PRICE=2, O2_MAX=99, STORE_MONEY_PER_KO=30, AIR_KICK_COST=0.16, AIR_KICK_VY=8.2, O2_REGEN=0.05;
+const O2_PRICE=2, O2_MAX=99, STORE_MONEY_PER_KO=30, AIR_KICK_COST=1/9, AIR_KICK_VY=8.2, O2_REGEN=0.05; // 満タンから地上ジャンプ1＋空蹴り9＝島ぐらしより1少ない10回ぶん跳べる（島ぐらしは11）
 const AMMO_START=5, AMMO_MAX=99, AMMO_PRICE=2, PISTOL_CD=0.18; // 🔫ピストル（こっこGPから移植）
 const PISTOL_RANGE=250; // こっこGPと同じ「遠くまで届くレーザー」＝ステージ対角(170*√2≈240)をまるごとカバー
 const BOMB_MAX=99, BOMB_PRICE=4; // 💣インクボム（コンビニで購入・初期0個）
@@ -1592,7 +1592,7 @@ function doJump(){
 }
 /* 🌀 空蹴り：空中でもう一度ジャンプボタン/スペースをおすと 空気を蹴って何度でも跳べる。酸素ゲージぶんだけ使える。 */
 function airKick(){
-  if(P.o2<AIR_KICK_COST){ Sound.nope(); return; }
+  if(P.o2<AIR_KICK_COST-1e-9){ Sound.nope(); return; } // 浮動小数の誤差で最後の1回が誤ってブロックされないよう微小な許容誤差を持たせる
   P.o2-=AIR_KICK_COST; hudO2();
   P.vy=AIR_KICK_VY; Sound.jump();
   const col=[0.82,0.93,1];
