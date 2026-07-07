@@ -769,35 +769,19 @@ const atlasCv=document.createElement('canvas'); atlasCv.width=512; atlasCv.heigh
 const atx=atlasCv.getContext('2d');
 const atlasTex=gl.createTexture();
 function cellRect(c){ return [(c%4)*128,((c/4)|0)*128]; }
-function drawCoccoCell(c,black){
+/* 島ぐらしと同じ手法：ブラックこっこも公式こっこと同じセル0の絵を使い、描画時の色でだけ黒く染める（専用の悪い顔は焼きこまない） */
+function drawCoccoCell(c){
   const [ox,oy]=cellRect(c);
   atx.save(); atx.translate(ox,oy);
   const h=118, w=h*AR, x=(128-w)/2, y=(128-h)/2;
   if(coccoReady){
-    if(black){
-      const t=document.createElement('canvas'); t.width=128; t.height=128;
-      const tt=t.getContext('2d');
-      tt.drawImage(cocco,x,y,w,h);
-      tt.globalCompositeOperation='source-atop';
-      tt.fillStyle='#241d30'; tt.globalAlpha=0.93; tt.fillRect(0,0,128,128);
-      tt.globalAlpha=1; tt.globalCompositeOperation='source-over';
-      // わるい目
-      tt.fillStyle='#fff';
-      tt.beginPath(); tt.ellipse(53,46,8,9,0,0,TAU); tt.ellipse(76,46,7,8,0,0,TAU); tt.fill();
-      tt.fillStyle='#1a0f28';
-      tt.beginPath(); tt.arc(56,48,3.6,0,TAU); tt.arc(74,48,3.2,0,TAU); tt.fill();
-      tt.strokeStyle='#ff5d6c'; tt.lineWidth=4; tt.lineCap='round';
-      tt.beginPath(); tt.moveTo(44,35); tt.lineTo(60,40); tt.moveTo(85,36); tt.lineTo(70,40); tt.stroke();
-      atx.drawImage(t,0,0);
-    }else{
-      atx.drawImage(cocco,x,y,w,h);
-    }
+    atx.drawImage(cocco,x,y,w,h);
   }else{
     // SVG未ロード時のかんたんフォールバック
-    atx.fillStyle=black?'#241d30':'#ffd92e';
+    atx.fillStyle='#ffd92e';
     atx.beginPath(); atx.ellipse(64,72,34,40,0,0,TAU); atx.fill();
     atx.beginPath(); atx.arc(64,32,22,0,TAU); atx.fill();
-    atx.fillStyle=black?'#fff':'#2a2a2a';
+    atx.fillStyle='#2a2a2a';
     atx.beginPath(); atx.arc(56,30,4,0,TAU); atx.arc(72,30,4,0,TAU); atx.fill();
     atx.fillStyle='#ff9e2e';
     atx.beginPath(); atx.moveTo(60,38); atx.lineTo(68,38); atx.lineTo(64,46); atx.closePath(); atx.fill();
@@ -806,8 +790,7 @@ function drawCoccoCell(c,black){
 }
 function buildAtlas(){
   atx.clearRect(0,0,512,512);
-  drawCoccoCell(0,false);
-  drawCoccoCell(1,true);
+  drawCoccoCell(0);
   // 2: まる（インク・パーティクル用）
   {const [ox,oy]=cellRect(2);
    const g=atx.createRadialGradient(ox+64,oy+64,10,ox+64,oy+64,60);
@@ -1749,14 +1732,15 @@ function buildSprites(){
     if(P.swim) spriteFlat(P.x,P.y+0.1,P.z,2.4,2,1,0.85,0.2,0.3+Math.sin(G.time*10)*0.08);
     sprite(P.x,P.y+h*0.52+bob,P.z,w,h,0,1,1,1,1,P.flip<0);
   }
-  /* 敵：ブラックこっこちゃん */
+  /* 敵：ブラックこっこちゃん（島ぐらしと同じデザイン＝公式こっこと同じ絵を黒く染め、赤い目の威圧グローを重ねる） */
   for(const e of enemies){
     if(e.deadT>0) continue;
     if(blink(e.invT)) continue;
     const sq=1+Math.sin(e.sq)*0.06;
     const w=1.8,h=1.8/AR*sq;
     shadow(e.x,0,e.z,2.0,0.7);
-    sprite(e.x,h*0.52,e.z,w,h,1,1,1,1,1,e.flip<0);
+    sprite(e.x,h*0.52,e.z,w,h,0,0.22,0.13,0.18,1,e.flip<0);
+    spriteBB(e.x,h*0.9,e.z,1.1,1.1,2,1,0.1,0.1,0.22);
     for(let i=0;i<e.hp;i++)
       spriteBB(e.x+camR[0]*(-0.5+i*0.5),h*1.18,e.z+camR[2]*(-0.5+i*0.5),0.26,0.26,2,0.85,0.8,1,0.9);
   }
