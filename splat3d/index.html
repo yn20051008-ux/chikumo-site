@@ -402,8 +402,8 @@
   <div class="actbtn hidden" id="bombBtn">💣</div>
   <div class="actbtn hidden" id="o2Btn">🫧</div>
   <div class="buyprompt hidden" id="buyPrompt">
-    <div class="bp-row" id="buyO2Row">🫧 タップで購入 💴100</div>
-    <div class="bp-row" id="buyAmmoRow">🔫 タップで購入 💴50</div>
+    <div class="bp-row" id="buyO2Row">🫧 タップで購入 💴2</div>
+    <div class="bp-row" id="buyAmmoRow">🔫 タップで購入 💴2</div>
   </div>
   <div id="countOv"><div id="countNum">3</div></div>
 
@@ -443,7 +443,7 @@
       ◆ ステージは毎回ちがう形に <b>自動生成</b> されるよ。ハコの上にもジャンプでのぼれる！<br><br>
       ◆ <b style="color:#bfe6ff;">🌀 空蹴り</b>：空中でもう一度ジャンプ（⬆ボタン／スペース）すると 空気を蹴って何度でも跳べる！ ただし<b>🫁酸素ゲージ</b>を消費、着地しているあいだ じわじわ回復する。酸素があるかぎり跳びつづけて 敵をねらい撃つ <b>空中戦</b>もできるよ！<br><br>
       ◆ <b style="color:#ffd36b;">🔫 レーザーピストル</b>：こっこGPから移植した遠隔武器！飛び道具ではなく<b>撃った瞬間に当たる光線</b>。弾は最初<b>5発</b>だけ、当たれば<span class="pr">ブラックこっこちゃん</span>を<b>1発で撃破</b>（絵の具は塗らない）。弾切れは🏪コンビニで補充しよう。<br><br>
-      ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>がもらえる。ステージ内の<b>🏪コンビニ</b>に近づくと 💴10で<b>🫧酸素ボンベ</b>や<b>🔫レーザーの弾</b>を、それぞれ最大99個まで買いだめできるよ（Bキー＝酸素ボンベ購入／Gキー＝弾丸購入）。<br><br>
+      ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>がもらえる。ステージ内の<b>🏪コンビニ</b>に近づくと 💴2で<b>🫧酸素ボンベ</b>や<b>🔫レーザーの弾</b>を、それぞれ最大99個まで買いだめできるよ（Bキー＝酸素ボンベ購入／Gキー＝弾丸購入）。<br><br>
       ◆ <b>🫧酸素ボンベ</b>は買うだけでは回復しない。<b>いつでもどこでも</b>（🫧ボタン／Oキー）でボンベを1個つかうと 酸素ゲージが即まんタンに！ 空中でうまく使えば、そのぶん<b>空蹴りをつづけて空高く飛びつづける</b>こともできるよ。
     </div>
     <button class="btn" id="howBack">もどる</button>
@@ -684,8 +684,8 @@ const SIZE=170, HALF=SIZE/2;
 const PTEX=1024, PSCALE=PTEX/SIZE;
 const GRID=128, GCELL=SIZE/GRID;
 const TIME=120, CAGES=3, BOMB_CD=7;
-const O2_PRICE=10, O2_MAX=99, STORE_MONEY_PER_KO=30, AIR_KICK_COST=0.16, AIR_KICK_VY=8.2, O2_REGEN=0.05;
-const AMMO_START=5, AMMO_MAX=99, AMMO_PRICE=10, PISTOL_CD=0.18; // 🔫ピストル（こっこGPから移植）
+const O2_PRICE=2, O2_MAX=99, STORE_MONEY_PER_KO=30, AIR_KICK_COST=0.16, AIR_KICK_VY=8.2, O2_REGEN=0.05;
+const AMMO_START=5, AMMO_MAX=99, AMMO_PRICE=2, PISTOL_CD=0.18; // 🔫ピストル（こっこGPから移植）
 const TIME_ARC_C=226.19; // 2*PI*36（丸いリングタイマーの円周）
 
 /* ===== インクペイント面（キャンバス→テクスチャ部分転送） ===== */
