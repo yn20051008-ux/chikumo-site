@@ -120,6 +120,11 @@
   #radarDist{font-size:11px;font-weight:800;color:#ffe9ad;text-shadow:0 1px 4px rgba(0,0,0,.8);letter-spacing:.08em;}
   #cross{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:18px;
     color:rgba(255,255,255,.85);text-shadow:0 0 6px rgba(0,0,0,.8);font-weight:400;}
+  #miniMap{position:absolute;z-index:10;left:calc(12px + env(safe-area-inset-left));
+    bottom:calc(20px + env(safe-area-inset-bottom));width:120px;height:120px;pointer-events:none;
+    border-radius:50%;background:rgba(6,10,20,.5);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+    box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 0 2px rgba(255,214,90,.4),
+      inset 0 0 16px rgba(255,214,90,.18),0 0 14px rgba(255,214,90,.22);}
 
   /* 仮想スティック */
   #stickBase{position:absolute;z-index:9;width:96px;height:96px;border-radius:50%;pointer-events:none;display:none;
@@ -362,6 +367,7 @@
     <div id="o2Wrap"><span class="lbl">🫁</span><div id="o2Bar"><div id="o2Fill"></div></div></div>
     <div id="radar"><div id="radarArrow">▲</div><div id="radarDist">0m</div></div>
     <div id="cross">＋</div>
+    <canvas id="miniMap" width="120" height="120"></canvas>
     <div id="stickBase"></div><div id="stickKnob"></div>
   </div>
   <div class="actbtn hidden" id="fireBtn">🔫</div>
@@ -1242,6 +1248,85 @@ function updateRadar(){
   $('radarArrow').style.transform='rotate('+a.toFixed(3)+'rad)';
   $('radarDist').textContent=Math.round(bd)+'m';
 }
+
+/* ===== レーダーマップ（自分・🏪コンビニ・ブラックこっこの位置を上から把握） ===== */
+const miniMapCv=$('miniMap'), mctx=miniMapCv.getContext('2d');
+const MAP_SIZE=120, MAP_PAD=8;
+let mapDPR=0;
+function setupMiniMap(){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  if(dpr===mapDPR&&miniMapCv.width) return;
+  mapDPR=dpr; miniMapCv.width=Math.round(MAP_SIZE*dpr); miniMapCv.height=Math.round(MAP_SIZE*dpr);
+}
+function mapPt(x,z,cx,cy,R){ return [cx+((x+HALF)/SIZE-0.5)*2*R, cy+((z+HALF)/SIZE-0.5)*2*R]; }
+function drawMiniMap(){
+  setupMiniMap();
+  const S=MAP_SIZE, cx=S/2, cy=S/2, R=S/2-MAP_PAD;
+  mctx.setTransform(mapDPR,0,0,mapDPR,0,0);
+  mctx.clearRect(0,0,S,S);
+  mctx.save();
+  mctx.beginPath(); mctx.arc(cx,cy,R,0,TAU); mctx.clip();
+  mctx.fillStyle='rgba(10,14,26,.92)'; mctx.fillRect(0,0,S,S);
+  // ハコ（かんたんな地形の手がかり）
+  mctx.fillStyle='rgba(200,210,235,.32)';
+  for(const b of boxes){
+    const [x0,y0]=mapPt(b.x0,b.z0,cx,cy,R), [x1,y1]=mapPt(b.x1,b.z1,cx,cy,R);
+    mctx.fillRect(Math.min(x0,x1),Math.min(y0,y1),Math.abs(x1-x0),Math.abs(y1-y0));
+  }
+  // グリッド
+  mctx.strokeStyle='rgba(255,220,120,.14)'; mctx.lineWidth=1;
+  for(let k=1;k<=2;k++){ mctx.beginPath(); mctx.arc(cx,cy,R*k/3,0,TAU); mctx.stroke(); }
+  mctx.beginPath(); mctx.moveTo(cx-R,cy); mctx.lineTo(cx+R,cy); mctx.moveTo(cx,cy-R); mctx.lineTo(cx,cy+R); mctx.stroke();
+  // スイープ（回転する光のあおり）
+  const sw=(G.time*1.0)%TAU;
+  mctx.save(); mctx.translate(cx,cy); mctx.rotate(sw);
+  const sg=mctx.createLinearGradient(0,0,R,0);
+  sg.addColorStop(0,'rgba(255,220,120,.24)'); sg.addColorStop(1,'rgba(255,220,120,0)');
+  mctx.fillStyle=sg; mctx.beginPath(); mctx.moveTo(0,0); mctx.arc(0,0,R,-0.34,0); mctx.closePath(); mctx.fill();
+  mctx.restore();
+  // 🏪 コンビニ
+  {
+    const [sx,sy]=mapPt(STORE.x,STORE.z,cx,cy,R);
+    mctx.fillStyle='rgba(255,138,138,.95)'; mctx.beginPath(); mctx.arc(sx,sy,4.4,0,TAU); mctx.fill();
+    mctx.fillStyle='rgba(60,20,20,.85)'; mctx.font='900 6px sans-serif';
+    mctx.textAlign='center'; mctx.textBaseline='middle'; mctx.fillText('S',sx,sy+0.5);
+  }
+  // ブラックこっこ（赤い点）
+  const pulse0=0.5+0.5*Math.sin(G.time*6);
+  for(const e of enemies){
+    if(e.deadT>0) continue;
+    const [ex,ey]=mapPt(e.x,e.z,cx,cy,R);
+    mctx.fillStyle='rgba(255,60,60,'+(0.75+0.2*pulse0).toFixed(3)+')';
+    mctx.beginPath(); mctx.arc(ex,ey,3.2,0,TAU); mctx.fill();
+    mctx.fillStyle='rgba(120,0,0,.9)'; mctx.beginPath(); mctx.arc(ex,ey,1.3,0,TAU); mctx.fill();
+  }
+  // プレイヤー（本体アイコン＋向きコーン）
+  const [px,py]=mapPt(P.x,P.z,cx,cy,R);
+  const facing=Math.atan2(-Math.cos(cam.yaw),Math.sin(cam.yaw))+Math.PI/2;
+  mctx.save(); mctx.translate(px,py); mctx.rotate(facing);
+  const cone=mctx.createRadialGradient(0,0,0,0,0,14);
+  cone.addColorStop(0,'rgba(255,240,150,.5)'); cone.addColorStop(1,'rgba(255,240,150,0)');
+  mctx.fillStyle=cone; mctx.beginPath(); mctx.moveTo(0,0);
+  mctx.arc(0,0,14,-Math.PI/2-0.5,-Math.PI/2+0.5); mctx.closePath(); mctx.fill();
+  mctx.restore();
+  if(coccoReady){
+    const iw=13, ih=iw/AR;
+    mctx.save(); mctx.shadowColor='rgba(0,0,0,.5)'; mctx.shadowBlur=3; mctx.shadowOffsetY=1;
+    mctx.drawImage(cocco,px-iw/2,py-ih*0.62,iw,ih);
+    mctx.restore();
+  }else{
+    mctx.save(); mctx.translate(px,py); mctx.rotate(facing);
+    mctx.fillStyle='#fff7c8'; mctx.strokeStyle='rgba(40,30,10,.85)'; mctx.lineWidth=1.1;
+    mctx.beginPath(); mctx.moveTo(0,-5.5); mctx.lineTo(3.6,3.8); mctx.lineTo(0,1.8); mctx.lineTo(-3.6,3.8); mctx.closePath();
+    mctx.fill(); mctx.stroke();
+    mctx.restore();
+  }
+  mctx.restore(); // クリップ解除
+  // N（北）インジケータ
+  mctx.fillStyle='rgba(255,230,150,.9)'; mctx.font='900 9px sans-serif';
+  mctx.textAlign='center'; mctx.textBaseline='middle';
+  mctx.fillText('N',cx,cy-R+7);
+}
 function bombUI(){
   const b=$('bombBtn');
   if(P.bombT>0){ b.classList.add('cool'); b.innerHTML='💣<span class="cd">'+Math.ceil(P.bombT)+'</span>'; }
@@ -1482,6 +1567,7 @@ function render(){
     gl.enableVertexAttribArray(sA.col); gl.vertexAttribPointer(sA.col,4,gl.FLOAT,false,36,20);
     gl.drawArrays(gl.TRIANGLES,0,sprN*6);
   }
+  if(G.phase==='play') drawMiniMap();
 }
 function buildSprites(){
   const blink=t=>t>0&&Math.floor(G.time*12)%2===0;
