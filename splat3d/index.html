@@ -164,7 +164,6 @@
   #bombBtn{right:calc(28px + env(safe-area-inset-right));bottom:calc(122px + env(safe-area-inset-bottom));
     width:58px;height:58px;font-size:24px;}
   #bombBtn.cool{border-color:rgba(255,255,255,.22);box-shadow:none;opacity:.65;}
-  #bombBtn .cd{font-size:13px;color:#ffe07a;font-variant-numeric:tabular-nums;}
   #o2Btn{right:calc(112px + env(safe-area-inset-right));bottom:calc(108px + env(safe-area-inset-bottom));
     width:58px;height:58px;font-size:24px;border-color:rgba(140,220,255,.6);
     box-shadow:0 4px 14px rgba(0,0,0,.4),0 0 14px rgba(120,200,255,.25);}
@@ -687,11 +686,11 @@ function matMul(out,a,b){
 const SIZE=170, HALF=SIZE/2;
 const PTEX=1024, PSCALE=PTEX/SIZE;
 const GRID=128, GCELL=SIZE/GRID;
-const TIME=120, CAGES=3, BOMB_CD=7;
+const TIME=120, CAGES=3;
 const O2_PRICE=2, O2_MAX=99, STORE_MONEY_PER_KO=30, AIR_KICK_COST=0.16, AIR_KICK_VY=8.2, O2_REGEN=0.05;
 const AMMO_START=5, AMMO_MAX=99, AMMO_PRICE=2, PISTOL_CD=0.18; // 🔫ピストル（こっこGPから移植）
 const BOMB_MAX=99, BOMB_PRICE=4; // 💣インクボム（コンビニで購入・初期0個）
-const BUY_REPEAT_MS=90; // 🏪長押しで高速購入
+const BUY_REPEAT_START_MS=260, BUY_REPEAT_MIN_MS=25, BUY_REPEAT_RAMP_MS=1500; // 🏪長押しで購入：押し続けるほど加速し最速25msまで
 const TIME_ARC_C=226.19; // 2*PI*36（丸いリングタイマーの円周）
 
 /* ===== インクペイント面（キャンバス→テクスチャ部分転送） ===== */
@@ -1012,7 +1011,7 @@ function insideBox(x,y,z){
 
 /* ===== ゲーム状態 ===== */
 const G={phase:'title',t:TIME,score:0,rescued:0,kos:0,countT:0,finishT:0,best:0,shake:0,lastSec:99,paused:false,time:0,win:false,money:0};
-const P={x:0,z:0,y:0,vy:0,hp:3,fireT:0,deadT:0,invT:0,hitT:0,bombT:0,swim:false,moving:false,flip:1,onG:true,o2:1,o2Inv:0,ammo:AMMO_START,bombInv:0};
+const P={x:0,z:0,y:0,vy:0,hp:3,fireT:0,deadT:0,invT:0,hitT:0,swim:false,moving:false,flip:1,onG:true,o2:1,o2Inv:0,ammo:AMMO_START,bombInv:0};
 const cam={yaw:0,pitch:-0.3,dist:7.2};
 let pellets=[],bombs=[],parts=[],lasers=[];
 function loadBest(){ try{ G.best=+localStorage.getItem('coccoSplat3dBest')||0; }catch(e){ G.best=0; } }
@@ -1103,9 +1102,9 @@ function rescueCage(c){
   if(G.rescued>=CAGES&&G.phase==='play'){ G.win=true; endGame(); }
 }
 function throwBomb(){
-  if(G.phase!=='play'||G.paused||P.deadT>0||P.bombT>0) return;
+  if(G.phase!=='play'||G.paused||P.deadT>0) return;
   if(P.bombInv<=0){ Sound.nope(); return; }
-  P.bombT=BOMB_CD; P.bombInv--; hudBomb();
+  P.bombInv--; hudBomb();
   const f=camForward();
   let h=Math.hypot(f[0],f[2])||1;
   const tx=clamp(P.x+f[0]/h*16,-HALF+3,HALF-3), tz=clamp(P.z+f[2]/h*16,-HALF+3,HALF-3);
@@ -1214,7 +1213,6 @@ function update(dt){
     // 🔫ピストルのクールダウン
     if(P.fireT>0) P.fireT-=dt;
   }
-  if(P.bombT>0){ P.bombT-=dt; bombUI(); }
 
   /* --- 敵 --- */
   enemies.forEach(e=>updateEnemy(e,dt));
@@ -1348,11 +1346,16 @@ function buyBomb(){
   G.money-=BOMB_PRICE; P.bombInv++; hudMoney(); hudBomb(); bombUI(); updateBuyPrompt(); Sound.buy();
   burst3(store.x,1.6,store.z,[1,0.7,0.3],10,3);
 }
-/* 🏪長押しで高速購入：押した瞬間に1個買い、押し続けるとBUY_REPEAT_MSごとに連続購入 */
+/* 🏪長押しで高速購入：押した瞬間に1個買い、押し続けるほど購入間隔がBUY_REPEAT_START_MS→BUY_REPEAT_MIN_MSへ加速 */
 function holdRepeat(fn){
-  let timer=null;
-  function begin(){ if(timer) return; fn(); timer=setInterval(fn,BUY_REPEAT_MS); }
-  function end(){ if(timer){ clearInterval(timer); timer=null; } }
+  let timer=null, heldSince=0;
+  function schedule(){
+    const t=Math.min(1,(performance.now()-heldSince)/BUY_REPEAT_RAMP_MS);
+    const delay=BUY_REPEAT_START_MS+(BUY_REPEAT_MIN_MS-BUY_REPEAT_START_MS)*t;
+    timer=setTimeout(()=>{ fn(); schedule(); },delay);
+  }
+  function begin(){ if(timer) return; heldSince=performance.now(); fn(); schedule(); }
+  function end(){ if(timer){ clearTimeout(timer); timer=null; } }
   return {begin,end};
 }
 const buyO2Rep=holdRepeat(buyO2), buyAmmoRep=holdRepeat(buyAmmo), buyBombRep=holdRepeat(buyBomb);
@@ -1452,9 +1455,8 @@ function drawMiniMap(){
 }
 function bombUI(){
   const b=$('bombBtn');
-  if(P.bombT>0){ b.classList.add('cool'); b.innerHTML='💣<span class="cd">'+Math.ceil(P.bombT)+'</span>'; }
-  else if(P.bombInv<=0){ b.classList.add('cool'); b.innerHTML='💣'; }
-  else { b.classList.remove('cool'); b.innerHTML='💣'; }
+  b.classList.toggle('cool',P.bombInv<=0);
+  b.innerHTML='💣';
 }
 
 /* ===== 入力 ===== */
@@ -1825,7 +1827,7 @@ function show(id){
 function start(){
   genWorld((Math.random()*0xffffffff)>>>0);
   clearInk();
-  P.x=SPAWN.x; P.z=SPAWN.z; P.y=0; P.vy=0; P.hp=3; P.fireT=0; P.deadT=0; P.invT=1.5; P.hitT=0; P.bombT=0; P.onG=true; P.flip=1; P.o2=1; P.o2Inv=0; P.ammo=AMMO_START; P.bombInv=0;
+  P.x=SPAWN.x; P.z=SPAWN.z; P.y=0; P.vy=0; P.hp=3; P.fireT=0; P.deadT=0; P.invT=1.5; P.hitT=0; P.onG=true; P.flip=1; P.o2=1; P.o2Inv=0; P.ammo=AMMO_START; P.bombInv=0;
   cam.yaw=0; cam.pitch=-0.3;
   pellets=[]; bombs=[]; parts=[]; lasers=[];
   splatInk(P.x,P.z,3.5,1);
