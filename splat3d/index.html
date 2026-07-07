@@ -1041,8 +1041,11 @@ function firePistol(){
   if(P.ammo<=0){ Sound.nope(); return; }
   P.fireT=PISTOL_CD; P.ammo--; hudAmmo();
   const f=camForward();
+  // 実際に飛ぶ射線はカメラの俯角を含めない水平方向。ロックオン判定もこの水平方向を基準にしないと、
+  // 遠距離では俯角ぶんの角度差がどうしても縮まらず、狙いが正しくても当たり判定が成立しなくなる。
+  const hl=Math.hypot(f[0],f[2])||1, dx=f[0]/hl, dz=f[2]/hl;
   const mx=P.x+f[0]*0.6, my=P.y+1.3, mz=P.z+f[2]*0.6;
-  const target=findAimTarget(mx,my,mz,f);
+  const target=findAimTarget(mx,my,mz,[dx,0,dz]);
   let hx,hy,hz;
   if(target){
     hx=target.x; hy=1.1; hz=target.z;
@@ -1050,8 +1053,6 @@ function firePistol(){
     if(target.hp<=0) koEnemy(target);
   }else{
     // ロックオン先が無ければ 水平にまっすぐ、障害物か最大距離まで即座にレーザーをのばす（当たり判定なし）
-    // ※カメラのお辞儀角そのまま撃つと数mで地面に刺さり見えなくなるため、狙いは水平にする
-    const hl=Math.hypot(f[0],f[2])||1, dx=f[0]/hl, dz=f[2]/hl;
     const MAXD=PISTOL_RANGE, STEP=0.5;
     let hitDist=MAXD;
     for(let t=STEP;t<MAXD;t+=STEP){
