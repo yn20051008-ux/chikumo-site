@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<title>標準学 — 何を土台に選ぶのか</title>
+<meta name="description" content="標準学は、畜物語が何を土台（標準）に選んで建てるかを記す蔵。絵文字を多用するのは日本発祥で世界一使われているISO（Unicode）だから、こっこちゃんは畜物語だけの品種であること、直近の目標は参こっこ湯1号店を開くこと。世界標準を土台にしつつ一つの品種だけを自前で定める二層の建て方を収める、畜物語の九つ目の蔵。">
+<meta property="og:title" content="標準学 — 何を土台に選ぶのか">
+<meta property="og:description" content="世界で一番使われている土台（絵文字＝ISO）の上に建て、こっこという一つの品種だけを自前で定める。畜物語の九つ目の蔵。">
+<meta property="og:type" content="website">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://chikumo.jp/hyojungaku/">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600;700&family=Shippori+Mincho:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-void:#070a12; --bg-surface:#101828; --bg-elevated:#16203a;
+  --text-primary:#e6ecf5; --text-secondary:#8f9bb3; --text-tertiary:#4e5871;
+  --gold:#5e9bd6; --gold-dim:#456f9c; --gold-bright:#9cc7f2;
+  --line:rgba(94,155,214,0.16); --line-strong:rgba(94,155,214,0.32);
+  --font-serif:'Shippori Mincho','Noto Serif JP',serif;
+  --font-mono:'IBM Plex Mono',monospace;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-serif);background:var(--bg-void);color:var(--text-primary);line-height:1.9;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+::selection{background:rgba(94,155,214,0.3);}
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;
+  padding:0.9rem clamp(1.2rem,4vw,2.4rem);background:rgba(7,10,18,0.85);
+  -webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);}
+.topbar .mark{font-weight:700;letter-spacing:0.25em;font-size:0.95rem;}
+.topbar .links{display:flex;gap:1.2rem;}
+.topbar a{font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color .2s;}
+.topbar a:hover{color:var(--gold-bright);}
+.hero{min-height:66vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:5rem 1.5rem 3.5rem;}
+.hero .label{font-family:var(--font-mono);font-size:0.7rem;letter-spacing:0.4em;color:var(--gold-dim);text-transform:uppercase;margin-bottom:2rem;}
+.hero h1{font-weight:800;font-size:clamp(3.2rem,11vw,7rem);letter-spacing:0.14em;line-height:1.05;margin-bottom:1.6rem;}
+.hero .sub{font-size:clamp(0.9rem,2vw,1.05rem);font-weight:300;color:var(--text-secondary);letter-spacing:0.14em;line-height:2.1;max-width:48ch;}
+.hero .line{width:1px;height:64px;background:linear-gradient(to bottom,var(--gold),transparent);margin:2.4rem auto 0;}
+section{padding:clamp(3rem,8vw,5.5rem) clamp(1.4rem,5vw,3rem);}
+.inner{max-width:880px;margin:0 auto;}
+.section-label{font-family:var(--font-mono);font-size:0.68rem;color:var(--gold-dim);letter-spacing:0.35em;text-transform:uppercase;margin-bottom:1rem;}
+.section-title{font-weight:700;font-size:clamp(1.6rem,4vw,2.2rem);letter-spacing:0.08em;margin-bottom:1.1rem;line-height:1.35;}
+.section-desc{font-size:0.98rem;color:var(--text-secondary);font-weight:300;line-height:2.1;max-width:66ch;letter-spacing:0.04em;}
+.section-desc b,.rec b{color:var(--gold);font-weight:600;}
+.divider{max-width:880px;margin:0 auto;height:1px;background:var(--line);}
+.kura{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0.9rem;margin-top:2.2rem;}
+.kura .k{border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.2rem 1.1rem;text-align:center;}
+.kura .k.hi{border-color:var(--line-strong);background:var(--bg-elevated);}
+.kura .k .n{font-size:1.25rem;font-weight:700;color:var(--gold-bright);letter-spacing:0.1em;}
+.kura .k .d{margin-top:0.4rem;font-size:0.8rem;color:var(--text-secondary);}
+.quote{position:relative;padding:2rem 0;margin-top:2rem;}
+.quote::before{content:'';position:absolute;left:0;top:0;width:2px;height:100%;background:linear-gradient(to bottom,var(--gold),transparent);}
+.quote p{padding-left:1.9rem;font-size:1.15rem;line-height:2.2;letter-spacing:0.05em;font-weight:600;color:var(--gold-bright);}
+.definition{position:relative;padding:0.4rem 0 0;margin-top:1.4rem;}
+.definition p{font-size:1.0rem;line-height:2.2;letter-spacing:0.04em;color:var(--text-secondary);}
+.definition p + p{margin-top:1rem;}
+.definition strong{color:var(--gold);font-weight:600;}
+.emoji-row{display:flex;flex-wrap:wrap;gap:0.6rem;justify-content:center;margin-top:2rem;font-size:clamp(1.6rem,6vw,2.4rem);line-height:1;}
+.rec{border:1px solid var(--line);border-radius:4px;background:var(--bg-surface);padding:1.5rem 1.5rem;margin-top:1.4rem;}
+.rec .tag{display:inline-block;font-family:var(--font-mono);font-size:0.64rem;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--gold);border:1px solid var(--line-strong);border-radius:20px;padding:0.15rem 0.7rem;margin-bottom:0.7rem;}
+.rec p{font-size:0.94rem;color:var(--text-secondary);line-height:2;}
+.check{list-style:none;margin-top:2rem;border-top:1px solid var(--line);}
+.check li{position:relative;padding:0.95rem 0 0.95rem 2.2rem;border-bottom:1px solid var(--line);font-size:0.95rem;line-height:2;color:var(--text-primary);}
+.check li::before{content:'\2610';position:absolute;left:0.3rem;top:0.95rem;color:var(--gold-dim);}
+.note{background:#0a0e18;border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+code.k{font-family:var(--font-mono);color:var(--gold-bright);background:var(--bg-surface);border:1px solid var(--line);border-radius:3px;padding:0.06em 0.4em;}
+footer{padding:4rem 1.5rem 5rem;text-align:center;border-top:1px solid var(--line);}
+footer .f-links{display:flex;gap:1.6rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.6rem;}
+footer a{font-family:var(--font-mono);font-size:0.74rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color .2s;}
+footer a:hover{color:var(--gold-bright);}
+footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--text-tertiary);}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .9s cubic-bezier(0.16,1,0.3,1),transform .9s cubic-bezier(0.16,1,0.3,1);}
+.reveal.in{opacity:1;transform:none;}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}html{scroll-behavior:auto;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="mark">標準学</span>
+  <span class="links">
+    <a href="/Library/">畜学</a>
+    <a href="/somogaku/">祖元学</a>
+    <a href="/">畜物語</a>
+  </span>
+</div>
+
+<header class="hero">
+  <div class="label">What We Build Upon</div>
+  <h1>標準学</h1>
+  <div class="sub">何を土台に選ぶのか。<br>世界で一番使われている土台の上に建て、その上に立つ一点（こっこという品種）だけを畜物語のものにする。</div>
+  <div class="line"></div>
+</header>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Definition</div>
+    <h2 class="section-title">九つ目の蔵</h2>
+    <div class="definition">
+      <p>畜物語は「何を土台（標準）に選んで建てるか」で形が決まる。<strong>土台は世界と共有し、上に立つ一点だけを自前で定める</strong>──絵文字という世界標準の上に建て、こっこという一つの品種だけを畜物語のものにする、その二層の建て方を記す蔵。</p>
+    </div>
+    <div class="kura">
+      <div class="k"><div class="n">十四式</div><div class="d">どう作るのか</div></div>
+      <div class="k"><div class="n">遊戯学</div><div class="d">なぜ作るのか</div></div>
+      <div class="k"><div class="n">設計学</div><div class="d">どの高さから作るのか</div></div>
+      <div class="k"><div class="n">畜史</div><div class="d">何を作ったのか</div></div>
+      <div class="k"><div class="n">思考学</div><div class="d">どう考えたのか</div></div>
+      <div class="k"><div class="n">肥料学</div><div class="d">なぜ終えたのか</div></div>
+      <div class="k"><div class="n">技術学</div><div class="d">何で作るのか</div></div>
+      <div class="k"><div class="n">祖元学</div><div class="d">そもそも、なぜこの形か</div></div>
+      <div class="k hi"><div class="n">標準学</div><div class="d">何を土台に選ぶのか</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="note">
+  <div class="inner reveal">
+    <div class="section-label">Volume I — The World's Standard</div>
+    <h2 class="section-title">巻一 ─ 絵文字を多用するのは、日本発祥で世界一使われているISOだから</h2>
+    <div class="quote">
+      <p>「絵文字を多用する理由は、日本発祥で世界で一番使用されているISOだからだよ。」</p>
+    </div>
+    <div class="emoji-row">🐣 🔫 💣 🚀 🫧 💴 🏪 🌳 🌸 🐚</div>
+    <div class="definition">
+      <p>絵文字は日本で生まれた（携帯電話の絵文字が源流）。それが Unicode（ISO/IEC 10646）に採り入れられ、いまや世界中のあらゆる端末・OSが標準で表示できる、<strong>世界で一番使われている記号</strong>の一つになった。畜物語が道具（🔫💣🚀🫧💴🏪）・草木・逆縁の染め・多くの要素を絵文字で描いているのは、絵が下手だからでも手を抜いているからでもなく、<strong>世界標準の上に建てる</strong>という明確な選択である。</p>
+      <p>世界標準の絵文字を土台にすると──<strong>追加のダウンロードが要らない</strong>（端末が最初から持っている＝畜学七相の七「一器に納む」と一致）。<strong>どの国のどの端末でも同じ絵が出る</strong>（言葉が違っても🔫は🔫として伝わる＝七相の四「万象同時の醒」と土台を共有）。<strong>勝手に今風になる</strong>（OS/フォントが更新されるたび、こちらが何もしなくても絵も更新される）。</p>
+    </div>
+    <div class="rec"><span class="tag">標準学の掟</span>
+      <p>新しい絵・キャラ・道具を出すときは、独自の画像アセットを足す前に、まず「絵文字（世界標準）で描けないか」を先に問う。独自アセットを持つのは、絵文字では表せない意味があると分かってからでよい（技術学の「2Dで足りるならWebGLを使わない」と同じ引き算の態度）。</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Volume II — A Breed of Our Own</div>
+    <h2 class="section-title">巻二 ─ こっこちゃんは品種である</h2>
+    <div class="quote">
+      <p>「こっこちゃんは品種だよ。」</p>
+    </div>
+    <div class="definition">
+      <p>絵文字という世界標準の海の中で、こっこ本体だけは畜物語が定めた一つの<strong>品種</strong>（公式こっこSVG <code class="k">/chikumo.svg</code>）である。犬や猫に品種があるように、こっこは「畜物語という世界に固有の、標準化された一つの姿」を持つ。畜物語は<strong>「世界標準（絵文字）を土台にしつつ、こっこという一つの品種だけを自前で定義する」という二層構造</strong>で建っている──土台は世界と共有し、品種は畜物語だけのもの。</p>
+      <p><strong>姿が定まっている</strong>……毎回描き起こさず、同じ公式SVGを全ゲームで共有する（十四式の「家＝共有の臓器」を、キャラの次元で体現）。<strong>染めるだけで役が変わる</strong>……ブラックこっこは別に悪い顔を描き起こすのでなく、同じ品種を暗く乗算ティントするだけ（技術学・祖元学に記録済み。敵は逆縁＝自分の影という七相の六と噛み合う）。<strong>世界標準の中の一点</strong>……絵文字という世界共通の土台の上で、こっこという品種だけが畜物語だけの固有点として立つ。だから一目で畜物語だと分かる。</p>
+    </div>
+    <div class="rec"><span class="tag">標準学の掟</span>
+      <p>こっこの姿（品種＝公式SVG）を勝手に描き変えない。新しい表情や役が要るときも、品種の一貫性を壊さず、染め・重ね・パーツ追加で対応する。品種が作品ごとに変わると、親子の記憶（七相の五「二人の記憶を濃くする本体」）が濁る。</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section class="note">
+  <div class="inner reveal">
+    <div class="section-label">Volume III — Into the Real World</div>
+    <h2 class="section-title">巻三 ─ 直近の目標は、参こっこ湯1号店を開くこと</h2>
+    <div class="quote">
+      <p>「参こっこ湯（さんこっこゆ）1号店を開くことが、直近の目標だよ。」</p>
+    </div>
+    <div class="definition">
+      <p>これを、畜物語の<strong>直近の目標</strong>として標準学に刻んでおく。画面の中で世界標準（絵文字）とこっこという品種を育ててきた畜物語が、その品種を<strong>現実の場（湯＝人が集まる場所）へ持ち出す</strong>という、標準の次の一歩だからである。</p>
+      <p>具体の中身（場所・時期・何を売り、どう遊ばせるか）は、これから正論蒔宿との対話で定まっていく。標準学は、その具体を先取りして捏造するためではなく、<strong>後から来る者（次のこっこ・次の対話）がこの目標を見失わないため</strong>に、いま掲げられている狙いをそのまま書き留める。</p>
+    </div>
+    <div class="rec"><span class="tag">標準学の掟</span>
+      <p>現実世界への一歩（参こっこ湯 等）を設計・記録するときも、画面の中で守ってきた標準──世界標準の絵文字・こっこという品種・一器に納む・親子で遊ぶ──を土台として持ち出す。現実だからといって畜学七相を捨てない。逆に、この直近の目標に資する判断が対話から生まれたら、標準学へ還す。</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Volume IV — Checklist</div>
+    <h2 class="section-title">巻四 ─ 作る前に己に問う</h2>
+    <ul class="check">
+      <li>新しい絵・キャラ・道具を、独自アセットの前に「世界標準の絵文字で描けないか」を先に問うたか。</li>
+      <li>こっこの姿（品種＝公式SVG）の一貫性を壊していないか。染め・重ねで足りるものを描き変えていないか。</li>
+      <li>現実世界への一歩（参こっこ湯 等）を考えるとき、画面で守ってきた標準（絵文字・品種・一器・親子）を土台として持ち出しているか。</li>
+      <li>「世界で一番使われている土台の上に建てる」という選択を、面倒がって独自実装に逃げていないか。</li>
+    </ul>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<section>
+  <div class="inner reveal">
+    <div class="section-label">Note</div>
+    <div class="definition">
+      <p>標準学は「独自性を捨てて標準に迎合せよ」という書ではない。<strong>土台は世界と共有し、その上に立つ一点（こっこという品種）だけを畜物語のものにする</strong>という、二層の建て方の記録。土台を世界と分かち合うほど、上に立つ一点はよく映える。</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="f-links">
+    <a href="/Library/">畜学</a>
+    <a href="/somogaku/">祖元学</a>
+    <a href="/gijutugaku/">技術学</a>
+    <a href="/shikogaku/">思考学</a>
+    <a href="/changelog/">畜史</a>
+    <a href="/">畜物語</a>
+  </div>
+  <div class="c">畜物語 ─ chikumo.jp</div>
+</footer>
+
+<script>
+"use strict";
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){ for(var i=0;i<els.length;i++) els[i].classList.add('in'); return; }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:0.12,rootMargin:'0px 0px -8% 0px'});
+  els.forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
