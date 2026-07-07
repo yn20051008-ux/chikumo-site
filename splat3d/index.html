@@ -450,7 +450,7 @@
       ◆ <b>パソコン</b>：WASDで移動、画面クリックでマウス視点。クリックで1発発射、スペースでジャンプ、<b>Eキー</b>でボム。<br><br>
       ◆ 画面上の <b>▲レーダー</b> が、いちばん近くのとらわれた <b>こっこちゃん</b> の方向をさす。<b>💣インクボム</b>を当てると <b>救出</b>！3羽ぜんぶ助けたらクリア！<br><br>
       ◆ <b>自分の黄色インクの上</b> はスイスイ高速移動。<span class="pr">ブラックインク</span>の上はベタベタおそくなる。<br><br>
-      ◆ <span class="pr">ブラックこっこちゃん</span> のインクを3発くらうとダウン。スタート地点からふっかつ。<br><br>
+      ◆ <span class="pr">ブラックこっこちゃん</span> のインクを1発くらうと <b>❤️が1つ</b>減る。3つとも失うと<b>ゲームオーバー</b>！<br><br>
       ◆ ステージは毎回ちがう形に <b>自動生成</b> されるよ。ハコの上にもジャンプでのぼれる！<br><br>
       ◆ <b style="color:#bfe6ff;">🌀 空蹴り</b>：空中でもう一度ジャンプ（⬆ボタン／スペース）すると 空気を蹴って何度でも跳べる！ ただし<b>🫁酸素ゲージ</b>を消費、着地しているあいだ じわじわ回復する。酸素があるかぎり跳びつづけて 敵をねらい撃つ <b>空中戦</b>もできるよ！<br><br>
       ◆ <b style="color:#ffd36b;">🔫 レーザーピストル</b>：こっこGPから移植した遠隔武器！飛び道具ではなく<b>撃った瞬間に当たる光線</b>。弾は最初<b>5発</b>だけ、当たれば<span class="pr">ブラックこっこちゃん</span>を<b>1発で撃破</b>（絵の具は塗らない）。弾切れは🏪コンビニで補充しよう。<br><br>
@@ -558,7 +558,6 @@ const Sound=(function(){
     ko(){ noise(.25,.3,3000); tone(520,0.2,'sawtooth',0.26,90); tone(1240,0.12,'square',0.14); },
     hurt(){ tone(220,0.12,'square',0.3,120); noise(.1,.2,1400); },
     down(){ tone(440,0.16,'sawtooth',0.3,110); setTimeout(()=>tone(160,0.3,'sine',0.3,60),120); },
-    respawn(){ tone(523,0.1,'triangle',0.2,784); setTimeout(()=>tone(784,0.12,'triangle',0.2,1047),90); },
     rescue(){ const seq=[784,988,1319,1568,2093];
       seq.forEach((f,i)=>setTimeout(()=>{ tone(f,0.13,'triangle',0.30,f*1.06); tone(f*2,0.08,'sine',0.10); },i*55));
       setTimeout(()=>{ tone(2637,0.20,'sine',0.24,3520); tone(3136,0.16,'triangle',0.14); noise(.12,.10,8000); }, seq.length*55); },
@@ -1009,8 +1008,8 @@ function insideBox(x,y,z){
 }
 
 /* ===== ゲーム状態 ===== */
-const G={phase:'title',t:TIME,score:0,rescued:0,kos:0,countT:0,finishT:0,best:0,shake:0,lastSec:99,paused:false,time:0,win:false,money:0};
-const P={x:0,z:0,y:0,vy:0,hp:3,fireT:0,deadT:0,invT:0,hitT:0,swim:false,moving:false,flip:1,onG:true,o2:1,o2Inv:0,ammo:AMMO_START,bombInv:0,mslInv:0};
+const G={phase:'title',t:TIME,score:0,rescued:0,kos:0,countT:0,finishT:0,best:0,shake:0,lastSec:99,paused:false,time:0,win:false,ko:false,money:0};
+const P={x:0,z:0,y:0,vy:0,hp:3,fireT:0,deadT:0,invT:0,swim:false,moving:false,flip:1,onG:true,o2:1,o2Inv:0,ammo:AMMO_START,bombInv:0,mslInv:0};
 const cam={yaw:0,pitch:-0.3,dist:7.2};
 let pellets=[],bombs=[],parts=[],lasers=[],missiles=[];
 function loadBest(){ try{ G.best=+localStorage.getItem('coccoSplat3dBest')||0; }catch(e){ G.best=0; } }
@@ -1082,13 +1081,14 @@ function firePistol(){
 }
 function hitPlayer(){
   if(P.deadT>0||P.invT>0) return;
-  P.hp--; P.hitT=3.5; G.shake=Math.max(G.shake,0.25); Sound.hurt();
+  P.hp--; G.shake=Math.max(G.shake,0.25); Sound.hurt();
   burst3(P.x,P.y+1,P.z,[0.32,0.25,0.45],6,3);
   hudHp();
   if(P.hp<=0){
-    P.hp=0; P.deadT=2.4; splatInk(P.x,P.z,3,2); burst3(P.x,P.y+1,P.z,[0.32,0.25,0.45],16,5);
+    P.hp=0; splatInk(P.x,P.z,3,2); burst3(P.x,P.y+1,P.z,[0.32,0.25,0.45],16,5);
     G.shake=Math.max(G.shake,0.6); Sound.down();
     try{ if(navigator.vibrate)navigator.vibrate([0,60,40,60]); }catch(e){}
+    G.ko=true; G.win=false; endGame();
   }
 }
 function koEnemy(e){
@@ -1196,37 +1196,30 @@ function update(dt){
   if(G.t<=0){ G.win=false; endGame(); return; }
   $('urgVin').classList.toggle('on',G.t<=5.2);   /* ラスト5秒の鼓動（こっこGP2から移植） */
 
-  /* --- プレイヤー --- */
-  if(P.deadT>0){ P.deadT-=dt;
-    if(P.deadT<=0){ P.x=SPAWN.x; P.z=SPAWN.z; P.y=0; P.vy=0; P.hp=3; P.invT=1.8; P.o2=1;
-      cam.yaw=0; cam.pitch=-0.3;
-      splatInk(P.x,P.z,2.6,1); Sound.respawn(); hudHp(); hudO2(); }
-  }else{
-    if(P.invT>0)P.invT-=dt;
-    if(P.hitT>0){ P.hitT-=dt; if(P.hitT<=0){P.hp=3; hudHp();} }
-    const iv=moveVec();
-    P.moving=Math.hypot(iv.x,iv.z)>0.05;
-    const ink=inkAt(P.x,P.z);
-    P.swim=P.moving&&ink===1&&P.onG;
-    if(P.moving){
-      const sp=8.6*(ink===1?1.65:ink===2?0.5:1);
-      P.x+=iv.x*sp*dt; P.z+=iv.z*sp*dt;
-      collideXZ(P,1.0);
-      if(Math.abs(iv.x*camRightH()[0]+iv.z*camRightH()[2])>0.05)
-        P.flip=(iv.x*camRightH()[0]+iv.z*camRightH()[2])<0?-1:1;
-      if(P.swim&&Math.random()<0.5) splatInk(P.x+rnd(-0.3,0.3),P.z+rnd(-0.3,0.3),rnd(1.0,1.4),1);
-    }
-    // 重力・ジャンプ・ハコのぼり
-    const fl=floorAt(P.x,P.z,P.y);
-    if(P.y>fl+0.001||P.vy>0){
-      P.vy-=26*dt; P.y+=P.vy*dt; P.onG=false;
-      if(P.y<=fl){ P.y=fl; P.vy=0; P.onG=true; }
-    }else{ P.y=fl; P.onG=true; }
-    // 🫁 酸素ゲージ：着地しているあいだ じわじわ回復
-    if(P.onG&&P.o2<1){ P.o2=Math.min(1,P.o2+dt*O2_REGEN); hudO2(); }
-    // 🔫ピストルのクールダウン
-    if(P.fireT>0) P.fireT-=dt;
+  /* --- プレイヤー（ハートが尽きたら hitPlayer() が即ゲームオーバーにするため、ここに復活処理はない） --- */
+  if(P.invT>0)P.invT-=dt;
+  const iv=moveVec();
+  P.moving=Math.hypot(iv.x,iv.z)>0.05;
+  const ink=inkAt(P.x,P.z);
+  P.swim=P.moving&&ink===1&&P.onG;
+  if(P.moving){
+    const sp=8.6*(ink===1?1.65:ink===2?0.5:1);
+    P.x+=iv.x*sp*dt; P.z+=iv.z*sp*dt;
+    collideXZ(P,1.0);
+    if(Math.abs(iv.x*camRightH()[0]+iv.z*camRightH()[2])>0.05)
+      P.flip=(iv.x*camRightH()[0]+iv.z*camRightH()[2])<0?-1:1;
+    if(P.swim&&Math.random()<0.5) splatInk(P.x+rnd(-0.3,0.3),P.z+rnd(-0.3,0.3),rnd(1.0,1.4),1);
   }
+  // 重力・ジャンプ・ハコのぼり
+  const fl=floorAt(P.x,P.z,P.y);
+  if(P.y>fl+0.001||P.vy>0){
+    P.vy-=26*dt; P.y+=P.vy*dt; P.onG=false;
+    if(P.y<=fl){ P.y=fl; P.vy=0; P.onG=true; }
+  }else{ P.y=fl; P.onG=true; }
+  // 🫁 酸素ゲージ：着地しているあいだ じわじわ回復
+  if(P.onG&&P.o2<1){ P.o2=Math.min(1,P.o2+dt*O2_REGEN); hudO2(); }
+  // 🔫ピストルのクールダウン
+  if(P.fireT>0) P.fireT-=dt;
 
   /* --- 敵 --- */
   enemies.forEach(e=>updateEnemy(e,dt));
@@ -1887,12 +1880,12 @@ function show(id){
 function start(){
   genWorld((Math.random()*0xffffffff)>>>0);
   clearInk();
-  P.x=SPAWN.x; P.z=SPAWN.z; P.y=0; P.vy=0; P.hp=3; P.fireT=0; P.deadT=0; P.invT=1.5; P.hitT=0; P.onG=true; P.flip=1; P.o2=1; P.o2Inv=0; P.ammo=AMMO_START; P.bombInv=0; P.mslInv=0;
+  P.x=SPAWN.x; P.z=SPAWN.z; P.y=0; P.vy=0; P.hp=3; P.fireT=0; P.deadT=0; P.invT=1.5; P.onG=true; P.flip=1; P.o2=1; P.o2Inv=0; P.ammo=AMMO_START; P.bombInv=0; P.mslInv=0;
   cam.yaw=0; cam.pitch=-0.3;
   pellets=[]; bombs=[]; parts=[]; lasers=[]; missiles=[];
   splatInk(P.x,P.z,3.5,1);
   enemies.forEach(e=>splatInk(e.x,e.z,2.6,2));
-  G.t=TIME; G.score=0; G.rescued=0; G.kos=0; G.shake=0; G.paused=false; G.win=false; G.money=0;
+  G.t=TIME; G.score=0; G.rescued=0; G.kos=0; G.shake=0; G.paused=false; G.win=false; G.ko=false; G.money=0;
   G.phase='count'; G.countT=3.4;
   input.stick.active=false; input.look.active=false;
   hudTime(); hudScore(); hudHp(); hudRescue(); hudMoney(); hudAmmo(); hudBomb(); hudMsl(); hudO2(); hudO2Inv(); updateTimeRing(); bombUI();
@@ -1916,7 +1909,7 @@ function showResult(){
   G.score+=Math.round(pY*100);
   if(G.win) G.score+=1000+Math.ceil(G.t)*10;
   const v=$('verdict');
-  v.textContent=G.win?'CLEAR!':'TIME UP…';
+  v.textContent=G.win?'CLEAR!':(G.ko?'やられた…':'TIME UP…');
   v.className='verdict '+(G.win?'win':'lose');
   $('barY').style.width='0%'; $('barP').style.width='0%';
   setTimeout(()=>{ $('barY').style.width=Math.min(99,pY*1.6).toFixed(1)+'%'; $('barP').style.width=Math.min(99,pP*1.6).toFixed(1)+'%'; },80);
