@@ -135,7 +135,7 @@
     color:rgba(255,255,255,.85);text-shadow:0 0 6px rgba(0,0,0,.8);font-weight:400;}
   #miniMap{position:absolute;z-index:10;left:calc(12px + env(safe-area-inset-left));
     bottom:calc(20px + env(safe-area-inset-bottom));width:120px;height:120px;pointer-events:none;
-    border-radius:50%;background:rgba(6,10,20,.5);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
+    border-radius:14px;background:rgba(6,10,20,.5);-webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);
     box-shadow:0 4px 16px rgba(0,0,0,.5),0 0 0 2px rgba(255,214,90,.4),
       inset 0 0 16px rgba(255,214,90,.18),0 0 14px rgba(255,214,90,.22);}
 
@@ -1357,7 +1357,7 @@ function drawMiniMap(){
   mctx.setTransform(mapDPR,0,0,mapDPR,0,0);
   mctx.clearRect(0,0,S,S);
   mctx.save();
-  mctx.beginPath(); mctx.arc(cx,cy,R,0,TAU); mctx.clip();
+  mctx.beginPath(); mctx.rect(cx-R,cy-R,R*2,R*2); mctx.clip();
   mctx.fillStyle='rgba(10,14,26,.92)'; mctx.fillRect(0,0,S,S);
   // ハコ（かんたんな地形の手がかり）
   mctx.fillStyle='rgba(200,210,235,.32)';
@@ -1365,16 +1365,19 @@ function drawMiniMap(){
     const [x0,y0]=mapPt(b.x0,b.z0,cx,cy,R), [x1,y1]=mapPt(b.x1,b.z1,cx,cy,R);
     mctx.fillRect(Math.min(x0,x1),Math.min(y0,y1),Math.abs(x1-x0),Math.abs(y1-y0));
   }
-  // グリッド
+  // グリッド（ステージが四角なので同じ四角の格子で示す）
   mctx.strokeStyle='rgba(255,220,120,.14)'; mctx.lineWidth=1;
-  for(let k=1;k<=2;k++){ mctx.beginPath(); mctx.arc(cx,cy,R*k/3,0,TAU); mctx.stroke(); }
-  mctx.beginPath(); mctx.moveTo(cx-R,cy); mctx.lineTo(cx+R,cy); mctx.moveTo(cx,cy-R); mctx.lineTo(cx,cy+R); mctx.stroke();
-  // スイープ（回転する光のあおり）
-  const sw=(G.time*1.0)%TAU;
+  for(const t of [-1,0,1]){
+    const gx=cx+R*t*0.66, gy=cy+R*t*0.66;
+    mctx.beginPath(); mctx.moveTo(gx,cy-R); mctx.lineTo(gx,cy+R); mctx.stroke();
+    mctx.beginPath(); mctx.moveTo(cx-R,gy); mctx.lineTo(cx+R,gy); mctx.stroke();
+  }
+  // スイープ（回転する光のあおり・四隅まで届くように半径をのばす）
+  const sw=(G.time*1.0)%TAU, Rc=R*Math.SQRT2;
   mctx.save(); mctx.translate(cx,cy); mctx.rotate(sw);
-  const sg=mctx.createLinearGradient(0,0,R,0);
+  const sg=mctx.createLinearGradient(0,0,Rc,0);
   sg.addColorStop(0,'rgba(255,220,120,.24)'); sg.addColorStop(1,'rgba(255,220,120,0)');
-  mctx.fillStyle=sg; mctx.beginPath(); mctx.moveTo(0,0); mctx.arc(0,0,R,-0.34,0); mctx.closePath(); mctx.fill();
+  mctx.fillStyle=sg; mctx.beginPath(); mctx.moveTo(0,0); mctx.arc(0,0,Rc,-0.34,0); mctx.closePath(); mctx.fill();
   mctx.restore();
   // 🏪 コンビニ（マップ4か所）
   for(const st of STORES){
