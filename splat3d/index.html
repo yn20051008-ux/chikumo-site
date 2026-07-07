@@ -116,7 +116,9 @@
   #hudRescue img{height:1.2em;vertical-align:-0.25em;}
   #hudMoney{position:absolute;top:calc(80px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));
     font-size:14px;font-weight:800;color:#ffd36b;text-shadow:0 2px 6px rgba(0,0,0,.7);}
-  #o2Wrap{position:absolute;top:calc(100px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));
+  #hudAmmo{position:absolute;top:calc(100px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));
+    font-size:14px;font-weight:800;color:#ffe07a;text-shadow:0 2px 6px rgba(0,0,0,.7);}
+  #o2Wrap{position:absolute;top:calc(120px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));
     display:flex;align-items:center;gap:5px;}
   #o2Wrap .lbl{font-size:13px;text-shadow:0 2px 6px rgba(0,0,0,.7);}
   #o2Bar{width:74px;height:9px;border-radius:5px;background:rgba(255,255,255,.15);overflow:hidden;
@@ -152,6 +154,7 @@
   #fireBtn{right:calc(16px + env(safe-area-inset-right));bottom:calc(24px + env(safe-area-inset-bottom));
     width:84px;height:84px;font-size:38px;}
   #fireBtn.firing{background:rgba(120,84,10,.7);}
+  #fireBtn.empty{border-color:rgba(255,255,255,.22);box-shadow:none;opacity:.6;}
   #jumpBtn{right:calc(112px + env(safe-area-inset-right));bottom:calc(36px + env(safe-area-inset-bottom));
     width:58px;height:58px;font-size:24px;border-color:rgba(140,220,255,.6);
     box-shadow:0 4px 14px rgba(0,0,0,.4),0 0 14px rgba(120,200,255,.25);}
@@ -161,12 +164,13 @@
   #bombBtn .cd{font-size:13px;color:#ffe07a;font-variant-numeric:tabular-nums;}
 
   .buyprompt{position:absolute;z-index:12;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));
-    transform:translateX(-50%);pointer-events:auto;cursor:pointer;padding:10px 20px;border-radius:30px;
-    font-size:14px;font-weight:900;color:#3a2c05;white-space:nowrap;
-    background:linear-gradient(180deg,#ffeb9e,#ffc22e);box-shadow:0 6px 20px rgba(255,190,40,.45);}
+    transform:translateX(-50%);display:flex;flex-direction:column;gap:6px;align-items:center;}
   .buyprompt.hidden{display:none;}
-  .buyprompt.no{opacity:.55;background:linear-gradient(180deg,#cfcfcf,#9a9a9a);color:#333;}
-  .buyprompt:active{transform:translateX(-50%) scale(.95);}
+  .bp-row{pointer-events:auto;cursor:pointer;padding:9px 18px;border-radius:26px;
+    font-size:13px;font-weight:900;color:#3a2c05;white-space:nowrap;
+    background:linear-gradient(180deg,#ffeb9e,#ffc22e);box-shadow:0 5px 16px rgba(255,190,40,.4);}
+  .bp-row.no{opacity:.55;background:linear-gradient(180deg,#cfcfcf,#9a9a9a);color:#333;}
+  .bp-row:active{transform:scale(.95);}
 
   #countOv{position:absolute;inset:0;z-index:14;display:none;align-items:center;justify-content:center;
     pointer-events:none;background:rgba(10,10,24,.35);}
@@ -382,6 +386,7 @@
     <div id="hudHp">❤️❤️❤️</div>
     <div id="hudRescue"><img src="/chikumo.svg" alt="こっこ"> 0 / 3</div>
     <div id="hudMoney">💴 0</div>
+    <div id="hudAmmo">🔫 x5</div>
     <div id="o2Wrap"><span class="lbl">🫁</span><div id="o2Bar"><div id="o2Fill"></div></div></div>
     <div id="radar"><div id="radarArrow">▲</div><div id="radarDist">0m</div></div>
     <div id="cross">＋</div>
@@ -391,7 +396,10 @@
   <div class="actbtn hidden" id="fireBtn">🔫</div>
   <div class="actbtn hidden" id="jumpBtn">⬆</div>
   <div class="actbtn hidden" id="bombBtn">💣</div>
-  <div class="buyprompt hidden" id="buyPrompt">🏪 タップで🫧購入</div>
+  <div class="buyprompt hidden" id="buyPrompt">
+    <div class="bp-row" id="buyO2Row">🫧 タップで購入 💴100</div>
+    <div class="bp-row" id="buyAmmoRow">🔫 タップで購入 💴50</div>
+  </div>
   <div id="countOv"><div id="countNum">3</div></div>
 
   <!-- TITLE -->
@@ -422,14 +430,15 @@
   <div class="screen hidden" id="howScreen">
     <div class="logo small">あそびかた</div>
     <div class="desc" style="max-width:380px;text-align:left;">
-      ◆ <b>スマホ</b>：画面の<b>左半分</b>をドラッグで移動、<b>右半分</b>をドラッグで見まわす。<b>🔫ボタン</b>長おしでインク発射、<b>⬆ボタン</b>でジャンプ、<b>💣</b>でインクボム！<br><br>
-      ◆ <b>パソコン</b>：WASDで移動、画面クリックでマウス視点。クリック長おしで発射、スペースでジャンプ、<b>Eキー</b>でボム。<br><br>
-      ◆ 画面上の <b>▲レーダー</b> が、いちばん近くのとらわれた <b>こっこちゃん</b> の方向をさす。オリに5発当てると <b>救出</b>！3羽ぜんぶ助けたらクリア！<br><br>
+      ◆ <b>スマホ</b>：画面の<b>左半分</b>をドラッグで移動、<b>右半分</b>をドラッグで見まわす。<b>🔫ボタン</b>タップで1発発射、<b>⬆ボタン</b>でジャンプ、<b>💣</b>でインクボム！<br><br>
+      ◆ <b>パソコン</b>：WASDで移動、画面クリックでマウス視点。クリックで1発発射、スペースでジャンプ、<b>Eキー</b>でボム。<br><br>
+      ◆ 画面上の <b>▲レーダー</b> が、いちばん近くのとらわれた <b>こっこちゃん</b> の方向をさす。<b>💣インクボム</b>を当てると <b>救出</b>！3羽ぜんぶ助けたらクリア！<br><br>
       ◆ <b>自分の黄色インクの上</b> はスイスイ高速移動。<span class="pr">ブラックインク</span>の上はベタベタおそくなる。<br><br>
       ◆ <span class="pr">ブラックこっこちゃん</span> のインクを3発くらうとダウン。スタート地点からふっかつ。<br><br>
       ◆ ステージは毎回ちがう形に <b>自動生成</b> されるよ。ハコの上にもジャンプでのぼれる！<br><br>
       ◆ <b style="color:#bfe6ff;">🌀 空蹴り</b>：空中でもう一度ジャンプ（⬆ボタン／スペース）すると 空気を蹴って何度でも跳べる！ ただし<b>🫁酸素ゲージ</b>を消費、着地しているあいだ じわじわ回復する。酸素があるかぎり跳びつづけて 敵をねらい撃つ <b>空中戦</b>もできるよ！<br><br>
-      ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>がもらえる。ステージ内の<b>🏪コンビニ</b>に近づくと 💴で<b>🫧酸素ボンベ</b>が買えて 酸素ゲージが まんタンに回復！（Bキーでも購入できる）
+      ◆ <b style="color:#ffd36b;">🔫 ピストル</b>：こっこGPから移植した遠隔武器！弾は最初<b>5発</b>だけ、当たれば<span class="pr">ブラックこっこちゃん</span>を<b>1発で撃破</b>（絵の具は塗らない）。弾切れは🏪コンビニで補充しよう。<br><br>
+      ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>がもらえる。ステージ内の<b>🏪コンビニ</b>に近づくと 💴で<b>🫧酸素ボンベ</b>（まんタン回復・Bキー）や<b>🔫弾丸</b>（1発💴50・最大99発・Gキー）が買えるよ。
     </div>
     <button class="btn" id="howBack">もどる</button>
   </div>
@@ -532,7 +541,6 @@ const Sound=(function(){
     hurt(){ tone(220,0.12,'square',0.3,120); noise(.1,.2,1400); },
     down(){ tone(440,0.16,'sawtooth',0.3,110); setTimeout(()=>tone(160,0.3,'sine',0.3,60),120); },
     respawn(){ tone(523,0.1,'triangle',0.2,784); setTimeout(()=>tone(784,0.12,'triangle',0.2,1047),90); },
-    cageHit(){ tone(1300,0.05,'square',0.18,900); noise(.04,.1,4000); },
     rescue(){ const seq=[784,988,1319,1568,2093];
       seq.forEach((f,i)=>setTimeout(()=>{ tone(f,0.13,'triangle',0.30,f*1.06); tone(f*2,0.08,'sine',0.10); },i*55));
       setTimeout(()=>{ tone(2637,0.20,'sine',0.24,3520); tone(3136,0.16,'triangle',0.14); noise(.12,.10,8000); }, seq.length*55); },
@@ -671,6 +679,7 @@ const PTEX=1024, PSCALE=PTEX/SIZE;
 const GRID=128, GCELL=SIZE/GRID;
 const TIME=120, CAGES=3, BOMB_CD=7;
 const STORE_PRICE=100, STORE_MONEY_PER_KO=30, AIR_KICK_COST=0.16, AIR_KICK_VY=8.2, O2_REGEN=0.05;
+const AMMO_START=5, AMMO_MAX=99, AMMO_PRICE=50, PISTOL_CD=0.18; // 🔫ピストル（こっこGPから移植）
 const TIME_ARC_C=226.19; // 2*PI*36（丸いリングタイマーの円周）
 
 /* ===== インクペイント面（キャンバス→テクスチャ部分転送） ===== */
@@ -895,7 +904,7 @@ function genWorld(seed){
   while(cages.length<CAGES) cages.push({x:rr(-20,20),z:rr(-20,20),hp:5,freed:0,wob:rr(0,TAU)});
   // ブラックこっこちゃん（オリの見はり2羽＋うろつき4羽）
   function mkEnemy(x,z,guard){
-    return {x,z,hx:x,hz:z,guard,hp:3,deadT:0,invT:1.2,think:rr(0,0.8),tx:x,tz:z,fireT:rr(0.5,1.2),sq:rr(0,TAU),flip:1};
+    return {x,z,hx:x,hz:z,guard,hp:1,deadT:0,invT:1.2,think:rr(0,0.8),tx:x,tz:z,fireT:rr(0.5,1.2),sq:rr(0,TAU),flip:1};
   }
   cages.forEach((c,i)=>{
     for(let k=0;k<2;k++){
@@ -981,7 +990,7 @@ function insideBox(x,y,z){
 
 /* ===== ゲーム状態 ===== */
 const G={phase:'title',t:TIME,score:0,rescued:0,kos:0,countT:0,finishT:0,best:0,shake:0,lastSec:99,paused:false,time:0,win:false,money:0};
-const P={x:0,z:0,y:0,vy:0,hp:3,fireT:0,deadT:0,invT:0,hitT:0,bombT:0,swim:false,moving:false,flip:1,onG:true,o2:1};
+const P={x:0,z:0,y:0,vy:0,hp:3,fireT:0,deadT:0,invT:0,hitT:0,bombT:0,swim:false,moving:false,flip:1,onG:true,o2:1,ammo:AMMO_START};
 const cam={yaw:0,pitch:-0.3,dist:7.2};
 let pellets=[],bombs=[],parts=[];
 function loadBest(){ try{ G.best=+localStorage.getItem('coccoSplat3dBest')||0; }catch(e){ G.best=0; } }
@@ -1004,25 +1013,41 @@ function hearts3(x,y,z){
   for(let i=0;i<7;i++) parts.push({x:x+rnd(-0.8,0.8),y:y+rnd(0,0.6),z:z+rnd(-0.8,0.8),
     vx:rnd(-0.6,0.6),vy:rnd(2.2,3.6),vz:rnd(-0.6,0.6),life:rnd(0.8,1.3),t:0,col:[1,0.55,0.7],size:rnd(0.35,0.55),cell:3,grav:-1});
 }
-function sparks3(x,y,z,n){
-  for(let i=0;i<n;i++) parts.push({x,y,z,vx:rnd(-2,2),vy:rnd(1,4),vz:rnd(-2,2),
-    life:rnd(0.3,0.6),t:0,col:[1,1,0.8],size:rnd(0.25,0.5),cell:5,grav:6});
-}
 
 /* ===== プレイヤー・敵のアクション ===== */
 const SPAWN={x:0,z:HALF-12};
-function firePellet(){
+/* 🎯 エイムアシスト（こっこGPから移植）：クロスヘアの近くにいる敵へ弾がゆるやかに吸い付く */
+function findAimTarget(mx,my,mz,f){
+  let best=null, bestDot=0.90;
+  for(const e of enemies){
+    if(e.deadT>0||e.invT>0) continue;
+    const dx=e.x-mx, dy=1.1-my, dz=e.z-mz;
+    const dist=Math.hypot(dx,dy,dz);
+    if(dist<0.5||dist>45) continue;
+    const dot=(dx*f[0]+dy*f[1]+dz*f[2])/dist;
+    if(dot>bestDot){ bestDot=dot; best=e; }
+  }
+  return best;
+}
+/* 🔫ピストル（こっこGPから移植）：弾数制限ありの遠隔武器。当たれば1発で撃破、絵の具は塗らない */
+function firePistol(){
+  if(G.phase!=='play'||G.paused||P.deadT>0) return;
+  if(P.fireT>0) return;
+  if(P.ammo<=0){ Sound.nope(); return; }
+  P.fireT=PISTOL_CD; P.ammo--; hudAmmo();
   const f=camForward();
   const mx=P.x+f[0]*0.6, my=P.y+1.3, mz=P.z+f[2]*0.6;
-  // クロスヘア（カメラ正面26m先）へ向けて発射
-  const eye=camEye();
-  const tx=eye[0]+f[0]*26, ty=eye[1]+f[1]*26, tz=eye[2]+f[2]*26;
-  let dx=tx-mx, dy=ty-my, dz=tz-mz;
+  const target=findAimTarget(mx,my,mz,f);
+  let dx,dy,dz;
+  if(target){ dx=target.x-mx; dy=1.1-my; dz=target.z-mz; }
+  else{
+    // ロックオン先が無ければ クロスヘア（カメラ正面26m先）へ向けて発射
+    const eye=camEye();
+    dx=eye[0]+f[0]*26-mx; dy=eye[1]+f[1]*26-my; dz=eye[2]+f[2]*26-mz;
+  }
   const d=Math.hypot(dx,dy,dz)||1; dx/=d; dy/=d; dz/=d;
-  const sp=38, sprd=0.035;
-  pellets.push({x:mx,y:my,z:mz,
-    vx:(dx+rnd(-sprd,sprd))*sp, vy:(dy+0.045+rnd(-sprd,sprd))*sp, vz:(dz+rnd(-sprd,sprd))*sp,
-    team:1,life:1.6});
+  const sp=52;
+  pellets.push({x:mx,y:my,z:mz, vx:dx*sp, vy:dy*sp, vz:dz*sp, team:1,life:1.0});
   Sound.shoot();
 }
 function hitPlayer(){
@@ -1059,7 +1084,7 @@ function throwBomb(){
 /* ===== 敵AI（ブラックこっこちゃん） ===== */
 function updateEnemy(e,dt){
   if(e.deadT>0){ e.deadT-=dt;
-    if(e.deadT<=0){ e.x=e.hx; e.z=e.hz; e.hp=3; e.invT=1.5; e.think=0; splatInk(e.x,e.z,2.4,2); }
+    if(e.deadT<=0){ e.x=e.hx; e.z=e.hz; e.hp=1; e.invT=1.5; e.think=0; splatInk(e.x,e.z,2.4,2); }
     return; }
   if(e.invT>0)e.invT-=dt;
   e.think-=dt;
@@ -1154,9 +1179,8 @@ function update(dt){
     }else{ P.y=fl; P.onG=true; }
     // 🫁 酸素ゲージ：着地しているあいだ じわじわ回復
     if(P.onG&&P.o2<1){ P.o2=Math.min(1,P.o2+dt*O2_REGEN); hudO2(); }
-    // 発射
-    P.fireT-=dt;
-    if(input.firing&&P.fireT<=0){ P.fireT=0.12; firePellet(); }
+    // 🔫ピストルのクールダウン
+    if(P.fireT>0) P.fireT-=dt;
   }
   if(P.bombT>0){ P.bombT-=dt; bombUI(); }
 
@@ -1166,7 +1190,7 @@ function update(dt){
   /* --- ペレット --- */
   for(let i=pellets.length-1;i>=0;i--){
     const p=pellets[i];
-    p.vy-=16*dt;
+    if(p.team===2) p.vy-=16*dt;   // 敵のインク弾だけ放物線。🔫ピストルの弾はまっすぐ飛ぶ
     p.x+=p.vx*dt; p.y+=p.vy*dt; p.z+=p.vz*dt; p.life-=dt;
     let dead=false, paintGround=false;
     if(Math.abs(p.x)>HALF-0.5||Math.abs(p.z)>HALF-0.5){ dead=true; }
@@ -1180,10 +1204,6 @@ function update(dt){
         const dx=p.x-e.x, dy=p.y-1.1, dz=p.z-e.z;
         if(dx*dx+dy*dy+dz*dz<1.6*1.6){ dead=true; e.hp--; burst3(p.x,p.y,p.z,[1,0.85,0.18],4,3); Sound.hitEnemy();
           if(e.hp<=0) koEnemy(e); break; } }
-      if(!dead) for(const c of cages){ if(c.freed>0) continue;
-        const dx=p.x-c.x, dy=p.y-1.2, dz=p.z-c.z;
-        if(dx*dx+dy*dy+dz*dz<2.0*2.0){ dead=true; c.hp--; sparks3(p.x,p.y,p.z,4); Sound.cageHit();
-          if(c.hp<=0) rescueCage(c); break; } }
     }else if(!dead&&p.team===2){
       if(P.deadT<=0&&P.invT<=0){
         const dx=p.x-P.x, dy=p.y-(P.y+1.0), dz=p.z-P.z;
@@ -1192,10 +1212,12 @@ function update(dt){
     }
     if(p.life<=0) dead=true;
     if(dead){
-      if(paintGround||p.life<=0){
-        const r=p.team===1?rnd(1.8,2.4):rnd(1.5,2.0);
-        if(Math.abs(p.x)<HALF&&Math.abs(p.z)<HALF&&floorAt(p.x,p.z,0.3)===0) splatInk(p.x,p.z,r,p.team);
+      if(p.team===2&&(paintGround||p.life<=0)){
+        const r=rnd(1.5,2.0);
+        if(Math.abs(p.x)<HALF&&Math.abs(p.z)<HALF&&floorAt(p.x,p.z,0.3)===0) splatInk(p.x,p.z,r,2);
         if(Math.random()<0.3&&Math.hypot(p.x-P.x,p.z-P.z)<26) Sound.splat();
+      }else if(p.team===1&&paintGround){
+        burst3(p.x,p.y,p.z,[1,0.92,0.6],3,2);   // 🔫弾着スパーク（絵の具は塗らない）
       }
       pellets.splice(i,1);
     }
@@ -1245,16 +1267,18 @@ function hudHp(){ let h='';
 function hudRescue(){ $('hudRescue').innerHTML='<img src="/chikumo.svg" alt="こっこ"> '+G.rescued+' / '+CAGES; }
 function hudMoney(){ $('hudMoney').textContent='💴 '+G.money.toLocaleString(); }
 function hudO2(){ $('o2Fill').style.width=Math.round(P.o2*100)+'%'; $('o2Wrap').classList.toggle('low',P.o2<0.25); }
-/* 🏪 コンビニ：近づくと買えるようになる🫧酸素ボンベ */
+function hudAmmo(){ $('hudAmmo').textContent='🔫 x'+P.ammo; $('fireBtn').classList.toggle('empty',P.ammo<=0); }
+/* 🏪 コンビニ：近づくと買えるようになる🫧酸素ボンベ／🔫弾丸 */
 function updateBuyPrompt(){
-  const el=$('buyPrompt');
-  if(P.deadT>0){ el.classList.add('hidden'); return; }
+  const wrap=$('buyPrompt'), o2Row=$('buyO2Row'), amRow=$('buyAmmoRow');
+  if(P.deadT>0){ wrap.classList.add('hidden'); return; }
   const near=Math.hypot(P.x-STORE.x,P.z-STORE.z)<STORE.r;
-  if(!near){ el.classList.add('hidden'); return; }
-  el.classList.remove('hidden');
-  if(P.o2>=0.999){ el.classList.add('no'); el.textContent='🫧 酸素は まんタン！'; return; }
-  el.classList.toggle('no',G.money<STORE_PRICE);
-  el.textContent='🏪 タップで🫧購入 💴'+STORE_PRICE;
+  if(!near){ wrap.classList.add('hidden'); return; }
+  wrap.classList.remove('hidden');
+  if(P.o2>=0.999){ o2Row.classList.add('no'); o2Row.textContent='🫧 酸素は まんタン！'; }
+  else{ o2Row.classList.toggle('no',G.money<STORE_PRICE); o2Row.textContent='🫧 タップで購入 💴'+STORE_PRICE; }
+  if(P.ammo>=AMMO_MAX){ amRow.classList.add('no'); amRow.textContent='🔫 弾は 満タン！'; }
+  else{ amRow.classList.toggle('no',G.money<AMMO_PRICE); amRow.textContent='🔫 タップで購入 💴'+AMMO_PRICE+'（'+P.ammo+'/'+AMMO_MAX+'）'; }
 }
 function buyO2(){
   if(G.phase!=='play'||G.paused||P.deadT>0) return;
@@ -1263,6 +1287,14 @@ function buyO2(){
   if(G.money<STORE_PRICE){ Sound.nope(); return; }
   G.money-=STORE_PRICE; P.o2=1; hudMoney(); hudO2(); updateBuyPrompt(); Sound.buy();
   burst3(STORE.x,1.6,STORE.z,[0.7,0.92,1],16,4);
+}
+function buyAmmo(){
+  if(G.phase!=='play'||G.paused||P.deadT>0) return;
+  if(Math.hypot(P.x-STORE.x,P.z-STORE.z)>=STORE.r) return;
+  if(P.ammo>=AMMO_MAX) return;
+  if(G.money<AMMO_PRICE){ Sound.nope(); return; }
+  G.money-=AMMO_PRICE; P.ammo++; hudMoney(); hudAmmo(); updateBuyPrompt(); Sound.buy();
+  burst3(STORE.x,1.6,STORE.z,[1,0.85,0.3],10,3);
 }
 function updateRadar(){
   let best=null,bd=1e9;
@@ -1362,7 +1394,7 @@ function bombUI(){
 
 /* ===== 入力 ===== */
 const IS_TOUCH=('ontouchstart' in window)||navigator.maxTouchPoints>0;
-const input={firing:false,btnFire:false,mouseFire:false,keys:{},
+const input={keys:{},
   stick:{active:false,id:-1,ox:0,oy:0,dx:0,dy:0},look:{active:false,id:-1,lx:0,ly:0}};
 const stickBase=$('stickBase'), stickKnob=$('stickKnob');
 function stickUI(){
@@ -1391,7 +1423,7 @@ cv.addEventListener('pointerdown',e=>{
   if(G.phase!=='play') return;
   if(e.pointerType==='mouse'){
     if(document.pointerLockElement!==cv){ try{cv.requestPointerLock();}catch(err){} }
-    if(e.button===0) input.mouseFire=true;
+    if(e.button===0) firePistol();
     return;
   }
   if(e.clientX<W*0.45&&!input.stick.active){
@@ -1417,7 +1449,6 @@ function ptrEnd(e){
   const s=input.stick, l=input.look;
   if(s.active&&e.pointerId===s.id){ s.active=false; s.dx=0; s.dy=0; stickUI(); }
   if(l.active&&e.pointerId===l.id){ l.active=false; }
-  if(e.pointerType==='mouse'&&e.button===0) input.mouseFire=false;
 }
 cv.addEventListener('pointerup',ptrEnd); cv.addEventListener('pointercancel',ptrEnd);
 window.addEventListener('pointerup',ptrEnd);
@@ -1431,6 +1462,7 @@ window.addEventListener('keydown',e=>{
   if(k===' '){ e.preventDefault(); doJump(); }
   if(k==='e') throwBomb();
   if(k==='b') buyO2();
+  if(k==='g') buyAmmo();
 });
 window.addEventListener('keyup',e=>{ input.keys[e.key.toLowerCase()]=false; });
 function doJump(){
@@ -1450,12 +1482,13 @@ function airKick(){
 }
 const fireBtn=$('fireBtn');
 fireBtn.addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume();
-  input.btnFire=true; fireBtn.classList.add('firing'); try{fireBtn.setPointerCapture(e.pointerId);}catch(err){} });
-function fireEnd(e){ input.btnFire=false; fireBtn.classList.remove('firing'); }
+  firePistol(); fireBtn.classList.add('firing'); try{fireBtn.setPointerCapture(e.pointerId);}catch(err){} });
+function fireEnd(e){ fireBtn.classList.remove('firing'); }
 fireBtn.addEventListener('pointerup',fireEnd); fireBtn.addEventListener('pointercancel',fireEnd);
 $('jumpBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); doJump(); });
 $('bombBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); throwBomb(); });
-$('buyPrompt').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); buyO2(); });
+$('buyO2Row').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); buyO2(); });
+$('buyAmmoRow').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); buyAmmo(); });
 
 /* ===== カメラ ===== */
 function camEye(){
@@ -1678,15 +1711,15 @@ function show(id){
 function start(){
   genWorld((Math.random()*0xffffffff)>>>0);
   clearInk();
-  P.x=SPAWN.x; P.z=SPAWN.z; P.y=0; P.vy=0; P.hp=3; P.fireT=0; P.deadT=0; P.invT=1.5; P.hitT=0; P.bombT=0; P.onG=true; P.flip=1; P.o2=1;
+  P.x=SPAWN.x; P.z=SPAWN.z; P.y=0; P.vy=0; P.hp=3; P.fireT=0; P.deadT=0; P.invT=1.5; P.hitT=0; P.bombT=0; P.onG=true; P.flip=1; P.o2=1; P.ammo=AMMO_START;
   cam.yaw=0; cam.pitch=-0.3;
   pellets=[]; bombs=[]; parts=[];
   splatInk(P.x,P.z,3.5,1);
   enemies.forEach(e=>splatInk(e.x,e.z,2.6,2));
   G.t=TIME; G.score=0; G.rescued=0; G.kos=0; G.shake=0; G.paused=false; G.win=false; G.money=0;
   G.phase='count'; G.countT=3.4;
-  input.firing=false; input.btnFire=false; input.mouseFire=false; input.stick.active=false; input.look.active=false;
-  hudTime(); hudScore(); hudHp(); hudRescue(); hudMoney(); hudO2(); updateTimeRing(); bombUI();
+  input.stick.active=false; input.look.active=false;
+  hudTime(); hudScore(); hudHp(); hudRescue(); hudMoney(); hudAmmo(); hudO2(); updateTimeRing(); bombUI();
   $('buyPrompt').classList.add('hidden');
   $('urgVin').classList.remove('on');
   show(null);
@@ -1697,7 +1730,6 @@ function endGame(){
   $('urgVin').classList.remove('on');
   Sound.stopBGM();
   if(!G.win) Sound.whistle();
-  input.firing=false; input.btnFire=false; input.mouseFire=false;
   if(document.pointerLockElement===cv){ try{document.exitPointerLock();}catch(e){} }
   setTimeout(showResult,G.win?1100:1500);
 }
@@ -1762,7 +1794,6 @@ splatInk(rnd(-30,30),rnd(-30,30),5,1); splatInk(rnd(-30,30),rnd(-30,30),5,2);
 let last=0;
 function frame(ts){
   const dt=Math.min(0.05,(ts-last)/1000||0.016); last=ts;
-  input.firing=input.btnFire||input.mouseFire;
   update(dt);
   render();
   requestAnimationFrame(frame);
