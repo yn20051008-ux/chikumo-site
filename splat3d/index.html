@@ -689,6 +689,7 @@ const GRID=128, GCELL=SIZE/GRID;
 const TIME=120, CAGES=3;
 const O2_PRICE=2, O2_MAX=99, STORE_MONEY_PER_KO=30, AIR_KICK_COST=0.16, AIR_KICK_VY=8.2, O2_REGEN=0.05;
 const AMMO_START=5, AMMO_MAX=99, AMMO_PRICE=2, PISTOL_CD=0.18; // 🔫ピストル（こっこGPから移植）
+const PISTOL_RANGE=250; // こっこGPと同じ「遠くまで届くレーザー」＝ステージ対角(170*√2≈240)をまるごとカバー
 const BOMB_MAX=99, BOMB_PRICE=4; // 💣インクボム（コンビニで購入・初期0個）
 const BUY_REPEAT_START_MS=260, BUY_REPEAT_MIN_MS=25, BUY_REPEAT_RAMP_MS=1500; // 🏪長押しで購入：押し続けるほど加速し最速25msまで
 const TIME_ARC_C=226.19; // 2*PI*36（丸いリングタイマーの円周）
@@ -1027,7 +1028,7 @@ function findAimTarget(mx,my,mz,f){
     if(e.deadT>0||e.invT>0) continue;
     const dx=e.x-mx, dy=1.1-my, dz=e.z-mz;
     const dist=Math.hypot(dx,dy,dz);
-    if(dist<0.5||dist>45) continue;
+    if(dist<0.5||dist>PISTOL_RANGE) continue;
     const dot=(dx*f[0]+dy*f[1]+dz*f[2])/dist;
     if(dot>bestDot){ bestDot=dot; best=e; }
   }
@@ -1051,7 +1052,7 @@ function firePistol(){
     // ロックオン先が無ければ 水平にまっすぐ、障害物か最大距離まで即座にレーザーをのばす（当たり判定なし）
     // ※カメラのお辞儀角そのまま撃つと数mで地面に刺さり見えなくなるため、狙いは水平にする
     const hl=Math.hypot(f[0],f[2])||1, dx=f[0]/hl, dz=f[2]/hl;
-    const MAXD=45, STEP=0.5;
+    const MAXD=PISTOL_RANGE, STEP=0.5;
     let hitDist=MAXD;
     for(let t=STEP;t<MAXD;t+=STEP){
       const px=mx+dx*t, pz=mz+dz*t;
