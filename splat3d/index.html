@@ -437,8 +437,8 @@
       ◆ <span class="pr">ブラックこっこちゃん</span> のインクを3発くらうとダウン。スタート地点からふっかつ。<br><br>
       ◆ ステージは毎回ちがう形に <b>自動生成</b> されるよ。ハコの上にもジャンプでのぼれる！<br><br>
       ◆ <b style="color:#bfe6ff;">🌀 空蹴り</b>：空中でもう一度ジャンプ（⬆ボタン／スペース）すると 空気を蹴って何度でも跳べる！ ただし<b>🫁酸素ゲージ</b>を消費、着地しているあいだ じわじわ回復する。酸素があるかぎり跳びつづけて 敵をねらい撃つ <b>空中戦</b>もできるよ！<br><br>
-      ◆ <b style="color:#ffd36b;">🔫 ピストル</b>：こっこGPから移植した遠隔武器！弾は最初<b>5発</b>だけ、当たれば<span class="pr">ブラックこっこちゃん</span>を<b>1発で撃破</b>（絵の具は塗らない）。弾切れは🏪コンビニで補充しよう。<br><br>
-      ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>がもらえる。ステージ内の<b>🏪コンビニ</b>に近づくと 💴で<b>🫧酸素ボンベ</b>（まんタン回復・Bキー）や<b>🔫弾丸</b>（1発💴50・最大99発・Gキー）が買えるよ。
+      ◆ <b style="color:#ffd36b;">🔫 レーザーピストル</b>：こっこGPから移植した遠隔武器！飛び道具ではなく<b>撃った瞬間に当たる光線</b>。弾は最初<b>5発</b>だけ、当たれば<span class="pr">ブラックこっこちゃん</span>を<b>1発で撃破</b>（絵の具は塗らない）。弾切れは🏪コンビニで補充しよう。<br><br>
+      ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>がもらえる。ステージ内の<b>🏪コンビニ</b>に近づくと 💴で<b>🫧酸素ボンベ</b>（まんタン回復・Bキー）や<b>🔫レーザーの弾</b>（1発💴50・最大99発・Gキー）が買えるよ。
     </div>
     <button class="btn" id="howBack">もどる</button>
   </div>
@@ -992,7 +992,7 @@ function insideBox(x,y,z){
 const G={phase:'title',t:TIME,score:0,rescued:0,kos:0,countT:0,finishT:0,best:0,shake:0,lastSec:99,paused:false,time:0,win:false,money:0};
 const P={x:0,z:0,y:0,vy:0,hp:3,fireT:0,deadT:0,invT:0,hitT:0,bombT:0,swim:false,moving:false,flip:1,onG:true,o2:1,ammo:AMMO_START};
 const cam={yaw:0,pitch:-0.3,dist:7.2};
-let pellets=[],bombs=[],parts=[];
+let pellets=[],bombs=[],parts=[],lasers=[];
 function loadBest(){ try{ G.best=+localStorage.getItem('coccoSplat3dBest')||0; }catch(e){ G.best=0; } }
 function saveBest(){ try{ localStorage.setItem('coccoSplat3dBest',String(G.best)); }catch(e){} }
 loadBest();
@@ -1029,7 +1029,7 @@ function findAimTarget(mx,my,mz,f){
   }
   return best;
 }
-/* 🔫ピストル（こっこGPから移植）：弾数制限ありの遠隔武器。当たれば1発で撃破、絵の具は塗らない */
+/* 🔫ピストル（こっこGPから移植）：弾数制限ありの遠隔武器。飛び道具ではなく即着弾のレーザー。当たれば1発で撃破、絵の具は塗らない */
 function firePistol(){
   if(G.phase!=='play'||G.paused||P.deadT>0) return;
   if(P.fireT>0) return;
@@ -1038,16 +1038,23 @@ function firePistol(){
   const f=camForward();
   const mx=P.x+f[0]*0.6, my=P.y+1.3, mz=P.z+f[2]*0.6;
   const target=findAimTarget(mx,my,mz,f);
-  let dx,dy,dz;
-  if(target){ dx=target.x-mx; dy=1.1-my; dz=target.z-mz; }
-  else{
-    // ロックオン先が無ければ クロスヘア（カメラ正面26m先）へ向けて発射
-    const eye=camEye();
-    dx=eye[0]+f[0]*26-mx; dy=eye[1]+f[1]*26-my; dz=eye[2]+f[2]*26-mz;
+  let hx,hy,hz;
+  if(target){
+    hx=target.x; hy=1.1; hz=target.z;
+    target.hp--; burst3(hx,hy,hz,[1,0.85,0.18],4,3); Sound.hitEnemy();
+    if(target.hp<=0) koEnemy(target);
+  }else{
+    // ロックオン先が無ければ 障害物か最大距離まで即座にレーザーをのばす（当たり判定なし）
+    const MAXD=45, STEP=0.5;
+    let hitDist=MAXD;
+    for(let t=STEP;t<MAXD;t+=STEP){
+      const px=mx+f[0]*t, py=my+f[1]*t, pz=mz+f[2]*t;
+      if(insideBox(px,py,pz)||py<=0||Math.abs(px)>HALF||Math.abs(pz)>HALF){ hitDist=t; break; }
+    }
+    hx=mx+f[0]*hitDist; hy=my+f[1]*hitDist; hz=mz+f[2]*hitDist;
+    burst3(hx,hy,hz,[1,0.92,0.6],3,2);
   }
-  const d=Math.hypot(dx,dy,dz)||1; dx/=d; dy/=d; dz/=d;
-  const sp=52;
-  pellets.push({x:mx,y:my,z:mz, vx:dx*sp, vy:dy*sp, vz:dz*sp, team:1,life:1.0});
+  lasers.push({x0:mx,y0:my,z0:mz,x1:hx,y1:hy,z1:hz,t:0,life:0.15});
   Sound.shoot();
 }
 function hitPlayer(){
@@ -1124,7 +1131,7 @@ function updateEnemy(e,dt){
     const sa=rnd(-0.13,0.13), ca=Math.cos(sa), si=Math.sin(sa);
     const nx=dPx/dP, nz=dPz/dP;
     pellets.push({x:e.x,y:1.2,z:e.z,
-      vx:(nx*ca-nz*si)*sp, vy, vz:(nx*si+nz*ca)*sp, team:2,life:2.4});
+      vx:(nx*ca-nz*si)*sp, vy, vz:(nx*si+nz*ca)*sp, life:2.4});
   }
 }
 
@@ -1187,40 +1194,36 @@ function update(dt){
   /* --- 敵 --- */
   enemies.forEach(e=>updateEnemy(e,dt));
 
-  /* --- ペレット --- */
+  /* --- ペレット（ブラックこっこちゃんのインク弾のみ。🔫ピストルは即着弾のレーザーなのでここには来ない） --- */
   for(let i=pellets.length-1;i>=0;i--){
     const p=pellets[i];
-    if(p.team===2) p.vy-=16*dt;   // 敵のインク弾だけ放物線。🔫ピストルの弾はまっすぐ飛ぶ
+    p.vy-=16*dt;
     p.x+=p.vx*dt; p.y+=p.vy*dt; p.z+=p.vz*dt; p.life-=dt;
     let dead=false, paintGround=false;
     if(Math.abs(p.x)>HALF-0.5||Math.abs(p.z)>HALF-0.5){ dead=true; }
-    else if(insideBox(p.x,p.y,p.z)){ dead=true; burst3(p.x,p.y,p.z,p.team===1?[1,0.85,0.18]:[0.32,0.25,0.45],3,2); }
+    else if(insideBox(p.x,p.y,p.z)){ dead=true; burst3(p.x,p.y,p.z,[0.32,0.25,0.45],3,2); }
     else{
       const fl=floorAt(p.x,p.z,p.y+0.2);
       if(p.y<=fl+0.08){ dead=true; if(fl===0) paintGround=true; }
     }
-    if(!dead&&p.team===1){
-      for(const e of enemies){ if(e.deadT>0||e.invT>0) continue;
-        const dx=p.x-e.x, dy=p.y-1.1, dz=p.z-e.z;
-        if(dx*dx+dy*dy+dz*dz<1.6*1.6){ dead=true; e.hp--; burst3(p.x,p.y,p.z,[1,0.85,0.18],4,3); Sound.hitEnemy();
-          if(e.hp<=0) koEnemy(e); break; } }
-    }else if(!dead&&p.team===2){
-      if(P.deadT<=0&&P.invT<=0){
-        const dx=p.x-P.x, dy=p.y-(P.y+1.0), dz=p.z-P.z;
-        if(dx*dx+dy*dy+dz*dz<1.3*1.3){ dead=true; hitPlayer(); }
-      }
+    if(!dead&&P.deadT<=0&&P.invT<=0){
+      const dx=p.x-P.x, dy=p.y-(P.y+1.0), dz=p.z-P.z;
+      if(dx*dx+dy*dy+dz*dz<1.3*1.3){ dead=true; hitPlayer(); }
     }
     if(p.life<=0) dead=true;
     if(dead){
-      if(p.team===2&&(paintGround||p.life<=0)){
+      if(paintGround||p.life<=0){
         const r=rnd(1.5,2.0);
         if(Math.abs(p.x)<HALF&&Math.abs(p.z)<HALF&&floorAt(p.x,p.z,0.3)===0) splatInk(p.x,p.z,r,2);
         if(Math.random()<0.3&&Math.hypot(p.x-P.x,p.z-P.z)<26) Sound.splat();
-      }else if(p.team===1&&paintGround){
-        burst3(p.x,p.y,p.z,[1,0.92,0.6],3,2);   // 🔫弾着スパーク（絵の具は塗らない）
       }
       pellets.splice(i,1);
     }
+  }
+  /* --- 🔫レーザー（即着弾の発光ビーム。短時間で消える） --- */
+  for(let i=lasers.length-1;i>=0;i--){
+    const l=lasers[i]; l.t+=dt;
+    if(l.t>=l.life) lasers.splice(i,1);
   }
 
   /* --- ボム --- */
@@ -1535,6 +1538,13 @@ function spriteBB(x,y,z,w,h,cell,r,g,b,a){ // 完全ビルボード
 function shadow(x,y,z,w,a){
   shadN=pushQuad(shadArr,shadN,x,y+0.04,z,1,0,0,0,0,-1,w/2,w/2,6,1,1,1,a,false);
 }
+function beam(x0,y0,z0,x1,y1,z1,w,cell,r,g,b,a){ // 2点間をむすぶ発光ビーム（カメラ側を向くリボン）
+  const dx=x1-x0,dy=y1-y0,dz=z1-z0, len=Math.hypot(dx,dy,dz)||1;
+  const rx=dx/len, ry=dy/len, rz=dz/len;
+  let ux=camF[1]*rz-camF[2]*ry, uy=camF[2]*rx-camF[0]*rz, uz=camF[0]*ry-camF[1]*rx;
+  const ul=Math.hypot(ux,uy,uz)||1; ux/=ul; uy/=ul; uz/=ul;
+  sprN=pushQuad(sprArr,sprN,(x0+x1)/2,(y0+y1)/2,(z0+z1)/2,rx,ry,rz,ux,uy,uz,len/2,w/2,cell,r,g,b,a,false);
+}
 
 /* ===== 描画 ===== */
 function resize(){
@@ -1677,10 +1687,12 @@ function buildSprites(){
     shadow(STORE.x,0,STORE.z,2.6,0.7);
     sprite(STORE.x,3.6+wob,STORE.z,2.6,2.6,8,1,1,1,1,false);
   }
-  /* ペレット */
-  for(const p of pellets){
-    if(p.team===1) spriteBB(p.x,p.y,p.z,0.55,0.55,2,1,0.85,0.18,1);
-    else spriteBB(p.x,p.y,p.z,0.55,0.55,2,0.28,0.21,0.38,1);
+  /* ペレット（ブラックこっこちゃんのインク弾） */
+  for(const p of pellets) spriteBB(p.x,p.y,p.z,0.55,0.55,2,0.28,0.21,0.38,1);
+  /* 🔫レーザー（即着弾のビーム） */
+  for(const l of lasers){
+    const a=1-l.t/l.life;
+    beam(l.x0,l.y0,l.z0,l.x1,l.y1,l.z1,0.32,2,1,0.94,0.6,a*0.95);
   }
   /* ボム */
   for(const b of bombs){
@@ -1713,7 +1725,7 @@ function start(){
   clearInk();
   P.x=SPAWN.x; P.z=SPAWN.z; P.y=0; P.vy=0; P.hp=3; P.fireT=0; P.deadT=0; P.invT=1.5; P.hitT=0; P.bombT=0; P.onG=true; P.flip=1; P.o2=1; P.ammo=AMMO_START;
   cam.yaw=0; cam.pitch=-0.3;
-  pellets=[]; bombs=[]; parts=[];
+  pellets=[]; bombs=[]; parts=[]; lasers=[];
   splatInk(P.x,P.z,3.5,1);
   enemies.forEach(e=>splatInk(e.x,e.z,2.6,2));
   G.t=TIME; G.score=0; G.rescued=0; G.kos=0; G.shake=0; G.paused=false; G.win=false; G.money=0;
