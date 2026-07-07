@@ -118,7 +118,9 @@
     font-size:14px;font-weight:800;color:#ffd36b;text-shadow:0 2px 6px rgba(0,0,0,.7);}
   #hudAmmo{position:absolute;top:calc(100px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));
     font-size:14px;font-weight:800;color:#ffe07a;text-shadow:0 2px 6px rgba(0,0,0,.7);}
-  #o2Wrap{position:absolute;top:calc(120px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));
+  #hudBomb{position:absolute;top:calc(120px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));
+    font-size:14px;font-weight:800;color:#ffb3a0;text-shadow:0 2px 6px rgba(0,0,0,.7);}
+  #o2Wrap{position:absolute;top:calc(140px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));
     display:flex;align-items:center;gap:5px;}
   #o2Wrap .lbl{font-size:13px;text-shadow:0 2px 6px rgba(0,0,0,.7);}
   #o2InvCount{font-size:12px;font-weight:800;color:#bfe6ff;text-shadow:0 2px 6px rgba(0,0,0,.7);}
@@ -391,6 +393,7 @@
     <div id="hudRescue"><img src="/chikumo.svg" alt="こっこ"> 0 / 3</div>
     <div id="hudMoney">💴 0</div>
     <div id="hudAmmo">🔫 x5</div>
+    <div id="hudBomb">💣 x0</div>
     <div id="o2Wrap"><span class="lbl">🫁</span><div id="o2Bar"><div id="o2Fill"></div></div><span id="o2InvCount">x0</span></div>
     <div id="radar"><div id="radarArrow">▲</div><div id="radarDist">0m</div></div>
     <div id="cross">＋</div>
@@ -404,6 +407,7 @@
   <div class="buyprompt hidden" id="buyPrompt">
     <div class="bp-row" id="buyO2Row">🫧 タップで購入 💴2</div>
     <div class="bp-row" id="buyAmmoRow">🔫 タップで購入 💴2</div>
+    <div class="bp-row" id="buyBombRow">💣 タップで購入 💴4</div>
   </div>
   <div id="countOv"><div id="countNum">3</div></div>
 
@@ -443,7 +447,7 @@
       ◆ ステージは毎回ちがう形に <b>自動生成</b> されるよ。ハコの上にもジャンプでのぼれる！<br><br>
       ◆ <b style="color:#bfe6ff;">🌀 空蹴り</b>：空中でもう一度ジャンプ（⬆ボタン／スペース）すると 空気を蹴って何度でも跳べる！ ただし<b>🫁酸素ゲージ</b>を消費、着地しているあいだ じわじわ回復する。酸素があるかぎり跳びつづけて 敵をねらい撃つ <b>空中戦</b>もできるよ！<br><br>
       ◆ <b style="color:#ffd36b;">🔫 レーザーピストル</b>：こっこGPから移植した遠隔武器！飛び道具ではなく<b>撃った瞬間に当たる光線</b>。弾は最初<b>5発</b>だけ、当たれば<span class="pr">ブラックこっこちゃん</span>を<b>1発で撃破</b>（絵の具は塗らない）。弾切れは🏪コンビニで補充しよう。<br><br>
-      ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>がもらえる。ステージ内<b>4か所</b>にある<b>🏪コンビニ</b>（レーダーマップにも表示）に近づくと 💴2で<b>🫧酸素ボンベ</b>や<b>🔫レーザーの弾</b>を、それぞれ最大99個まで買いだめできるよ（Bキー＝酸素ボンベ購入／Gキー＝弾丸購入）。<br><br>
+      ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>がもらえる。ステージ内<b>4か所</b>にある<b>🏪コンビニ</b>（レーダーマップにも表示）に近づくと <b>🫧酸素ボンベ</b>や<b>🔫レーザーの弾</b>を💴2で、<b>💣インクボム</b>（最初は0個）を💴4で、それぞれ最大99個まで買いだめできるよ（Bキー＝酸素ボンベ／Gキー＝弾丸／Hキー＝インクボム）。<b>押しつづけると連続購入</b>でまとめ買いできる！<br><br>
       ◆ <b>🫧酸素ボンベ</b>は買うだけでは回復しない。<b>いつでもどこでも</b>（🫧ボタン／Oキー）でボンベを1個つかうと 酸素ゲージが即まんタンに！ 空中でうまく使えば、そのぶん<b>空蹴りをつづけて空高く飛びつづける</b>こともできるよ。
     </div>
     <button class="btn" id="howBack">もどる</button>
@@ -686,6 +690,8 @@ const GRID=128, GCELL=SIZE/GRID;
 const TIME=120, CAGES=3, BOMB_CD=7;
 const O2_PRICE=2, O2_MAX=99, STORE_MONEY_PER_KO=30, AIR_KICK_COST=0.16, AIR_KICK_VY=8.2, O2_REGEN=0.05;
 const AMMO_START=5, AMMO_MAX=99, AMMO_PRICE=2, PISTOL_CD=0.18; // 🔫ピストル（こっこGPから移植）
+const BOMB_MAX=99, BOMB_PRICE=4; // 💣インクボム（コンビニで購入・初期0個）
+const BUY_REPEAT_MS=90; // 🏪長押しで高速購入
 const TIME_ARC_C=226.19; // 2*PI*36（丸いリングタイマーの円周）
 
 /* ===== インクペイント面（キャンバス→テクスチャ部分転送） ===== */
@@ -1006,7 +1012,7 @@ function insideBox(x,y,z){
 
 /* ===== ゲーム状態 ===== */
 const G={phase:'title',t:TIME,score:0,rescued:0,kos:0,countT:0,finishT:0,best:0,shake:0,lastSec:99,paused:false,time:0,win:false,money:0};
-const P={x:0,z:0,y:0,vy:0,hp:3,fireT:0,deadT:0,invT:0,hitT:0,bombT:0,swim:false,moving:false,flip:1,onG:true,o2:1,o2Inv:0,ammo:AMMO_START};
+const P={x:0,z:0,y:0,vy:0,hp:3,fireT:0,deadT:0,invT:0,hitT:0,bombT:0,swim:false,moving:false,flip:1,onG:true,o2:1,o2Inv:0,ammo:AMMO_START,bombInv:0};
 const cam={yaw:0,pitch:-0.3,dist:7.2};
 let pellets=[],bombs=[],parts=[],lasers=[];
 function loadBest(){ try{ G.best=+localStorage.getItem('coccoSplat3dBest')||0; }catch(e){ G.best=0; } }
@@ -1098,7 +1104,8 @@ function rescueCage(c){
 }
 function throwBomb(){
   if(G.phase!=='play'||G.paused||P.deadT>0||P.bombT>0) return;
-  P.bombT=BOMB_CD;
+  if(P.bombInv<=0){ Sound.nope(); return; }
+  P.bombT=BOMB_CD; P.bombInv--; hudBomb();
   const f=camForward();
   let h=Math.hypot(f[0],f[2])||1;
   const tx=clamp(P.x+f[0]/h*16,-HALF+3,HALF-3), tz=clamp(P.z+f[2]/h*16,-HALF+3,HALF-3);
@@ -1291,9 +1298,10 @@ function hudO2(){ $('o2Fill').style.width=Math.round(P.o2*100)+'%'; $('o2Wrap').
 function hudO2Inv(){ $('o2InvCount').textContent='x'+P.o2Inv; updateO2Btn(); }
 function updateO2Btn(){ $('o2Btn').classList.toggle('hidden', !(IS_TOUCH&&G.phase==='play'&&P.o2Inv>0)); }
 function hudAmmo(){ $('hudAmmo').textContent='🔫 x'+P.ammo; $('fireBtn').classList.toggle('empty',P.ammo<=0); }
-/* 🏪 コンビニ：近づくと買えるようになる🫧酸素ボンベ／🔫弾丸（どちらも在庫は99個まで） */
+function hudBomb(){ $('hudBomb').textContent='💣 x'+P.bombInv; }
+/* 🏪 コンビニ：近づくと買えるようになる🫧酸素ボンベ／🔫弾丸／💣インクボム（どれも在庫は99個まで） */
 function updateBuyPrompt(){
-  const wrap=$('buyPrompt'), o2Row=$('buyO2Row'), amRow=$('buyAmmoRow');
+  const wrap=$('buyPrompt'), o2Row=$('buyO2Row'), amRow=$('buyAmmoRow'), bmRow=$('buyBombRow');
   if(P.deadT>0){ wrap.classList.add('hidden'); return; }
   if(nearestStore().dist>=STORE_R){ wrap.classList.add('hidden'); return; }
   wrap.classList.remove('hidden');
@@ -1301,6 +1309,8 @@ function updateBuyPrompt(){
   else{ o2Row.classList.toggle('no',G.money<O2_PRICE); o2Row.textContent='🫧 タップで購入 💴'+O2_PRICE+'（'+P.o2Inv+'/'+O2_MAX+'）'; }
   if(P.ammo>=AMMO_MAX){ amRow.classList.add('no'); amRow.textContent='🔫 弾は 満タン！'; }
   else{ amRow.classList.toggle('no',G.money<AMMO_PRICE); amRow.textContent='🔫 タップで購入 💴'+AMMO_PRICE+'（'+P.ammo+'/'+AMMO_MAX+'）'; }
+  if(P.bombInv>=BOMB_MAX){ bmRow.classList.add('no'); bmRow.textContent='💣 在庫は 満タン！'; }
+  else{ bmRow.classList.toggle('no',G.money<BOMB_PRICE); bmRow.textContent='💣 タップで購入 💴'+BOMB_PRICE+'（'+P.bombInv+'/'+BOMB_MAX+'）'; }
 }
 /* 🫧コンビニで酸素ボンベを買う（在庫+1・99個まで。島ぐらしと同じく買うだけでは酸素は回復しない） */
 function buyO2(){
@@ -1329,6 +1339,24 @@ function buyAmmo(){
   G.money-=AMMO_PRICE; P.ammo++; hudMoney(); hudAmmo(); updateBuyPrompt(); Sound.buy();
   burst3(store.x,1.6,store.z,[1,0.85,0.3],10,3);
 }
+function buyBomb(){
+  if(G.phase!=='play'||G.paused||P.deadT>0) return;
+  const {store,dist}=nearestStore();
+  if(dist>=STORE_R) return;
+  if(P.bombInv>=BOMB_MAX) return;
+  if(G.money<BOMB_PRICE){ Sound.nope(); return; }
+  G.money-=BOMB_PRICE; P.bombInv++; hudMoney(); hudBomb(); bombUI(); updateBuyPrompt(); Sound.buy();
+  burst3(store.x,1.6,store.z,[1,0.7,0.3],10,3);
+}
+/* 🏪長押しで高速購入：押した瞬間に1個買い、押し続けるとBUY_REPEAT_MSごとに連続購入 */
+function holdRepeat(fn){
+  let timer=null;
+  function begin(){ if(timer) return; fn(); timer=setInterval(fn,BUY_REPEAT_MS); }
+  function end(){ if(timer){ clearInterval(timer); timer=null; } }
+  return {begin,end};
+}
+const buyO2Rep=holdRepeat(buyO2), buyAmmoRep=holdRepeat(buyAmmo), buyBombRep=holdRepeat(buyBomb);
+function endAllBuyRepeat(){ buyO2Rep.end(); buyAmmoRep.end(); buyBombRep.end(); }
 function updateRadar(){
   let best=null,bd=1e9;
   for(const c of cages){ if(c.freed>0) continue;
@@ -1425,6 +1453,7 @@ function drawMiniMap(){
 function bombUI(){
   const b=$('bombBtn');
   if(P.bombT>0){ b.classList.add('cool'); b.innerHTML='💣<span class="cd">'+Math.ceil(P.bombT)+'</span>'; }
+  else if(P.bombInv<=0){ b.classList.add('cool'); b.innerHTML='💣'; }
   else { b.classList.remove('cool'); b.innerHTML='💣'; }
 }
 
@@ -1497,11 +1526,18 @@ window.addEventListener('keydown',e=>{
   const k=e.key.toLowerCase(); input.keys[k]=true;
   if(k===' '){ e.preventDefault(); doJump(); }
   if(k==='e') throwBomb();
-  if(k==='b') buyO2();
-  if(k==='g') buyAmmo();
   if(k==='o') useO2Bomb();
+  if(e.repeat) return; // 長押しはbuyO2Rep等の自前タイマーに任せ、OSのキーリピートには反応しない
+  if(k==='b') buyO2Rep.begin();
+  if(k==='g') buyAmmoRep.begin();
+  if(k==='h') buyBombRep.begin();
 });
-window.addEventListener('keyup',e=>{ input.keys[e.key.toLowerCase()]=false; });
+window.addEventListener('keyup',e=>{
+  const k=e.key.toLowerCase(); input.keys[k]=false;
+  if(k==='b') buyO2Rep.end();
+  if(k==='g') buyAmmoRep.end();
+  if(k==='h') buyBombRep.end();
+});
 function doJump(){
   if(G.phase!=='play'||G.paused||P.deadT>0) return;
   if(P.onG){ P.vy=9.4; P.onG=false; P.y+=0.02; Sound.jump(); }
@@ -1525,8 +1561,17 @@ fireBtn.addEventListener('pointerup',fireEnd); fireBtn.addEventListener('pointer
 $('jumpBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); doJump(); });
 $('bombBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); throwBomb(); });
 $('o2Btn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); useO2Bomb(); });
-$('buyO2Row').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); buyO2(); });
-$('buyAmmoRow').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); buyAmmo(); });
+function bindBuyRow(id,rep){
+  const el=$(id);
+  el.addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); rep.begin(); try{el.setPointerCapture(e.pointerId);}catch(err){} });
+  el.addEventListener('pointerup',()=>rep.end());
+  el.addEventListener('pointercancel',()=>rep.end());
+  el.addEventListener('pointerleave',()=>rep.end());
+}
+bindBuyRow('buyO2Row',buyO2Rep);
+bindBuyRow('buyAmmoRow',buyAmmoRep);
+bindBuyRow('buyBombRow',buyBombRep);
+window.addEventListener('blur',endAllBuyRepeat);
 
 /* ===== カメラ ===== */
 function camEye(){
@@ -1780,7 +1825,7 @@ function show(id){
 function start(){
   genWorld((Math.random()*0xffffffff)>>>0);
   clearInk();
-  P.x=SPAWN.x; P.z=SPAWN.z; P.y=0; P.vy=0; P.hp=3; P.fireT=0; P.deadT=0; P.invT=1.5; P.hitT=0; P.bombT=0; P.onG=true; P.flip=1; P.o2=1; P.o2Inv=0; P.ammo=AMMO_START;
+  P.x=SPAWN.x; P.z=SPAWN.z; P.y=0; P.vy=0; P.hp=3; P.fireT=0; P.deadT=0; P.invT=1.5; P.hitT=0; P.bombT=0; P.onG=true; P.flip=1; P.o2=1; P.o2Inv=0; P.ammo=AMMO_START; P.bombInv=0;
   cam.yaw=0; cam.pitch=-0.3;
   pellets=[]; bombs=[]; parts=[]; lasers=[];
   splatInk(P.x,P.z,3.5,1);
@@ -1788,7 +1833,7 @@ function start(){
   G.t=TIME; G.score=0; G.rescued=0; G.kos=0; G.shake=0; G.paused=false; G.win=false; G.money=0;
   G.phase='count'; G.countT=3.4;
   input.stick.active=false; input.look.active=false;
-  hudTime(); hudScore(); hudHp(); hudRescue(); hudMoney(); hudAmmo(); hudO2(); hudO2Inv(); updateTimeRing(); bombUI();
+  hudTime(); hudScore(); hudHp(); hudRescue(); hudMoney(); hudAmmo(); hudBomb(); hudO2(); hudO2Inv(); updateTimeRing(); bombUI();
   $('buyPrompt').classList.add('hidden');
   $('urgVin').classList.remove('on');
   show(null);
