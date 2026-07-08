@@ -164,9 +164,9 @@
     width:60px;height:60px;font-size:25px;border-color:rgba(255,159,110,.8);flex-direction:column;
     box-shadow:0 4px 18px rgba(0,0,0,.4),0 0 18px rgba(255,159,110,.3);}
   #mslBtn .fc{font-size:10px;font-weight:800;margin-top:-2px;color:#ffd9c2;}
-  #forceRow{position:absolute;z-index:12;left:50%;transform:translateX(-50%);
+  #forceRow{position:absolute;z-index:12;right:calc(20px + env(safe-area-inset-right));
     bottom:calc(164px + env(safe-area-inset-bottom));display:flex;gap:10px;
-    max-width:calc(100vw - 24px);flex-wrap:wrap-reverse;justify-content:center;}
+    max-width:calc(100vw - 24px);flex-wrap:wrap-reverse;justify-content:flex-end;}
   .forceBtn{position:relative;width:56px;height:56px;font-size:24px;flex-direction:column;}
   .forceBtn .fc{font-size:9px;font-weight:800;margin-top:-2px;color:#dfffcf;}
   .forceBtn.hidden{display:none;}
