@@ -422,11 +422,11 @@
     <div class="actbtn forceBtn hidden" id="fRockBtn">🪨<span class="fc" id="fRockC">0</span></div>
   </div>
   <div class="buyprompt hidden" id="buyPrompt">
-    <div class="bp-row" id="buyO2Row">🫧 タップで購入 💴1</div>
-    <div class="bp-row" id="buyPistolRow">🔫 タップで購入 💴2</div>
-    <div class="bp-row" id="buyMslRow">🚀 タップで購入 💴3</div>
-    <div class="bp-row" id="buyBombRow">💣 タップで購入 💴4</div>
-    <div class="bp-row" id="buyRockRow">🪨 タップで購入 💴2</div>
+    <div class="bp-row" id="buyO2Row">🫧 💴1</div>
+    <div class="bp-row" id="buyPistolRow">🔫 💴2</div>
+    <div class="bp-row" id="buyMslRow">🚀 💴3</div>
+    <div class="bp-row" id="buyBombRow">💣 💴4</div>
+    <div class="bp-row" id="buyRockRow">🪨 💴1</div>
     <div class="bp-row" id="buyHeartRow">❤️ かいふく 💴15</div>
   </div>
   <div id="countOv"><div id="countNum">3</div></div>
@@ -723,7 +723,7 @@ const SIZE=170, HALF=SIZE/2;
 const TIME=90, NEST_COUNT=4;
 const O2_PRICE=1, O2_MAX=99, STORE_MONEY_PER_KO=15, AIR_KICK_COST=1/9, AIR_KICK_VY=8.2, O2_REGEN=0.05;
 const FORCE_CD=0.16, FORCE_RANGE=20;
-const FORCE_MAX=60, FORCE_PRICE=2, FORCE_START={rock:14};
+const FORCE_MAX=60, FORCE_PRICE=1, FORCE_START={rock:14};
 const HEART_PRICE=15;
 const SEAL_MONEY=45;
 /* 🔫レーザーピストル（塗る3Dから移植）：弾数制限つきの遠隔武器。飛び道具でなく即着弾。当たれば1発で撃破、地形は変えない */
@@ -1494,16 +1494,16 @@ function updateBuyPrompt(){
   wrap.classList.remove('hidden');
   const o2Row=$('buyO2Row');
   if(P.o2Inv>=O2_MAX){ o2Row.classList.add('no'); o2Row.textContent='🫧 在庫は 満タン！'; }
-  else{ o2Row.classList.toggle('no',G.money<O2_PRICE); o2Row.textContent='🫧 タップで購入 💴'+O2_PRICE+'（'+P.o2Inv+'/'+O2_MAX+'）'; }
+  else{ o2Row.classList.toggle('no',G.money<O2_PRICE); o2Row.textContent='🫧 💴'+O2_PRICE+'（'+P.o2Inv+'/'+O2_MAX+'）'; }
   const pRow=$('buyPistolRow');
   if(P.pistolAmmo>=PISTOL_AMMO_MAX){ pRow.classList.add('no'); pRow.textContent='🔫 弾は 満タン！'; }
-  else{ pRow.classList.toggle('no',G.money<PISTOL_PRICE); pRow.textContent='🔫 タップで購入 💴'+PISTOL_PRICE+'（'+P.pistolAmmo+'/'+PISTOL_AMMO_MAX+'）'; }
+  else{ pRow.classList.toggle('no',G.money<PISTOL_PRICE); pRow.textContent='🔫 💴'+PISTOL_PRICE+'（'+P.pistolAmmo+'/'+PISTOL_AMMO_MAX+'）'; }
   const mRow=$('buyMslRow');
   if(P.mslInv>=MSL_MAX){ mRow.classList.add('no'); mRow.textContent='🚀 在庫は 満タン！'; }
-  else{ mRow.classList.toggle('no',G.money<MSL_PRICE); mRow.textContent='🚀 タップで購入 💴'+MSL_PRICE+'（'+P.mslInv+'/'+MSL_MAX+'）'; }
+  else{ mRow.classList.toggle('no',G.money<MSL_PRICE); mRow.textContent='🚀 💴'+MSL_PRICE+'（'+P.mslInv+'/'+MSL_MAX+'）'; }
   const bRow=$('buyBombRow');
   if(P.bombInv>=BOMB_MAX){ bRow.classList.add('no'); bRow.textContent='💣 在庫は 満タン！'; }
-  else{ bRow.classList.toggle('no',G.money<BOMB_PRICE); bRow.textContent='💣 タップで購入 💴'+BOMB_PRICE+'（'+P.bombInv+'/'+BOMB_MAX+'）'; }
+  else{ bRow.classList.toggle('no',G.money<BOMB_PRICE); bRow.textContent='💣 💴'+BOMB_PRICE+'（'+P.bombInv+'/'+BOMB_MAX+'）'; }
   FORCE_ORDER.forEach(k=>{
     const row=$('buy'+cap(k)+'Row'); if(!row) return;
     if(P.forceAmmo[k]>=FORCE_MAX){
@@ -1511,7 +1511,7 @@ function updateBuyPrompt(){
     }else{
       row.classList.remove('hidden');
       row.classList.toggle('no',G.money<FORCE_PRICE);
-      row.textContent=FORCE_EMOJI[k]+' タップで購入 💴'+FORCE_PRICE+'（'+P.forceAmmo[k]+'/'+FORCE_MAX+'）';
+      row.textContent=FORCE_EMOJI[k]+' 💴'+FORCE_PRICE+'（'+P.forceAmmo[k]+'/'+FORCE_MAX+'）';
     }
   });
   const hRow=$('buyHeartRow');
