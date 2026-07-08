@@ -1194,7 +1194,7 @@ function fireMissile(){
   const hl=Math.hypot(f[0],f[2])||1;
   const dx=best?(best.x-P.x):f[0]/hl, dz=best?(best.z-P.z):f[2]/hl;
   const dl=Math.hypot(dx,dz)||1;
-  missiles.push({x:P.x+f[0]*0.6,y:1.1,z:P.z+f[2]*0.6,vx:dx/dl*MSL_SPEED,vz:dz/dl*MSL_SPEED,tgt:best,t:0});
+  missiles.push({x:P.x+f[0]*0.6,y:P.y+1.1,z:P.z+f[2]*0.6,vx:dx/dl*MSL_SPEED,vz:dz/dl*MSL_SPEED,tgt:best,t:0});
   Sound.launch(); G.shake=Math.max(G.shake,0.15);
 }
 /* 💣ボム（塗る3Dから移植）：山なりに投げて着弾で爆発。逆縁を巻き込むほか、オリを壊す唯一の手段 */
@@ -2147,7 +2147,7 @@ requestAnimationFrame(frame);
 /* ===== 検証フック（思考学：実際に遊んで終端まで通す検証のための窓） ===== */
 window.__mebuki={
   state(){ return { phase:G.phase, t:G.t, hp:P.hp, sealed:G.sealed, kos:G.kos, rescued:G.rescued, score:G.score, money:G.money,
-    win:G.win, ko:G.ko, px:P.x, pz:P.z, unlocked:Object.assign({},P.unlocked), ammo:Object.assign({},P.forceAmmo),
+    win:G.win, ko:G.ko, px:P.x, py:P.y, pz:P.z, unlocked:Object.assign({},P.unlocked), ammo:Object.assign({},P.forceAmmo),
     pistolAmmo:P.pistolAmmo, mslInv:P.mslInv, missileCount:missiles.length, bombInv:P.bombInv, bombCount:bombs.length,
     companionCount:companions.length,
     nests:nests.map(n=>({x:n.x,z:n.z,sealed:n.sealed,purity:n.purity,sealT:n.sealT})) }; },
@@ -2174,7 +2174,7 @@ window.__mebuki={
   listCompanions(){ return companions.map(c=>({x:c.x,z:c.z,fireT:c.fireT})); },
   rescueCageNow(i){ if(cages[i]&&cages[i].freed<=0) rescueCage(cages[i]); },
   nearestStore(){ const {store,dist}=nearestStore(); return store?{x:store.x,z:store.z,dist}:null; },
-  listMissiles(){ return missiles.map(m=>({x:m.x,z:m.z,t:m.t,hasTgt:!!(m.tgt&&m.tgt.deadT<=0)})); },
+  listMissiles(){ return missiles.map(m=>({x:m.x,y:m.y,z:m.z,t:m.t,hasTgt:!!(m.tgt&&m.tgt.deadT<=0)})); },
   listEnemies(){ return enemies.map(e=>({x:e.x,z:e.z,deadT:e.deadT,invT:e.invT,rockHits:e.rockHits,guard:e.guard})); },
   unlockAll(){ FORCE_ORDER.forEach(k=>{ P.unlocked[k]=true; P.forceAmmo[k]=30; }); hudForce(); },
   aimAt(x,z){ cam.yaw=Math.atan2(x-P.x,-(z-P.z)); },
