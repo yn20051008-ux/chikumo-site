@@ -911,9 +911,11 @@ function genWorld(seed){
     if(Math.hypot(x-SPX,z-SPZ)<15) continue;
     ruins.push({x0:x-w/2,x1:x+w/2,z0:z-d/2,z1:z+d/2,h,col:RUINCOLS[(rng()*RUINCOLS.length)|0]});
   }
-  // 🏪 コンビニ（マップ4か所）
+  // 🏪 コンビニ（マップ8か所）
   STORES.length=0;
-  const storePos=[[SPX+9,SPZ-8],[-HALF*0.6,-HALF*0.6],[HALF*0.6,-HALF*0.6],[-HALF*0.6,HALF*0.6]];
+  const storePos=[[SPX+9,SPZ-8],
+    [-HALF*0.6,-HALF*0.6],[HALF*0.6,-HALF*0.6],[-HALF*0.6,HALF*0.6],[HALF*0.6,HALF*0.6],
+    [0,-HALF*0.6],[-HALF*0.6,0],[HALF*0.6,0]];
   for(const [sx,sz] of storePos){
     const x=clamp(sx,-HALF+6,HALF-6), z=clamp(sz,-HALF+6,HALF-6);
     ruins=ruins.filter(b=>!(x>b.x0-4&&x<b.x1+4&&z>b.z0-4&&z<b.z1+4));
@@ -2177,6 +2179,7 @@ window.__mebuki={
   listCompanions(){ return companions.map(c=>({x:c.x,z:c.z,fireT:c.fireT})); },
   rescueCageNow(i){ if(cages[i]&&cages[i].freed<=0) rescueCage(cages[i]); },
   nearestStore(){ const {store,dist}=nearestStore(); return store?{x:store.x,z:store.z,dist}:null; },
+  listStores(){ return STORES.map(s=>({x:s.x,z:s.z})); },
   listMissiles(){ return missiles.map(m=>({x:m.x,y:m.y,z:m.z,t:m.t,hasTgt:!!(m.tgt&&m.tgt.deadT<=0)})); },
   listEnemies(){ return enemies.map(e=>({x:e.x,y:e.y,z:e.z,deadT:e.deadT,invT:e.invT,rockHits:e.rockHits,guard:e.guard})); },
   unlockAll(){ FORCE_ORDER.forEach(k=>{ P.unlocked[k]=true; P.forceAmmo[k]=30; }); hudForce(); },
