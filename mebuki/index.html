@@ -1323,7 +1323,7 @@ function updateCompanion(c,i,dt){
   let dx=tx-c.x, dz=tz-c.z; const d=Math.hypot(dx,dz);
   if(d>0.3){
     dx/=d; dz/=d;
-    const sp=Math.min(9.6,8.6+d*0.6);
+    const sp=Math.min(14.4,12.9+d*0.6);
     c.x+=dx*sp*dt; c.z+=dz*sp*dt;
     c.y=floorAt(c.x,c.z,0); collideXZ(c,0.8);
     c.flip=dx<0?-1:1; c.sq+=dt*8;
@@ -1370,7 +1370,7 @@ function update(dt){
   const iv=moveVec();
   P.moving=Math.hypot(iv.x,iv.z)>0.05;
   if(P.moving){
-    const sp=8.6;
+    const sp=12.9;
     P.x+=iv.x*sp*dt; P.z+=iv.z*sp*dt;
     collideXZ(P,1.0);
     if(Math.abs(iv.x*camRightH()[0]+iv.z*camRightH()[2])>0.05)
