@@ -116,6 +116,8 @@
   #o2Wrap{position:absolute;top:calc(102px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));
     display:flex;align-items:center;gap:5px;}
   #o2Wrap .lbl{font-size:13px;text-shadow:0 2px 6px rgba(0,0,0,.7);}
+  #hudPistol{position:absolute;top:calc(124px + env(safe-area-inset-top));left:calc(12px + env(safe-area-inset-left));
+    font-size:14px;font-weight:800;color:#ffe07a;text-shadow:0 2px 6px rgba(0,0,0,.7);}
   #o2InvCount{font-size:12px;font-weight:800;color:#bfe6ff;text-shadow:0 2px 6px rgba(0,0,0,.7);}
   #o2Bar{width:74px;height:9px;border-radius:5px;background:rgba(255,255,255,.15);overflow:hidden;
     box-shadow:inset 0 0 0 1px rgba(255,255,255,.3),0 1px 4px rgba(0,0,0,.4);}
@@ -154,6 +156,10 @@
   #o2Btn{right:calc(84px + env(safe-area-inset-right));bottom:calc(24px + env(safe-area-inset-bottom));
     width:52px;height:52px;font-size:22px;border-color:rgba(140,220,255,.6);
     box-shadow:0 4px 14px rgba(0,0,0,.4),0 0 14px rgba(120,200,255,.25);}
+  #pistolBtn{right:calc(20px + env(safe-area-inset-right));bottom:calc(90px + env(safe-area-inset-bottom));
+    width:64px;height:64px;font-size:27px;border-color:rgba(255,214,90,.8);flex-direction:column;
+    box-shadow:0 4px 18px rgba(0,0,0,.4),0 0 18px rgba(255,214,90,.3);}
+  #pistolBtn .fc{font-size:10px;font-weight:800;margin-top:-2px;color:#ffe9b0;}
   #forceRow{position:absolute;z-index:12;left:50%;transform:translateX(-50%);
     bottom:calc(20px + env(safe-area-inset-bottom));display:flex;gap:10px;}
   .forceBtn{width:56px;height:56px;font-size:24px;flex-direction:column;}
@@ -382,6 +388,7 @@
     <div id="hudNests">🌑 巣 4</div>
     <div id="hudMoney">💴 0</div>
     <div id="o2Wrap"><span class="lbl">🫁</span><div id="o2Bar"><div id="o2Fill"></div></div><span id="o2InvCount">x0</span></div>
+    <div id="hudPistol">🔫 x5</div>
     <div id="radar"><div id="radarArrow">▲</div><div id="radarDist">0m</div></div>
     <div id="cross">＋</div>
     <canvas id="miniMap" width="120" height="120"></canvas>
@@ -389,6 +396,7 @@
   </div>
   <div class="actbtn hidden" id="jumpBtn">⬆</div>
   <div class="actbtn hidden" id="o2Btn">🫧</div>
+  <div class="actbtn hidden" id="pistolBtn">🔫<span class="fc" id="pistolC">5</span></div>
   <div id="forceRow">
     <div class="actbtn forceBtn hidden" id="fGrassBtn">🌱<span class="fc" id="fGrassC">0</span></div>
     <div class="actbtn forceBtn hidden" id="fWaterBtn">💧<span class="fc" id="fWaterC">0</span></div>
@@ -398,6 +406,7 @@
   </div>
   <div class="buyprompt hidden" id="buyPrompt">
     <div class="bp-row" id="buyO2Row">🫧 タップで購入 💴2</div>
+    <div class="bp-row" id="buyPistolRow">🔫 タップで購入 💴2</div>
     <div class="bp-row" id="buyGrassRow">🌱 タップで購入 💴2</div>
     <div class="bp-row" id="buyWaterRow">💧 タップで購入 💴2</div>
     <div class="bp-row" id="buyFireRow">🔥 めざめさせる 💴20</div>
@@ -436,17 +445,18 @@
   <div class="screen hidden" id="howScreen">
     <div class="logo small">あそびかた</div>
     <div class="desc" style="max-width:380px;text-align:left;">
-      ◆ <b>スマホ</b>：画面の<b>左半分</b>をドラッグで移動、<b>右半分</b>をドラッグで見まわす。下の<b>力のボタン</b>をタップすると、その力をねらった地面に撒く。<b>⬆ボタン</b>でジャンプ。<br><br>
-      ◆ <b>パソコン</b>：WASDで移動、画面クリックでマウス視点。<b>1〜5キー</b>でそれぞれの力を発射、スペースでジャンプ。<br><br>
+      ◆ <b>スマホ</b>：画面の<b>左半分</b>をドラッグで移動、<b>右半分</b>をドラッグで見まわす。右下の<b>🔫ボタン</b>で遠くの逆縁を即座にねらい撃ち、下の<b>力のボタン</b>で力を撒く。<b>⬆ボタン</b>でジャンプ。<br><br>
+      ◆ <b>パソコン</b>：WASDで移動、画面クリックでマウス視点。<b>クリックまたはFキー</b>で🔫発射、<b>1〜5キー</b>でそれぞれの力を発射、スペースでジャンプ。<br><br>
+      ◆ <b style="color:#ffe07a;">🔫レーザーピストル</b>：撃った瞬間に当たる遠隔武器！弾は最初<b>5発</b>だけ、当たれば逆縁を<b>1発で撃破</b>（地形は変えない）。弾切れは🏪コンビニで補充しよう（最大99発）。<br>
       ◆ <b style="color:#ffcf6b;">🔥火</b>：草を燃やして広がる。逆縁の<span class="pr">枯</span>を焼き払う一撃。水にふれると消える。<br>
       ◆ <b style="color:#7cc8ff;">💧水</b>：低い場所へ流れ、火を消し、草を育てる。枯をひたして弱らせる。<br>
       ◆ <b style="color:#8fdc4c;">🌱草</b>：湿った土へ自分で広がり、育つと樹になって足場や壁になる。枯を押し返して土に戻す。<br>
       ◆ <b style="color:#bcd6ff;">💨風</b>：前方に一瞬の突風。逆縁ちゃんを吹き飛ばし、岩を転がす。<br>
       ◆ <b style="color:#c9c9d6;">🪨岩</b>：地面を隆起させる。積むほど高い足場に。水をせき止め、火の延焼を止める。<br><br>
       ◆ <span class="pr">逆縁の巣</span> のまわりを<b>枯でない状態</b>にたもつと、じわじわ鎮まっていく。<b>焼く・浸す・押し返す・埋める</b>――やり方はひとつじゃない。全部の巣を鎮めれば島は<b>芽吹く</b>！<br><br>
-      ◆ <span class="pr">ブラックこっこちゃん</span>（逆縁）は、力を<b>直接ねらって当てれば払える</b>。<b>💧水は解禁ずみで二撃でしずめる</b>（初めから確実に倒せる）、🔥は一撃で焼き払う（🏪コンビニでめざめさせると必要）、🪨は二撃でくずす、🌱は突き飛ばす（倒しはしない）。💨は前方をまとめて吹き飛ばし、火や深い水に落とせば道連れにできる。ふれられると❤️が減り、3つとも失うとゲームオーバー。<br><br>
+      ◆ <span class="pr">ブラックこっこちゃん</span>（逆縁）は、<b>🔫が一番たしかな一撃</b>（最初から5発持っている）。力を直接ねらって当てても払える──<b>💧水は解禁ずみで二撃でしずめる</b>、🔥は一撃で焼き払う（🏪コンビニでめざめさせると必要）、🪨は二撃でくずす、🌱は突き飛ばす（倒しはしない）。💨は前方をまとめて吹き飛ばし、火や深い水に落とせば道連れにできる。ふれられると❤️が減り、3つとも失うとゲームオーバー。<br><br>
       ◆ <b style="color:#bfe6ff;">🌀 空蹴り</b>：空中でもう一度ジャンプすると 空気を蹴って何度でも跳べる（🫁酸素ゲージを消費）。<br><br>
-      ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>、<b>逆縁の巣を鎮める</b>ともっと多くの💴がもらえる。🏪コンビニで🌱💧の弾・🔥💨🪨の解禁・🫧酸素・❤️回復が買える（長押しで連続購入）。
+      ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>、<b>逆縁の巣を鎮める</b>ともっと多くの💴がもらえる。🏪コンビニで🔫弾・🌱💧の弾・🔥💨🪨の解禁・🫧酸素・❤️回復が買える（長押しで連続購入）。
     </div>
     <button class="btn" id="howBack">もどる</button>
   </div>
@@ -700,6 +710,8 @@ const FORCE_MAX=60, FORCE_PRICE=2, FORCE_START={grass:14,water:14,fire:0,wind:0,
 const UNLOCK_PRICE={fire:20,wind:30,rock:40};
 const HEART_PRICE=15;
 const SEAL_MONEY=45;
+/* 🔫レーザーピストル（塗る3Dから移植）：弾数制限つきの遠隔武器。飛び道具でなく即着弾。当たれば1発で撃破、地形は変えない */
+const PISTOL_AMMO_START=5, PISTOL_AMMO_MAX=99, PISTOL_PRICE=2, PISTOL_CD=0.18, PISTOL_RANGE=200;
 const BUY_REPEAT_START_MS=260, BUY_REPEAT_MIN_MS=25, BUY_REPEAT_RAMP_MS=1500;
 const TIME_ARC_C=226.19; // 2*PI*36
 
@@ -1041,11 +1053,11 @@ function insideBox(x,y,z){
 
 /* ===== ゲーム状態 ===== */
 const G={phase:'title',t:TIME,score:0,sealed:0,kos:0,countT:0,finishT:0,best:0,shake:0,lastSec:99,paused:false,time:0,win:false,ko:false,money:0};
-const P={x:0,z:0,y:0,vy:0,hp:3,fireT:0,windT:0,deadT:0,invT:0,moving:false,flip:1,onG:true,o2:1,o2Inv:0,
+const P={x:0,z:0,y:0,vy:0,hp:3,fireT:0,windT:0,pistolT:0,pistolAmmo:PISTOL_AMMO_START,deadT:0,invT:0,moving:false,flip:1,onG:true,o2:1,o2Inv:0,
   forceAmmo:{grass:FORCE_START.grass,water:FORCE_START.water,fire:FORCE_START.fire,wind:FORCE_START.wind,rock:FORCE_START.rock},
   unlocked:{grass:true,water:true,fire:false,wind:false,rock:false},burnT:0};
 const cam={yaw:0,pitch:-0.3,dist:7.2};
-let parts=[],seals=[];
+let parts=[],seals=[],lasers=[];
 function loadBest(){ try{ G.best=+localStorage.getItem('coccoMebukiBest')||0; }catch(e){ G.best=0; } }
 function saveBest(){ try{ localStorage.setItem('coccoMebukiBest',String(G.best)); }catch(e){} }
 loadBest();
@@ -1108,7 +1120,8 @@ function applyForceAt(kind,wx,wz){
 /* 逆縁への直接ねらい撃ち（こっこGP/塗る3Dのエイムアシストと同じ型：水平方向のみでコーン判定する。
    俯角を含めた3Dベクトルで判定すると遠距離で内積が頭打ちになりロックオンできなくなる、
    という塗る3Dの既知の不具合を踏まえ、最初から水平判定のみにしている） */
-function findAimEnemy(){
+function findAimEnemy(range){
+  range=range||FORCE_RANGE;
   const f=camForward();
   const hl=Math.hypot(f[0],f[2])||1, dx=f[0]/hl, dz=f[2]/hl;
   const ex=P.x+f[0]*0.6, ez=P.z+f[2]*0.6;
@@ -1116,7 +1129,7 @@ function findAimEnemy(){
   for(const e of enemies){
     if(e.deadT>0||e.invT>0) continue;
     const vx=e.x-ex, vz=e.z-ez, dist=Math.hypot(vx,vz);
-    if(dist<0.5||dist>FORCE_RANGE) continue;
+    if(dist<0.5||dist>range) continue;
     const dot=(vx*dx+vz*dz)/dist;
     if(dot>bestDot){ bestDot=dot; best=e; }
   }
@@ -1204,6 +1217,34 @@ function windCast(){
   for(let i=0;i<14;i++){ const a=Math.atan2(dz,dx)+rnd(-0.5,0.5), s=rnd(3,8);
     parts.push({x:P.x,y:1.2,z:P.z,vx:Math.cos(a)*s,vy:rnd(-0.2,0.6),vz:Math.sin(a)*s,life:rnd(0.3,0.5),t:0,col:FORCE_COL.wind,size:rnd(0.3,0.5),cell:1,grav:-1}); }
   Sound.fireWind(); G.shake=Math.max(G.shake,0.2);
+}
+/* 🔫レーザーピストル（塗る3Dから移植）：撃った瞬間に当たる遠隔武器。当たれば1発で撃破、地形は変えない */
+function firePistol(){
+  if(G.phase!=='play'||G.paused||P.deadT>0) return;
+  if(P.pistolT>0) return;
+  if(P.pistolAmmo<=0){ Sound.nope(); return; }
+  P.pistolT=PISTOL_CD; P.pistolAmmo--; hudPistol();
+  const f=camForward();
+  const hl=Math.hypot(f[0],f[2])||1, dx=f[0]/hl, dz=f[2]/hl;
+  const mx=P.x+f[0]*0.6, my=P.y+1.3, mz=P.z+f[2]*0.6;
+  const target=findAimEnemy(PISTOL_RANGE);
+  let hx,hy,hz;
+  if(target){
+    hx=target.x; hy=1.1; hz=target.z;
+    burst3(hx,hy,hz,[1,0.85,0.18],10,4); Sound.hitEnemy();
+    koEnemy(target);
+  }else{
+    const MAXD=PISTOL_RANGE, STEP=0.6;
+    let hitDist=MAXD;
+    for(let t=STEP;t<MAXD;t+=STEP){
+      const px=mx+dx*t, pz=mz+dz*t;
+      if(insideBox(px,my,pz)||Math.abs(px)>HALF||Math.abs(pz)>HALF){ hitDist=t; break; }
+    }
+    hx=mx+dx*hitDist; hy=my; hz=mz+dz*hitDist;
+    burst3(hx,hy,hz,[1,0.92,0.6],4,2);
+  }
+  lasers.push({x0:mx,y0:my,z0:mz,x1:hx,y1:hy,z1:hz,t:0,life:0.15});
+  Sound.fireFire(); G.shake=Math.max(G.shake,0.05);
 }
 function hitPlayer(){
   if(P.deadT>0||P.invT>0) return;
@@ -1340,6 +1381,7 @@ function update(dt){
   if(P.invT>0)P.invT-=dt;
   if(P.fireT>0)P.fireT-=dt;
   if(P.windT>0)P.windT-=dt;
+  if(P.pistolT>0)P.pistolT-=dt;
   const iv=moveVec();
   P.moving=Math.hypot(iv.x,iv.z)>0.05;
   const [pcx,pcz]=worldToCell(P.x,P.z), pidx=ci(pcx,pcz), pk=fKind[pidx], plv=fLevel[pidx];
@@ -1372,6 +1414,7 @@ function update(dt){
   if(stepped){ rebuildDynBoxes(); buildWorldMesh(); redrawField(); }
 
   for(let i=seals.length-1;i>=0;i--){ seals[i].t+=dt; if(seals[i].t>2.0) seals.splice(i,1); }
+  for(let i=lasers.length-1;i>=0;i--){ lasers[i].t+=dt; if(lasers[i].t>=lasers[i].life) lasers.splice(i,1); }
 
   updateFx(dt);
   updateRadar();
@@ -1414,6 +1457,10 @@ function hudForce(){
   });
 }
 function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+function hudPistol(){ $('hudPistol').textContent='🔫 x'+P.pistolAmmo;
+  $('pistolC').textContent=P.pistolAmmo; $('pistolBtn').classList.toggle('empty',P.pistolAmmo<=0);
+  updatePistolBtn(); }
+function updatePistolBtn(){ $('pistolBtn').classList.toggle('hidden', !(IS_TOUCH&&G.phase==='play')); }
 /* 🏪 コンビニ：近づくと買えるようになる（長押しで加速購入） */
 function updateBuyPrompt(){
   const wrap=$('buyPrompt');
@@ -1423,6 +1470,9 @@ function updateBuyPrompt(){
   const o2Row=$('buyO2Row');
   if(P.o2Inv>=O2_MAX){ o2Row.classList.add('no'); o2Row.textContent='🫧 在庫は 満タン！'; }
   else{ o2Row.classList.toggle('no',G.money<O2_PRICE); o2Row.textContent='🫧 タップで購入 💴'+O2_PRICE+'（'+P.o2Inv+'/'+O2_MAX+'）'; }
+  const pRow=$('buyPistolRow');
+  if(P.pistolAmmo>=PISTOL_AMMO_MAX){ pRow.classList.add('no'); pRow.textContent='🔫 弾は 満タン！'; }
+  else{ pRow.classList.toggle('no',G.money<PISTOL_PRICE); pRow.textContent='🔫 タップで購入 💴'+PISTOL_PRICE+'（'+P.pistolAmmo+'/'+PISTOL_AMMO_MAX+'）'; }
   ['grass','water','fire','wind','rock'].forEach(k=>{
     const row=$('buy'+cap(k)+'Row'); if(!row) return;
     if(!P.unlocked[k]){
@@ -1483,6 +1533,15 @@ function buyHeart(){
   G.money-=HEART_PRICE; P.hp=Math.min(3,P.hp+1); hudMoney(); hudHp(); updateBuyPrompt(); Sound.buy();
   burst3(store.x,1.6,store.z,[1,0.6,0.7],12,3);
 }
+function buyPistol(){
+  if(G.phase!=='play'||G.paused||P.deadT>0) return;
+  const {store,dist}=nearestStore();
+  if(dist>=STORE_R) return;
+  if(P.pistolAmmo>=PISTOL_AMMO_MAX) return;
+  if(G.money<PISTOL_PRICE){ Sound.nope(); return; }
+  G.money-=PISTOL_PRICE; P.pistolAmmo++; hudMoney(); hudPistol(); updateBuyPrompt(); Sound.buy();
+  burst3(store.x,1.6,store.z,[1,0.85,0.3],10,3);
+}
 function holdRepeat(fn){
   let timer=null, heldSince=0;
   function schedule(){
@@ -1494,9 +1553,9 @@ function holdRepeat(fn){
   function end(){ if(timer){ clearTimeout(timer); timer=null; } }
   return {begin,end};
 }
-const buyO2Rep=holdRepeat(buyO2), buyHeartRep=holdRepeat(buyHeart);
+const buyO2Rep=holdRepeat(buyO2), buyHeartRep=holdRepeat(buyHeart), buyPistolRep=holdRepeat(buyPistol);
 const buyForceRep={}; FORCE_ORDER.forEach(k=>{ buyForceRep[k]=holdRepeat(()=>buyForce(k)); });
-function endAllBuyRepeat(){ buyO2Rep.end(); buyHeartRep.end(); FORCE_ORDER.forEach(k=>buyForceRep[k].end()); }
+function endAllBuyRepeat(){ buyO2Rep.end(); buyHeartRep.end(); buyPistolRep.end(); FORCE_ORDER.forEach(k=>buyForceRep[k].end()); }
 function updateRadar(){
   let best=null,bd=1e9;
   for(const nst of nests){ if(nst.sealed) continue;
@@ -1610,7 +1669,7 @@ cv.addEventListener('pointerdown',e=>{
   if(G.phase!=='play') return;
   if(e.pointerType==='mouse'){
     if(document.pointerLockElement!==cv){ try{cv.requestPointerLock();}catch(err){} }
-    if(e.button===0) fireForce('grass');
+    if(e.button===0) firePistol();
     return;
   }
   if(e.clientX<W*0.45&&!input.stick.active){
@@ -1649,15 +1708,18 @@ window.addEventListener('keydown',e=>{
   const k=e.key.toLowerCase(); input.keys[k]=true;
   if(k===' '){ e.preventDefault(); doJump(); }
   if(k==='o') useO2Bomb();
+  if(k==='f') firePistol();
   if(KEY_FORCE[k]) fireForce(KEY_FORCE[k]);
   if(e.repeat) return;
   if(k==='b') buyO2Rep.begin();
   if(k==='n') buyHeartRep.begin();
+  if(k==='g') buyPistolRep.begin();
 });
 window.addEventListener('keyup',e=>{
   const k=e.key.toLowerCase(); input.keys[k]=false;
   if(k==='b') buyO2Rep.end();
   if(k==='n') buyHeartRep.end();
+  if(k==='g') buyPistolRep.end();
 });
 function doJump(){
   if(G.phase!=='play'||G.paused||P.deadT>0) return;
@@ -1675,6 +1737,7 @@ function airKick(){
 }
 $('jumpBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); doJump(); });
 $('o2Btn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); useO2Bomb(); });
+$('pistolBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); firePistol(); });
 FORCE_ORDER.forEach(k=>{
   const btn=$('f'+cap(k)+'Btn');
   btn.addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); fireForce(k); });
@@ -1688,6 +1751,7 @@ function bindBuyRow(id,rep){
 }
 bindBuyRow('buyO2Row',buyO2Rep);
 bindBuyRow('buyHeartRow',buyHeartRep);
+bindBuyRow('buyPistolRow',buyPistolRep);
 FORCE_ORDER.forEach(k=>bindBuyRow('buy'+cap(k)+'Row',buyForceRep[k]));
 window.addEventListener('blur',endAllBuyRepeat);
 
@@ -1735,6 +1799,14 @@ function spriteBB(x,y,z,w,h,cell,r,g,b,a){
 }
 function shadow(x,y,z,w,a){
   shadN=pushQuad(shadArr,shadN,300,x,y+0.04,z,1,0,0,0,0,-1,w/2,w/2,4,1,1,1,a,false);
+}
+/* 🔫レーザーの発光ビーム（2点間をむすぶカメラ側を向くリボン。splat3dのbeam()と同じ技法） */
+function beam(x0,y0,z0,x1,y1,z1,w,cell,r,g,b,a){
+  const dx=x1-x0,dy=y1-y0,dz=z1-z0, len=Math.hypot(dx,dy,dz)||1;
+  const rx=dx/len, ry=dy/len, rz=dz/len;
+  let ux=camF[1]*rz-camF[2]*ry, uy=camF[2]*rx-camF[0]*rz, uz=camF[0]*ry-camF[1]*rx;
+  const ul=Math.hypot(ux,uy,uz)||1; ux/=ul; uy/=ul; uz/=ul;
+  sprN=pushQuad(sprArr,sprN,SPR_MAX,(x0+x1)/2,(y0+y1)/2,(z0+z1)/2,rx,ry,rz,ux,uy,uz,len/2,w/2,cell,r,g,b,a,false);
 }
 
 /* ===== 描画 ===== */
@@ -1864,6 +1936,15 @@ function buildSprites(){
     const a=1-p.t/p.life;
     spriteBB(p.x,p.y,p.z,p.size,p.size,p.cell,p.col[0],p.col[1],p.col[2],a);
   }
+  /* 🔫レーザー（即着弾のビーム・こっこGP風の三重トレーサー＋着弾グロー） */
+  for(const l of lasers){
+    const a=1-l.t/l.life;
+    beam(l.x0,l.y0,l.z0,l.x1,l.y1,l.z1,0.6,1,1,0.55,0.15,a*0.5);
+    beam(l.x0,l.y0,l.z0,l.x1,l.y1,l.z1,0.26,1,1,0.82,0.35,a*0.75);
+    beam(l.x0,l.y0,l.z0,l.x1,l.y1,l.z1,0.09,1,1,0.98,0.85,a);
+    spriteBB(l.x1,l.y1,l.z1,1.0,1.0,1,1,0.55,0.15,a*0.6);
+    spriteBB(l.x1,l.y1,l.z1,0.45,0.45,1,1,0.95,0.8,a*0.9);
+  }
 }
 
 /* ===== ゲームフロー ===== */
@@ -1872,7 +1953,7 @@ function show(id){
   if(id)$(id).classList.remove('hidden');
   const play=!id;
   $('hud').classList.toggle('on',play);
-  ['jumpBtn','o2Btn'].forEach(b=>$(b).classList.toggle('hidden',!play||!IS_TOUCH));
+  ['jumpBtn','o2Btn','pistolBtn'].forEach(b=>$(b).classList.toggle('hidden',!play||!IS_TOUCH));
   hudForce();
   if(!play) $('buyPrompt').classList.add('hidden');
 }
@@ -1880,16 +1961,16 @@ const SPAWN={x:0,z:HALF-12};
 function start(){
   genWorld((Math.random()*0xffffffff)>>>0);
   rebuildDynBoxes(); buildWorldMesh(); redrawField();
-  P.x=SPAWN.x; P.z=SPAWN.z; P.y=0; P.vy=0; P.hp=3; P.fireT=0; P.windT=0; P.deadT=0; P.invT=1.5; P.onG=true; P.flip=1;
+  P.x=SPAWN.x; P.z=SPAWN.z; P.y=0; P.vy=0; P.hp=3; P.fireT=0; P.windT=0; P.pistolT=0; P.pistolAmmo=PISTOL_AMMO_START; P.deadT=0; P.invT=1.5; P.onG=true; P.flip=1;
   P.o2=1; P.o2Inv=0; P.burnT=0;
   P.forceAmmo={grass:FORCE_START.grass,water:FORCE_START.water,fire:FORCE_START.fire,wind:FORCE_START.wind,rock:FORCE_START.rock};
   P.unlocked={grass:true,water:true,fire:false,wind:false,rock:false};
   cam.yaw=0; cam.pitch=-0.3;
-  parts=[]; seals=[];
+  parts=[]; seals=[]; lasers=[];
   G.t=TIME; G.score=0; G.sealed=0; G.kos=0; G.shake=0; G.paused=false; G.win=false; G.ko=false; G.money=0;
   G.phase='count'; G.countT=3.4; caAcc=0;
   input.stick.active=false; input.look.active=false;
-  hudTime(); hudScore(); hudHp(); hudNests(); hudMoney(); hudO2(); hudO2Inv(); hudForce(); updateTimeRing();
+  hudTime(); hudScore(); hudHp(); hudNests(); hudMoney(); hudO2(); hudO2Inv(); hudPistol(); hudForce(); updateTimeRing();
   $('buyPrompt').classList.add('hidden');
   $('urgVin').classList.remove('on');
   show(null);
@@ -1979,6 +2060,7 @@ requestAnimationFrame(frame);
 window.__mebuki={
   state(){ return { phase:G.phase, t:G.t, hp:P.hp, sealed:G.sealed, kos:G.kos, score:G.score, money:G.money,
     win:G.win, ko:G.ko, px:P.x, pz:P.z, unlocked:Object.assign({},P.unlocked), ammo:Object.assign({},P.forceAmmo),
+    pistolAmmo:P.pistolAmmo,
     nests:nests.map(n=>({x:n.x,z:n.z,sealed:n.sealed,purity:n.purity,sealT:n.sealT})) }; },
   tscale(){ /* 互換のため残置。本作は step() でクロックを手回しする方式を使う */ },
   step(dt,n){ n=n||1; for(let i=0;i<n;i++) update(dt||1/60); },
@@ -1989,8 +2071,10 @@ window.__mebuki={
   spawnNestNow(i){ if(nests[i]) nests[i].pulseT=0; },
   teleport(x,z){ P.x=x; P.z=z; P.y=floorAt(x,z,0); },
   fire(kind){ fireForce(kind); },
+  firePistol(){ firePistol(); },
   forceEnd(win){ G.win=!!win; G.t=0; },
   addMoney(n){ G.money+=n; hudMoney(); },
+  buyPistol(){ buyPistol(); },
   listEnemies(){ return enemies.map(e=>({x:e.x,z:e.z,deadT:e.deadT,invT:e.invT,burnT:e.burnT,drownT:e.drownT,soakT:e.soakT,rockHits:e.rockHits,waterHits:e.waterHits,guard:e.guard})); },
   unlockAll(){ FORCE_ORDER.forEach(k=>{ P.unlocked[k]=true; P.forceAmmo[k]=30; }); hudForce(); },
   aimAt(x,z){ cam.yaw=Math.atan2(x-P.x,-(z-P.z)); },
