@@ -160,6 +160,10 @@
     width:64px;height:64px;font-size:27px;border-color:rgba(255,214,90,.8);flex-direction:column;
     box-shadow:0 4px 18px rgba(0,0,0,.4),0 0 18px rgba(255,214,90,.3);}
   #pistolBtn .fc{font-size:10px;font-weight:800;margin-top:-2px;color:#ffe9b0;}
+  #mslBtn{right:calc(94px + env(safe-area-inset-right));bottom:calc(90px + env(safe-area-inset-bottom));
+    width:60px;height:60px;font-size:25px;border-color:rgba(255,159,110,.8);flex-direction:column;
+    box-shadow:0 4px 18px rgba(0,0,0,.4),0 0 18px rgba(255,159,110,.3);}
+  #mslBtn .fc{font-size:10px;font-weight:800;margin-top:-2px;color:#ffd9c2;}
   #forceRow{position:absolute;z-index:12;left:50%;transform:translateX(-50%);
     bottom:calc(164px + env(safe-area-inset-bottom));display:flex;gap:10px;
     max-width:calc(100vw - 24px);flex-wrap:wrap-reverse;justify-content:center;}
@@ -390,6 +394,7 @@
     <div id="hudMoney">💴 0</div>
     <div id="o2Wrap"><span class="lbl">🫁</span><div id="o2Bar"><div id="o2Fill"></div></div><span id="o2InvCount">x0</span></div>
     <div id="hudPistol">🔫 x5</div>
+    <div id="hudMsl">🚀 x0</div>
     <div id="radar"><div id="radarArrow">▲</div><div id="radarDist">0m</div></div>
     <div id="cross">＋</div>
     <canvas id="miniMap" width="120" height="120"></canvas>
@@ -398,12 +403,14 @@
   <div class="actbtn hidden" id="jumpBtn">⬆</div>
   <div class="actbtn hidden" id="o2Btn">🫧</div>
   <div class="actbtn hidden" id="pistolBtn">🔫<span class="fc" id="pistolC">5</span></div>
+  <div class="actbtn hidden" id="mslBtn">🚀<span class="fc" id="mslC">0</span></div>
   <div id="forceRow">
     <div class="actbtn forceBtn hidden" id="fRockBtn">🪨<span class="fc" id="fRockC">0</span></div>
   </div>
   <div class="buyprompt hidden" id="buyPrompt">
     <div class="bp-row" id="buyO2Row">🫧 タップで購入 💴1</div>
     <div class="bp-row" id="buyPistolRow">🔫 タップで購入 💴2</div>
+    <div class="bp-row" id="buyMslRow">🚀 タップで購入 💴3</div>
     <div class="bp-row" id="buyRockRow">🪨 タップで購入 💴2</div>
     <div class="bp-row" id="buyHeartRow">❤️ かいふく 💴15</div>
   </div>
@@ -438,14 +445,15 @@
   <div class="screen hidden" id="howScreen">
     <div class="logo small">あそびかた</div>
     <div class="desc" style="max-width:380px;text-align:left;">
-      ◆ <b>スマホ</b>：画面の<b>左半分</b>をドラッグで移動、<b>右半分</b>をドラッグで見まわす。右下の<b>🔫ボタン</b>で遠くの逆縁を即座にねらい撃ち、下の<b>🪨ボタン</b>で力を撒く。<b>⬆ボタン</b>でジャンプ。<br><br>
-      ◆ <b>パソコン</b>：WASDで移動、画面クリックでマウス視点。<b>クリックまたはFキー</b>で🔫発射、<b>1キー</b>で🪨を発射、スペースでジャンプ。<br><br>
+      ◆ <b>スマホ</b>：画面の<b>左半分</b>をドラッグで移動、<b>右半分</b>をドラッグで見まわす。右下の<b>🔫ボタン</b>で遠くの逆縁を即座にねらい撃ち、<b>🚀ボタン</b>で追跡ミサイル、下の<b>🪨ボタン</b>で力を撒く。<b>⬆ボタン</b>でジャンプ。<br><br>
+      ◆ <b>パソコン</b>：WASDで移動、画面クリックでマウス視点。<b>クリックまたはFキー</b>で🔫発射、<b>Rキー</b>で🚀発射、<b>1キー</b>で🪨を発射、スペースでジャンプ。<br><br>
       ◆ <b style="color:#ffe07a;">🔫レーザーピストル</b>：撃った瞬間に当たる遠隔武器！弾は最初<b>5発</b>だけ、当たれば逆縁を<b>1発で撃破</b>（地形は変えない）。弾切れは🏪コンビニで補充しよう（最大99発）。<br>
+      ◆ <b style="color:#ffb98f;">🚀 追跡ミサイル</b>：塗る3D/島ぐらしから移植した誘導兵器！いちばん近い<span class="pr">ブラックこっこちゃん</span>にゆるく追尾しつづけ、命中すると爆発でまわりごと撃破。最初は<b>0発</b>、🏪コンビニで補充しよう（Rキー）。<br>
       ◆ <b style="color:#c9c9d6;">🪨岩</b>：地面を隆起させる。同じ場所に何度でも積み上げられ、高さに上限はない。枯を埋めて土に戻す。<br><br>
       ◆ <span class="pr">逆縁の巣</span> のまわりを<b>枯でない状態</b>にたもつと、じわじわ鎮まっていく。<b>🪨で埋める</b>と鎮まる。全部の巣を鎮めれば島は<b>芽吹く</b>！<br><br>
-      ◆ <span class="pr">ブラックこっこちゃん</span>（逆縁）は、<b>🔫が一番たしかな一撃</b>（最初から5発持っている）。<b>🪨を直接ねらって当てても二撃でくずせる</b>。ふれられると❤️が減り、3つとも失うとゲームオーバー。<br><br>
+      ◆ <span class="pr">ブラックこっこちゃん</span>（逆縁）は、<b>🔫が一番たしかな一撃</b>（最初から5発持っている）。<b>🪨を直接ねらって当てても二撃でくずせる</b>し、<b>🚀の爆発</b>にまきこんでも払える。ふれられると❤️が減り、3つとも失うとゲームオーバー。<br><br>
       ◆ <b style="color:#bfe6ff;">🌀 空蹴り</b>：空中でもう一度ジャンプすると 空気を蹴って何度でも跳べる（🫁酸素ゲージを消費）。<br><br>
-      ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>、<b>逆縁の巣を鎮める</b>ともっと多くの💴がもらえる。🏪コンビニで🔫弾・🪨の弾・🫧酸素・❤️回復が買える（長押しで連続購入）。
+      ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>、<b>逆縁の巣を鎮める</b>ともっと多くの💴がもらえる。🏪コンビニで🔫弾・🚀弾・🪨の弾・🫧酸素・❤️回復が買える（長押しで連続購入）。
     </div>
     <button class="btn" id="howBack">もどる</button>
   </div>
@@ -549,6 +557,8 @@ const Sound=(function(){
   return { init, resume(){ if(ac&&ac.state==='suspended')ac.resume(); }, setMuted(b){muted=b; if(b)stopBGM();}, startBGM, stopBGM,
     shoot(){ noise(.1,.16,3400); tone(300,0.12,'sawtooth',0.14,140); },
     fireRock(){ tone(90,0.18,'square',0.22,60); noise(.1,.12,900); },
+    launch(){ swell(300,900,0.3,0.18,'sine'); },
+    boom(){ tone(120,0.4,'sine',0.5,42); noise(.4,.4,3200); tone(900,0.18,'sawtooth',0.2,180); },
     purify(){ const seq=[659,784,988]; seq.forEach((f,i)=>setTimeout(()=>tone(f,0.14,'triangle',0.16,f*1.1),i*45)); },
     jump(){ tone(330,0.12,'triangle',0.16,520); },
     hitEnemy(){ noise(.15,.18,2000); tone(500,0.14,'sine',0.16,120); },
@@ -696,6 +706,8 @@ const HEART_PRICE=15;
 const SEAL_MONEY=45;
 /* 🔫レーザーピストル（塗る3Dから移植）：弾数制限つきの遠隔武器。飛び道具でなく即着弾。当たれば1発で撃破、地形は変えない */
 const PISTOL_AMMO_START=5, PISTOL_AMMO_MAX=99, PISTOL_PRICE=2, PISTOL_CD=0.18, PISTOL_RANGE=200;
+/* 🚀追跡ミサイル（塗る3D/島ぐらしから移植）：いちばん近い逆縁にゆるく追尾する誘導弾。初期0発・🏪で購入 */
+const MSL_MAX=99, MSL_PRICE=3, MSL_SPEED=24, MSL_LIFE=4.5, MSL_LOCK_RANGE=60, MSL_BLAST=6;
 const BUY_REPEAT_START_MS=260, BUY_REPEAT_MIN_MS=25, BUY_REPEAT_RAMP_MS=1500;
 const TIME_ARC_C=226.19; // 2*PI*36
 
@@ -826,6 +838,10 @@ function buildAtlas(){
     atx.strokeStyle='#59137a'; atx.lineWidth=5; atx.lineCap='round';
     for(let i=0;i<5;i++){ const a=-0.6+i*0.32;
       atx.beginPath(); atx.moveTo(ox+64,oy+78); atx.lineTo(ox+64+Math.cos(a)*40,oy+78-Math.sin(a)*36-20); atx.stroke(); } }
+  { const [ox,oy]=cellRect(6); // 6: 🚀追跡ミサイル（塗る3D/島ぐらしと同じく絵文字をそのまま焼く）
+    atx.font='100px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+    atx.textAlign='center'; atx.textBaseline='middle';
+    atx.fillText('🚀',ox+64,oy+70); }
   gl.bindTexture(gl.TEXTURE_2D,atlasTex);
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlasCv);
@@ -998,11 +1014,11 @@ function insideBox(x,y,z){
 
 /* ===== ゲーム状態 ===== */
 const G={phase:'title',t:TIME,score:0,sealed:0,kos:0,countT:0,finishT:0,best:0,shake:0,lastSec:99,paused:false,time:0,win:false,ko:false,money:0};
-const P={x:0,z:0,y:0,vy:0,hp:3,fireT:0,pistolT:0,pistolAmmo:PISTOL_AMMO_START,deadT:0,invT:0,moving:false,flip:1,onG:true,o2:1,o2Inv:0,
+const P={x:0,z:0,y:0,vy:0,hp:3,fireT:0,pistolT:0,pistolAmmo:PISTOL_AMMO_START,mslInv:0,deadT:0,invT:0,moving:false,flip:1,onG:true,o2:1,o2Inv:0,
   forceAmmo:{rock:FORCE_START.rock},
   unlocked:{rock:true}};
 const cam={yaw:0,pitch:-0.3,dist:7.2};
-let parts=[],seals=[],lasers=[];
+let parts=[],seals=[],lasers=[],missiles=[];
 function loadBest(){ try{ G.best=+localStorage.getItem('coccoMebukiBest')||0; }catch(e){ G.best=0; } }
 function saveBest(){ try{ localStorage.setItem('coccoMebukiBest',String(G.best)); }catch(e){} }
 loadBest();
@@ -1118,6 +1134,20 @@ function firePistol(){
   lasers.push({x0:mx,y0:my,z0:mz,x1:hx,y1:hy,z1:hz,t:0,life:0.15});
   Sound.shoot(); G.shake=Math.max(G.shake,0.05);
 }
+/* 🚀追跡ミサイル（塗る3D/島ぐらしから移植）：いちばん近い逆縁にゆるく追尾しつづける誘導弾。狙いが無ければ正面へまっすぐ飛ぶ */
+function fireMissile(){
+  if(G.phase!=='play'||G.paused||P.deadT>0) return;
+  if(P.mslInv<=0){ Sound.nope(); return; }
+  P.mslInv--; hudMsl();
+  let best=null,bd=MSL_LOCK_RANGE;
+  for(const e of enemies){ if(e.deadT>0) continue; const d=Math.hypot(e.x-P.x,e.z-P.z); if(d<bd){bd=d;best=e;} }
+  const f=camForward();
+  const hl=Math.hypot(f[0],f[2])||1;
+  const dx=best?(best.x-P.x):f[0]/hl, dz=best?(best.z-P.z):f[2]/hl;
+  const dl=Math.hypot(dx,dz)||1;
+  missiles.push({x:P.x+f[0]*0.6,y:1.1,z:P.z+f[2]*0.6,vx:dx/dl*MSL_SPEED,vz:dz/dl*MSL_SPEED,tgt:best,t:0});
+  Sound.launch(); G.shake=Math.max(G.shake,0.15);
+}
 function hitPlayer(){
   if(P.deadT>0||P.invT>0) return;
   P.hp--; G.shake=Math.max(G.shake,0.25); Sound.hurt(); P.invT=1.1;
@@ -1223,7 +1253,7 @@ function update(dt){
     if(now!==prev&&now>0) Sound.count();
     const n=Math.ceil(G.countT-0.4);
     $('countNum').textContent=n>0?String(n):'めばえろ！';
-    if(G.countT<=0){ G.phase='play'; $('countOv').classList.remove('on'); Sound.go(); Sound.startBGM(); hudForce(); updatePistolBtn(); updateO2Btn(); }
+    if(G.countT<=0){ G.phase='play'; $('countOv').classList.remove('on'); Sound.go(); Sound.startBGM(); hudForce(); updatePistolBtn(); updateMslBtn(); updateO2Btn(); }
     return;
   }
   if(G.phase!=='play'){ updateFx(dt); return; }
@@ -1267,6 +1297,28 @@ function update(dt){
 
   for(let i=seals.length-1;i>=0;i--){ seals[i].t+=dt; if(seals[i].t>2.0) seals.splice(i,1); }
   for(let i=lasers.length-1;i>=0;i--){ lasers[i].t+=dt; if(lasers[i].t>=lasers[i].life) lasers.splice(i,1); }
+
+  /* 🚀追跡ミサイル（塗る3D/島ぐらしから移植・生きている標的をゆるく追尾しつづける誘導弾） */
+  for(let i=missiles.length-1;i>=0;i--){
+    const m=missiles[i]; m.t+=dt;
+    const tgt=m.tgt&&m.tgt.deadT<=0?m.tgt:null;
+    if(tgt){
+      const tdx=tgt.x-m.x, tdz=tgt.z-m.z, td=Math.hypot(tdx,tdz)||1;
+      const k=Math.min(1,dt*4);
+      m.vx+=(tdx/td*MSL_SPEED-m.vx)*k; m.vz+=(tdz/td*MSL_SPEED-m.vz)*k;
+    }
+    m.x+=m.vx*dt; m.z+=m.vz*dt;
+    if(Math.random()<0.6) parts.push({x:m.x,y:m.y,z:m.z,vx:rnd(-0.3,0.3),vy:rnd(0.1,0.5),vz:rnd(-0.3,0.3),
+      life:rnd(0.3,0.55),t:0,col:[0.85,0.85,0.9],size:rnd(0.22,0.36),cell:1,grav:-1.2});
+    let boom=Math.abs(m.x)>HALF||Math.abs(m.z)>HALF||m.t>=MSL_LIFE;
+    if(!boom) for(const e of enemies){ if(e.deadT<=0&&Math.hypot(m.x-e.x,m.z-e.z)<MSL_BLAST){ boom=true; break; } }
+    if(boom){
+      burst3(m.x,m.y,m.z,[1,0.6,0.25],20,6);
+      G.shake=Math.max(G.shake,0.5); Sound.boom();
+      for(const e of enemies){ if(e.deadT<=0&&Math.hypot(m.x-e.x,m.z-e.z)<=MSL_BLAST) koEnemy(e); }
+      missiles.splice(i,1);
+    }
+  }
 
   updateFx(dt);
   updateRadar();
@@ -1312,6 +1364,10 @@ function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
 function hudPistol(){ $('hudPistol').textContent='🔫 x'+P.pistolAmmo;
   $('pistolC').textContent=P.pistolAmmo; $('pistolBtn').classList.toggle('empty',P.pistolAmmo<=0);
   updatePistolBtn(); }
+function hudMsl(){ $('hudMsl').textContent='🚀 x'+P.mslInv;
+  $('mslC').textContent=P.mslInv; $('mslBtn').classList.toggle('empty',P.mslInv<=0);
+  updateMslBtn(); }
+function updateMslBtn(){ $('mslBtn').classList.toggle('hidden', !(IS_TOUCH&&G.phase==='play')); }
 function updatePistolBtn(){ $('pistolBtn').classList.toggle('hidden', !(IS_TOUCH&&G.phase==='play')); }
 /* 🏪 コンビニ：近づくと買えるようになる（長押しで加速購入） */
 function updateBuyPrompt(){
@@ -1325,6 +1381,9 @@ function updateBuyPrompt(){
   const pRow=$('buyPistolRow');
   if(P.pistolAmmo>=PISTOL_AMMO_MAX){ pRow.classList.add('no'); pRow.textContent='🔫 弾は 満タン！'; }
   else{ pRow.classList.toggle('no',G.money<PISTOL_PRICE); pRow.textContent='🔫 タップで購入 💴'+PISTOL_PRICE+'（'+P.pistolAmmo+'/'+PISTOL_AMMO_MAX+'）'; }
+  const mRow=$('buyMslRow');
+  if(P.mslInv>=MSL_MAX){ mRow.classList.add('no'); mRow.textContent='🚀 在庫は 満タン！'; }
+  else{ mRow.classList.toggle('no',G.money<MSL_PRICE); mRow.textContent='🚀 タップで購入 💴'+MSL_PRICE+'（'+P.mslInv+'/'+MSL_MAX+'）'; }
   FORCE_ORDER.forEach(k=>{
     const row=$('buy'+cap(k)+'Row'); if(!row) return;
     if(P.forceAmmo[k]>=FORCE_MAX){
@@ -1383,6 +1442,15 @@ function buyPistol(){
   G.money-=PISTOL_PRICE; P.pistolAmmo++; hudMoney(); hudPistol(); updateBuyPrompt(); Sound.buy();
   burst3(store.x,1.6,store.z,[1,0.85,0.3],10,3);
 }
+function buyMissile(){
+  if(G.phase!=='play'||G.paused||P.deadT>0) return;
+  const {store,dist}=nearestStore();
+  if(dist>=STORE_R) return;
+  if(P.mslInv>=MSL_MAX) return;
+  if(G.money<MSL_PRICE){ Sound.nope(); return; }
+  G.money-=MSL_PRICE; P.mslInv++; hudMoney(); hudMsl(); updateBuyPrompt(); Sound.buy();
+  burst3(store.x,1.6,store.z,[1,0.6,0.25],10,3);
+}
 function holdRepeat(fn){
   let timer=null, heldSince=0;
   function schedule(){
@@ -1394,9 +1462,9 @@ function holdRepeat(fn){
   function end(){ if(timer){ clearTimeout(timer); timer=null; } }
   return {begin,end};
 }
-const buyO2Rep=holdRepeat(buyO2), buyHeartRep=holdRepeat(buyHeart), buyPistolRep=holdRepeat(buyPistol);
+const buyO2Rep=holdRepeat(buyO2), buyHeartRep=holdRepeat(buyHeart), buyPistolRep=holdRepeat(buyPistol), buyMslRep=holdRepeat(buyMissile);
 const buyForceRep={}; FORCE_ORDER.forEach(k=>{ buyForceRep[k]=holdRepeat(()=>buyForce(k)); });
-function endAllBuyRepeat(){ buyO2Rep.end(); buyHeartRep.end(); buyPistolRep.end(); FORCE_ORDER.forEach(k=>buyForceRep[k].end()); }
+function endAllBuyRepeat(){ buyO2Rep.end(); buyHeartRep.end(); buyPistolRep.end(); buyMslRep.end(); FORCE_ORDER.forEach(k=>buyForceRep[k].end()); }
 function updateRadar(){
   let best=null,bd=1e9;
   for(const nst of nests){ if(nst.sealed) continue;
@@ -1550,17 +1618,20 @@ window.addEventListener('keydown',e=>{
   if(k===' '){ e.preventDefault(); doJump(); }
   if(k==='o') useO2Bomb();
   if(k==='f') firePistol();
+  if(k==='r') fireMissile();
   if(KEY_FORCE[k]) fireForce(KEY_FORCE[k]);
   if(e.repeat) return;
   if(k==='b') buyO2Rep.begin();
   if(k==='n') buyHeartRep.begin();
   if(k==='g') buyPistolRep.begin();
+  if(k==='m') buyMslRep.begin();
 });
 window.addEventListener('keyup',e=>{
   const k=e.key.toLowerCase(); input.keys[k]=false;
   if(k==='b') buyO2Rep.end();
   if(k==='n') buyHeartRep.end();
   if(k==='g') buyPistolRep.end();
+  if(k==='m') buyMslRep.end();
 });
 function doJump(){
   if(G.phase!=='play'||G.paused||P.deadT>0) return;
@@ -1579,6 +1650,7 @@ function airKick(){
 $('jumpBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); doJump(); });
 $('o2Btn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); useO2Bomb(); });
 $('pistolBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); firePistol(); });
+$('mslBtn').addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); fireMissile(); });
 FORCE_ORDER.forEach(k=>{
   const btn=$('f'+cap(k)+'Btn');
   btn.addEventListener('pointerdown',e=>{ e.stopPropagation(); Sound.init(); Sound.resume(); fireForce(k); });
@@ -1593,6 +1665,7 @@ function bindBuyRow(id,rep){
 bindBuyRow('buyO2Row',buyO2Rep);
 bindBuyRow('buyHeartRow',buyHeartRep);
 bindBuyRow('buyPistolRow',buyPistolRep);
+bindBuyRow('buyMslRow',buyMslRep);
 FORCE_ORDER.forEach(k=>bindBuyRow('buy'+cap(k)+'Row',buyForceRep[k]));
 window.addEventListener('blur',endAllBuyRepeat);
 
@@ -1777,6 +1850,11 @@ function buildSprites(){
     const a=1-p.t/p.life;
     spriteBB(p.x,p.y,p.z,p.size,p.size,p.cell,p.col[0],p.col[1],p.col[2],a);
   }
+  /* 🚀追跡ミサイル（塗る3D/島ぐらしから移植） */
+  for(const m of missiles){
+    spriteBB(m.x,m.y,m.z,0.95,0.95,6,1,1,1,1);
+    spriteBB(m.x,m.y,m.z,1.5,1.5,1,1,0.7,0.35,0.3);
+  }
   /* 🔫レーザー（即着弾のビーム・こっこGP風の三重トレーサー＋着弾グロー） */
   for(const l of lasers){
     const a=1-l.t/l.life;
@@ -1794,7 +1872,7 @@ function show(id){
   if(id)$(id).classList.remove('hidden');
   const play=!id;
   $('hud').classList.toggle('on',play);
-  ['jumpBtn','o2Btn','pistolBtn'].forEach(b=>$(b).classList.toggle('hidden',!play||!IS_TOUCH));
+  ['jumpBtn','o2Btn','pistolBtn','mslBtn'].forEach(b=>$(b).classList.toggle('hidden',!play||!IS_TOUCH));
   hudForce();
   if(!play) $('buyPrompt').classList.add('hidden');
 }
@@ -1802,16 +1880,16 @@ const SPAWN={x:0,z:HALF-12};
 function start(){
   genWorld((Math.random()*0xffffffff)>>>0);
   rebuildDynBoxes(); buildWorldMesh(); redrawField();
-  P.x=SPAWN.x; P.z=SPAWN.z; P.y=0; P.vy=0; P.hp=3; P.fireT=0; P.pistolT=0; P.pistolAmmo=PISTOL_AMMO_START; P.deadT=0; P.invT=1.5; P.onG=true; P.flip=1;
+  P.x=SPAWN.x; P.z=SPAWN.z; P.y=0; P.vy=0; P.hp=3; P.fireT=0; P.pistolT=0; P.pistolAmmo=PISTOL_AMMO_START; P.mslInv=0; P.deadT=0; P.invT=1.5; P.onG=true; P.flip=1;
   P.o2=1; P.o2Inv=0;
   P.forceAmmo={rock:FORCE_START.rock};
   P.unlocked={rock:true};
   cam.yaw=0; cam.pitch=-0.3;
-  parts=[]; seals=[]; lasers=[];
+  parts=[]; seals=[]; lasers=[]; missiles=[];
   G.t=TIME; G.score=0; G.sealed=0; G.kos=0; G.shake=0; G.paused=false; G.win=false; G.ko=false; G.money=0;
   G.phase='count'; G.countT=3.4; caAcc=0;
   input.stick.active=false; input.look.active=false;
-  hudTime(); hudScore(); hudHp(); hudNests(); hudMoney(); hudO2(); hudO2Inv(); hudPistol(); hudForce(); updateTimeRing();
+  hudTime(); hudScore(); hudHp(); hudNests(); hudMoney(); hudO2(); hudO2Inv(); hudPistol(); hudMsl(); hudForce(); updateTimeRing();
   $('buyPrompt').classList.add('hidden');
   $('urgVin').classList.remove('on');
   show(null);
@@ -1905,7 +1983,7 @@ requestAnimationFrame(frame);
 window.__mebuki={
   state(){ return { phase:G.phase, t:G.t, hp:P.hp, sealed:G.sealed, kos:G.kos, score:G.score, money:G.money,
     win:G.win, ko:G.ko, px:P.x, pz:P.z, unlocked:Object.assign({},P.unlocked), ammo:Object.assign({},P.forceAmmo),
-    pistolAmmo:P.pistolAmmo,
+    pistolAmmo:P.pistolAmmo, mslInv:P.mslInv, missileCount:missiles.length,
     nests:nests.map(n=>({x:n.x,z:n.z,sealed:n.sealed,purity:n.purity,sealT:n.sealT})) }; },
   tscale(){ /* 互換のため残置。本作は step() でクロックを手回しする方式を使う */ },
   step(dt,n){ n=n||1; for(let i=0;i<n;i++) update(dt||1/60); },
@@ -1920,6 +1998,11 @@ window.__mebuki={
   forceEnd(win){ G.win=!!win; G.t=0; },
   addMoney(n){ G.money+=n; hudMoney(); },
   buyPistol(){ buyPistol(); },
+  buyMissile(){ buyMissile(); },
+  fireMissile(){ fireMissile(); },
+  giveMsl(n){ P.mslInv=Math.max(0,Math.min(MSL_MAX,(P.mslInv||0)+n)); hudMsl(); },
+  nearestStore(){ const {store,dist}=nearestStore(); return store?{x:store.x,z:store.z,dist}:null; },
+  listMissiles(){ return missiles.map(m=>({x:m.x,z:m.z,t:m.t,hasTgt:!!(m.tgt&&m.tgt.deadT<=0)})); },
   listEnemies(){ return enemies.map(e=>({x:e.x,z:e.z,deadT:e.deadT,invT:e.invT,rockHits:e.rockHits,guard:e.guard})); },
   unlockAll(){ FORCE_ORDER.forEach(k=>{ P.unlocked[k]=true; P.forceAmmo[k]=30; }); hudForce(); },
   aimAt(x,z){ cam.yaw=Math.atan2(x-P.x,-(z-P.z)); },
