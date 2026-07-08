@@ -22,8 +22,8 @@
 })();
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>コッコ芽吹き ─ COCCO MEBUKI｜絡み合う自然の力で枯れた島を芽吹かせる3Dアクション</title>
-<meta name="description" content="🔥火・🪨岩──焼いて崩す2つの力を撒いて、枯れた島から逆縁の巣を鎮めよ。塗って勝つのではなく、世界を作り変えて勝つ。クリアの方法は無数。世界ランキングつき無料ブラウザ3Dゲーム。">
+<title>コッコ芽吹き ─ COCCO MEBUKI｜🪨岩を積んで枯れた島を芽吹かせる3Dアクション</title>
+<meta name="description" content="🪨岩──積み上げて崩す力を撒いて、枯れた島から逆縁の巣を鎮めよ。塗って勝つのではなく、世界を作り変えて勝つ。世界ランキングつき無料ブラウザ3Dゲーム。">
 <meta name="author" content="畜物語">
 <meta name="robots" content="index, follow">
 <meta name="color-scheme" content="dark">
@@ -33,13 +33,13 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://chikumo.jp/mebuki/">
 <meta property="og:title" content="コッコ芽吹き ─ COCCO MEBUKI">
-<meta property="og:description" content="🔥🪨焼いて崩す力で、枯れた島の逆縁を鎮める3Dアクション。クリアの方法は無数にある。">
+<meta property="og:description" content="🪨積み上げて崩す力で、枯れた島の逆縁を鎮める3Dアクション。塗るのではなく、世界を作り変えて勝つ。">
 <meta property="og:image" content="https://chikumo.jp/ogp.png">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:site_name" content="畜物語">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="コッコ芽吹き ─ COCCO MEBUKI">
-<meta name="twitter:description" content="絡み合う5つの自然の力で、枯れた島を芽吹かせる3Dアクション。クリアの方法は無数。">
+<meta name="twitter:description" content="🪨岩を積んで崩して、枯れた島を芽吹かせる3Dアクション。塗るのではなく、世界を作り変えて勝つ。">
 <meta name="twitter:image" content="https://chikumo.jp/ogp.png">
 <link rel="icon" type="image/svg+xml" href="/chikumo.svg">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -399,13 +399,11 @@
   <div class="actbtn hidden" id="o2Btn">🫧</div>
   <div class="actbtn hidden" id="pistolBtn">🔫<span class="fc" id="pistolC">5</span></div>
   <div id="forceRow">
-    <div class="actbtn forceBtn hidden" id="fFireBtn">🔥<span class="fc" id="fFireC">0</span></div>
     <div class="actbtn forceBtn hidden" id="fRockBtn">🪨<span class="fc" id="fRockC">0</span></div>
   </div>
   <div class="buyprompt hidden" id="buyPrompt">
-    <div class="bp-row" id="buyO2Row">🫧 タップで購入 💴2</div>
+    <div class="bp-row" id="buyO2Row">🫧 タップで購入 💴1</div>
     <div class="bp-row" id="buyPistolRow">🔫 タップで購入 💴2</div>
-    <div class="bp-row" id="buyFireRow">🔥 タップで購入 💴2</div>
     <div class="bp-row" id="buyRockRow">🪨 タップで購入 💴2</div>
     <div class="bp-row" id="buyHeartRow">❤️ かいふく 💴15</div>
   </div>
@@ -415,14 +413,14 @@
   <div class="screen" id="titleScreen">
     <span class="budsplash"><img class="hero" src="/chikumo.svg" alt="こっこちゃん"></span>
     <div class="logo">COCCO MEBUKI</div>
-    <div class="sub">コッコ芽吹き ─ 絡み合う力の3D</div>
+    <div class="sub">コッコ芽吹き ─ 積み上げる力の3D</div>
     <div class="desc">
       枯れはてた島に <span class="pr">逆縁の巣</span> が根を張っている。<br>
-      <b>🔥火・🪨岩</b>――<br>
-      焼いて崩す力を撒いて、島から<b>枯</b>を追い払い、<br>
-      巣を鎮めよ。<b>クリアの方法は、ひとつじゃない。</b>
+      <b>🪨岩</b>――<br>
+      積み上げて崩す力を撒いて、島から<b>枯</b>を追い払い、<br>
+      巣を鎮めよ。
     </div>
-    <div class="forcelegend">🔥🪨</div>
+    <div class="forcelegend">🪨</div>
     <button class="btn" id="startBtn">出撃する</button>
     <button class="btn ghost" id="howBtn">あそびかた</button>
     <button class="btn ghost" id="rankBtn">🏆 世界ランキング</button>
@@ -440,15 +438,14 @@
   <div class="screen hidden" id="howScreen">
     <div class="logo small">あそびかた</div>
     <div class="desc" style="max-width:380px;text-align:left;">
-      ◆ <b>スマホ</b>：画面の<b>左半分</b>をドラッグで移動、<b>右半分</b>をドラッグで見まわす。右下の<b>🔫ボタン</b>で遠くの逆縁を即座にねらい撃ち、下の<b>力のボタン</b>で力を撒く。<b>⬆ボタン</b>でジャンプ。<br><br>
-      ◆ <b>パソコン</b>：WASDで移動、画面クリックでマウス視点。<b>クリックまたはFキー</b>で🔫発射、<b>1〜2キー</b>でそれぞれの力を発射、スペースでジャンプ。<br><br>
+      ◆ <b>スマホ</b>：画面の<b>左半分</b>をドラッグで移動、<b>右半分</b>をドラッグで見まわす。右下の<b>🔫ボタン</b>で遠くの逆縁を即座にねらい撃ち、下の<b>🪨ボタン</b>で力を撒く。<b>⬆ボタン</b>でジャンプ。<br><br>
+      ◆ <b>パソコン</b>：WASDで移動、画面クリックでマウス視点。<b>クリックまたはFキー</b>で🔫発射、<b>1キー</b>で🪨を発射、スペースでジャンプ。<br><br>
       ◆ <b style="color:#ffe07a;">🔫レーザーピストル</b>：撃った瞬間に当たる遠隔武器！弾は最初<b>5発</b>だけ、当たれば逆縁を<b>1発で撃破</b>（地形は変えない）。弾切れは🏪コンビニで補充しよう（最大99発）。<br>
-      ◆ <b style="color:#ffcf6b;">🔥火</b>：逆縁の<span class="pr">枯</span>を焼き払う一撃。しばらく燃えつづける。<br>
-      ◆ <b style="color:#c9c9d6;">🪨岩</b>：地面を隆起させる。積むほど高い足場に。枯を埋めて土に戻す。<br><br>
-      ◆ <span class="pr">逆縁の巣</span> のまわりを<b>枯でない状態</b>にたもつと、じわじわ鎮まっていく。<b>焼く・埋める</b>――やり方はひとつじゃない。全部の巣を鎮めれば島は<b>芽吹く</b>！<br><br>
-      ◆ <span class="pr">ブラックこっこちゃん</span>（逆縁）は、<b>🔫が一番たしかな一撃</b>（最初から5発持っている）。力を直接ねらって当てても払える──<b>🔥は一撃で焼き払う、🪨は二撃でくずす</b>。ふれられると❤️が減り、3つとも失うとゲームオーバー。<br><br>
+      ◆ <b style="color:#c9c9d6;">🪨岩</b>：地面を隆起させる。同じ場所に何度でも積み上げられ、高さに上限はない。枯を埋めて土に戻す。<br><br>
+      ◆ <span class="pr">逆縁の巣</span> のまわりを<b>枯でない状態</b>にたもつと、じわじわ鎮まっていく。<b>🪨で埋める</b>と鎮まる。全部の巣を鎮めれば島は<b>芽吹く</b>！<br><br>
+      ◆ <span class="pr">ブラックこっこちゃん</span>（逆縁）は、<b>🔫が一番たしかな一撃</b>（最初から5発持っている）。<b>🪨を直接ねらって当てても二撃でくずせる</b>。ふれられると❤️が減り、3つとも失うとゲームオーバー。<br><br>
       ◆ <b style="color:#bfe6ff;">🌀 空蹴り</b>：空中でもう一度ジャンプすると 空気を蹴って何度でも跳べる（🫁酸素ゲージを消費）。<br><br>
-      ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>、<b>逆縁の巣を鎮める</b>ともっと多くの💴がもらえる。🏪コンビニで🔫弾・🔥🪨の弾・🫧酸素・❤️回復が買える（長押しで連続購入）。
+      ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>、<b>逆縁の巣を鎮める</b>ともっと多くの💴がもらえる。🏪コンビニで🔫弾・🪨の弾・🫧酸素・❤️回復が買える（長押しで連続購入）。
     </div>
     <button class="btn" id="howBack">もどる</button>
   </div>
@@ -505,12 +502,12 @@
    塗る3D（/splat3d/）の面白いエンジン（3D移動・空蹴り・🏪経済・❤️緊張・
    世界ランキング）はそのまま継ぎ、中心動詞だけを差し替えた設計。
    「インクで陣地を塗って面積%で勝つ」＝スプラの中心フック（畜学七相の壱＝
-   既視の禁に違反）を捨て、「焼く・埋める、2つの力で世界を
-   作り変え、逆縁の巣を鎮める」を新しい中心にした（💧水・🌱草・💨風は
-   実際に遊んだ結果を踏まえて削り、🔥火・🪨岩の2力に絞っている）。
+   既視の禁に違反）を捨て、「埋める力で世界を作り変え、逆縁の巣を鎮める」を
+   新しい中心にした（💧水・🌱草・💨風・🔥火は実際に遊んだ結果を踏まえて削り、
+   🪨岩1力＋🔫レーザーピストルの組み合わせに絞っている）。
    勝敗は面積%ではなく open method（枯でないセルの割合＝purity）。
-   焼く・埋める――クリアの世界線は単一ではない。
-   詳細設計：docs/要件定義-コッコ芽吹き.md（初期案。実装は5力→4力→2力と縮小した）*/
+   🪨は同じマスへ何度でも積める（積み上げ高さに上限なし）。
+   詳細設計：docs/要件定義-コッコ芽吹き.md（初期案。実装は5力→4力→2力→1力と縮小した）*/
 (function(){
 const cv=document.getElementById('gl');
 const $=id=>document.getElementById(id);
@@ -550,7 +547,7 @@ const Sound=(function(){
     bt=setInterval(bsched,50); }
   function stopBGM(){ bon=false; if(bt){clearInterval(bt);bt=null;} if(bg){try{bg.gain.cancelScheduledValues(ac.currentTime); bg.gain.linearRampToValueAtTime(.0001,ac.currentTime+0.4);}catch(e){}} }
   return { init, resume(){ if(ac&&ac.state==='suspended')ac.resume(); }, setMuted(b){muted=b; if(b)stopBGM();}, startBGM, stopBGM,
-    fireFire(){ noise(.1,.16,3400); tone(300,0.12,'sawtooth',0.14,140); },
+    shoot(){ noise(.1,.16,3400); tone(300,0.12,'sawtooth',0.14,140); },
     fireRock(){ tone(90,0.18,'square',0.22,60); noise(.1,.12,900); },
     purify(){ const seq=[659,784,988]; seq.forEach((f,i)=>setTimeout(()=>tone(f,0.14,'triangle',0.16,f*1.1),i*45)); },
     jump(){ tone(330,0.12,'triangle',0.16,520); },
@@ -692,9 +689,9 @@ function matMul(out,a,b){
 /* ===== ワールド定数 ===== */
 const SIZE=170, HALF=SIZE/2;
 const TIME=90, NEST_COUNT=4;
-const O2_PRICE=2, O2_MAX=99, STORE_MONEY_PER_KO=15, AIR_KICK_COST=1/9, AIR_KICK_VY=8.2, O2_REGEN=0.05;
+const O2_PRICE=1, O2_MAX=99, STORE_MONEY_PER_KO=15, AIR_KICK_COST=1/9, AIR_KICK_VY=8.2, O2_REGEN=0.05;
 const FORCE_CD=0.16, FORCE_RANGE=40;
-const FORCE_MAX=60, FORCE_PRICE=2, FORCE_START={fire:14,rock:14};
+const FORCE_MAX=60, FORCE_PRICE=2, FORCE_START={rock:14};
 const HEART_PRICE=15;
 const SEAL_MONEY=45;
 /* 🔫レーザーピストル（塗る3Dから移植）：弾数制限つきの遠隔武器。飛び道具でなく即着弾。当たれば1発で撃破、地形は変えない */
@@ -704,7 +701,7 @@ const TIME_ARC_C=226.19; // 2*PI*36
 
 /* ===== 力のフィールド（CA：セル・オートマトン） ===== */
 const CAGRID=64, CACELL=SIZE/CAGRID;
-const K_DIRT=0,K_FIRE=3,K_ROCK=4,K_ASH=5,K_BLIGHT=6;
+const K_DIRT=0,K_ROCK=4,K_ASH=5,K_BLIGHT=6;
 const CA_HZ=12, CA_DT=1/CA_HZ;
 let fKind=new Uint8Array(CAGRID*CAGRID), fLevel=new Float32Array(CAGRID*CAGRID);
 let fKind2=new Uint8Array(CAGRID*CAGRID), fLevel2=new Float32Array(CAGRID*CAGRID);
@@ -725,13 +722,9 @@ function neighbors4(cx,cz){
 function stepCA(){
   fKind2.set(fKind); fLevel2.set(fLevel);
   for(let cz=0;cz<CAGRID;cz++)for(let cx=0;cx<CAGRID;cx++){
-    const idx=ci(cx,cz), k=fKind[idx]; let lv=fLevel[idx];
+    const idx=ci(cx,cz), k=fKind[idx];
     const nb=neighbors4(cx,cz);
-    if(k===K_FIRE){
-      lv-=CA_DT*(1/1.4);
-      for(const n of nb) if(fKind[n]===K_BLIGHT&&Math.random()<0.30){ fKind2[n]=K_ASH; fLevel2[n]=0; }
-      if(lv<=0){ fKind2[idx]=K_ASH; fLevel2[idx]=0; } else fLevel2[idx]=lv;
-    }else if(k===K_ASH){
+    if(k===K_ASH){
       if(Math.random()<0.04){ fKind2[idx]=K_DIRT; }
     }else if(k===K_DIRT){
       for(const n of nb) if(fKind[n]===K_BLIGHT&&Math.random()<0.003){ fKind2[idx]=K_BLIGHT; fLevel2[idx]=0.5; break; }
@@ -756,11 +749,10 @@ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
 gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
 gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
 function lerpCol(c0,c1,t){ return [c0[0]+(c1[0]-c0[0])*t,c0[1]+(c1[1]-c0[1])*t,c0[2]+(c1[2]-c0[2])*t]; }
-const COL_DIRT=[74,68,56], COL_FIRE0=[90,32,16], COL_FIRE1=[255,207,61],
+const COL_DIRT=[74,68,56],
   COL_ROCK0=[90,90,102], COL_ROCK1=[201,205,216], COL_ASH=[44,42,48], COL_BLIGHT0=[22,10,32], COL_BLIGHT1=[89,19,122];
 function cellColor(k,lv){
   switch(k){
-    case K_FIRE: return lerpCol(COL_FIRE0,COL_FIRE1,clamp(lv,0,1));
     case K_ROCK: return lerpCol(COL_ROCK0,COL_ROCK1,clamp(lv/1.6,0,1));
     case K_ASH: return COL_ASH;
     case K_BLIGHT: return lerpCol(COL_BLIGHT0,COL_BLIGHT1,clamp(lv,0,1));
@@ -906,7 +898,7 @@ function genWorld(seed){
   }
   // 逆縁（巣の見はり2羽＋うろつき3羽）
   function mkEnemy(x,z,guard){
-    return {x,z,hx:x,hz:z,guard,deadT:0,invT:1.2,think:rr(0,0.8),tx:x,tz:z,atkT:rr(0.5,1.2),sq:rr(0,TAU),flip:1,burnT:0,rockHits:0};
+    return {x,z,hx:x,hz:z,guard,deadT:0,invT:1.2,think:rr(0,0.8),tx:x,tz:z,atkT:rr(0.5,1.2),sq:rr(0,TAU),flip:1,rockHits:0};
   }
   nests.forEach((nst,i)=>{
     for(let k=0;k<2;k++){
@@ -1007,8 +999,8 @@ function insideBox(x,y,z){
 /* ===== ゲーム状態 ===== */
 const G={phase:'title',t:TIME,score:0,sealed:0,kos:0,countT:0,finishT:0,best:0,shake:0,lastSec:99,paused:false,time:0,win:false,ko:false,money:0};
 const P={x:0,z:0,y:0,vy:0,hp:3,fireT:0,pistolT:0,pistolAmmo:PISTOL_AMMO_START,deadT:0,invT:0,moving:false,flip:1,onG:true,o2:1,o2Inv:0,
-  forceAmmo:{fire:FORCE_START.fire,rock:FORCE_START.rock},
-  unlocked:{fire:true,rock:true},burnT:0};
+  forceAmmo:{rock:FORCE_START.rock},
+  unlocked:{rock:true}};
 const cam={yaw:0,pitch:-0.3,dist:7.2};
 let parts=[],seals=[],lasers=[];
 function loadBest(){ try{ G.best=+localStorage.getItem('coccoMebukiBest')||0; }catch(e){ G.best=0; } }
@@ -1032,9 +1024,9 @@ function sparkle3(x,y,z,n){
       life:rnd(0.7,1.2),t:0,col:[0.9,1,0.7],size:rnd(0.25,0.4),cell:2,grav:-1}); }
 }
 
-/* ===== 力を撒く（中心動詞：塗るではなく、絡み合う力で世界を作り変える） ===== */
-const FORCE_ORDER=['fire','rock'];
-const FORCE_COL={fire:[1,0.56,0.18],rock:[0.72,0.72,0.78]};
+/* ===== 力を撒く（中心動詞：塗るではなく、積む力で世界を作り変える） ===== */
+const FORCE_ORDER=['rock'];
+const FORCE_COL={rock:[0.72,0.72,0.78]};
 function aimGroundCell(){
   const f=camForward();
   const hl=Math.hypot(f[0],f[2])||1, dx=f[0]/hl, dz=f[2]/hl;
@@ -1050,13 +1042,9 @@ function aimGroundCell(){
 function applyForceAt(kind,wx,wz){
   const [cx,cz]=worldToCell(wx,wz);
   const idx=ci(cx,cz), k=fKind[idx], lv=fLevel[idx];
-  if(kind==='fire'){
+  if(kind==='rock'){
     if(k===K_BLIGHT){ fKind[idx]=K_ASH; fLevel[idx]=0; Sound.purify(); }
-    else if(k===K_ROCK){ /* 岩は燃えない */ }
-    else{ fKind[idx]=K_FIRE; fLevel[idx]=0.9; Sound.fireFire(); }
-  }else if(kind==='rock'){
-    if(k===K_BLIGHT){ fKind[idx]=K_ASH; fLevel[idx]=0; Sound.purify(); }
-    else{ fKind[idx]=K_ROCK; fLevel[idx]=Math.min(1.6,(k===K_ROCK?lv:0)+0.55); Sound.fireRock(); }
+    else{ fKind[idx]=K_ROCK; fLevel[idx]=(k===K_ROCK?lv:0)+0.55; Sound.fireRock(); } // 上限なし＝何度でも積める
   }
 }
 /* 逆縁への直接ねらい撃ち（こっこGP/塗る3Dのエイムアシストと同じ型：水平方向のみでコーン判定する。
@@ -1077,12 +1065,10 @@ function findAimEnemy(range){
   }
   return best;
 }
-/* 力を逆縁へ直接ぶつけたときの効果。焼く(🔥)は一撃・埋める(🪨)は二撃で払える＝力ごとに手応えを変える。 */
+/* 力を逆縁へ直接ぶつけたときの効果。埋める(🪨)は二撃で払える。 */
 function hitEnemyWithForce(kind,e){
   burst3(e.x,1,e.z,FORCE_COL[kind],14,4);
-  if(kind==='fire'){
-    Sound.fireFire(); koEnemy(e);
-  }else if(kind==='rock'){
+  if(kind==='rock'){
     Sound.fireRock(); Sound.hitEnemy();
     e.rockHits=(e.rockHits||0)+1;
     if(e.rockHits>=2){ e.rockHits=0; koEnemy(e); } else{ e.invT=0.4; e.think=0; }
@@ -1130,7 +1116,7 @@ function firePistol(){
     burst3(hx,hy,hz,[1,0.92,0.6],4,2);
   }
   lasers.push({x0:mx,y0:my,z0:mz,x1:hx,y1:hy,z1:hz,t:0,life:0.15});
-  Sound.fireFire(); G.shake=Math.max(G.shake,0.05);
+  Sound.shoot(); G.shake=Math.max(G.shake,0.05);
 }
 function hitPlayer(){
   if(P.deadT>0||P.invT>0) return;
@@ -1195,7 +1181,7 @@ function updateEnemy(e,dt){
   if(e.deadT>0){ e.deadT-=dt;
     if(e.deadT<=0){
       if(e.guard>=0&&nests[e.guard]&&nests[e.guard].sealed) return; // 巣が鎮まったら見はりは戻らない
-      e.x=e.hx; e.z=e.hz; e.invT=1.5; e.think=0; e.burnT=0; e.rockHits=0;
+      e.x=e.hx; e.z=e.hz; e.invT=1.5; e.think=0; e.rockHits=0;
     }
     return; }
   if(e.invT>0)e.invT-=dt;
@@ -1213,7 +1199,6 @@ function updateEnemy(e,dt){
     }
   }
   let dx=e.tx-e.x, dz=e.tz-e.z; const d=Math.hypot(dx,dz);
-  const [ecx,ecz]=worldToCell(e.x,e.z), eidx=ci(ecx,ecz), ek=fKind[eidx], elv=fLevel[eidx];
   if(d>1){
     dx/=d; dz/=d;
     const sp=5.0;
@@ -1221,8 +1206,6 @@ function updateEnemy(e,dt){
     e.y=floorAt(e.x,e.z,0); collideXZ(e,0.9);
     e.flip=dx<0?-1:1; e.sq+=dt*9;
   }
-  // 環境ダメージ：火にふれ続けると焼かれる
-  if(ek===K_FIRE&&elv>0.2){ e.burnT+=dt; if(e.burnT>0.4){ koEnemy(e); return; } } else e.burnT=Math.max(0,e.burnT-dt*2);
   e.atkT-=dt;
   if(e.atkT<=0&&pAlive&&dP<1.3){
     e.atkT=rnd(0.8,1.4);
@@ -1258,7 +1241,6 @@ function update(dt){
   if(P.pistolT>0)P.pistolT-=dt;
   const iv=moveVec();
   P.moving=Math.hypot(iv.x,iv.z)>0.05;
-  const [pcx,pcz]=worldToCell(P.x,P.z), pidx=ci(pcx,pcz), pk=fKind[pidx], plv=fLevel[pidx];
   if(P.moving){
     const sp=8.6;
     P.x+=iv.x*sp*dt; P.z+=iv.z*sp*dt;
@@ -1266,9 +1248,7 @@ function update(dt){
     if(Math.abs(iv.x*camRightH()[0]+iv.z*camRightH()[2])>0.05)
       P.flip=(iv.x*camRightH()[0]+iv.z*camRightH()[2])<0?-1:1;
   }
-  // プレイヤー自身の火：自分の🔥に長く立ち続けると焼かれる（自分で撒いた力の緊張）
-  if(pk===K_FIRE&&plv>0.2){ P.burnT+=dt; if(P.burnT>1.4){ P.burnT=0; hitPlayer(); } } else P.burnT=Math.max(0,P.burnT-dt*2);
-  // 重力・ジャンプ・地形（力で隆起した岩・育った樹をふくむ）のぼり
+  // 重力・ジャンプ・地形（力で積み上げた岩をふくむ）のぼり
   const fl=floorAt(P.x,P.z,P.y);
   if(P.y>fl+0.001||P.vy>0){
     P.vy-=26*dt; P.y+=P.vy*dt; P.onG=false;
@@ -1359,7 +1339,7 @@ function updateBuyPrompt(){
   if(P.hp>=3){ hRow.classList.add('no'); hRow.textContent='❤️ ハートは 満タン！'; }
   else{ hRow.classList.toggle('no',G.money<HEART_PRICE); hRow.textContent='❤️ かいふく 💴'+HEART_PRICE; }
 }
-const FORCE_EMOJI={fire:'🔥',rock:'🪨'};
+const FORCE_EMOJI={rock:'🪨'};
 function buyO2(){
   if(G.phase!=='play'||G.paused||P.deadT>0) return;
   const {store,dist}=nearestStore();
@@ -1564,7 +1544,7 @@ document.addEventListener('mousemove',e=>{
   cam.yaw+=e.movementX*0.0028;
   cam.pitch=clamp(cam.pitch-e.movementY*0.0026,-1.15,0.55);
 });
-const KEY_FORCE={'1':'fire','2':'rock'};
+const KEY_FORCE={'1':'rock'};
 window.addEventListener('keydown',e=>{
   const k=e.key.toLowerCase(); input.keys[k]=true;
   if(k===' '){ e.preventDefault(); doJump(); }
@@ -1823,9 +1803,9 @@ function start(){
   genWorld((Math.random()*0xffffffff)>>>0);
   rebuildDynBoxes(); buildWorldMesh(); redrawField();
   P.x=SPAWN.x; P.z=SPAWN.z; P.y=0; P.vy=0; P.hp=3; P.fireT=0; P.pistolT=0; P.pistolAmmo=PISTOL_AMMO_START; P.deadT=0; P.invT=1.5; P.onG=true; P.flip=1;
-  P.o2=1; P.o2Inv=0; P.burnT=0;
-  P.forceAmmo={fire:FORCE_START.fire,rock:FORCE_START.rock};
-  P.unlocked={fire:true,rock:true};
+  P.o2=1; P.o2Inv=0;
+  P.forceAmmo={rock:FORCE_START.rock};
+  P.unlocked={rock:true};
   cam.yaw=0; cam.pitch=-0.3;
   parts=[]; seals=[]; lasers=[];
   G.t=TIME; G.score=0; G.sealed=0; G.kos=0; G.shake=0; G.paused=false; G.win=false; G.ko=false; G.money=0;
@@ -1891,7 +1871,7 @@ $('howBack').addEventListener('click',()=>{ Sound.ui(); show('titleScreen'); });
 $('rankBtn').addEventListener('click',()=>{ Sound.ui(); show('rankScreen'); try{ if(window.CoccoRank) window.CoccoRank.onShowRanking(); }catch(e){} });
 $('rankBack').addEventListener('click',()=>{ Sound.ui(); show('titleScreen'); });
 $('shareBtn').addEventListener('click',()=>{
-  const txt='コッコ芽吹きで '+G.score.toLocaleString()+' 点！逆縁の巣を '+G.sealed+'/'+NEST_COUNT+' 鎮めた 🔥🪨 #畜物語';
+  const txt='コッコ芽吹きで '+G.score.toLocaleString()+' 点！逆縁の巣を '+G.sealed+'/'+NEST_COUNT+' 鎮めた 🪨 #畜物語';
   const url='https://chikumo.jp/mebuki/';
   if(navigator.share){ navigator.share({text:txt,url}).catch(()=>{}); }
   else{ try{ navigator.clipboard.writeText(txt+' '+url); alert('コピーしました！'); }catch(e){} }
@@ -1940,10 +1920,10 @@ window.__mebuki={
   forceEnd(win){ G.win=!!win; G.t=0; },
   addMoney(n){ G.money+=n; hudMoney(); },
   buyPistol(){ buyPistol(); },
-  listEnemies(){ return enemies.map(e=>({x:e.x,z:e.z,deadT:e.deadT,invT:e.invT,burnT:e.burnT,rockHits:e.rockHits,guard:e.guard})); },
+  listEnemies(){ return enemies.map(e=>({x:e.x,z:e.z,deadT:e.deadT,invT:e.invT,rockHits:e.rockHits,guard:e.guard})); },
   unlockAll(){ FORCE_ORDER.forEach(k=>{ P.unlocked[k]=true; P.forceAmmo[k]=30; }); hudForce(); },
   aimAt(x,z){ cam.yaw=Math.atan2(x-P.x,-(z-P.z)); },
-  K:{DIRT:K_DIRT,FIRE:K_FIRE,ROCK:K_ROCK,ASH:K_ASH,BLIGHT:K_BLIGHT}
+  K:{DIRT:K_DIRT,ROCK:K_ROCK,ASH:K_ASH,BLIGHT:K_BLIGHT}
 };
 })();
 </script>
