@@ -444,7 +444,7 @@
       ◆ <b style="color:#bcd6ff;">💨風</b>：前方に一瞬の突風。逆縁ちゃんを吹き飛ばし、岩を転がす。<br>
       ◆ <b style="color:#c9c9d6;">🪨岩</b>：地面を隆起させる。積むほど高い足場に。水をせき止め、火の延焼を止める。<br><br>
       ◆ <span class="pr">逆縁の巣</span> のまわりを<b>枯でない状態</b>にたもつと、じわじわ鎮まっていく。<b>焼く・浸す・押し返す・埋める</b>――やり方はひとつじゃない。全部の巣を鎮めれば島は<b>芽吹く</b>！<br><br>
-      ◆ <span class="pr">ブラックこっこちゃん</span>（逆縁）は、力を<b>直接ねらって当てれば払える</b>。🔥は一撃で焼き払う、🪨は二撃でくずす、💧は当てるたびに弱らせ鈍らせる（数発でしずめる）、🌱は突き飛ばす。💨は前方をまとめて吹き飛ばし、火や深い水に落とせば道連れにできる。ふれられると❤️が減り、3つとも失うとゲームオーバー。<br><br>
+      ◆ <span class="pr">ブラックこっこちゃん</span>（逆縁）は、力を<b>直接ねらって当てれば払える</b>。<b>💧水は解禁ずみで二撃でしずめる</b>（初めから確実に倒せる）、🔥は一撃で焼き払う（🏪コンビニでめざめさせると必要）、🪨は二撃でくずす、🌱は突き飛ばす（倒しはしない）。💨は前方をまとめて吹き飛ばし、火や深い水に落とせば道連れにできる。ふれられると❤️が減り、3つとも失うとゲームオーバー。<br><br>
       ◆ <b style="color:#bfe6ff;">🌀 空蹴り</b>：空中でもう一度ジャンプすると 空気を蹴って何度でも跳べる（🫁酸素ゲージを消費）。<br><br>
       ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>、<b>逆縁の巣を鎮める</b>ともっと多くの💴がもらえる。🏪コンビニで🌱💧の弾・🔥💨🪨の解禁・🫧酸素・❤️回復が買える（長押しで連続購入）。
     </div>
@@ -938,7 +938,7 @@ function genWorld(seed){
   }
   // 逆縁（巣の見はり2羽＋うろつき3羽）
   function mkEnemy(x,z,guard){
-    return {x,z,hx:x,hz:z,guard,deadT:0,invT:1.2,think:rr(0,0.8),tx:x,tz:z,atkT:rr(0.5,1.2),sq:rr(0,TAU),flip:1,burnT:0,drownT:0,soakT:0,rockHits:0};
+    return {x,z,hx:x,hz:z,guard,deadT:0,invT:1.2,think:rr(0,0.8),tx:x,tz:z,atkT:rr(0.5,1.2),sq:rr(0,TAU),flip:1,burnT:0,drownT:0,soakT:0,rockHits:0,waterHits:0};
   }
   nests.forEach((nst,i)=>{
     for(let k=0;k<2;k++){
@@ -1130,8 +1130,9 @@ function hitEnemyWithForce(kind,e){
     Sound.fireFire(); koEnemy(e);
   }else if(kind==='water'){
     Sound.fireWater(); Sound.hitEnemy();
-    e.soakT=2.5; e.drownT=Math.min(1.6,(e.drownT||0)+0.85);
-    if(e.drownT>=1.6) koEnemy(e); else e.think=0;
+    e.soakT=2.5;
+    e.waterHits=(e.waterHits||0)+1;
+    if(e.waterHits>=2){ e.waterHits=0; koEnemy(e); } else e.think=0;
   }else if(kind==='rock'){
     Sound.fireRock(); Sound.hitEnemy();
     e.rockHits=(e.rockHits||0)+1;
@@ -1273,7 +1274,7 @@ function updateEnemy(e,dt){
   if(e.deadT>0){ e.deadT-=dt;
     if(e.deadT<=0){
       if(e.guard>=0&&nests[e.guard]&&nests[e.guard].sealed) return; // 巣が鎮まったら見はりは戻らない
-      e.x=e.hx; e.z=e.hz; e.invT=1.5; e.think=0; e.burnT=0; e.drownT=0; e.soakT=0; e.rockHits=0;
+      e.x=e.hx; e.z=e.hz; e.invT=1.5; e.think=0; e.burnT=0; e.drownT=0; e.soakT=0; e.rockHits=0; e.waterHits=0;
     }
     return; }
   if(e.invT>0)e.invT-=dt;
@@ -1990,7 +1991,7 @@ window.__mebuki={
   fire(kind){ fireForce(kind); },
   forceEnd(win){ G.win=!!win; G.t=0; },
   addMoney(n){ G.money+=n; hudMoney(); },
-  listEnemies(){ return enemies.map(e=>({x:e.x,z:e.z,deadT:e.deadT,invT:e.invT,burnT:e.burnT,drownT:e.drownT,soakT:e.soakT,rockHits:e.rockHits,guard:e.guard})); },
+  listEnemies(){ return enemies.map(e=>({x:e.x,z:e.z,deadT:e.deadT,invT:e.invT,burnT:e.burnT,drownT:e.drownT,soakT:e.soakT,rockHits:e.rockHits,waterHits:e.waterHits,guard:e.guard})); },
   unlockAll(){ FORCE_ORDER.forEach(k=>{ P.unlocked[k]=true; P.forceAmmo[k]=30; }); hudForce(); },
   aimAt(x,z){ cam.yaw=Math.atan2(x-P.x,-(z-P.z)); },
   K:{DIRT:K_DIRT,GRASS:K_GRASS,WATER:K_WATER,FIRE:K_FIRE,ROCK:K_ROCK,ASH:K_ASH,BLIGHT:K_BLIGHT}
