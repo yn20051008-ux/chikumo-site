@@ -55,12 +55,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://chikumo.jp/beat/</loc>
-    <lastmod>2026-06-11</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://chikumo.jp/pulse/</loc>
     <lastmod>2026-06-11</lastmod>
     <changefreq>weekly</changefreq>
@@ -183,12 +177,6 @@
   <url>
     <loc>https://chikumo.jp/koro/</loc>
     <lastmod>2026-06-23</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://chikumo.jp/bubble/</loc>
-    <lastmod>2026-06-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
