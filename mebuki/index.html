@@ -947,7 +947,7 @@ function genWorld(seed){
   }
   // 逆縁（巣の見はり2羽＋うろつき3羽）
   function mkEnemy(x,z,guard){
-    return {x,z,hx:x,hz:z,guard,deadT:0,invT:1.2,think:rr(0,0.8),tx:x,tz:z,atkT:rr(0.5,1.2),sq:rr(0,TAU),flip:1,rockHits:0};
+    return {x,z,y:0,hx:x,hz:z,guard,deadT:0,invT:1.2,think:rr(0,0.8),tx:x,tz:z,atkT:rr(0.5,1.2),sq:rr(0,TAU),flip:1,rockHits:0};
   }
   nests.forEach((nst,i)=>{
     for(let k=0;k<2;k++){
@@ -1194,7 +1194,7 @@ function fireMissile(){
   const hl=Math.hypot(f[0],f[2])||1;
   const dx=best?(best.x-P.x):f[0]/hl, dz=best?(best.z-P.z):f[2]/hl;
   const dl=Math.hypot(dx,dz)||1;
-  missiles.push({x:P.x+f[0]*0.6,y:P.y+1.1,z:P.z+f[2]*0.6,vx:dx/dl*MSL_SPEED,vz:dz/dl*MSL_SPEED,tgt:best,t:0});
+  missiles.push({x:P.x+f[0]*0.6,y:P.y+1.1,z:P.z+f[2]*0.6,vx:dx/dl*MSL_SPEED,vy:0,vz:dz/dl*MSL_SPEED,tgt:best,t:0});
   Sound.launch(); G.shake=Math.max(G.shake,0.15);
 }
 /* 💣ボム（塗る3Dから移植）：山なりに投げて着弾で爆発。逆縁を巻き込むほか、オリを壊す唯一の手段 */
@@ -1304,9 +1304,10 @@ function updateEnemy(e,dt){
     dx/=d; dz/=d;
     const sp=5.0;
     e.x+=dx*sp*dt; e.z+=dz*sp*dt;
-    e.y=floorAt(e.x,e.z,0); collideXZ(e,0.9);
+    collideXZ(e,0.9);
     e.flip=dx<0?-1:1; e.sq+=dt*9;
   }
+  e.y=floorAt(e.x,e.z,0); // 立ち止まっていても岩の積み上げなどで足場が変わるため毎フレーム追従させる
   e.atkT-=dt;
   if(e.atkT<=0&&pAlive&&dP<1.3){
     e.atkT=rnd(0.8,1.4);
@@ -1398,24 +1399,26 @@ function update(dt){
   for(let i=lasers.length-1;i>=0;i--){ lasers[i].t+=dt; if(lasers[i].t>=lasers[i].life) lasers.splice(i,1); }
   for(const cg of cages) if(cg.freed>0) cg.freed+=dt;
 
-  /* 🚀追跡ミサイル（塗る3D/島ぐらしから移植・生きている標的をゆるく追尾しつづける誘導弾） */
+  /* 🚀追跡ミサイル（塗る3D/島ぐらしから移植・生きている標的をゆるく追尾しつづける誘導弾）
+     x,y,z すべてで標的へ向けて誘導し、命中判定も水平距離だけでなく3D距離で見る
+     （旧実装はx,zのみで判定しており、頭上を素通りしただけで倒せてしまう不具合があった） */
   for(let i=missiles.length-1;i>=0;i--){
     const m=missiles[i]; m.t+=dt;
     const tgt=m.tgt&&m.tgt.deadT<=0?m.tgt:null;
     if(tgt){
-      const tdx=tgt.x-m.x, tdz=tgt.z-m.z, td=Math.hypot(tdx,tdz)||1;
+      const tdx=tgt.x-m.x, tdy=(tgt.y||0)-m.y, tdz=tgt.z-m.z, td=Math.hypot(tdx,tdy,tdz)||1;
       const k=Math.min(1,dt*4);
-      m.vx+=(tdx/td*MSL_SPEED-m.vx)*k; m.vz+=(tdz/td*MSL_SPEED-m.vz)*k;
+      m.vx+=(tdx/td*MSL_SPEED-m.vx)*k; m.vy+=(tdy/td*MSL_SPEED-m.vy)*k; m.vz+=(tdz/td*MSL_SPEED-m.vz)*k;
     }
-    m.x+=m.vx*dt; m.z+=m.vz*dt;
+    m.x+=m.vx*dt; m.y+=m.vy*dt; m.z+=m.vz*dt;
     if(Math.random()<0.6) parts.push({x:m.x,y:m.y,z:m.z,vx:rnd(-0.3,0.3),vy:rnd(0.1,0.5),vz:rnd(-0.3,0.3),
       life:rnd(0.3,0.55),t:0,col:[0.85,0.85,0.9],size:rnd(0.22,0.36),cell:1,grav:-1.2});
     let boom=Math.abs(m.x)>HALF||Math.abs(m.z)>HALF||m.t>=MSL_LIFE;
-    if(!boom) for(const e of enemies){ if(e.deadT<=0&&Math.hypot(m.x-e.x,m.z-e.z)<MSL_BLAST){ boom=true; break; } }
+    if(!boom) for(const e of enemies){ if(e.deadT<=0&&Math.hypot(m.x-e.x,m.y-e.y,m.z-e.z)<MSL_BLAST){ boom=true; break; } }
     if(boom){
       burst3(m.x,m.y,m.z,[1,0.6,0.25],20,6);
       G.shake=Math.max(G.shake,0.5); Sound.boom();
-      for(const e of enemies){ if(e.deadT<=0&&Math.hypot(m.x-e.x,m.z-e.z)<=MSL_BLAST) koEnemy(e); }
+      for(const e of enemies){ if(e.deadT<=0&&Math.hypot(m.x-e.x,m.y-e.y,m.z-e.z)<=MSL_BLAST) koEnemy(e); }
       missiles.splice(i,1);
     }
   }
@@ -2175,7 +2178,7 @@ window.__mebuki={
   rescueCageNow(i){ if(cages[i]&&cages[i].freed<=0) rescueCage(cages[i]); },
   nearestStore(){ const {store,dist}=nearestStore(); return store?{x:store.x,z:store.z,dist}:null; },
   listMissiles(){ return missiles.map(m=>({x:m.x,y:m.y,z:m.z,t:m.t,hasTgt:!!(m.tgt&&m.tgt.deadT<=0)})); },
-  listEnemies(){ return enemies.map(e=>({x:e.x,z:e.z,deadT:e.deadT,invT:e.invT,rockHits:e.rockHits,guard:e.guard})); },
+  listEnemies(){ return enemies.map(e=>({x:e.x,y:e.y,z:e.z,deadT:e.deadT,invT:e.invT,rockHits:e.rockHits,guard:e.guard})); },
   unlockAll(){ FORCE_ORDER.forEach(k=>{ P.unlocked[k]=true; P.forceAmmo[k]=30; }); hudForce(); },
   aimAt(x,z){ cam.yaw=Math.atan2(x-P.x,-(z-P.z)); },
   K:{DIRT:K_DIRT,ROCK:K_ROCK,ASH:K_ASH,BLIGHT:K_BLIGHT}
