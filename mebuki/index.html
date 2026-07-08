@@ -23,7 +23,7 @@
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>コッコ芽吹き ─ COCCO MEBUKI｜絡み合う自然の力で枯れた島を芽吹かせる3Dアクション</title>
-<meta name="description" content="🔥火・💧水・🌱草・🪨岩──絡み合う力を撒いて、枯れた島から逆縁の巣を鎮め、いのちを巡らせよ。塗って勝つのではなく、世界を作り変えて勝つ。クリアの方法は無数。世界ランキングつき無料ブラウザ3Dゲーム。">
+<meta name="description" content="🔥火・🪨岩──焼いて崩す2つの力を撒いて、枯れた島から逆縁の巣を鎮めよ。塗って勝つのではなく、世界を作り変えて勝つ。クリアの方法は無数。世界ランキングつき無料ブラウザ3Dゲーム。">
 <meta name="author" content="畜物語">
 <meta name="robots" content="index, follow">
 <meta name="color-scheme" content="dark">
@@ -33,7 +33,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://chikumo.jp/mebuki/">
 <meta property="og:title" content="コッコ芽吹き ─ COCCO MEBUKI">
-<meta property="og:description" content="🔥💧🌱🪨絡み合う力で、枯れた島を芽吹かせる3Dアクション。クリアの方法は無数にある。">
+<meta property="og:description" content="🔥🪨焼いて崩す力で、枯れた島の逆縁を鎮める3Dアクション。クリアの方法は無数にある。">
 <meta property="og:image" content="https://chikumo.jp/ogp.png">
 <meta property="og:locale" content="ja_JP">
 <meta property="og:site_name" content="畜物語">
@@ -399,18 +399,14 @@
   <div class="actbtn hidden" id="o2Btn">🫧</div>
   <div class="actbtn hidden" id="pistolBtn">🔫<span class="fc" id="pistolC">5</span></div>
   <div id="forceRow">
-    <div class="actbtn forceBtn hidden" id="fGrassBtn">🌱<span class="fc" id="fGrassC">0</span></div>
-    <div class="actbtn forceBtn hidden" id="fWaterBtn">💧<span class="fc" id="fWaterC">0</span></div>
     <div class="actbtn forceBtn hidden" id="fFireBtn">🔥<span class="fc" id="fFireC">0</span></div>
     <div class="actbtn forceBtn hidden" id="fRockBtn">🪨<span class="fc" id="fRockC">0</span></div>
   </div>
   <div class="buyprompt hidden" id="buyPrompt">
     <div class="bp-row" id="buyO2Row">🫧 タップで購入 💴2</div>
     <div class="bp-row" id="buyPistolRow">🔫 タップで購入 💴2</div>
-    <div class="bp-row" id="buyGrassRow">🌱 タップで購入 💴2</div>
-    <div class="bp-row" id="buyWaterRow">💧 タップで購入 💴2</div>
-    <div class="bp-row" id="buyFireRow">🔥 めざめさせる 💴20</div>
-    <div class="bp-row" id="buyRockRow">🪨 めざめさせる 💴40</div>
+    <div class="bp-row" id="buyFireRow">🔥 タップで購入 💴2</div>
+    <div class="bp-row" id="buyRockRow">🪨 タップで購入 💴2</div>
     <div class="bp-row" id="buyHeartRow">❤️ かいふく 💴15</div>
   </div>
   <div id="countOv"><div id="countNum">3</div></div>
@@ -422,11 +418,11 @@
     <div class="sub">コッコ芽吹き ─ 絡み合う力の3D</div>
     <div class="desc">
       枯れはてた島に <span class="pr">逆縁の巣</span> が根を張っている。<br>
-      <b>🔥火・💧水・🌱草・🪨岩</b>――<br>
-      絡み合う5つの力を撒いて、島に<b>いのち</b>を巡らせ、<br>
+      <b>🔥火・🪨岩</b>――<br>
+      焼いて崩す力を撒いて、島から<b>枯</b>を追い払い、<br>
       巣を鎮めよ。<b>クリアの方法は、ひとつじゃない。</b>
     </div>
-    <div class="forcelegend">🔥💧🌱🪨</div>
+    <div class="forcelegend">🔥🪨</div>
     <button class="btn" id="startBtn">出撃する</button>
     <button class="btn ghost" id="howBtn">あそびかた</button>
     <button class="btn ghost" id="rankBtn">🏆 世界ランキング</button>
@@ -445,16 +441,14 @@
     <div class="logo small">あそびかた</div>
     <div class="desc" style="max-width:380px;text-align:left;">
       ◆ <b>スマホ</b>：画面の<b>左半分</b>をドラッグで移動、<b>右半分</b>をドラッグで見まわす。右下の<b>🔫ボタン</b>で遠くの逆縁を即座にねらい撃ち、下の<b>力のボタン</b>で力を撒く。<b>⬆ボタン</b>でジャンプ。<br><br>
-      ◆ <b>パソコン</b>：WASDで移動、画面クリックでマウス視点。<b>クリックまたはFキー</b>で🔫発射、<b>1〜4キー</b>でそれぞれの力を発射、スペースでジャンプ。<br><br>
+      ◆ <b>パソコン</b>：WASDで移動、画面クリックでマウス視点。<b>クリックまたはFキー</b>で🔫発射、<b>1〜2キー</b>でそれぞれの力を発射、スペースでジャンプ。<br><br>
       ◆ <b style="color:#ffe07a;">🔫レーザーピストル</b>：撃った瞬間に当たる遠隔武器！弾は最初<b>5発</b>だけ、当たれば逆縁を<b>1発で撃破</b>（地形は変えない）。弾切れは🏪コンビニで補充しよう（最大99発）。<br>
-      ◆ <b style="color:#ffcf6b;">🔥火</b>：草を燃やして広がる。逆縁の<span class="pr">枯</span>を焼き払う一撃。水にふれると消える。<br>
-      ◆ <b style="color:#7cc8ff;">💧水</b>：低い場所へ流れ、火を消し、草を育てる。枯をひたして弱らせる。<br>
-      ◆ <b style="color:#8fdc4c;">🌱草</b>：湿った土へ自分で広がり、育つと樹になって足場や壁になる。枯を押し返して土に戻す。<br>
-      ◆ <b style="color:#c9c9d6;">🪨岩</b>：地面を隆起させる。積むほど高い足場に。水をせき止め、火の延焼を止める。<br><br>
-      ◆ <span class="pr">逆縁の巣</span> のまわりを<b>枯でない状態</b>にたもつと、じわじわ鎮まっていく。<b>焼く・浸す・押し返す・埋める</b>――やり方はひとつじゃない。全部の巣を鎮めれば島は<b>芽吹く</b>！<br><br>
-      ◆ <span class="pr">ブラックこっこちゃん</span>（逆縁）は、<b>🔫が一番たしかな一撃</b>（最初から5発持っている）。力を直接ねらって当てても払える──<b>💧水は解禁ずみで二撃でしずめる</b>、🔥は一撃で焼き払う（🏪コンビニでめざめさせると必要）、🪨は二撃でくずす、🌱は突き飛ばす（倒しはしない）。ふれられると❤️が減り、3つとも失うとゲームオーバー。<br><br>
+      ◆ <b style="color:#ffcf6b;">🔥火</b>：逆縁の<span class="pr">枯</span>を焼き払う一撃。しばらく燃えつづける。<br>
+      ◆ <b style="color:#c9c9d6;">🪨岩</b>：地面を隆起させる。積むほど高い足場に。枯を埋めて土に戻す。<br><br>
+      ◆ <span class="pr">逆縁の巣</span> のまわりを<b>枯でない状態</b>にたもつと、じわじわ鎮まっていく。<b>焼く・埋める</b>――やり方はひとつじゃない。全部の巣を鎮めれば島は<b>芽吹く</b>！<br><br>
+      ◆ <span class="pr">ブラックこっこちゃん</span>（逆縁）は、<b>🔫が一番たしかな一撃</b>（最初から5発持っている）。力を直接ねらって当てても払える──<b>🔥は一撃で焼き払う、🪨は二撃でくずす</b>。ふれられると❤️が減り、3つとも失うとゲームオーバー。<br><br>
       ◆ <b style="color:#bfe6ff;">🌀 空蹴り</b>：空中でもう一度ジャンプすると 空気を蹴って何度でも跳べる（🫁酸素ゲージを消費）。<br><br>
-      ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>、<b>逆縁の巣を鎮める</b>ともっと多くの💴がもらえる。🏪コンビニで🔫弾・🌱💧の弾・🔥🪨の解禁・🫧酸素・❤️回復が買える（長押しで連続購入）。
+      ◆ <span class="pr">ブラックこっこちゃん</span> をたおすと <b>💴おかね</b>、<b>逆縁の巣を鎮める</b>ともっと多くの💴がもらえる。🏪コンビニで🔫弾・🔥🪨の弾・🫧酸素・❤️回復が買える（長押しで連続購入）。
     </div>
     <button class="btn" id="howBack">もどる</button>
   </div>
@@ -511,11 +505,12 @@
    塗る3D（/splat3d/）の面白いエンジン（3D移動・空蹴り・🏪経済・❤️緊張・
    世界ランキング）はそのまま継ぎ、中心動詞だけを差し替えた設計。
    「インクで陣地を塗って面積%で勝つ」＝スプラの中心フック（畜学七相の壱＝
-   既視の禁に違反）を捨て、「絡み合う自然の力（🔥💧🌱🪨）で世界を
-   作り変え、逆縁の巣を鎮める」を新しい中心にした。
+   既視の禁に違反）を捨て、「焼く・埋める、2つの力で世界を
+   作り変え、逆縁の巣を鎮める」を新しい中心にした（💧水・🌱草・💨風は
+   実際に遊んだ結果を踏まえて削り、🔥火・🪨岩の2力に絞っている）。
    勝敗は面積%ではなく open method（枯でないセルの割合＝purity）。
-   焼く・浸す・押し返す・埋める・吹き飛ばす――クリアの世界線は無数にある。
-   詳細設計：docs/要件定義-コッコ芽吹き.md                                */
+   焼く・埋める――クリアの世界線は単一ではない。
+   詳細設計：docs/要件定義-コッコ芽吹き.md（初期案。実装は5力→4力→2力と縮小した）*/
 (function(){
 const cv=document.getElementById('gl');
 const $=id=>document.getElementById(id);
@@ -555,12 +550,8 @@ const Sound=(function(){
     bt=setInterval(bsched,50); }
   function stopBGM(){ bon=false; if(bt){clearInterval(bt);bt=null;} if(bg){try{bg.gain.cancelScheduledValues(ac.currentTime); bg.gain.linearRampToValueAtTime(.0001,ac.currentTime+0.4);}catch(e){}} }
   return { init, resume(){ if(ac&&ac.state==='suspended')ac.resume(); }, setMuted(b){muted=b; if(b)stopBGM();}, startBGM, stopBGM,
-    fireGrass(){ tone(660,0.1,'sine',0.16,900); },
-    fireWater(){ tone(420,0.13,'sine',0.15,260); noise(.08,.08,2600); },
     fireFire(){ noise(.1,.16,3400); tone(300,0.12,'sawtooth',0.14,140); },
     fireRock(){ tone(90,0.18,'square',0.22,60); noise(.1,.12,900); },
-    grow(){ tone(880,0.08,'sine',0.1,1100); },
-    extinguish(){ noise(.12,.14,1200); tone(220,0.14,'sine',0.12,120); },
     purify(){ const seq=[659,784,988]; seq.forEach((f,i)=>setTimeout(()=>tone(f,0.14,'triangle',0.16,f*1.1),i*45)); },
     jump(){ tone(330,0.12,'triangle',0.16,520); },
     hitEnemy(){ noise(.15,.18,2000); tone(500,0.14,'sine',0.16,120); },
@@ -703,8 +694,7 @@ const SIZE=170, HALF=SIZE/2;
 const TIME=90, NEST_COUNT=4;
 const O2_PRICE=2, O2_MAX=99, STORE_MONEY_PER_KO=15, AIR_KICK_COST=1/9, AIR_KICK_VY=8.2, O2_REGEN=0.05;
 const FORCE_CD=0.16, FORCE_RANGE=40;
-const FORCE_MAX=60, FORCE_PRICE=2, FORCE_START={grass:14,water:14,fire:0,rock:0};
-const UNLOCK_PRICE={fire:20,rock:40};
+const FORCE_MAX=60, FORCE_PRICE=2, FORCE_START={fire:14,rock:14};
 const HEART_PRICE=15;
 const SEAL_MONEY=45;
 /* 🔫レーザーピストル（塗る3Dから移植）：弾数制限つきの遠隔武器。飛び道具でなく即着弾。当たれば1発で撃破、地形は変えない */
@@ -714,16 +704,16 @@ const TIME_ARC_C=226.19; // 2*PI*36
 
 /* ===== 力のフィールド（CA：セル・オートマトン） ===== */
 const CAGRID=64, CACELL=SIZE/CAGRID;
-const K_DIRT=0,K_GRASS=1,K_WATER=2,K_FIRE=3,K_ROCK=4,K_ASH=5,K_BLIGHT=6;
+const K_DIRT=0,K_FIRE=3,K_ROCK=4,K_ASH=5,K_BLIGHT=6;
 const CA_HZ=12, CA_DT=1/CA_HZ;
-let fKind=new Uint8Array(CAGRID*CAGRID), fLevel=new Float32Array(CAGRID*CAGRID), fWet=new Float32Array(CAGRID*CAGRID);
-let fKind2=new Uint8Array(CAGRID*CAGRID), fLevel2=new Float32Array(CAGRID*CAGRID), fWet2=new Float32Array(CAGRID*CAGRID);
+let fKind=new Uint8Array(CAGRID*CAGRID), fLevel=new Float32Array(CAGRID*CAGRID);
+let fKind2=new Uint8Array(CAGRID*CAGRID), fLevel2=new Float32Array(CAGRID*CAGRID);
 let caAcc=0;
 function ci(cx,cz){ return cz*CAGRID+cx; }
 function worldToCell(x,z){ return [clamp(((x+HALF)/CACELL)|0,0,CAGRID-1), clamp(((z+HALF)/CACELL)|0,0,CAGRID-1)]; }
 function cellToWorld(cx,cz){ return [cx*CACELL+CACELL/2-HALF, cz*CACELL+CACELL/2-HALF]; }
 function resetField(seedRng){
-  fKind.fill(K_DIRT); fLevel.fill(0); fWet.fill(0.15);
+  fKind.fill(K_DIRT); fLevel.fill(0);
   for(let i=0;i<CAGRID*CAGRID;i++) if(seedRng()<0.22) fKind[i]=K_ASH;
 }
 function neighbors4(cx,cz){
@@ -733,53 +723,25 @@ function neighbors4(cx,cz){
   return out;
 }
 function stepCA(){
-  fKind2.set(fKind); fLevel2.set(fLevel); fWet2.set(fWet);
+  fKind2.set(fKind); fLevel2.set(fLevel);
   for(let cz=0;cz<CAGRID;cz++)for(let cx=0;cx<CAGRID;cx++){
-    const idx=ci(cx,cz), k=fKind[idx]; let lv=fLevel[idx], wt=fWet[idx];
+    const idx=ci(cx,cz), k=fKind[idx]; let lv=fLevel[idx];
     const nb=neighbors4(cx,cz);
-    if(k===K_GRASS){
-      lv=Math.min(1,lv+CA_DT*(wt>0.3?0.35:0.15));
-      let ignited=false;
-      for(const n of nb){
-        const nk=fKind[n];
-        if(nk===K_FIRE&&fLevel[n]>0.15&&Math.random()<0.35){ ignited=true; }
-        if((nk===K_DIRT||nk===K_ASH)&&fWet[n]>=0.25&&lv>=0.5&&Math.random()<0.006){ fKind2[n]=K_GRASS; fLevel2[n]=0.25; }
-        if(nk===K_BLIGHT&&lv>=0.4&&Math.random()<0.18){ fLevel2[n]=Math.max(0,fLevel[n]-0.35); if(fLevel2[n]<=0) fKind2[n]=K_ASH; }
-      }
-      if(ignited){ fKind2[idx]=K_FIRE; fLevel2[idx]=0.9; } else fLevel2[idx]=lv;
-    }else if(k===K_WATER){
-      lv=Math.max(0,lv-CA_DT*0.05);
-      for(const n of nb){
-        const nk=fKind[n];
-        if(nk===K_FIRE) fKind2[n]=K_ASH;
-        if((nk===K_DIRT||nk===K_ASH)&&Math.random()<0.01){ fKind2[n]=K_WATER; fLevel2[n]=0.4; lv=Math.max(0,lv-0.10); }
-        if((nk===K_DIRT||nk===K_GRASS||nk===K_ASH)) fWet2[n]=Math.min(1,fWet[n]+CA_DT*0.6);
-        if(nk===K_BLIGHT&&lv>0.3&&Math.random()<0.12){ fLevel2[n]=Math.max(0,fLevel[n]-0.25); if(fLevel2[n]<=0) fKind2[n]=K_ASH; }
-      }
-      if(lv<=0){ fKind2[idx]=K_DIRT; fLevel2[idx]=0; } else fLevel2[idx]=lv;
-    }else if(k===K_FIRE){
-      let extinguished=false;
-      for(const n of nb) if(fKind[n]===K_WATER&&fLevel[n]>0.15) extinguished=true;
-      if(extinguished){ fKind2[idx]=K_ASH; fLevel2[idx]=0; }
-      else{
-        lv-=CA_DT*(1/1.4);
-        for(const n of nb) if(fKind[n]===K_BLIGHT&&Math.random()<0.30){ fKind2[n]=K_ASH; fLevel2[n]=0; }
-        if(lv<=0){ fKind2[idx]=K_ASH; fLevel2[idx]=0; } else fLevel2[idx]=lv;
-      }
+    if(k===K_FIRE){
+      lv-=CA_DT*(1/1.4);
+      for(const n of nb) if(fKind[n]===K_BLIGHT&&Math.random()<0.30){ fKind2[n]=K_ASH; fLevel2[n]=0; }
+      if(lv<=0){ fKind2[idx]=K_ASH; fLevel2[idx]=0; } else fLevel2[idx]=lv;
     }else if(k===K_ASH){
       if(Math.random()<0.04){ fKind2[idx]=K_DIRT; }
-      fWet2[idx]=Math.max(0,wt-CA_DT*0.02);
     }else if(k===K_DIRT){
-      fWet2[idx]=Math.max(0,wt-CA_DT*0.015);
       for(const n of nb) if(fKind[n]===K_BLIGHT&&Math.random()<0.003){ fKind2[idx]=K_BLIGHT; fLevel2[idx]=0.5; break; }
     }else if(k===K_ROCK){
-      /* 静的：プレイヤー／風の操作でのみ変化 */
+      /* 静的：プレイヤーの操作でのみ変化 */
     }
     /* BLIGHT はここでは自然崩壊しない（プレイヤーの力・巣の脈動でのみ増減） */
   }
   const tk=fKind; fKind=fKind2; fKind2=tk;
   const tl=fLevel; fLevel=fLevel2; fLevel2=tl;
-  const tw=fWet; fWet=fWet2; fWet2=tw;
 }
 
 /* ===== フィールドのテクスチャ描画（力の絵をキャンバス→WebGLへ転送。splat3dのuPaint転送と同じ技術で意味だけ差し替え） ===== */
@@ -794,13 +756,10 @@ gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
 gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
 gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
 function lerpCol(c0,c1,t){ return [c0[0]+(c1[0]-c0[0])*t,c0[1]+(c1[1]-c0[1])*t,c0[2]+(c1[2]-c0[2])*t]; }
-const COL_DIRT=[74,68,56], COL_GRASS0=[122,107,66], COL_GRASS1=[61,220,126],
-  COL_WATER0=[143,208,255], COL_WATER1=[27,95,174], COL_FIRE0=[90,32,16], COL_FIRE1=[255,207,61],
+const COL_DIRT=[74,68,56], COL_FIRE0=[90,32,16], COL_FIRE1=[255,207,61],
   COL_ROCK0=[90,90,102], COL_ROCK1=[201,205,216], COL_ASH=[44,42,48], COL_BLIGHT0=[22,10,32], COL_BLIGHT1=[89,19,122];
 function cellColor(k,lv){
   switch(k){
-    case K_GRASS: return lerpCol(COL_GRASS0,COL_GRASS1,clamp(lv,0,1));
-    case K_WATER: return lerpCol(COL_WATER0,COL_WATER1,clamp(lv,0,1));
     case K_FIRE: return lerpCol(COL_FIRE0,COL_FIRE1,clamp(lv,0,1));
     case K_ROCK: return lerpCol(COL_ROCK0,COL_ROCK1,clamp(lv/1.6,0,1));
     case K_ASH: return COL_ASH;
@@ -947,7 +906,7 @@ function genWorld(seed){
   }
   // 逆縁（巣の見はり2羽＋うろつき3羽）
   function mkEnemy(x,z,guard){
-    return {x,z,hx:x,hz:z,guard,deadT:0,invT:1.2,think:rr(0,0.8),tx:x,tz:z,atkT:rr(0.5,1.2),sq:rr(0,TAU),flip:1,burnT:0,drownT:0,soakT:0,rockHits:0,waterHits:0};
+    return {x,z,hx:x,hz:z,guard,deadT:0,invT:1.2,think:rr(0,0.8),tx:x,tz:z,atkT:rr(0.5,1.2),sq:rr(0,TAU),flip:1,burnT:0,rockHits:0};
   }
   nests.forEach((nst,i)=>{
     for(let k=0;k<2;k++){
@@ -963,7 +922,7 @@ function genWorld(seed){
   dynBoxes=[];
   buildWorldMesh();
 }
-/* CAの岩(rock)・育ちきった樹(grass)を「動く地形」として世界メッシュに再構築する。
+/* CAの岩(rock)を「動く地形」として世界メッシュに再構築する。
    高さ関数（当たり判定と描画が同じ点を見る）：JS側 floorAt/collideXZ はこの boxes 配列を、
    GPU側は同じ boxes から生成した頂点をそのまま描く＝両者は常に同じ地形を見る。 */
 function rebuildDynBoxes(){
@@ -974,9 +933,6 @@ function rebuildDynBoxes(){
       const [wx,wz]=cellToWorld(cx,cz), hw=CACELL*0.5;
       const h=0.4+lv*2.6, col=lerpCol(COL_ROCK0,COL_ROCK1,clamp(lv/1.6,0,1)).map(v=>v/255);
       dynBoxes.push({x0:wx-hw,x1:wx+hw,z0:wz-hw,z1:wz+hw,h,col,rock:true});
-    }else if(k===K_GRASS&&lv>=0.86){
-      const [wx,wz]=cellToWorld(cx,cz), hw=CACELL*0.34;
-      dynBoxes.push({x0:wx-hw,x1:wx+hw,z0:wz-hw,z1:wz+hw,h:lv*3.0,col:[0.14,0.36,0.18],tree:true});
     }
   }
   boxes=ruins.concat(dynBoxes);
@@ -1051,8 +1007,8 @@ function insideBox(x,y,z){
 /* ===== ゲーム状態 ===== */
 const G={phase:'title',t:TIME,score:0,sealed:0,kos:0,countT:0,finishT:0,best:0,shake:0,lastSec:99,paused:false,time:0,win:false,ko:false,money:0};
 const P={x:0,z:0,y:0,vy:0,hp:3,fireT:0,pistolT:0,pistolAmmo:PISTOL_AMMO_START,deadT:0,invT:0,moving:false,flip:1,onG:true,o2:1,o2Inv:0,
-  forceAmmo:{grass:FORCE_START.grass,water:FORCE_START.water,fire:FORCE_START.fire,rock:FORCE_START.rock},
-  unlocked:{grass:true,water:true,fire:false,rock:false},burnT:0};
+  forceAmmo:{fire:FORCE_START.fire,rock:FORCE_START.rock},
+  unlocked:{fire:true,rock:true},burnT:0};
 const cam={yaw:0,pitch:-0.3,dist:7.2};
 let parts=[],seals=[],lasers=[];
 function loadBest(){ try{ G.best=+localStorage.getItem('coccoMebukiBest')||0; }catch(e){ G.best=0; } }
@@ -1077,8 +1033,8 @@ function sparkle3(x,y,z,n){
 }
 
 /* ===== 力を撒く（中心動詞：塗るではなく、絡み合う力で世界を作り変える） ===== */
-const FORCE_ORDER=['grass','water','fire','rock'];
-const FORCE_COL={grass:[0.56,0.86,0.30],water:[0.49,0.78,1],fire:[1,0.56,0.18],rock:[0.72,0.72,0.78]};
+const FORCE_ORDER=['fire','rock'];
+const FORCE_COL={fire:[1,0.56,0.18],rock:[0.72,0.72,0.78]};
 function aimGroundCell(){
   const f=camForward();
   const hl=Math.hypot(f[0],f[2])||1, dx=f[0]/hl, dz=f[2]/hl;
@@ -1094,19 +1050,8 @@ function aimGroundCell(){
 function applyForceAt(kind,wx,wz){
   const [cx,cz]=worldToCell(wx,wz);
   const idx=ci(cx,cz), k=fKind[idx], lv=fLevel[idx];
-  if(kind==='grass'){
-    if(k===K_BLIGHT){ fLevel[idx]=Math.max(0,lv-0.4); if(fLevel[idx]<=0) fKind[idx]=K_ASH; Sound.purify(); }
-    else if(k===K_DIRT||k===K_ASH){ fKind[idx]=K_GRASS; fLevel[idx]=0.35; fWet[idx]=Math.max(fWet[idx],0.4); Sound.grow(); }
-    else if(k===K_GRASS){ fLevel[idx]=Math.min(1,lv+0.25); Sound.grow(); }
-    else if(k===K_WATER){ fWet[idx]=1; Sound.grow(); }
-  }else if(kind==='water'){
-    if(k===K_BLIGHT){ fLevel[idx]=Math.max(0,lv-0.35); if(fLevel[idx]<=0) fKind[idx]=K_ASH; Sound.purify(); }
-    else if(k===K_FIRE){ fKind[idx]=K_ASH; fLevel[idx]=0; Sound.extinguish(); }
-    else if(k===K_ROCK){ /* 岩は水を弾く */ }
-    else{ fKind[idx]=K_WATER; fLevel[idx]=Math.min(1,(k===K_WATER?lv:0)+0.55); Sound.fireWater(); }
-  }else if(kind==='fire'){
+  if(kind==='fire'){
     if(k===K_BLIGHT){ fKind[idx]=K_ASH; fLevel[idx]=0; Sound.purify(); }
-    else if(k===K_WATER){ /* 水の上では火はつかない */ }
     else if(k===K_ROCK){ /* 岩は燃えない */ }
     else{ fKind[idx]=K_FIRE; fLevel[idx]=0.9; Sound.fireFire(); }
   }else if(kind==='rock'){
@@ -1132,26 +1077,15 @@ function findAimEnemy(range){
   }
   return best;
 }
-/* 力を逆縁へ直接ぶつけたときの効果。焼く(🔥)は一撃・埋める(🪨)は二撃で払える＝力ごとに手応えを変える。
-   浸す(💧)は弱らせる（大きく鈍らせ、たまった水分が0/1.6を超えると力尽きる）。押し返す(🌱)はノックバックのみ。 */
+/* 力を逆縁へ直接ぶつけたときの効果。焼く(🔥)は一撃・埋める(🪨)は二撃で払える＝力ごとに手応えを変える。 */
 function hitEnemyWithForce(kind,e){
   burst3(e.x,1,e.z,FORCE_COL[kind],14,4);
   if(kind==='fire'){
     Sound.fireFire(); koEnemy(e);
-  }else if(kind==='water'){
-    Sound.fireWater(); Sound.hitEnemy();
-    e.soakT=2.5;
-    e.waterHits=(e.waterHits||0)+1;
-    if(e.waterHits>=2){ e.waterHits=0; koEnemy(e); } else e.think=0;
   }else if(kind==='rock'){
     Sound.fireRock(); Sound.hitEnemy();
     e.rockHits=(e.rockHits||0)+1;
     if(e.rockHits>=2){ e.rockHits=0; koEnemy(e); } else{ e.invT=0.4; e.think=0; }
-  }else if(kind==='grass'){
-    Sound.grow(); Sound.hitEnemy();
-    const kx=e.x-P.x, kz=e.z-P.z, kd=Math.hypot(kx,kz)||1;
-    e.x=clamp(e.x+kx/kd*3,-HALF+1,HALF-1); e.z=clamp(e.z+kz/kd*3,-HALF+1,HALF-1);
-    collideXZ(e,0.9); e.invT=0.3; e.think=0;
   }
 }
 function fireForce(kind){
@@ -1249,12 +1183,6 @@ function updateNests(dt){
     if(nst.sealT>=2.0){
       nst.sealed=true; G.sealed++; G.score+=1000; G.money+=SEAL_MONEY;
       seals.push({x:nst.x,z:nst.z,t:0});
-      for(let cz=Math.max(0,ncz-rCells);cz<=Math.min(CAGRID-1,ncz+rCells);cz++)
-        for(let cx=Math.max(0,ncx-rCells);cx<=Math.min(CAGRID-1,ncx+rCells);cx++){
-          const [wx,wz]=cellToWorld(cx,cz);
-          if((wx-nst.x)*(wx-nst.x)+(wz-nst.z)*(wz-nst.z)>nst.R*nst.R) continue;
-          if(Math.random()<0.5&&(fKind[ci(cx,cz)]===K_DIRT||fKind[ci(cx,cz)]===K_ASH)){ fKind[ci(cx,cz)]=K_GRASS; fLevel[ci(cx,cz)]=0.4; }
-        }
       sparkle3(nst.x,1.6,nst.z,26);
       Sound.seal(); hudScore(); hudMoney(); hudNests();
       if(G.sealed>=NEST_COUNT&&G.phase==='play'){ G.win=true; endGame(); }
@@ -1267,7 +1195,7 @@ function updateEnemy(e,dt){
   if(e.deadT>0){ e.deadT-=dt;
     if(e.deadT<=0){
       if(e.guard>=0&&nests[e.guard]&&nests[e.guard].sealed) return; // 巣が鎮まったら見はりは戻らない
-      e.x=e.hx; e.z=e.hz; e.invT=1.5; e.think=0; e.burnT=0; e.drownT=0; e.soakT=0; e.rockHits=0; e.waterHits=0;
+      e.x=e.hx; e.z=e.hz; e.invT=1.5; e.think=0; e.burnT=0; e.rockHits=0;
     }
     return; }
   if(e.invT>0)e.invT-=dt;
@@ -1286,20 +1214,15 @@ function updateEnemy(e,dt){
   }
   let dx=e.tx-e.x, dz=e.tz-e.z; const d=Math.hypot(dx,dz);
   const [ecx,ecz]=worldToCell(e.x,e.z), eidx=ci(ecx,ecz), ek=fKind[eidx], elv=fLevel[eidx];
-  let spMul=1;
-  if(ek===K_WATER&&elv>0.3) spMul=0.35;
-  else if(ek===K_GRASS&&elv>0.5) spMul=0.85;
-  if(e.soakT>0){ e.soakT-=dt; spMul=Math.min(spMul,0.4); }
   if(d>1){
     dx/=d; dz/=d;
-    const sp=5.0*spMul;
+    const sp=5.0;
     e.x+=dx*sp*dt; e.z+=dz*sp*dt;
     e.y=floorAt(e.x,e.z,0); collideXZ(e,0.9);
     e.flip=dx<0?-1:1; e.sq+=dt*9;
   }
-  // 環境ダメージ：火にふれ続けると焼かれ、深い水に沈み続けると流される
+  // 環境ダメージ：火にふれ続けると焼かれる
   if(ek===K_FIRE&&elv>0.2){ e.burnT+=dt; if(e.burnT>0.4){ koEnemy(e); return; } } else e.burnT=Math.max(0,e.burnT-dt*2);
-  if(ek===K_WATER&&elv>0.35){ e.drownT+=dt; if(e.drownT>1.6){ koEnemy(e); return; } } else e.drownT=Math.max(0,e.drownT-dt*2);
   e.atkT-=dt;
   if(e.atkT<=0&&pAlive&&dP<1.3){
     e.atkT=rnd(0.8,1.4);
@@ -1336,10 +1259,8 @@ function update(dt){
   const iv=moveVec();
   P.moving=Math.hypot(iv.x,iv.z)>0.05;
   const [pcx,pcz]=worldToCell(P.x,P.z), pidx=ci(pcx,pcz), pk=fKind[pidx], plv=fLevel[pidx];
-  let pspMul=1;
-  if(pk===K_WATER&&plv>0.3) pspMul=0.6;
   if(P.moving){
-    const sp=8.6*pspMul;
+    const sp=8.6;
     P.x+=iv.x*sp*dt; P.z+=iv.z*sp*dt;
     collideXZ(P,1.0);
     if(Math.abs(iv.x*camRightH()[0]+iv.z*camRightH()[2])>0.05)
@@ -1424,13 +1345,9 @@ function updateBuyPrompt(){
   const pRow=$('buyPistolRow');
   if(P.pistolAmmo>=PISTOL_AMMO_MAX){ pRow.classList.add('no'); pRow.textContent='🔫 弾は 満タン！'; }
   else{ pRow.classList.toggle('no',G.money<PISTOL_PRICE); pRow.textContent='🔫 タップで購入 💴'+PISTOL_PRICE+'（'+P.pistolAmmo+'/'+PISTOL_AMMO_MAX+'）'; }
-  ['grass','water','fire','rock'].forEach(k=>{
+  FORCE_ORDER.forEach(k=>{
     const row=$('buy'+cap(k)+'Row'); if(!row) return;
-    if(!P.unlocked[k]){
-      row.classList.remove('hidden');
-      row.classList.toggle('no',G.money<UNLOCK_PRICE[k]);
-      row.textContent=FORCE_EMOJI[k]+' めざめさせる 💴'+UNLOCK_PRICE[k];
-    }else if(P.forceAmmo[k]>=FORCE_MAX){
+    if(P.forceAmmo[k]>=FORCE_MAX){
       row.classList.remove('hidden'); row.classList.add('no'); row.textContent=FORCE_EMOJI[k]+' 在庫は 満タン！';
     }else{
       row.classList.remove('hidden');
@@ -1442,7 +1359,7 @@ function updateBuyPrompt(){
   if(P.hp>=3){ hRow.classList.add('no'); hRow.textContent='❤️ ハートは 満タン！'; }
   else{ hRow.classList.toggle('no',G.money<HEART_PRICE); hRow.textContent='❤️ かいふく 💴'+HEART_PRICE; }
 }
-const FORCE_EMOJI={grass:'🌱',water:'💧',fire:'🔥',rock:'🪨'};
+const FORCE_EMOJI={fire:'🔥',rock:'🪨'};
 function buyO2(){
   if(G.phase!=='play'||G.paused||P.deadT>0) return;
   const {store,dist}=nearestStore();
@@ -1463,13 +1380,6 @@ function buyForce(k){
   if(G.phase!=='play'||G.paused||P.deadT>0) return;
   const {store,dist}=nearestStore();
   if(dist>=STORE_R) return;
-  if(!P.unlocked[k]){
-    if(G.money<UNLOCK_PRICE[k]){ Sound.nope(); return; }
-    G.money-=UNLOCK_PRICE[k]; P.unlocked[k]=true; P.forceAmmo[k]=8;
-    hudMoney(); hudForce(); updateBuyPrompt(); Sound.buy();
-    burst3(store.x,1.6,store.z,FORCE_COL[k],14,4);
-    return;
-  }
   if(P.forceAmmo[k]>=FORCE_MAX) return;
   if(G.money<FORCE_PRICE){ Sound.nope(); return; }
   G.money-=FORCE_PRICE; P.forceAmmo[k]++; hudMoney(); hudForce(); updateBuyPrompt(); Sound.buy();
@@ -1654,7 +1564,7 @@ document.addEventListener('mousemove',e=>{
   cam.yaw+=e.movementX*0.0028;
   cam.pitch=clamp(cam.pitch-e.movementY*0.0026,-1.15,0.55);
 });
-const KEY_FORCE={'1':'grass','2':'water','3':'fire','4':'rock'};
+const KEY_FORCE={'1':'fire','2':'rock'};
 window.addEventListener('keydown',e=>{
   const k=e.key.toLowerCase(); input.keys[k]=true;
   if(k===' '){ e.preventDefault(); doJump(); }
@@ -1914,8 +1824,8 @@ function start(){
   rebuildDynBoxes(); buildWorldMesh(); redrawField();
   P.x=SPAWN.x; P.z=SPAWN.z; P.y=0; P.vy=0; P.hp=3; P.fireT=0; P.pistolT=0; P.pistolAmmo=PISTOL_AMMO_START; P.deadT=0; P.invT=1.5; P.onG=true; P.flip=1;
   P.o2=1; P.o2Inv=0; P.burnT=0;
-  P.forceAmmo={grass:FORCE_START.grass,water:FORCE_START.water,fire:FORCE_START.fire,rock:FORCE_START.rock};
-  P.unlocked={grass:true,water:true,fire:false,rock:false};
+  P.forceAmmo={fire:FORCE_START.fire,rock:FORCE_START.rock};
+  P.unlocked={fire:true,rock:true};
   cam.yaw=0; cam.pitch=-0.3;
   parts=[]; seals=[]; lasers=[];
   G.t=TIME; G.score=0; G.sealed=0; G.kos=0; G.shake=0; G.paused=false; G.win=false; G.ko=false; G.money=0;
@@ -1935,10 +1845,14 @@ function endGame(){
   if(document.pointerLockElement===cv){ try{document.exitPointerLock();}catch(e){} }
   setTimeout(showResult,G.win?1300:1500);
 }
+/* 島の浄化率：4つの巣のpurity（枯でない割合）の平均。かつては草・水が生い茂った面積で測っていたが、
+   その2力が無くなったいま、島全体でなく「巣のまわりをどれだけ浄化できたか」を芽吹きの指標にする
+   （島全体のdirt/ashは元々ほぼ枯れていないため、全体のpurityでは開始直後から高すぎて指標にならない）。 */
 function lifeFraction(){
-  let alive=0;
-  for(let i=0;i<fKind.length;i++) if(fKind[i]===K_GRASS||fKind[i]===K_WATER) alive++;
-  return alive/fKind.length;
+  if(!nests.length) return 0;
+  let sum=0;
+  for(const nst of nests) sum+=nst.purity;
+  return sum/nests.length;
 }
 function showResult(){
   if(G.phase!=='finish') return;
@@ -1977,7 +1891,7 @@ $('howBack').addEventListener('click',()=>{ Sound.ui(); show('titleScreen'); });
 $('rankBtn').addEventListener('click',()=>{ Sound.ui(); show('rankScreen'); try{ if(window.CoccoRank) window.CoccoRank.onShowRanking(); }catch(e){} });
 $('rankBack').addEventListener('click',()=>{ Sound.ui(); show('titleScreen'); });
 $('shareBtn').addEventListener('click',()=>{
-  const txt='コッコ芽吹きで '+G.score.toLocaleString()+' 点！逆縁の巣を '+G.sealed+'/'+NEST_COUNT+' 鎮めた 🌱 #畜物語';
+  const txt='コッコ芽吹きで '+G.score.toLocaleString()+' 点！逆縁の巣を '+G.sealed+'/'+NEST_COUNT+' 鎮めた 🔥🪨 #畜物語';
   const url='https://chikumo.jp/mebuki/';
   if(navigator.share){ navigator.share({text:txt,url}).catch(()=>{}); }
   else{ try{ navigator.clipboard.writeText(txt+' '+url); alert('コピーしました！'); }catch(e){} }
@@ -2017,7 +1931,7 @@ window.__mebuki={
   step(dt,n){ n=n||1; for(let i=0;i<n;i++) update(dt||1/60); },
   forceSeed(s){ genWorld(s>>>0); rebuildDynBoxes(); buildWorldMesh(); redrawField(); },
   setCell(x,z,kind,level){ const [cx,cz]=worldToCell(x,z); const idx=ci(cx,cz); fKind[idx]=kind; fLevel[idx]=level==null?0.6:level; },
-  getCell(x,z){ const [cx,cz]=worldToCell(x,z); const idx=ci(cx,cz); return {kind:fKind[idx],level:fLevel[idx],wet:fWet[idx]}; },
+  getCell(x,z){ const [cx,cz]=worldToCell(x,z); const idx=ci(cx,cz); return {kind:fKind[idx],level:fLevel[idx]}; },
   stepCA(n){ n=n||1; for(let i=0;i<n;i++) stepCA(); rebuildDynBoxes(); buildWorldMesh(); redrawField(); },
   spawnNestNow(i){ if(nests[i]) nests[i].pulseT=0; },
   teleport(x,z){ P.x=x; P.z=z; P.y=floorAt(x,z,0); },
@@ -2026,10 +1940,10 @@ window.__mebuki={
   forceEnd(win){ G.win=!!win; G.t=0; },
   addMoney(n){ G.money+=n; hudMoney(); },
   buyPistol(){ buyPistol(); },
-  listEnemies(){ return enemies.map(e=>({x:e.x,z:e.z,deadT:e.deadT,invT:e.invT,burnT:e.burnT,drownT:e.drownT,soakT:e.soakT,rockHits:e.rockHits,waterHits:e.waterHits,guard:e.guard})); },
+  listEnemies(){ return enemies.map(e=>({x:e.x,z:e.z,deadT:e.deadT,invT:e.invT,burnT:e.burnT,rockHits:e.rockHits,guard:e.guard})); },
   unlockAll(){ FORCE_ORDER.forEach(k=>{ P.unlocked[k]=true; P.forceAmmo[k]=30; }); hudForce(); },
   aimAt(x,z){ cam.yaw=Math.atan2(x-P.x,-(z-P.z)); },
-  K:{DIRT:K_DIRT,GRASS:K_GRASS,WATER:K_WATER,FIRE:K_FIRE,ROCK:K_ROCK,ASH:K_ASH,BLIGHT:K_BLIGHT}
+  K:{DIRT:K_DIRT,FIRE:K_FIRE,ROCK:K_ROCK,ASH:K_ASH,BLIGHT:K_BLIGHT}
 };
 })();
 </script>
