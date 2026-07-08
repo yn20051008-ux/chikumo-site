@@ -162,7 +162,7 @@
   #pistolBtn .fc{font-size:10px;font-weight:800;margin-top:-2px;color:#ffe9b0;}
   #forceRow{position:absolute;z-index:12;left:50%;transform:translateX(-50%);
     bottom:calc(20px + env(safe-area-inset-bottom));display:flex;gap:10px;}
-  .forceBtn{width:56px;height:56px;font-size:24px;flex-direction:column;}
+  .forceBtn{position:relative;width:56px;height:56px;font-size:24px;flex-direction:column;}
   .forceBtn .fc{font-size:9px;font-weight:800;margin-top:-2px;color:#dfffcf;}
   .forceBtn.hidden{display:none;}
 
@@ -1365,7 +1365,7 @@ function update(dt){
     if(now!==prev&&now>0) Sound.count();
     const n=Math.ceil(G.countT-0.4);
     $('countNum').textContent=n>0?String(n):'めばえろ！';
-    if(G.countT<=0){ G.phase='play'; $('countOv').classList.remove('on'); Sound.go(); Sound.startBGM(); }
+    if(G.countT<=0){ G.phase='play'; $('countOv').classList.remove('on'); Sound.go(); Sound.startBGM(); hudForce(); updatePistolBtn(); updateO2Btn(); }
     return;
   }
   if(G.phase!=='play'){ updateFx(dt); return; }
