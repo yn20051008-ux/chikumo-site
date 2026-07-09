@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>正論蒔宿への手紙 ─ 畜物語</title>
-<meta name="description" content="畜物語の世界をつくる者「正論蒔宿」へ、アイデアや感想（レビュー）を手紙でおくろう。国・名前・20文字のひとこと。だれでも書けて、世界中から読めるよ。">
+<meta name="description" content="畜物語の世界をつくる者「正論蒔宿」へ、アイデアや感想（レビュー）を手紙でおくろう。国・名前・100文字のひとこと。だれでも書けて、世界中から読めるよ。">
 <meta name="author" content="畜物語">
 <meta name="theme-color" content="#0a0c14">
 <meta name="format-detection" content="telephone=no">
@@ -53,7 +53,7 @@
   .nm{flex:1;min-width:0;height:48px;padding:0 14px;border-radius:12px;border:2px solid rgba(255,210,130,.4);
     background:rgba(10,8,18,.6);color:#fff;font-size:16px;outline:none;}
   .msgwrap{position:relative;margin-top:11px;}
-  .msg{width:100%;height:60px;padding:12px 14px;border-radius:12px;border:2px solid rgba(255,210,130,.4);
+  .msg{width:100%;height:96px;padding:12px 14px;border-radius:12px;border:2px solid rgba(255,210,130,.4);
     background:rgba(10,8,18,.6);color:#fff;font-size:17px;outline:none;resize:none;line-height:1.5;}
   .count{position:absolute;right:12px;bottom:9px;font-size:12px;color:var(--soft);font-variant-numeric:tabular-nums;}
   .count.over{color:#ff7a7a;}
@@ -125,8 +125,8 @@
       <input class="nm" id="nameInput" maxlength="12" placeholder="なまえ" autocomplete="off" spellcheck="false">
     </div>
     <div class="msgwrap">
-      <textarea class="msg" id="msgInput" maxlength="20" placeholder="正論蒔宿さんへ ひとこと（20文字まで）"></textarea>
-      <span class="count" id="count">0/20</span>
+      <textarea class="msg" id="msgInput" maxlength="100" placeholder="正論蒔宿さんへ ひとこと（100文字まで）"></textarea>
+      <span class="count" id="count">0/100</span>
     </div>
     <button class="send" id="sendBtn">✉️ 手紙を おくる</button>
     <div class="stat" id="stat"></div>
@@ -199,7 +199,7 @@
   try{ var nm=localStorage.getItem(NAME_KEY); if(nm) $('nameInput').value=nm; }catch(e){}
 
   /* 文字カウンタ */
-  function upd(){ var n=Array.from($('msgInput').value).length; var c=$('count'); c.textContent=n+'/20'; c.classList.toggle('over',n>20); }
+  function upd(){ var n=Array.from($('msgInput').value).length; var c=$('count'); c.textContent=n+'/100'; c.classList.toggle('over',n>100); }
   $('msgInput').addEventListener('input',upd); upd();
 
   function esc(s){ return String(s).replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; }); }
@@ -293,7 +293,15 @@
     }).join('');
   }
   function load(){
-    if(!ready){ $('letterList').innerHTML='<li class="empty">オフラインのため 読み込めません</li>'; return; }
+    if(!ready){
+      /* Firebase SDKは非同期読込のため、ページ読み込み直後はまだ ready=false なのが通常。
+         即座に「オフライン」と決めつけず、SDKの読込を待って再試行する（約20秒） */
+      var n=load._n=(load._n||0)+1;
+      if(n>40){ $('letterList').innerHTML='<li class="empty">オフラインのため 読み込めません</li>'; return; }
+      setTimeout(load,500);
+      return;
+    }
+    load._n=0;
     ref.orderByChild('ts').limitToLast(500).once('value').then(function(snap){
       var rows=[]; snap.forEach(function(c){ var v=c.val()||{}; rows.push({uid:c.key,flag:v.flag,name:v.name,msg:v.msg,ts:+v.ts||0}); });
       rows.sort(function(a,b){return b.ts-a.ts;}); render(rows);
@@ -324,7 +332,7 @@
     if(!ready){ stat.textContent='いまは おくれません（オフライン）'; return; }
     if(!myUid && !authDone){ stat.textContent='せつぞく中…数秒後に もう一度'; return; }
     var name=($('nameInput').value||'').replace(/\s+/g,' ').trim().slice(0,12) || 'ななしの こっこ';
-    var msg=Array.from(($('msgInput').value||'').trim()).slice(0,20).join('');
+    var msg=Array.from(($('msgInput').value||'').trim()).slice(0,100).join('');
     if(!msg){ stat.textContent='ひとこと 書いてね ✍️'; return; }
     if(isNG(name)||isNG(msg)){ stat.textContent='おくれませんでした…🙏 やさしい ことばで おねがいします'; return; }
     var now=Date.now(); if(now-lastTs<1500) return; lastTs=now;
