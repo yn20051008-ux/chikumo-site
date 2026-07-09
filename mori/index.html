@@ -1187,9 +1187,21 @@ const terraHQ=!!tryProg(TERRA_VS,TERRA_FS);
 
 /* 水面 ── 基本（単純な波色）を fallback に、フレネル反射＋太陽きらめき版を試す */
 const WATER_VS=
-`attribute vec2 aPos; uniform mat4 uVP; uniform mediump float uWL;
-varying vec2 vXZ;
-void main(){ gl_Position=uVP*vec4(aPos.x,uWL,aPos.y,1.0); vXZ=aPos; }`;
+`attribute vec2 aPos; uniform mat4 uVP; uniform mediump float uWL; uniform mediump float uT;
+varying vec2 vXZ; varying vec3 vWpos; varying vec3 vMacroN;
+float wv(float x,float z,float t){
+  return 0.14*sin(x*0.23+t*1.4)+0.10*sin(z*0.19-t*1.1)+0.09*sin((x+z)*0.11+t*0.6);
+}
+void main(){
+  float x=aPos.x, z=aPos.y;
+  float h=wv(x,z,uT);
+  float e=0.6;
+  float hx=wv(x+e,z,uT), hz=wv(x,z+e,uT);
+  vMacroN=normalize(vec3(-(hx-h)/e,1.0,-(hz-h)/e));
+  vWpos=vec3(x,uWL+h,z);
+  vXZ=aPos;
+  gl_Position=uVP*vec4(vWpos,1.0);
+}`;
 const WATER_FS_BASE=
 `precision mediump float;
 varying vec2 vXZ;
@@ -1207,8 +1219,8 @@ const WATER_FS=
 ${ACES}
 ${GNOISE}
 ${FOGFN}
-varying vec2 vXZ;
-uniform float uT; uniform mediump float uWL; uniform vec3 uCam;
+varying vec2 vXZ; varying vec3 vWpos; varying vec3 vMacroN;
+uniform mediump float uT; uniform mediump float uWL; uniform vec3 uCam;
 uniform vec3 uWCol; uniform vec3 uWCol2; uniform vec3 uLight; uniform vec3 uSun;
 uniform sampler2D uHTex; uniform float uHMax; uniform float uHalf;
 uniform sampler2D uRefl; uniform vec2 uRes; uniform float uReflOn;
@@ -1218,13 +1230,11 @@ float terraH(vec2 p){
 }
 void main(){
   float x=vXZ.x, z=vXZ.y;
-  // 多重オクターブの波
-  float w=sin(x*0.23+uT*1.4)+sin(z*0.19-uT*1.1)+sin((x+z)*0.11+uT*0.6);
-  // 波の勾配から法線（さざ波・複数周波数）
-  float dx=0.23*cos(x*0.23+uT*1.4)+0.11*cos((x+z)*0.11+uT*0.6)+0.5*cos(x*0.7+uT*2.3)+0.9*cos(x*1.7+uT*3.1);
-  float dz=0.19*cos(z*0.19-uT*1.1)+0.11*cos((x+z)*0.11+uT*0.6)+0.5*cos(z*0.66-uT*2.0)+0.9*cos(z*1.6-uT*2.7);
-  vec3 N=normalize(vec3(-dx*0.16,1.0,-dz*0.16));
-  vec3 wp=vec3(x,uWL,z);
+  // 実際にうねる大波は頂点シェーダのvMacroN(シン島ぐらしから移植)。ここではピクセル単位の高周波さざ波だけ加算
+  float dxM=0.5*cos(x*0.7+uT*2.3)+0.9*cos(x*1.7+uT*3.1);
+  float dzM=0.5*cos(z*0.66-uT*2.0)+0.9*cos(z*1.6-uT*2.7);
+  vec3 N=normalize(vMacroN+vec3(-dxM*0.16,0.0,-dzM*0.16));
+  vec3 wp=vWpos;
   vec3 V=normalize(uCam-wp);
   vec3 L=normalize(uLight);
   // 海底の高さから深さを求め、浅瀬／深海で色をわける（実際の地形高さを参照）
@@ -1366,7 +1376,7 @@ const SKY_FS_ATMO=
 ${ACES}
 ${GNOISE}
 varying vec2 vUV;
-uniform vec3 uTop,uHorizon,uSunGlow,uSunDir,uSunCol;
+uniform vec3 uTop,uHorizon,uSunGlow,uSunDir,uSunCol,uMoonDir;
 uniform vec3 uCamF,uCamR,uCamU; uniform float uTanHF,uAspect,uDayF,uTime,uDusk;
 void main(){
   vec2 ndc=vUV*2.0-1.0;
@@ -1395,13 +1405,15 @@ void main(){
     float amt=clamp(den*0.9+den2*0.45,0.0,1.0)*above;
     sky=mix(sky,cbase,amt*0.9);
   }
-  // 夜の星（またたき付き）
+  // 夜の星（またたき付き）＋月（シン島ぐらしから移植：ディスク＋やわらかい月あかりのにじみ）
   float night=1.0-uDayF;
   if(night>0.04&&dir.y>0.0){
     vec2 suv=floor(dir.xz/(dir.y+0.12)*90.0);
     float st=step(0.992,hash21(suv));
     float tw=0.6+0.4*sin(uTime*3.0+hash21(suv+3.3)*17.0);
     sky+=vec3(st*night*smoothstep(0.0,0.2,dir.y))*1.2*tw;
+    float md=max(dot(dir,normalize(uMoonDir)),0.0);
+    sky+=vec3(0.9,0.95,1.05)*(pow(md,900.0)*3.4+pow(md,60.0)*0.22)*night;
   }
   gl_FragColor=vec4(aces(sky),1.0);
 }`;
@@ -1499,7 +1511,8 @@ const nU={ seed:gl.getUniformLocation(noiseProg,'uSeed') };
 const nA={ pos:gl.getAttribLocation(noiseProg,'aPos') };
 const skyU=skyProg?{ top:gl.getUniformLocation(skyProg,'uTop'), hor:gl.getUniformLocation(skyProg,'uHorizon'),
   glow:gl.getUniformLocation(skyProg,'uSunGlow'), sunDir:gl.getUniformLocation(skyProg,'uSunDir'),
-  sunCol:gl.getUniformLocation(skyProg,'uSunCol'), camF:gl.getUniformLocation(skyProg,'uCamF'),
+  sunCol:gl.getUniformLocation(skyProg,'uSunCol'), moonDir:gl.getUniformLocation(skyProg,'uMoonDir'),
+  camF:gl.getUniformLocation(skyProg,'uCamF'),
   camR:gl.getUniformLocation(skyProg,'uCamR'), camU:gl.getUniformLocation(skyProg,'uCamU'),
   tanHF:gl.getUniformLocation(skyProg,'uTanHF'), asp:gl.getUniformLocation(skyProg,'uAspect'),
   dayF:gl.getUniformLocation(skyProg,'uDayF'), time:gl.getUniformLocation(skyProg,'uTime'),
@@ -1742,10 +1755,28 @@ function buildTerrainMesh(){
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,idx,gl.STATIC_DRAW);
   }
 }
-/* 水面の1枚クアッド */
-const waterBuf=gl.createBuffer();
-gl.bindBuffer(gl.ARRAY_BUFFER,waterBuf);
-gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-HALF,-HALF, HALF,-HALF, HALF,HALF, -HALF,-HALF, HALF,HALF, -HALF,HALF]),gl.STATIC_DRAW);
+/* 水面 ── シン島ぐらしから移植：72×72の格子メッシュにして頂点シェーダで実際にうねらせる
+   (旧: 1枚クアッド。波は色だけで動いて見せかけていたため、実際には上下しない平面だった) */
+const WGN=72;
+const waterBuf=gl.createBuffer(), waterIdxBuf=gl.createBuffer();
+let waterIdxN=0;
+(function(){
+  const c=(HALF*2)/(WGN-1);
+  const v=new Float32Array(WGN*WGN*2);
+  for(let j=0;j<WGN;j++)for(let i=0;i<WGN;i++){
+    v[(j*WGN+i)*2]=-HALF+i*c; v[(j*WGN+i)*2+1]=-HALF+j*c;
+  }
+  gl.bindBuffer(gl.ARRAY_BUFFER,waterBuf);
+  gl.bufferData(gl.ARRAY_BUFFER,v,gl.STATIC_DRAW);
+  const idx=new Uint16Array((WGN-1)*(WGN-1)*6); let k=0;
+  for(let j=0;j<WGN-1;j++)for(let i=0;i<WGN-1;i++){
+    const a=j*WGN+i,b=a+1,cc=a+WGN,d=cc+1;
+    idx[k++]=a;idx[k++]=cc;idx[k++]=b; idx[k++]=b;idx[k++]=cc;idx[k++]=d;
+  }
+  waterIdxN=k;
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,waterIdxBuf);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,idx,gl.STATIC_DRAW);
+})();
 
 /* ===== プロップ（木・岩：本物のローポリメッシュ・島ぐらし2から移植）=====
    trees[]/rocks[] の配置ロジック（位置・本数・抽選条件）は一切変更せず、
@@ -2273,17 +2304,20 @@ function calcDayLight(){
   let sky=mix3([0.045,0.06,0.15],[0.50,0.72,0.88],dayF);
   sky=mix3(sky,[0.96,0.62,0.42],duskF*0.5*Math.max(dayF,0.25));
   const ang=(h-6)/12*Math.PI;
+  /* 月：シン島ぐらしから移植。太陽の半日ぶん反対側を通り、夜は月あかりで照らす */
+  const moonAng=ang+Math.PI;
+  const moonDir=norm3([Math.cos(moonAng)*0.6,Math.max(0.15,Math.sin(moonAng)*0.9),0.35]);
   let light,sun;
   if(dayF>0.02){
     light=norm3([Math.cos(ang)*0.6,Math.max(0.18,Math.sin(ang)),0.35]);
     sun=mix3([dayF*0.76,dayF*0.74,dayF*0.69],[1,0.6,0.35],duskF*0.5);
   }else{
-    light=norm3([0.3,0.8,0.4]);
+    light=moonDir;
     sun=[0.10,0.12,0.20];
   }
   const amb=[0.22+0.20*dayF,0.24+0.20*dayF,0.33+0.16*dayF];
   const ts=clamp(0.42+0.44*dayF+duskF*0.06,0,1.12);
-  DL.sky=sky; DL.light=light; DL.sun=sun; DL.amb=amb; DL.dayF=dayF; DL.dusk=duskF;
+  DL.sky=sky; DL.light=light; DL.sun=sun; DL.amb=amb; DL.dayF=dayF; DL.dusk=duskF; DL.moonDir=moonDir;
   DL.tint=[ts,ts*(1-duskF*0.08),ts*(1-duskF*0.16)];
   DL.sunFog=mix3([1,0.92,0.72],[1,0.55,0.3],duskF);
   // 空グラデーション用：天頂は濃いめ、地平線は明るめ＋夕方は橙
@@ -4744,6 +4778,7 @@ function renderReflPass(shadowed){
     gl.uniform3fv(skyU.top,DL.skyTop); gl.uniform3fv(skyU.hor,DL.skyHorizon); gl.uniform3fv(skyU.glow,DL.sunGlow);
     if(skyU.sunDir) gl.uniform3fv(skyU.sunDir,DL.light);
     if(skyU.sunCol) gl.uniform3fv(skyU.sunCol,DL.sun);
+    if(skyU.moonDir) gl.uniform3fv(skyU.moonDir,DL.moonDir);
     if(skyU.camF) gl.uniform3f(skyU.camF,camF[0],-camF[1],camF[2]);
     if(skyU.camR) gl.uniform3f(skyU.camR,camR[0],-camR[1],camR[2]);
     if(skyU.camU) gl.uniform3f(skyU.camU,camU[0],-camU[1],camU[2]);
@@ -4918,6 +4953,7 @@ function render(){
     gl.uniform3fv(skyU.top,DL.skyTop); gl.uniform3fv(skyU.hor,DL.skyHorizon); gl.uniform3fv(skyU.glow,DL.sunGlow);
     if(skyU.sunDir) gl.uniform3fv(skyU.sunDir,DL.light);
     if(skyU.sunCol) gl.uniform3fv(skyU.sunCol,DL.sun);
+    if(skyU.moonDir) gl.uniform3fv(skyU.moonDir,DL.moonDir);
     if(skyU.camF) gl.uniform3fv(skyU.camF,camF);
     if(skyU.camR) gl.uniform3fv(skyU.camR,camR);
     if(skyU.camU) gl.uniform3fv(skyU.camU,camU);
@@ -5042,7 +5078,7 @@ function render(){
   gl.useProgram(waterProg);
   gl.uniformMatrix4fv(wU.vp,false,Mvp);
   gl.uniform1f(wU.wl,WL);
-  gl.uniform1f(wU.t,G.time);
+  gl.uniform1f(wU.t,G.time%100000.0);   /* uTはVS/FSで共有(mediump)のため、長時間プレイでも精度が保たれるよう周期的に折り返す */
   gl.uniform3f(wU.cam,eye[0],eye[1],eye[2]);
   gl.uniform3fv(wU.fog,DL.sky);
   gl.uniform3fv(wU.light,DL.light);
@@ -5069,10 +5105,11 @@ function render(){
   }
   gl.bindBuffer(gl.ARRAY_BUFFER,waterBuf);
   gl.enableVertexAttribArray(wA.pos); gl.vertexAttribPointer(wA.pos,2,gl.FLOAT,false,8,0);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,waterIdxBuf);
   gl.enable(gl.BLEND);
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
   gl.depthMask(false);
-  gl.drawArrays(gl.TRIANGLES,0,6);
+  gl.drawElements(gl.TRIANGLES,waterIdxN,gl.UNSIGNED_SHORT,0);
   gl.depthMask(true);
   gl.disableVertexAttribArray(wA.pos);
 
@@ -5419,6 +5456,7 @@ window.__mori={
     grassInstanced:GRASS_INSTANCED, grassInstN:grassInstN, grassN:grassN,
     terraHQ:!!terraHQ, waterHQ:!!waterHQ }; },
   reflForce(v){ QUALITY.reflOn=!!v; slowAcc=-1e9; },
+  tod(v){ if(v!=null)G.tod=clamp(v,0,0.999); return {tod:G.tod,dayF:DL.dayF,moonDir:DL.moonDir}; },
 };
 })();
 </script>
