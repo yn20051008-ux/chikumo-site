@@ -788,7 +788,7 @@ let score=0,best=+(localStorage.getItem('gpBest')||0),
   nitroStock=0,nitroT=0,celeT=0,
   gap=400,rx=0,truckFair=true,rescueNeed=4,burstT=0,burstChk=0,dropT=3,
   rescueMode=null,shake=0,flash=0,flashCol='255,60,60',hue=320,lastTick=99,lastFair=true,
-  hitStop=0,slowmo=0,   /* ヒットストップ(ms)・スローモーション(秒) */
+  hitStop=0,slowmo=0,tScale=1,   /* ヒットストップ(ms)・スローモーション(秒)・スローモーション明けのイーズ復帰係数 */
   speedX=1,speedT=0,overSpd=false,   /* ⚡2倍加速スタック(1/2/4/8)・残り秒・速度超過大破 */
   dirtT=0,wasOff=false,mudWreck=false,dirtSfxT=0,mudT=0,   /* 🟤コースアウト: 連続オフロード秒数→故障→大破 */
   urgOn=false,fevOn=false,   /* ラスト5秒/フィーバーのビネット状態 */
@@ -1224,7 +1224,7 @@ function reset(){
   spd=0;maxKmh=0;dist=0;distChunk=0;px=0;tilt=0;gear=0;
   rescued=0;rescueStreak=0;missed=0;round=0;
   broken=false;repairGot=0;repairNeed=5;brokenHits=0;wrecked=false;spinT=0;nitroStock=1;nitroT=0;celeT=0;
-  rescueMode=null;shake=0;flash=0;lastTick=99;lastTapMs=0;hitStop=0;slowmo=0;dmgVin(false);
+  rescueMode=null;shake=0;flash=0;lastTick=99;lastTapMs=0;hitStop=0;slowmo=0;tScale=1;dmgVin(false);
   speedX=1;speedT=0;overSpd=false;setSpdVin(0);
   dirtT=0;wasOff=false;mudWreck=false;dirtSfxT=0;mudT=0;mudDry();mudVin(0);
   urgOn=false;fevOn=false;vinOff('urgVin');vinOff('fevVin');
@@ -1258,11 +1258,13 @@ function update(dt){
     if(rescueMode)dt*=0.15;           /* シェイクタイム=スローモーション */
   }
   elapsed+=dt;
-  /* ── スピード(超スピード系) ── */
+  /* ── スピード(超スピード系)。GP2の緩急(lerp的なイーズ)を移植し、上限への到達・上限からの落差を
+        急な頭打ち/急ブレーキでなく自然な減速で迎えるように(体感速度・操作感の快適さの核) ── */
   const max=(broken?62:playerMax()*(fever>0?1.12:1)*speedX)+(nitroT>0?90:0);
   const offroad=Math.abs(px)>1.04;
-  if(spd<max)spd=Math.min(max,spd+dt*(nitroT>0?260:95)*(speedX>1?speedX*speedX*.5:1)); /* ⚡は段の2乗で一気に突き抜ける */
-  else spd=Math.max(max,spd-dt*180);
+  const accRate=(nitroT>0?260:95)*(speedX>1?speedX*speedX*.5:1);   /* ⚡は段の2乗で一気に突き抜ける */
+  if(spd<max)spd=Math.min(max,spd+Math.min(dt*accRate,Math.max((max-spd)*dt*2.2,dt*accRate*.15)));
+  else spd=Math.max(max,spd-Math.max(dt*90,(spd-max)*dt*4));
   /* ── 🟤コースアウト(土): 急減速 → 2.5秒で泥づまりエンスト → 計5秒で大破 ── */
   if(offroad){
     if(!wasOff){wasOff=true;sfxDirtIn();vib(45);shake=Math.max(shake,10);
@@ -1312,14 +1314,17 @@ function update(dt){
   tilt=readTilt();
   if(spinT>0){spinT-=rdt;}
   else{
-    /* 土の上は失速してもハンドルが効くよう操舵力を底上げ＋道側へ軽くアシスト */
-    let steerGain=Math.min(1,spd/140+.15);
+    /* 土の上は失速してもハンドルが効くよう操舵力を底上げ＋道側へ軽くアシスト。
+       低速時の底上げをGP2並みに強めて(.15→.55)、発進直後から気持ちよく曲がれるように */
+    let steerGain=Math.min(1,spd/140+.55);
     if(offroad){steerGain=Math.max(steerGain,.85)*1.4;   /* コースアウト中は確実に切り返せる */
       px-=Math.sign(px)*dt*.32;}                          /* 路肩の傾斜のように道へ引き戻す */
     px+=tilt*dt*2.6*steerGain;
   }
+  /* 遠心力: カーブに切り込め。GP2は速度に対して線形かつカーブ量を1/4に和らげて予測しやすくしている。
+     GPのcurveAt()自体(カーブの形・難度)は不変のまま、切り込みの効き方だけをGP2に寄せた */
   const ci=Math.floor(dist/SEGL),cv0=curveAt(ci);
-  px-=cv0*dt*1.7*Math.pow(Math.min(1,spd/320),2);   /* 遠心力: カーブに切り込め */
+  px-=cv0*dt*1.1*Math.min(1,spd/320);
   px=Math.max(-1.45,Math.min(1.45,px));
   /* ── タイマー類(実時間) ── */
   timeLeft-=rdt;
@@ -2057,9 +2062,10 @@ function tick(t){
     const dtMs=last?t-last:16;last=t;
     perfSample(dtMs);
     let dt=Math.min(.05,dtMs/1000);
-    /* ヒットストップ(数フレーム完全停止)→スローモーション(0.3倍速) */
+    /* ヒットストップ(数フレーム完全停止)→スローモーション(0.3倍速)→GP2から移植したイーズ復帰(急な等速カットを回避) */
     if(hitStop>0){hitStop-=dtMs;dt=0;}
-    else if(slowmo>0){slowmo-=dt;dt*=.3;}
+    else if(slowmo>0){slowmo-=dt;dt*=.3;tScale=.3;}
+    else if(tScale<1){tScale=Math.min(1,tScale+dt*2.2);dt*=tScale;}
     if(state==='play'){update(dt);schedBGM();}
     else{
       for(const p of parts){if(!p.alive)continue;p.t+=dt;
