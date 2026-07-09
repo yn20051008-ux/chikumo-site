@@ -731,6 +731,7 @@ const O2_PRICE=1, O2_MAX=99, STORE_MONEY_PER_KO=15, AIR_KICK_COST=1/9, AIR_KICK_
 const FORCE_CD=0.16, FORCE_RANGE=20, LINK_REACH=2.4;
 const FORCE_MAX=60, FORCE_PRICE=1, FORCE_START={rock:14,link:14};
 const LINK_LEVEL=0.55; // 繋げる石：積み上げず(y軸)、常にこの高さ固定でxz軸へ広げていく
+const LINK_THICK=0.4+LINK_LEVEL*2.6; // 橋渡し時の板の厚み＝地面に置いた🧱1つぶんと同じ厚み（宙に浮かせても壁にしない）
 const HEART_PRICE=15;
 const SEAL_MONEY=45;
 /* 🔫レーザーピストル（塗る3Dから移植）：弾数制限つきの遠隔武器。飛び道具でなく即着弾。当たれば1発で撃破、地形は変えない */
@@ -751,13 +752,14 @@ const CAGRID=64, CACELL=SIZE/CAGRID;
 const K_DIRT=0,K_ROCK=4,K_ASH=5,K_BLIGHT=6,K_LINK=7;
 const CA_HZ=12, CA_DT=1/CA_HZ;
 let fKind=new Uint8Array(CAGRID*CAGRID), fLevel=new Float32Array(CAGRID*CAGRID);
+let fBase=new Float32Array(CAGRID*CAGRID); // 🧱橋渡し用：箱の底（0なら地面から、それ以外なら宙に浮く1つぶんの板）
 let fKind2=new Uint8Array(CAGRID*CAGRID), fLevel2=new Float32Array(CAGRID*CAGRID);
 let caAcc=0;
 function ci(cx,cz){ return cz*CAGRID+cx; }
 function worldToCell(x,z){ return [clamp(((x+HALF)/CACELL)|0,0,CAGRID-1), clamp(((z+HALF)/CACELL)|0,0,CAGRID-1)]; }
 function cellToWorld(cx,cz){ return [cx*CACELL+CACELL/2-HALF, cz*CACELL+CACELL/2-HALF]; }
 function resetField(seedRng){
-  fKind.fill(K_DIRT); fLevel.fill(0);
+  fKind.fill(K_DIRT); fLevel.fill(0); fBase.fill(0);
   for(let i=0;i<CAGRID*CAGRID;i++) if(seedRng()<0.22) fKind[i]=K_ASH;
 }
 function neighbors4(cx,cz){
@@ -1006,7 +1008,7 @@ function rebuildDynBoxes(){
       const [wx,wz]=cellToWorld(cx,cz), hw=CACELL*0.5;
       const [c0,c1]=k===K_ROCK?[COL_ROCK0,COL_ROCK1]:[COL_LINK0,COL_LINK1];
       const h=0.4+lv*2.6, col=lerpCol(c0,c1,clamp(lv/1.6,0,1)).map(v=>v/255);
-      dynBoxes.push({x0:wx-hw,x1:wx+hw,z0:wz-hw,z1:wz+hw,h,col,rock:true});
+      dynBoxes.push({x0:wx-hw,x1:wx+hw,z0:wz-hw,z1:wz+hw,y0:fBase[idx],h,col,rock:true});
     }
   }
   boxes=ruins.concat(dynBoxes);
@@ -1027,12 +1029,13 @@ function buildWorldMesh(){
     quad(x0,0,z0, x0,0,z1, x1,0,z1, x1,0,z0, 0,1,0, gcol,1,[[u0,t0],[u0,t1],[u1,t1],[u1,t0]]);
   }
   function box(b){
-    const {x0,x1,z0,z1,h,col}=b;
+    const {x0,x1,z0,z1,h,col}=b, y0=b.y0||0;
     quad(x0,h,z0, x0,h,z1, x1,h,z1, x1,h,z0, 0,1,0, col,0);
-    quad(x0,0,z1, x0,h,z1, x1,h,z1, x1,0,z1, 0,0,1, col,0);
-    quad(x1,0,z0, x1,h,z0, x0,h,z0, x0,0,z0, 0,0,-1, col,0);
-    quad(x1,0,z1, x1,h,z1, x1,h,z0, x1,0,z0, 1,0,0, col,0);
-    quad(x0,0,z0, x0,h,z0, x0,h,z1, x0,0,z1, -1,0,0, col,0);
+    quad(x0,y0,z1, x0,h,z1, x1,h,z1, x1,y0,z1, 0,0,1, col,0);
+    quad(x1,y0,z0, x1,h,z0, x0,h,z0, x0,y0,z0, 0,0,-1, col,0);
+    quad(x1,y0,z1, x1,h,z1, x1,h,z0, x1,y0,z0, 1,0,0, col,0);
+    quad(x0,y0,z0, x0,h,z0, x0,h,z1, x0,y0,z1, -1,0,0, col,0);
+    if(y0>0.01) quad(x0,y0,z0, x1,y0,z0, x1,y0,z1, x0,y0,z1, 0,-1,0, col,0);
   }
   for(const b of boxes) box(b);
   const wcol=hexCol('#5c584c'), WH=2.4, WT=1.2;
@@ -1056,7 +1059,7 @@ function floorAt(x,z,feetY){
 }
 function collideXZ(o,r){
   for(const b of boxes){
-    if(o.y>=b.h-0.05) continue;
+    if(o.y>=b.h-0.05||o.y<(b.y0||0)-0.05) continue; // 橋(浮いた板)の下は素通りできる
     if(o.x>b.x0-r&&o.x<b.x1+r&&o.z>b.z0-r&&o.z<b.z1+r){
       if(o.x>b.x0&&o.x<b.x1&&o.z>b.z0&&o.z<b.z1){
         const dl=o.x-b.x0,dr=b.x1-o.x,db=o.z-b.z0,df=b.z1-o.z;
@@ -1074,7 +1077,7 @@ function collideXZ(o,r){
   o.z=clamp(o.z,-HALF+1.4,HALF-1.4);
 }
 function insideBox(x,y,z){
-  for(const b of boxes) if(y<b.h&&x>b.x0&&x<b.x1&&z>b.z0&&z<b.z1) return true;
+  for(const b of boxes) if(y<b.h&&y>=(b.y0||0)&&x>b.x0&&x<b.x1&&z>b.z0&&z<b.z1) return true;
   return false;
 }
 
@@ -1132,18 +1135,19 @@ function applyForceAt(kind,wx,wz){
   const [cx,cz]=worldToCell(wx,wz);
   const idx=ci(cx,cz), k=fKind[idx], lv=fLevel[idx];
   if(kind==='rock'){
-    if(k===K_BLIGHT){ fKind[idx]=K_ASH; fLevel[idx]=0; Sound.purify(); }
-    else{ fKind[idx]=K_ROCK; fLevel[idx]=(k===K_ROCK?lv:0)+0.55; Sound.fireRock(); } // 上限なし＝何度でも積める（y軸）
+    if(k===K_BLIGHT){ fKind[idx]=K_ASH; fLevel[idx]=0; fBase[idx]=0; Sound.purify(); }
+    else{ fKind[idx]=K_ROCK; fLevel[idx]=(k===K_ROCK?lv:0)+0.55; fBase[idx]=0; Sound.fireRock(); } // 上限なし＝何度でも積める（y軸）
   }else if(kind==='link'){
-    if(k===K_BLIGHT){ fKind[idx]=K_ASH; fLevel[idx]=0; Sound.purify(); }
+    if(k===K_BLIGHT){ fKind[idx]=K_ASH; fLevel[idx]=0; fBase[idx]=0; Sound.purify(); }
     else{
-      // こっこちゃんが今🪨または🧱の上に立っている(＝空中にいる)ときだけ、今の高さまで届く橋として生成する。
-      // それ以外（地面）では従来どおり固定の低い高さ＝地表に沿ったxz軸の道になる。
+      // こっこちゃんが今🪨または🧱の上に立っている(＝空中にいる)ときだけ、今の高さに届く「橋」として生成する。
+      // 橋は積み上げた🪨と同じ厚み(LINK_THICK)の板1枚ぶんだけ＝地面まで届く壁にはしない（宙に浮かせ底(fBase)を持ち上げる）。
+      // それ以外（地面）では従来どおり固定の低い高さ・底0＝地表に沿ったxz軸の道になる。
       const [pcx,pcz]=worldToCell(P.x,P.z), pk=fKind[ci(pcx,pcz)];
       const bridging=(pk===K_ROCK||pk===K_LINK);
-      const lv2=bridging?Math.max(LINK_LEVEL,(P.y-0.4)/2.6):LINK_LEVEL;
-      fKind[idx]=K_LINK; fLevel[idx]=lv2; Sound.fireRock();
-    } // 高さは積み上がらず(y軸)、当てた先へxz軸に広がっていく。橋渡し時のみ現在の高さに合わせる
+      const top=bridging?Math.max(LINK_THICK,P.y):LINK_THICK;
+      fKind[idx]=K_LINK; fLevel[idx]=(top-0.4)/2.6; fBase[idx]=bridging?Math.max(0,top-LINK_THICK):0; Sound.fireRock();
+    } // 高さは積み上がらず(y軸)、当てた先へxz軸に広がっていく。橋渡し時のみ現在の高さに板1枚ぶんだけ浮かせて合わせる
   }
 }
 /* 逆縁への直接ねらい撃ち（こっこGP/塗る3Dのエイムアシストと同じ型：水平方向のみでコーン判定する。
@@ -2202,9 +2206,9 @@ window.__mebuki={
   tscale(){ /* 互換のため残置。本作は step() でクロックを手回しする方式を使う */ },
   step(dt,n){ n=n||1; for(let i=0;i<n;i++) update(dt||1/60); },
   forceSeed(s){ genWorld(s>>>0); rebuildDynBoxes(); buildWorldMesh(); redrawField(); },
-  setCell(x,z,kind,level){ const [cx,cz]=worldToCell(x,z); const idx=ci(cx,cz); fKind[idx]=kind; fLevel[idx]=level==null?0.6:level; },
-  getCell(x,z){ const [cx,cz]=worldToCell(x,z); const idx=ci(cx,cz); return {kind:fKind[idx],level:fLevel[idx]}; },
-  peekAimCell(){ const a=aimGroundCell(); const [cx,cz]=worldToCell(a.x,a.z); const idx=ci(cx,cz); return {x:a.x,z:a.z,kind:fKind[idx],level:fLevel[idx]}; },
+  setCell(x,z,kind,level){ const [cx,cz]=worldToCell(x,z); const idx=ci(cx,cz); fKind[idx]=kind; fLevel[idx]=level==null?0.6:level; fBase[idx]=0; },
+  getCell(x,z){ const [cx,cz]=worldToCell(x,z); const idx=ci(cx,cz); return {kind:fKind[idx],level:fLevel[idx],base:fBase[idx]}; },
+  peekAimCell(){ const a=aimGroundCell(); const [cx,cz]=worldToCell(a.x,a.z); const idx=ci(cx,cz); return {x:a.x,z:a.z,kind:fKind[idx],level:fLevel[idx],base:fBase[idx]}; },
   stepCA(n){ n=n||1; for(let i=0;i<n;i++) stepCA(); rebuildDynBoxes(); buildWorldMesh(); redrawField(); },
   spawnNestNow(i){ if(nests[i]) nests[i].pulseT=0; },
   teleport(x,z){ P.x=x; P.z=z; P.y=floorAt(x,z,0); },
