@@ -1601,16 +1601,35 @@ function drawPlayer(){
   if(broken)drawEmoji('💢',pw*.3,-ph*.7,pw*.16);
   cx.restore();
 }
+/* 空の時間帯パレット(こっこGP2「キズナターボ」から移植: 昼→夕焼け→黄金→桜色の夜明け)。
+   GP2は固定タイム(T/DUR)で進めていたが、GPはレスキュー等でtimeLeftが伸びるため、
+   代わりに単調増加のelapsed(経過時間)を60秒で正規化して同じ4段グラデーションを進める。 */
+const rgb=c=>'rgb('+c[0]+','+c[1]+','+c[2]+')';
+function skyPalette(){
+  const t=Math.min(1,elapsed/60);
+  const keys=[
+    {p:0,  top:[92,168,255], mid:[168,214,255], bot:[255,236,214]},
+    {p:.55,top:[80,110,220], mid:[255,160,120], bot:[255,214,140]},
+    {p:.85,top:[60,60,160],  mid:[255,120,140], bot:[255,190,120]},
+    {p:1,  top:[255,182,210],mid:[255,220,214], bot:[255,246,230]}
+  ];
+  let a=keys[0],b=keys[keys.length-1];
+  for(let i=0;i<keys.length-1;i++)if(t>=keys[i].p&&t<=keys[i+1].p){a=keys[i];b=keys[i+1];break;}
+  const k=(t-a.p)/Math.max(.0001,b.p-a.p);
+  const mix=(u,v)=>[Math.round(u[0]+(v[0]-u[0])*k),Math.round(u[1]+(v[1]-u[1])*k),Math.round(u[2]+(v[2]-u[2])*k)];
+  return {top:mix(a.top,b.top),mid:mix(a.mid,b.mid),bot:mix(a.bot,b.bot)};
+}
 function draw(){
   const h0=horY();
-  /* ── 空: シンセウェーブ・サンセット ── */
-  const bg=cx.createLinearGradient(0,0,0,H);
+  const pal=skyPalette();
+  /* ── 空: GP2から移植した時間帯グラデーション(フィーバー中は従来どおりhueサイクル) ── */
+  const bg=cx.createLinearGradient(0,0,0,h0+40);
   if(fever>0){
     bg.addColorStop(0,`hsl(${hue},65%,13%)`);bg.addColorStop(.4,`hsl(${(hue+50)%360},60%,24%)`);bg.addColorStop(1,`hsl(${(hue+100)%360},55%,9%)`);
   }else{
-    bg.addColorStop(0,'#0e0322');bg.addColorStop(.28,'#3a0f4e');bg.addColorStop(.4,'#a3325f');bg.addColorStop(.55,'#1c0830');bg.addColorStop(1,'#0a0316');
+    bg.addColorStop(0,rgb(pal.top));bg.addColorStop(.55,rgb(pal.mid));bg.addColorStop(1,rgb(pal.bot));
   }
-  cx.fillStyle=bg;cx.fillRect(0,0,W,H);
+  cx.fillStyle=bg;cx.fillRect(0,0,W,h0+40);
   cx.save();
   if(shake>0)cx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);
   /* 星 */
@@ -1623,54 +1642,104 @@ function draw(){
   }
   const base=buildRoadOff();
   const sway=offAt(900)*.12;
-  /* 太陽(スキャンライン入り) */
-  const sunX=W/2-px*26+sway*.4,sunY=h0,sunR=Math.min(W,H)*.27;
+  /* 太陽(時間帯で沈む。GP独自のスキャンライン意匠は継承) */
+  const sunT=Math.min(1,elapsed/60),
+    sunX=W/2-px*26+sway*.4,sunY=h0*(.3+.62*sunT),sunR=Math.min(W,H)*.27;
   const sg=cx.createRadialGradient(sunX,sunY,0,sunX,sunY,sunR);
-  sg.addColorStop(0,fever>0?`hsla(${hue},95%,70%,.95)`:'rgba(255,210,110,.95)');
-  sg.addColorStop(.6,'rgba(255,110,160,.55)');sg.addColorStop(1,'rgba(255,80,150,0)');
+  if(fever>0){
+    sg.addColorStop(0,`hsla(${hue},95%,70%,.95)`);sg.addColorStop(.6,'rgba(255,110,160,.55)');sg.addColorStop(1,'rgba(255,80,150,0)');
+  }else{
+    sg.addColorStop(0,`rgba(${pal.top[0]},${pal.top[1]},${pal.top[2]},.95)`);
+    sg.addColorStop(.6,`rgba(${pal.mid[0]},${pal.mid[1]},${pal.mid[2]},.55)`);
+    sg.addColorStop(1,`rgba(${pal.mid[0]},${pal.mid[1]},${pal.mid[2]},0)`);
+  }
   cx.fillStyle=sg;
   cx.beginPath();cx.arc(sunX,sunY,sunR,Math.PI,TAU);cx.fill();
-  cx.fillStyle='rgba(14,3,34,.85)';
+  cx.fillStyle=fever>0?'rgba(14,3,34,.85)':`rgba(${Math.round(pal.bot[0]*.12)},${Math.round(pal.bot[1]*.08)},${Math.round(pal.bot[2]*.18)},.5)`;
   for(let i=0;i<5;i++)cx.fillRect(sunX-sunR,sunY-12-i*14,sunR*2,4+i);
-  /* パララックス山なみ */
-  for(let l=0;l<2;l++){
-    const amp=H*.05*(l+1)*.6,off=(l?sway*.5:sway*.25)-px*(l?22:10);
-    cx.fillStyle=l?'#1b0b30':'#241040';
-    cx.beginPath();cx.moveTo(0,h0);
-    for(let x=0;x<=W;x+=24)
-      cx.lineTo(x,h0-Math.abs(Math.sin((x+off)*.012+l*9))*amp-2);
-    cx.lineTo(W,h0);cx.closePath();cx.fill();
+  /* パララックス山なみ(GP2の三角シルエットを移植、GP独自のsway/pxで連動) */
+  const parOff=sway*40-px*22-((dist*.14)%(W*2.4));
+  cx.fillStyle=fever>0?`hsla(${hue},60%,20%,.75)`:`rgba(${Math.round(pal.top[0]*.35)},${Math.round(pal.top[1]*.3)},${Math.round(pal.top[2]*.42)},.8)`;
+  for(let m=0;m<6;m++){
+    const mx=((m*W*.42+parOff*.4)%(W*2.4))-W*.6;
+    cx.beginPath();
+    cx.moveTo(mx-W*.24,h0+2);
+    cx.lineTo(mx,h0-H*.075-((m*53)%37));
+    cx.lineTo(mx+W*.24,h0+2);
+    cx.fill();
   }
-  /* ── 路面(Z軸奥行きストリップ) ── */
-  for(let y=Math.ceil(h0)+1;y<H;y+=3){
-    const z=zOfY(y),si=Math.floor((dist+z)/SEGL),par=si%2===0,
-      f=fOf(z),half=halfWpx(z),c=roadCenter(z),
-      sh=3;
-    /* 地面 */
-    cx.fillStyle=par?'#170a28':'#130820';
-    cx.fillRect(0,y,W,sh);
-    /* グリッドグロー */
-    if(par&&Math.floor((dist+zOfY(y+3))/SEGL)!==si){
-      cx.fillStyle=`hsla(${fever>0?hue:316},85%,60%,${.12+f*.5})`;
-      cx.fillRect(0,y,W,1.5);
-    }
-    /* ランブル */
-    const rw=half*.14;
-    cx.fillStyle=par?'#ff4d9a':'#ffe9f4';
-    cx.fillRect(c-half-rw,y,rw,sh);cx.fillRect(c+half,y,rw,sh);
+  /* 雲(GP2から移植) */
+  cx.fillStyle=fever>0?`hsla(${(hue+40)%360},50%,80%,.5)`:'rgba(255,255,255,.5)';
+  for(let m=0;m<4;m++){
+    const ccx=((m*W*.6+parOff*.35+m*137)%(W*1.8))-W*.4,ccy=h0*(.22+.16*((m*29)%3));
+    cx.beginPath();cx.ellipse(ccx,ccy,54,13,0,0,TAU);cx.ellipse(ccx+30,ccy-8,34,11,0,0,TAU);cx.fill();
+  }
+  /* 草地(地面)ベース(GP2から移植) */
+  const gr1=[64,150,88],gr2=[52,128,74];
+  const grG=cx.createLinearGradient(0,h0,0,H);
+  grG.addColorStop(0,rgb(gr1.map((v,j)=>Math.round(v+(pal.mid[j]*.6-v)*.35))));
+  grG.addColorStop(1,rgb(gr2));
+  cx.fillStyle=fever>0?`hsl(${(hue+200)%360},40%,16%)`:grG;
+  cx.fillRect(0,h0,W,H-h0);
+  /* ── 路面(GP2の区画クワッド描画へ移植。カーブ形状・難度を決めるcurveAt/trackはGPの既存ロジックのまま不変で、
+        描き方だけをGP2の技法(遠近クワッド・霧・道端の飾り)に差し替える) ── */
+  const rows=[];
+  for(let y=Math.ceil(h0)+1;y<=H;y+=4){
+    const z=zOfY(y);
+    rows.push({y,z,si:Math.floor((dist+z)/SEGL),f:fOf(z),half:halfWpx(z),c:roadCenter(z)});
+  }
+  for(let n=1;n<rows.length;n++){
+    const rF=rows[n-1],rN=rows[n];   /* rF=奥(遠) rN=手前(近) */
+    const par=rF.si%2===0;
     /* 路面 */
-    cx.fillStyle=par?'#241236':'#2b1640';
-    cx.fillRect(c-half,y,half*2,sh);
-    /* 縁石(紅白ストライプが高速で飛び去る=最強のスピード手がかり) */
-    const curb=Math.floor((dist+z)/13)%2===0,cw=Math.max(1.5,half*.055);
+    cx.fillStyle=fever>0?`hsl(${(hue+rF.si*22)%360},70%,${par?46:40}%)`:(par?'#241236':'#2b1640');
+    cx.beginPath();
+    cx.moveTo(rN.c-rN.half,rN.y);cx.lineTo(rN.c+rN.half,rN.y);
+    cx.lineTo(rF.c+rF.half,rF.y);cx.lineTo(rF.c-rF.half,rF.y);
+    cx.closePath();cx.fill();
+    /* ランブル */
+    const rwF=rF.half*.14,rwN=rN.half*.14;
+    cx.fillStyle=par?'#ff4d9a':'#ffe9f4';
+    cx.beginPath();
+    cx.moveTo(rN.c-rN.half-rwN,rN.y);cx.lineTo(rN.c-rN.half,rN.y);
+    cx.lineTo(rF.c-rF.half,rF.y);cx.lineTo(rF.c-rF.half-rwF,rF.y);cx.closePath();cx.fill();
+    cx.beginPath();
+    cx.moveTo(rN.c+rN.half,rN.y);cx.lineTo(rN.c+rN.half+rwN,rN.y);
+    cx.lineTo(rF.c+rF.half+rwF,rF.y);cx.lineTo(rF.c+rF.half,rF.y);cx.closePath();cx.fill();
+    /* 縁石(紅白ストライプが高速で飛び去る=最強のスピード手がかり。GP独自の周期13を維持) */
+    const curb=Math.floor((dist+rF.z)/13)%2===0,cwF=Math.max(1.5,rF.half*.055),cwN=Math.max(1.5,rN.half*.055);
     cx.fillStyle=curb?'#e8485a':'#f2e8ee';
-    cx.fillRect(c-half,y,cw,sh);
-    cx.fillRect(c+half-cw,y,cw,sh);
+    cx.beginPath();
+    cx.moveTo(rN.c-rN.half-cwN,rN.y);cx.lineTo(rN.c-rN.half,rN.y);
+    cx.lineTo(rF.c-rF.half,rF.y);cx.lineTo(rF.c-rF.half-cwF,rF.y);cx.closePath();cx.fill();
+    cx.beginPath();
+    cx.moveTo(rN.c+rN.half,rN.y);cx.lineTo(rN.c+rN.half+cwN,rN.y);
+    cx.lineTo(rF.c+rF.half+cwF,rF.y);cx.lineTo(rF.c+rF.half,rF.y);cx.closePath();cx.fill();
     /* レーン白線 */
     if(par){
       cx.fillStyle='rgba(255,235,250,.5)';
-      cx.fillRect(c-half*.34,y,Math.max(1,half*.02),sh);
-      cx.fillRect(c+half*.34,y,Math.max(1,half*.02),sh);
+      for(const lx of[-.34,.34]){
+        cx.beginPath();
+        cx.moveTo(rN.c+rN.half*lx-rN.half*.01,rN.y);cx.lineTo(rN.c+rN.half*lx+rN.half*.01,rN.y);
+        cx.lineTo(rF.c+rF.half*lx+rF.half*.01,rF.y);cx.lineTo(rF.c+rF.half*lx-rF.half*.01,rF.y);
+        cx.closePath();cx.fill();
+      }
+    }
+    /* グリッドグロー(セグメント境界) */
+    if(par&&rF.si!==rN.si){
+      cx.fillStyle=`hsla(${fever>0?hue:316},85%,60%,${.12+rF.f*.5})`;
+      cx.fillRect(0,rF.y,W,1.5);
+    }
+    /* 霧(遠景を空色へ溶かす。GP2から移植) */
+    const fog=Math.min(1,rF.z/700)*.5;
+    if(fog>.05){
+      cx.fillStyle=`rgba(${pal.mid[0]},${pal.mid[1]},${pal.mid[2]},${fog})`;
+      cx.fillRect(0,rF.y,W,Math.max(1,rN.y-rF.y));
+    }
+    /* 道端の飾り(4セグごと。GP2から移植) */
+    if(rN.si%4===0&&rF.si!==rN.si){
+      const side=(rN.si%8===0)?-1:1,dec=['🌴','🌸','⛰️','🌳'][(rN.si>>2)%4],ds=rF.half*.6;
+      if(ds>7)drawEmoji(dec,rF.c+side*rF.half*1.5,rF.y,ds);
     }
   }
   /* ── エンティティ(奥から) ── */
