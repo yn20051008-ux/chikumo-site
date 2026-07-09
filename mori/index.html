@@ -4321,11 +4321,18 @@ function camEye(){
 const SPR_MAX=2000, SHAD_MAX=500;
 const sprArr=new Float32Array(SPR_MAX*6*9);
 const shadArr=new Float32Array(SHAD_MAX*6*9);
+const sprSorted=new Float32Array(SPR_MAX*6*9);   // 深度ソート後の並べ替え用（毎フレーム再利用）
+const sprDepth=new Float32Array(SPR_MAX);        // 各スプライトのカメラからの距離²
+const sprIdx=new Int32Array(SPR_MAX);
 let sprN=0, shadN=0;
 const sprBuf=gl.createBuffer(), shadBuf=gl.createBuffer();
 function cellUV(c){ const u0=(c%ACELL)*0.125+0.002, v0=((c/ACELL)|0)*0.125+0.002; return [u0,v0,u0+0.121,v0+0.121]; }
 function pushQuad(arr,n,max,cx,cy,cz,rx,ry,rz,ux,uy,uz,hw,hh,cell,r,g,b,a,flip){
   if(n>=max) return n;
+  if(arr===sprArr){ // スプライト同士は深度を書き込まないため、描画前にカメラからの距離を記録して並べ替える（奥の実が手前のこっこちゃんより前に出るバグを防ぐ）
+    const dx=cx-camEyeNow[0], dy=cy-camEyeNow[1], dz=cz-camEyeNow[2];
+    sprDepth[n]=dx*dx+dy*dy+dz*dz;
+  }
   const uv=cellUV(cell);
   let u0=uv[0],u1=uv[2]; if(flip){const t=u0;u0=u1;u1=t;}
   const v0=uv[1],v1=uv[3];
@@ -5141,10 +5148,18 @@ function render(){
     gl.depthMask(true);
   }
   if(sprN>0){
+    // 奥→手前の距離順に並べ替えてから描画（呼び出し順のままだと、奥にある実などが手前のこっこちゃんより前に重なって見えるバグになる）
+    const idx=sprIdx.subarray(0,sprN);
+    for(let i=0;i<sprN;i++) idx[i]=i;
+    idx.sort((a,b)=>sprDepth[b]-sprDepth[a]);
+    for(let i=0;i<sprN;i++){
+      const s=idx[i]*54, d=i*54;
+      for(let k=0;k<54;k++) sprSorted[d+k]=sprArr[s+k];
+    }
     gl.bindBuffer(gl.ARRAY_BUFFER,sprBuf);
-    gl.bufferData(gl.ARRAY_BUFFER,sprArr.subarray(0,sprN*54),gl.DYNAMIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER,sprSorted.subarray(0,sprN*54),gl.DYNAMIC_DRAW);
     bindSpriteAttrs();
-    gl.depthMask(false);   // スプライト同士は書き込み合戦しない（重ね描き＝配置順で決まる）。地形には引き続き隠れる
+    gl.depthMask(false);   // スプライト同士は書き込み合戦しない（重ね描き＝深度ソート順で決まる）。地形には引き続き隠れる
     gl.drawArrays(gl.TRIANGLES,0,sprN*6);
     gl.depthMask(true);
   }
