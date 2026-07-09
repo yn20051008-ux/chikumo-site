@@ -468,7 +468,7 @@
       ◆ <b style="color:#ffb98f;">🚀 追跡ミサイル</b>：塗る3D/島ぐらしから移植した誘導兵器！いちばん近い<span class="pr">ブラックこっこちゃん</span>にゆるく追尾しつづけ、命中すると爆発でまわりごと撃破。最初は<b>0発</b>、🏪コンビニで補充しよう（Rキー）。<br>
       ◆ <b style="color:#c9b8ff;">💣 ボム</b>：塗る3Dから移植。山なりに投げて着弾で爆発し、逆縁をまとめて払える。<b>🐤オリを壊せるのはこの💣だけ</b>。最初は<b>0発</b>、🏪コンビニで補充しよう（Eキー）。<br>
       ◆ <b style="color:#c9c9d6;">🪨岩</b>：地面を隆起させる。同じ場所に何度でも積み上げると<b>高さがどんどん増していく（y軸）</b>。枯を埋めて土に戻す。<br>
-      ◆ <b style="color:#e0a058;">🧱 つなげる石</b>：🪨と同じ場所に埋めるが、<b>高さは一定のまま積み上がらず</b>、代わりに隣のマスへ<b>横に</b>広げていく（xz軸）。足場や道をつなげたいときに。枯を埋めて土に戻す力は🪨と同じ。<br><br>
+      ◆ <b style="color:#e0a058;">🧱 つなげる石</b>：🪨と違い遠くを狙わず、<b>こっこちゃんの足元のすぐ先</b>に生成される。<b>高さは一定のまま積み上がらず</b>、隣のマスへ<b>横に</b>広げていく（xz軸）。<b>🪨や🧱の上に乗っている間だけ、今いる高さまで届く橋として空中にも生成できる</b>――地面に立っているときは低いまま。枯を埋めて土に戻す力は🪨と同じ。<br><br>
       ◆ <span class="pr">逆縁の巣</span> のまわりを<b>枯でない状態</b>にたもつと、じわじわ鎮まっていく。<b>🪨🧱で埋める</b>と鎮まる。全部の巣を鎮めれば島は<b>芽吹く</b>！<br><br>
       ◆ <span class="pr">ブラックこっこちゃん</span>（逆縁）は、<b>🔫が一番たしかな一撃</b>（最初から5発持っている）。<b>🪨🧱を直接ねらって当てても二撃でくずせる</b>し、<b>🚀💣の爆発</b>にまきこんでも払える。半分は<b>常に空蹴りしつづけて宙を跳ねまわる</b>ので、当てるには高さも合わせよう。ふれられると❤️が減り、3つとも失うとゲームオーバー。<br><br>
       ◆ <span class="pr">🐤オリのこっこちゃん</span>：島のどこかに<b>8羽</b>捕らわれている。<b>💣で壊す</b>と仲間になり、以後プレイヤーについてまわりながら<b>プレイヤーの狙う方向に連動して援護射撃</b>してくれる。<br><br>
@@ -536,6 +536,8 @@
    勝敗は面積%ではなく open method（枯でないセルの割合＝purity）。
    🪨は同じマスへ何度でも積める（積み上げ高さに上限なし＝y軸）。
    🧱つなげる石は🪨と同じ埋める力だが高さを固定し、xz軸へ横に広げていく（1力→2力）。
+   🧱は🪨と違い足元のすぐ先にしか届かない（LINK_REACH）。地面では低いまま、
+   🪨/🧱の上に立っている間だけ今の高さまで届く橋として空中にも生成できる。
    塗る3Dから🐤オリ（💣だけが壊せる）も移植：解放した仲間こっこはプレイヤーに
    ついてまわり、プレイヤーの狙う方向に連動して援護射撃する。
    詳細設計：docs/要件定義-コッコ芽吹き.md（初期案。実装は5力→4力→2力→1力と縮小した）*/
@@ -726,7 +728,7 @@ function matMul(out,a,b){
 const SIZE=170, HALF=SIZE/2;
 const TIME=90, NEST_COUNT=4;
 const O2_PRICE=1, O2_MAX=99, STORE_MONEY_PER_KO=15, AIR_KICK_COST=1/9, AIR_KICK_VY=8.2, O2_REGEN=0.05;
-const FORCE_CD=0.16, FORCE_RANGE=20;
+const FORCE_CD=0.16, FORCE_RANGE=20, LINK_REACH=2.4;
 const FORCE_MAX=60, FORCE_PRICE=1, FORCE_START={rock:14,link:14};
 const LINK_LEVEL=0.55; // 繋げる石：積み上げず(y軸)、常にこの高さ固定でxz軸へ広げていく
 const HEART_PRICE=15;
@@ -1119,6 +1121,13 @@ function aimGroundCell(){
   }
   return {x:ex+dx*hitDist, z:ez+dz*hitDist, sx:ex, sy:ey, sz:ez};
 }
+/* 🧱つなげる石は🪨と違い遠くを狙わず、こっこちゃんの足元のすぐ先（1マス分）に生成する */
+function aimFeetCell(){
+  const f=camForward();
+  const hl=Math.hypot(f[0],f[2])||1, dx=f[0]/hl, dz=f[2]/hl;
+  const x=P.x+f[0]*0.6+dx*LINK_REACH, z=P.z+f[2]*0.6+dz*LINK_REACH;
+  return {x:clamp(x,-HALF+1,HALF-1), z:clamp(z,-HALF+1,HALF-1)};
+}
 function applyForceAt(kind,wx,wz){
   const [cx,cz]=worldToCell(wx,wz);
   const idx=ci(cx,cz), k=fKind[idx], lv=fLevel[idx];
@@ -1127,7 +1136,14 @@ function applyForceAt(kind,wx,wz){
     else{ fKind[idx]=K_ROCK; fLevel[idx]=(k===K_ROCK?lv:0)+0.55; Sound.fireRock(); } // 上限なし＝何度でも積める（y軸）
   }else if(kind==='link'){
     if(k===K_BLIGHT){ fKind[idx]=K_ASH; fLevel[idx]=0; Sound.purify(); }
-    else{ fKind[idx]=K_LINK; fLevel[idx]=LINK_LEVEL; Sound.fireRock(); } // 高さは常に一定＝積み上がらず、当てた先へxz軸に広がっていく
+    else{
+      // こっこちゃんが今🪨または🧱の上に立っている(＝空中にいる)ときだけ、今の高さまで届く橋として生成する。
+      // それ以外（地面）では従来どおり固定の低い高さ＝地表に沿ったxz軸の道になる。
+      const [pcx,pcz]=worldToCell(P.x,P.z), pk=fKind[ci(pcx,pcz)];
+      const bridging=(pk===K_ROCK||pk===K_LINK);
+      const lv2=bridging?Math.max(LINK_LEVEL,(P.y-0.4)/2.6):LINK_LEVEL;
+      fKind[idx]=K_LINK; fLevel[idx]=lv2; Sound.fireRock();
+    } // 高さは積み上がらず(y軸)、当てた先へxz軸に広がっていく。橋渡し時のみ現在の高さに合わせる
   }
 }
 /* 逆縁への直接ねらい撃ち（こっこGP/塗る3Dのエイムアシストと同じ型：水平方向のみでコーン判定する。
@@ -1167,7 +1183,7 @@ function fireForce(kind){
   if(target){
     hitEnemyWithForce(kind,target);
   }else{
-    const aim=aimGroundCell();
+    const aim=kind==='link'?aimFeetCell():aimGroundCell();
     applyForceAt(kind,aim.x,aim.z);
     burst3(aim.x,0.3,aim.z,FORCE_COL[kind],10,3);
   }
@@ -2192,6 +2208,7 @@ window.__mebuki={
   stepCA(n){ n=n||1; for(let i=0;i<n;i++) stepCA(); rebuildDynBoxes(); buildWorldMesh(); redrawField(); },
   spawnNestNow(i){ if(nests[i]) nests[i].pulseT=0; },
   teleport(x,z){ P.x=x; P.z=z; P.y=floorAt(x,z,0); },
+  teleportY(x,y,z){ P.x=x; P.y=y; P.z=z; P.vy=0; },
   fire(kind){ fireForce(kind); },
   firePistol(){ firePistol(); },
   forceEnd(win){ G.win=!!win; G.t=0; },
