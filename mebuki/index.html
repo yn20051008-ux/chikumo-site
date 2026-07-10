@@ -1363,7 +1363,11 @@ function updateEnemy(e,dt){
   }
 }
 /* ===== 仲間こっこ（オリから解放。プレイヤーを追いながら、プレイヤーの狙いに連動して援護射撃する） ===== */
-const COMPANION_OFFSETS=[[-0.55,2.6],[0.55,2.6],[0,3.4]]; // [プレイヤーの背後からの角度オフセット, 距離]
+const COMPANION_ROW_ANGLES=[-0.55,0.55,0]; // 1列に並べる角度オフセット（左・右・中央）
+const COMPANION_OFFSETS=Array.from({length:CAGE_COUNT},(_,i)=>{
+  const row=Math.floor(i/COMPANION_ROW_ANGLES.length), col=i%COMPANION_ROW_ANGLES.length;
+  return [COMPANION_ROW_ANGLES[col],2.6+row*0.9]; // [プレイヤーの背後からの角度オフセット, 距離]。行ごとに距離をずらして重なりを防ぐ
+});
 function updateCompanion(c,i,dt){
   const behindAng=cam.yaw+Math.PI;
   const [aOff,dist]=COMPANION_OFFSETS[i%COMPANION_OFFSETS.length];
