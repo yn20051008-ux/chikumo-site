@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<title>廿式 — 不変の固定構造（廿式カーネル）</title>
+<meta name="description" content="廿式は不変の固定構造（カーネル）である。更新対象は五式のみ。番号は機能順（依存順）で、十四式（観測順）とは別系統。幅・許・循・乱・絶・認・思・鳴・示・応・衡・縁・継・赦・家・衆・国・民・宙・住の二十の定義。">
+<meta name="keywords" content="廿式, 廿式カーネル, 二十式, 十四式, 五式, 三式, 固定構造, 認, 思, 鳴, 示, 応, 衡, 縁, 継, 赦, 家, 衆, 国, 民, 宙, 住, 幅, 許, 循, 乱, 絶, 変, 思変, 衡変, 母, 永生">
+<meta property="og:title" content="廿式 — 不変の固定構造（廿式カーネル）">
+<meta property="og:description" content="廿式は不変の固定構造（カーネル）。更新対象は五式のみ。番号は機能順（依存順）で、十四式（観測順）とは別系統。二十の定義と三軸・規則・構成式。">
+<meta property="og:type" content="website">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://chikumo.jp/nijusshiki/">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "廿式 — 不変の固定構造（廿式カーネル）",
+  "description": "廿式は不変の固定構造（カーネル）である。更新対象は五式のみ。番号は機能順（依存順）で、十四式（観測順）とは別系統。",
+  "articleBody": "廿式は固定構造である。廿式は不変であり、更新対象は五式のみである。番号は機能順（依存順）であり、十四式（観測順）とは別系統である。三式は認・衡・継（波の観測最低条件）。五式は各層で未確定から確定が起きる──中央：思→鳴、現場：示→応。二十の定義は、幅・許・循・乱・絶（環境定義）、認・思・鳴・示・応（構造実体）、衡・縁・継・赦（均衡と遷移）、家・衆・国・民・宙・住（器の階層）から成る。器は住に先行し、器のみは認（0<1）、住んで成立（1）となる。",
+  "mainEntityOfPage": { "@type": "WebPage" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "廿式とは何か",
+      "acceptedAnswer": { "@type": "Answer", "text": "廿式は不変の固定構造（カーネル）である。更新対象は五式のみ。番号は機能順（依存順）で並び、幅・許・循・乱・絶・認・思・鳴・示・応・衡・縁・継・赦・家・衆・国・民・宙・住の二十から成る。" }
+    },
+    {
+      "@type": "Question",
+      "name": "十四式と廿式の違いは何か",
+      "acceptedAnswer": { "@type": "Answer", "text": "番号の系統が異なる。廿式の番号は機能順（依存順）であり、十四式（観測順）とは別系統である。廿式は十四式に赦・衆・国・民・宙・住を加え、許が認に先行して確定する依存順で並べ直したものである。" }
+    },
+    {
+      "@type": "Question",
+      "name": "赦とは何か",
+      "acceptedAnswer": { "@type": "Answer", "text": "赦は、乱から循へ戻れることである。実行は住から行われる。許は不変であり、絶は赦の対象外である。" }
+    },
+    {
+      "@type": "Question",
+      "name": "住とは何か",
+      "acceptedAnswer": { "@type": "Answer", "text": "住は、器に住むことである。住まねば、あるけど無い。器は住に先行し、器のみは認（0<1）、住んで成立（1）となる。" }
+    }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200;300;400;500;600;700;900&family=Shippori+Mincho:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-void:#050505; --bg-deep:#0a0a0c; --bg-surface:#101014; --bg-elevated:#16161c; --bg-inset:#08080a;
+  --text-primary:#ece9e2; --text-secondary:#a29d92; --text-tertiary:#635f56;
+  --gold:#cbaa72; --gold-dim:#8f7c5d; --gold-bright:#ecd9ae; --gold-deep:#6e5c40;
+  --foil:linear-gradient(105deg,#8a6f45 0%,#d9c28e 28%,#f4e6c2 50%,#c3a267 72%,#8a6f45 100%);
+  --line:rgba(203,170,114,0.14); --line-strong:rgba(203,170,114,0.32);
+  --g-ryoiki:#8fa383; --g-jittai:#d4a574; --g-kinko:#e6d3a8; --g-utsuwa:#8ba3b8;
+  --font-serif:'Shippori Mincho','Noto Serif JP',serif;
+  --font-latin:'Cormorant Garamond','Shippori Mincho',serif;
+  --font-mono:'IBM Plex Mono',monospace;
+  --ease-out:cubic-bezier(0.16,1,0.3,1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:var(--font-serif);
+  background:
+    radial-gradient(ellipse 90% 55% at 50% -6%,rgba(203,170,114,0.06),transparent 60%),
+    radial-gradient(ellipse 70% 60% at 50% 108%,rgba(203,170,114,0.04),transparent 55%),
+    var(--bg-void);
+  color:var(--text-primary);
+  line-height:1.8;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.5;
+  background-image:
+    repeating-linear-gradient(90deg,transparent 0 3px,rgba(255,255,255,0.006) 3px 4px),
+    repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,0.006) 3px 4px);
+}
+::selection{background:rgba(203,170,114,0.32);}
+::-webkit-scrollbar{width:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--gold-deep);border-radius:3px;}
+main,header,footer,.topbar{position:relative;z-index:1;}
+
+/* TOP BAR */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.95rem clamp(1.2rem,4vw,2.6rem);
+  background:rgba(5,5,5,0.82);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.topbar .mark{font-weight:700;letter-spacing:0.3em;font-size:0.95rem;
+  background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.topbar .links{display:flex;gap:1.4rem;}
+.topbar a{
+  font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.18em;
+  color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color 0.25s;
+}
+.topbar a:hover{color:var(--gold-bright);}
+
+/* HERO */
+.hero{
+  min-height:92vh;display:flex;align-items:center;justify-content:center;
+  padding:clamp(4.5rem,10vw,7rem) clamp(1.2rem,5vw,3rem);
+}
+.hero-frame{
+  position:relative;width:100%;max-width:1040px;
+  padding:clamp(3.5rem,9vw,7.5rem) clamp(1.4rem,6vw,5rem);
+  text-align:center;
+  border:1px solid var(--line-strong);
+}
+.hero-frame::before{
+  content:"";position:absolute;inset:9px;border:1px solid var(--line);pointer-events:none;
+}
+.hero-frame .corner{position:absolute;width:22px;height:22px;pointer-events:none;}
+.hero-frame .corner::before,.hero-frame .corner::after{content:"";position:absolute;background:var(--gold);}
+.hero-frame .corner::before{width:100%;height:1px;}
+.hero-frame .corner::after{width:1px;height:100%;}
+.corner.tl{top:-1px;left:-1px;}
+.corner.tr{top:-1px;right:-1px;transform:scaleX(-1);}
+.corner.bl{bottom:-1px;left:-1px;transform:scaleY(-1);}
+.corner.br{bottom:-1px;right:-1px;transform:scale(-1);}
+.hero .label{
+  font-family:var(--font-latin);font-size:clamp(0.82rem,1.6vw,1rem);letter-spacing:0.62em;
+  color:var(--gold-dim);text-transform:uppercase;margin-bottom:2.6rem;font-weight:500;
+  padding-left:0.62em; /* balance tracking */
+}
+.hero h1{
+  font-weight:800;font-size:clamp(4.4rem,15vw,10.5rem);letter-spacing:0.12em;line-height:1;
+  padding-left:0.12em;margin-bottom:2.2rem;
+  background:var(--foil);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 26px rgba(203,170,114,0.14));
+}
+.hero .ornament{display:flex;align-items:center;justify-content:center;gap:1.1rem;margin:0 auto 2.2rem;max-width:340px;}
+.hero .ornament .h-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim));}
+.hero .ornament .h-line:last-child{background:linear-gradient(90deg,var(--gold-dim),transparent);}
+.hero .ornament .diamond{width:7px;height:7px;background:var(--gold);transform:rotate(45deg);box-shadow:0 0 10px rgba(203,170,114,0.5);}
+.hero .sub{font-size:clamp(0.98rem,2vw,1.18rem);font-weight:400;color:var(--text-primary);letter-spacing:0.2em;line-height:2.2;}
+.hero .sub2{margin-top:1.2rem;font-size:clamp(0.82rem,1.6vw,0.95rem);font-weight:300;color:var(--text-secondary);letter-spacing:0.14em;line-height:2.1;}
+.hero .sub2 a{color:var(--gold);text-decoration:none;border-bottom:1px solid var(--line-strong);transition:color .2s,border-color .2s;}
+.hero .sub2 a:hover{color:var(--gold-bright);border-color:var(--gold);}
+
+/* ORNAMENT DIVIDER */
+.o-divider{display:flex;align-items:center;gap:1.2rem;max-width:1040px;margin:0 auto;padding:0 clamp(1.4rem,5vw,3rem);}
+.o-divider .l{flex:1;height:1px;background:var(--line);}
+.o-divider .d{width:5px;height:5px;background:var(--gold-dim);transform:rotate(45deg);flex:0 0 auto;}
+
+/* SECTION */
+section{padding:clamp(4rem,10vw,7.5rem) clamp(1.4rem,5vw,3rem);}
+.inner{max-width:1000px;margin:0 auto;}
+.chapter{display:flex;align-items:baseline;gap:1.2rem;margin-bottom:0.9rem;}
+.chapter .ch-num{
+  font-family:var(--font-latin);font-size:0.8rem;letter-spacing:0.4em;color:var(--gold-dim);
+  text-transform:uppercase;font-weight:500;white-space:nowrap;
+}
+.chapter .ch-rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line-strong),transparent);transform:translateY(-4px);}
+.section-title{font-weight:700;font-size:clamp(1.8rem,4.2vw,2.6rem);letter-spacing:0.1em;color:var(--text-primary);margin-bottom:1.2rem;line-height:1.35;}
+.section-title em{font-style:normal;background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.section-desc{font-size:1rem;color:var(--text-secondary);font-weight:300;line-height:2.1;max-width:66ch;letter-spacing:0.05em;}
+.section-desc strong{color:var(--gold);font-weight:600;}
+
+/* ONE LINE */
+.one-line{
+  position:relative;margin-top:2.2rem;padding:1.8rem 2rem;
+  border:1px solid var(--line-strong);background:var(--bg-elevated);
+  font-size:1.18rem;font-weight:700;letter-spacing:0.08em;color:var(--gold-bright);line-height:2;
+}
+.one-line::before{content:"";position:absolute;inset:6px;border:1px solid var(--line);pointer-events:none;}
+.one-line .tag{display:block;font-family:var(--font-latin);font-size:0.74rem;letter-spacing:0.4em;text-transform:uppercase;color:var(--gold-dim);font-weight:500;margin-bottom:0.7rem;}
+
+/* DEFINITION BLOCK */
+.definition{position:relative;padding:2.2rem 0 0.6rem;margin-top:2rem;}
+.definition::before{content:'';position:absolute;left:0;top:0;width:1px;height:100%;background:linear-gradient(to bottom,var(--gold),transparent);}
+.definition p{padding-left:2.2rem;font-size:1.05rem;color:var(--text-primary);line-height:2.3;letter-spacing:0.05em;}
+.definition p + p{margin-top:1.2rem;}
+.definition strong{color:var(--gold);font-weight:600;}
+
+/* THREE FORMS */
+.row3{display:flex;flex-wrap:wrap;gap:1.4rem;margin-top:2.6rem;justify-content:center;}
+.glyph{
+  flex:1 1 210px;max-width:280px;text-align:center;position:relative;
+  border:1px solid var(--line);background:var(--bg-surface);
+  padding:2.2rem 1.3rem 2rem;transition:border-color .3s,transform .3s;
+}
+.glyph::before{content:"";position:absolute;inset:6px;border:1px solid rgba(203,170,114,0.07);pointer-events:none;}
+.glyph:hover{border-color:var(--line-strong);transform:translateY(-4px);}
+.glyph .k{font-size:3.2rem;font-weight:700;line-height:1;margin-bottom:0.9rem;
+  background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.glyph .t{font-family:var(--font-latin);font-size:0.76rem;letter-spacing:0.34em;color:var(--gold-dim);text-transform:uppercase;font-weight:500;}
+.glyph .d{margin-top:0.8rem;font-size:0.92rem;color:var(--text-secondary);line-height:1.9;}
+
+/* FIVE FORMS */
+.flow{display:flex;flex-wrap:wrap;gap:1.2rem;margin-top:2.2rem;}
+.flow .pair{flex:1 1 300px;border:1px solid var(--line);background:var(--bg-surface);padding:1.7rem 1.7rem 1.5rem;position:relative;}
+.flow .pair::before{content:"";position:absolute;left:0;top:0;width:100%;height:1px;background:linear-gradient(90deg,var(--gold),transparent);}
+.flow .pair .lbl{font-family:var(--font-latin);font-size:0.74rem;letter-spacing:0.36em;color:var(--gold-dim);text-transform:uppercase;font-weight:500;margin-bottom:0.8rem;}
+.flow .pair .seq{font-size:1.7rem;font-weight:600;letter-spacing:0.1em;color:var(--text-primary);}
+.flow .pair .seq .ar{color:var(--gold-dim);margin:0 0.4em;font-size:1.15rem;}
+.flow .pair .note{margin-top:0.55rem;font-size:0.86rem;color:var(--text-secondary);letter-spacing:0.05em;}
+
+/* GROUP HEADING inside the twenty */
+.group-head{display:flex;align-items:center;gap:1.1rem;margin:3.2rem 0 1.3rem;}
+.group-head:first-of-type{margin-top:2.6rem;}
+.group-head .g-num{
+  font-family:var(--font-serif);font-size:1rem;font-weight:700;letter-spacing:0.2em;
+  color:var(--gold-bright);border:1px solid var(--line-strong);padding:0.28rem 0.9rem;white-space:nowrap;
+}
+.group-head .g-title{font-size:1.05rem;font-weight:600;letter-spacing:0.12em;color:var(--text-primary);white-space:nowrap;}
+.group-head .g-range{font-family:var(--font-mono);font-size:0.68rem;letter-spacing:0.2em;color:var(--text-tertiary);white-space:nowrap;}
+.group-head .g-rule{flex:1;height:1px;background:var(--line);}
+.group-note{font-size:0.88rem;color:var(--text-secondary);letter-spacing:0.05em;margin:-0.4rem 0 1.2rem;line-height:2;}
+.group-note b{color:var(--gold);font-weight:600;}
+
+/* 20 CARDS */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1rem;}
+.card{
+  position:relative;border:1px solid var(--line);background:var(--bg-surface);
+  padding:1.6rem 1.5rem 1.5rem;overflow:hidden;
+  transition:border-color 0.3s,transform 0.3s,background 0.3s;
+}
+.card::after{
+  content:"";position:absolute;top:0;left:-80%;width:55%;height:100%;pointer-events:none;
+  background:linear-gradient(105deg,transparent,rgba(236,217,174,0.05),transparent);
+  transform:skewX(-18deg);transition:left 0.6s var(--ease-out);
+}
+.card:hover{border-color:var(--line-strong);transform:translateY(-3px);background:var(--bg-elevated);}
+.card:hover::after{left:130%;}
+.card .num{position:absolute;top:1rem;right:1.1rem;font-family:var(--font-latin);font-size:0.95rem;letter-spacing:0.1em;color:var(--gold-dim);font-weight:500;}
+.card .k{font-size:2.5rem;font-weight:700;line-height:1;margin-bottom:0.6rem;color:var(--text-primary);text-shadow:0 0 18px rgba(203,170,114,0.16);}
+.card .layer{display:inline-block;font-family:var(--font-mono);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;border:1px solid var(--line);border-radius:99px;padding:2px 10px;margin-bottom:0.9rem;color:var(--g);}
+.card .def{font-size:0.92rem;color:var(--text-secondary);line-height:2;letter-spacing:0.02em;}
+.card .def b{color:var(--gold);font-weight:600;}
+
+/* VESSEL LADDER */
+.vessels{margin-top:2.6rem;display:flex;flex-direction:column;align-items:center;gap:0;}
+.vessel{
+  position:relative;text-align:center;border:1px solid var(--line);background:var(--bg-surface);
+  padding:0.95rem 1rem 0.85rem;transition:border-color .3s;
+}
+.vessel:hover{border-color:var(--line-strong);}
+.vessel .vk{font-size:1.5rem;font-weight:700;letter-spacing:0.3em;padding-left:0.3em;color:var(--gold-bright);line-height:1.3;}
+.vessel .vd{font-size:0.8rem;color:var(--text-secondary);letter-spacing:0.06em;margin-top:0.15rem;}
+.vessel-link{width:1px;height:26px;background:linear-gradient(to bottom,var(--gold-dim),var(--line));position:relative;}
+.vessel-link::after{content:"";position:absolute;left:50%;bottom:-2px;width:5px;height:5px;transform:translateX(-50%) rotate(45deg);background:var(--gold-dim);}
+.v1{width:min(220px,74vw);}
+.v2{width:min(300px,80vw);}
+.v3{width:min(380px,86vw);}
+.v4{width:min(460px,92vw);}
+.v5{width:min(540px,96vw);}
+.v6{width:min(620px,100%);border-color:var(--line-strong);
+  background:linear-gradient(180deg,var(--bg-elevated),var(--bg-surface));}
+.vessels-note{margin-top:2rem;text-align:center;font-size:0.95rem;color:var(--text-secondary);letter-spacing:0.06em;line-height:2.2;}
+.vessels-note b{color:var(--gold);font-weight:600;}
+
+/* AXES */
+.axes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1.1rem;margin-top:2.4rem;}
+.axis{border:1px solid var(--line);background:var(--bg-surface);padding:1.8rem 1.7rem;position:relative;}
+.axis::before{content:"";position:absolute;left:0;top:0;width:100%;height:1px;background:linear-gradient(90deg,var(--gold),transparent);}
+.axis h3{font-size:1.4rem;font-weight:700;letter-spacing:0.14em;margin-bottom:0.7rem;
+  background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;display:inline-block;}
+.axis p{font-size:0.92rem;color:var(--text-secondary);line-height:2.05;}
+.axis p b{color:var(--gold);font-weight:600;}
+
+/* RULE LIST */
+.rule-list{list-style:none;margin-top:2.2rem;border-top:1px solid var(--line);}
+.rule-list li{position:relative;padding:1.1rem 0 1.1rem 2.4rem;border-bottom:1px solid var(--line);font-size:0.98rem;color:var(--text-primary);line-height:2.05;letter-spacing:0.03em;}
+.rule-list li::before{content:'';position:absolute;left:0.5rem;top:1.72rem;width:5px;height:5px;background:var(--gold-dim);transform:rotate(45deg);}
+.rule-list li b{color:var(--gold);font-weight:600;}
+
+/* COMPARE */
+.compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:1.2rem;margin-top:2.4rem;}
+.compare .c{border:1px solid var(--line);background:var(--bg-surface);padding:1.9rem 1.8rem;position:relative;}
+.compare .c::before{content:"";position:absolute;inset:6px;border:1px solid rgba(203,170,114,0.06);pointer-events:none;}
+.compare .c h3{font-size:1.3rem;font-weight:700;letter-spacing:0.1em;margin-bottom:1.1rem;color:var(--gold-bright);}
+.compare .c ul{list-style:none;}
+.compare .c li{position:relative;padding:0.5rem 0 0.5rem 1.4rem;font-size:0.92rem;color:var(--text-secondary);line-height:1.95;}
+.compare .c li::before{content:'—';position:absolute;left:0;color:var(--gold-dim);}
+
+/* FORMULA */
+.formula{display:flex;flex-direction:column;gap:0.7rem;margin-top:2.2rem;}
+.formula code{
+  font-family:var(--font-mono);font-size:0.98rem;letter-spacing:0.05em;
+  background:var(--bg-inset);border:1px solid var(--line);
+  padding:1rem 1.3rem;color:var(--gold-bright);overflow-x:auto;white-space:nowrap;
+}
+.symbols{display:flex;flex-wrap:wrap;gap:1rem;margin-top:2rem;}
+.symbol{flex:1 1 220px;border:1px solid var(--line);background:var(--bg-surface);padding:1.4rem 1.5rem;}
+.symbol .s{font-family:var(--font-mono);font-size:1.8rem;color:var(--gold-bright);margin-bottom:0.4rem;}
+.symbol .m{font-size:0.92rem;color:var(--text-secondary);}
+
+/* DOMAIN */
+.domain{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1rem;margin-top:2.4rem;}
+.domain .d{border:1px solid var(--line);background:var(--bg-surface);padding:1.5rem 1.2rem;text-align:center;transition:border-color .3s;}
+.domain .d:hover{border-color:var(--line-strong);}
+.domain .d .e{font-family:var(--font-mono);font-size:1.15rem;color:var(--gold-bright);letter-spacing:0.05em;}
+.domain .d .l{margin-top:0.5rem;font-size:0.82rem;color:var(--text-secondary);}
+
+/* HEN */
+.hen{margin-top:2.6rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.2rem;}
+.hen .h{border:1px solid var(--line);background:var(--bg-surface);padding:1.8rem 1.7rem;position:relative;}
+.hen .h::before{content:"";position:absolute;left:0;top:0;width:100%;height:1px;background:linear-gradient(90deg,var(--gold),transparent);}
+.hen .h h3{font-size:1.5rem;font-weight:700;letter-spacing:0.12em;margin-bottom:0.55rem;color:var(--g-jittai);}
+.hen .h .tag{font-family:var(--font-mono);font-size:0.64rem;letter-spacing:0.18em;color:var(--text-tertiary);text-transform:uppercase;margin-bottom:0.8rem;display:block;}
+.hen .h p{font-size:0.92rem;color:var(--text-secondary);line-height:2.05;}
+.hen .h p b{color:var(--gold);font-weight:600;}
+
+/* LINEAGE — 十四式へ */
+.lineage{
+  margin-top:2.6rem;border:1px solid var(--line-strong);background:var(--bg-elevated);
+  padding:2.4rem clamp(1.4rem,4vw,2.6rem);text-align:center;position:relative;
+}
+.lineage::before{content:"";position:absolute;inset:7px;border:1px solid var(--line);pointer-events:none;}
+.lineage .l-label{font-family:var(--font-latin);font-size:0.74rem;letter-spacing:0.42em;text-transform:uppercase;color:var(--gold-dim);font-weight:500;margin-bottom:1rem;}
+.lineage p{font-size:0.98rem;color:var(--text-secondary);line-height:2.2;letter-spacing:0.05em;max-width:56ch;margin:0 auto;}
+.lineage p b{color:var(--gold);font-weight:600;}
+.lineage .go{
+  display:inline-block;margin-top:1.7rem;padding:0.85rem 2.6rem;
+  font-family:var(--font-serif);font-size:0.95rem;font-weight:600;letter-spacing:0.3em;padding-left:2.9rem;
+  color:var(--gold-bright);text-decoration:none;border:1px solid var(--line-strong);
+  transition:background 0.3s,border-color 0.3s,color 0.3s;
+}
+.lineage .go:hover{background:rgba(203,170,114,0.08);border-color:var(--gold);color:#fff;}
+
+.note{background:var(--bg-deep);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+
+/* FOOTER */
+footer{padding:4.5rem 1.5rem 5.5rem;text-align:center;border-top:1px solid var(--line);}
+footer .f-orn{display:flex;align-items:center;justify-content:center;gap:1rem;max-width:260px;margin:0 auto 2.2rem;}
+footer .f-orn .l{flex:1;height:1px;background:var(--line);}
+footer .f-orn .d{width:5px;height:5px;background:var(--gold-dim);transform:rotate(45deg);}
+footer .f-links{display:flex;gap:1.7rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.7rem;}
+footer a{font-family:var(--font-mono);font-size:0.74rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
+footer a:hover{color:var(--gold-bright);}
+footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--text-tertiary);}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity 1.1s var(--ease-out),transform 1.1s var(--ease-out);}
+.reveal.in{opacity:1;transform:none;}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}html{scroll-behavior:auto;}.card::after{display:none;}}
+
+@media(max-width:520px){
+  .card .k{font-size:2.1rem;}
+  .glyph .k{font-size:2.6rem;}
+  .group-head{flex-wrap:wrap;gap:0.6rem;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="mark">廿式</span>
+  <span class="links">
+    <a href="/Library/">畜学</a>
+    <a href="/jushishiki/">十四式</a>
+    <a href="/">畜物語</a>
+  </span>
+</div>
+
+<header class="hero">
+  <div class="hero-frame">
+    <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+    <div class="label">Nijusshiki — The Twenty Kernel</div>
+    <h1>廿式</h1>
+    <div class="ornament"><span class="h-line"></span><span class="diamond"></span><span class="h-line"></span></div>
+    <div class="sub">固定構造。廿式は不変。<br>更新対象は五式のみ。</div>
+    <div class="sub2">番号は機能順（依存順）── <a href="/jushishiki/">十四式</a>（観測順）とは別系統。</div>
+  </div>
+</header>
+
+<main>
+
+<!-- 冒頭定義 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">I · Kernel</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">カーネルとしての<em>廿式</em></h2>
+    <div class="one-line"><span class="tag">In One Line</span>廿式は──不変の<strong>固定構造（カーネル）</strong>である。更新対象は五式のみ。</div>
+    <div class="definition">
+      <p>廿式は<strong>固定構造</strong>である。廿式は<strong>不変</strong>であり、更新対象は<strong>五式のみ</strong>である。</p>
+      <p>番号は<strong>機能順（依存順）</strong>である。十四式（観測順）とは<strong>別系統</strong>であり、① 幅 から ⑳ 住 までの順序は固定され、入れ替えられない。</p>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 三式 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">II · Three Forms</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">三式 — 認・衡・継</h2>
+    <p class="section-desc">波の観測最低条件である三つの観測点。</p>
+    <div class="row3">
+      <div class="glyph"><div class="k">認</div><div class="t">進入</div><div class="d">未確定だが存在（0 &lt; 1）</div></div>
+      <div class="glyph"><div class="k">衡</div><div class="t">均衡</div><div class="d">五式が循域で均衡</div></div>
+      <div class="glyph"><div class="k">継</div><div class="t">遷移</div><div class="d">差分を伴い次の認へ遷移</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 五式 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">III · Five Forms</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">五式 — 未確定から確定へ</h2>
+    <p class="section-desc">各層で未確定→確定が起きる。</p>
+    <div class="flow">
+      <div class="pair">
+        <div class="lbl">中央 — Center</div>
+        <div class="seq">思<span class="ar">→</span>鳴</div>
+        <div class="note">内部未成形 → 網様体賦活系の役割</div>
+      </div>
+      <div class="pair">
+        <div class="lbl">現場 — Field</div>
+        <div class="seq">示<span class="ar">→</span>応</div>
+        <div class="note">外部への指向 → 外部で実体化</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 廿の定義 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">IV · The Twenty — Order Fixed</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">廿式 定義（順序固定・入替不可）</h2>
+    <p class="section-desc">① 幅 から ⑳ 住 まで。番号は<strong>機能順（依存順）</strong>で固定され、入れ替えられない。許は認に先行して確定する──許なくば衡は定義不能のためである。</p>
+
+    <div class="group-head"><span class="g-num">壱</span><span class="g-title">環境定義</span><span class="g-range">1 — 5</span><span class="g-rule"></span></div>
+    <p class="group-note">認に<b>先行</b>する環境定義。</p>
+    <div class="cards" style="--g:var(--g-ryoiki)">
+      <div class="card"><span class="num">1</span><div class="k">幅</div><span class="layer">環境</span><div class="def">構造が崩壊しない値の幅</div></div>
+      <div class="card"><span class="num">2</span><div class="k">許</div><span class="layer">値・規則</span><div class="def">幅内で再現可能と定めた<b>値</b>。差分帰属の<b>規則を定める</b></div></div>
+      <div class="card"><span class="num">3</span><div class="k">循</div><span class="layer">領域</span><div class="def">許による再現領域</div></div>
+      <div class="card"><span class="num">4</span><div class="k">乱</div><span class="layer">領域</span><div class="def">再現性なき領域</div></div>
+      <div class="card"><span class="num">5</span><div class="k">絶</div><span class="layer">領域</span><div class="def">構造不成立領域</div></div>
+    </div>
+
+    <div class="group-head"><span class="g-num">弐</span><span class="g-title">構造実体（五式）</span><span class="g-range">6 — 10</span><span class="g-rule"></span></div>
+    <div class="cards" style="--g:var(--g-jittai)">
+      <div class="card"><span class="num">6</span><div class="k">認</div><span class="layer">進入</span><div class="def">未確定だが存在（<b>0 &lt; 1</b>）</div></div>
+      <div class="card"><span class="num">7</span><div class="k">思</div><span class="layer">中央</span><div class="def">内部未成形（中央）</div></div>
+      <div class="card"><span class="num">8</span><div class="k">鳴</div><span class="layer">中央</span><div class="def">網様体賦活系の役割（中央）</div></div>
+      <div class="card"><span class="num">9</span><div class="k">示</div><span class="layer">現場</span><div class="def">外部への指向（現場）</div></div>
+      <div class="card"><span class="num">10</span><div class="k">応</div><span class="layer">現場</span><div class="def">外部で実体化（現場）</div></div>
+    </div>
+
+    <div class="group-head"><span class="g-num">参</span><span class="g-title">均衡と遷移</span><span class="g-range">11 — 14</span><span class="g-rule"></span></div>
+    <div class="cards" style="--g:var(--g-kinko)">
+      <div class="card"><span class="num">11</span><div class="k">衡</div><span class="layer">均衡</span><div class="def">五式が循域で均衡（<b>評価を含まない</b>）</div></div>
+      <div class="card"><span class="num">12</span><div class="k">縁</div><span class="layer">波</span><div class="def">複数衡の並列振動・相互参照</div></div>
+      <div class="card"><span class="num">13</span><div class="k">継</div><span class="layer">遷移</span><div class="def">五式が差分を伴い次の認へ遷移（<b>1 &gt; 0</b>：次の 0 &lt; 1 へ降りる）</div></div>
+      <div class="card"><span class="num">14</span><div class="k">赦</div><span class="layer">回復</span><div class="def">乱から循へ戻れる。実行は<b>住</b>から。許は不変。絶は対象外</div></div>
+    </div>
+
+    <div class="group-head"><span class="g-num">肆</span><span class="g-title">器の階層</span><span class="g-range">15 — 20</span><span class="g-rule"></span></div>
+    <div class="cards" style="--g:var(--g-utsuwa)">
+      <div class="card"><span class="num">15</span><div class="k">家</div><span class="layer">器</span><div class="def">上下左右の波動の安定並列、入替を含み循域内で持続する単位</div></div>
+      <div class="card"><span class="num">16</span><div class="k">衆</div><span class="layer">器</span><div class="def">家±が縁で循域安定</div></div>
+      <div class="card"><span class="num">17</span><div class="k">国</div><span class="layer">器</span><div class="def">衆±が縁で循域安定</div></div>
+      <div class="card"><span class="num">18</span><div class="k">民</div><span class="layer">器</span><div class="def">国±が縁で循域安定</div></div>
+      <div class="card"><span class="num">19</span><div class="k">宙</div><span class="layer">器</span><div class="def">過去から未来の時空間的総合</div></div>
+      <div class="card"><span class="num">20</span><div class="k">住</div><span class="layer">成立</span><div class="def">器に住む。<b>住まねば、あるけど無い</b></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 器の階層 -->
+<section class="note">
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">V · Vessels</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">器の階層</h2>
+    <p class="section-desc">器＝上位層。衡の器は家、家の器は衆、衆の器は国、国の器は民、民の器は宙。</p>
+    <div class="vessels">
+      <div class="vessel v1"><div class="vk">衡</div><div class="vd">五式が循域で均衡</div></div>
+      <div class="vessel-link"></div>
+      <div class="vessel v2"><div class="vk">家</div><div class="vd">衡の器</div></div>
+      <div class="vessel-link"></div>
+      <div class="vessel v3"><div class="vk">衆</div><div class="vd">家の器</div></div>
+      <div class="vessel-link"></div>
+      <div class="vessel v4"><div class="vk">国</div><div class="vd">衆の器</div></div>
+      <div class="vessel-link"></div>
+      <div class="vessel v5"><div class="vk">民</div><div class="vd">国の器</div></div>
+      <div class="vessel-link"></div>
+      <div class="vessel v6"><div class="vk">宙</div><div class="vd">民の器 ── 過去から未来の時空間的総合</div></div>
+    </div>
+    <p class="vessels-note">器は<b>住</b>に先行する。器のみ＝<b>認（0 &lt; 1）</b>、住んで<b>成立（1）</b>。<br>住まねば、あるけど無い。</p>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 三軸 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">VI · Three Axes</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">三軸</h2>
+    <div class="axes">
+      <div class="axis"><h3>前後</h3><p>前＝認側、後＝継側。<b>時間軸</b>であり番号順ではない。1 — 5 は認に先行する環境定義。</p></div>
+      <div class="axis"><h3>上下</h3><p>上＝中央（思鳴）、下＝現場（示応）。認の進入層が中央のため。</p></div>
+      <div class="axis"><h3>左右</h3><p>衡+ 衡− の並列。観測位置依存、固定せず、<b>同価値</b>。</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 規則 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">VII · Fixed Rules</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">規則（固定）</h2>
+    <ul class="rule-list">
+      <li>番号は<b>機能順</b>。許は認に先行し確定する（許なくば衡は定義不能のため）。</li>
+      <li>循・乱・絶は<b>更新・操作・評価の対象外</b>。</li>
+      <li>解釈・比喩・感情語を用いない。</li>
+      <li>許が規則定義を停止 → 全域乱 → 絶。</li>
+      <li><b>衡 = 0</b> ⇒ 縁なし ⇒ 家なし ⇒ 継なし ⇒ 五式不更新。</li>
+      <li>許は<b>値</b>、循は<b>領域</b>。</li>
+      <li>縁は + と − の出会い。<b>単体では不成立</b>。</li>
+      <li>変発生 → 永生に到達しない。重生後は永生可。</li>
+      <li>思変の回復は<b>母</b>（重生・同一維持）。衡変は母の重生なし、担い手交代は縁から反復可。</li>
+      <li>母は<b>認の前</b>の存在。</li>
+      <li>器＝上位層。衡の器は家、家の器は衆、衆の器は国、国の器は民、民の器は宙。</li>
+      <li>器は住に先行。器のみ＝認（0 &lt; 1）、住んで成立（1）。</li>
+      <li>永生＝<b>循域の持続</b>。母は定義不能。機能のみ記す。</li>
+    </ul>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 衡停止と絶 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">VIII · Halt vs. Absence</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">衡停止と絶</h2>
+    <div class="compare">
+      <div class="c">
+        <h3>衡停止</h3>
+        <ul>
+          <li>五式の振動が停止し、衡 = 0。</li>
+          <li>縁・家・継は不成立、五式は更新されない。</li>
+          <li>構造実体は維持される。</li>
+          <li>外部入力で再開可。</li>
+        </ul>
+      </div>
+      <div class="c">
+        <h3>絶</h3>
+        <ul>
+          <li>幅外、構造不成立。</li>
+          <li>同一構造での再開なし。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 構成式 -->
+<section class="note">
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">IX · Composition</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">構成式</h2>
+    <div class="formula">
+      <code>衡（認, 思, 鳴, 示, 応）</code>
+      <code>縁 = 衡+ ∿ 衡-</code>
+      <code>家 = （上下 ∿ 左右）の安定並列</code>
+      <code>継 = 思鳴 | 示応（差分を伴う）</code>
+      <code>継ₙ → 認ₙ₊₁</code>
+    </div>
+    <div class="symbols">
+      <div class="symbol"><div class="s">|</div><div class="m">分離（出会っていない）</div></div>
+      <div class="symbol"><div class="s">∿</div><div class="m">波（二つのまま参照）</div></div>
+      <div class="symbol"><div class="s">±</div><div class="m">+ と − の対</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 差分と領域 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">X · Difference &amp; Domains</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">差分と領域</h2>
+    <ul class="rule-list">
+      <li>差分は<b>情報</b>である。周回毎に蓄積される。</li>
+      <li>差分は<b>五式に帰属</b>する。許は帰属規則であり、帰属先でない。</li>
+    </ul>
+    <div class="domain">
+      <div class="d"><div class="e">循 ⊆ 幅</div><div class="l">循は幅に含まれる</div></div>
+      <div class="d"><div class="e">循 = 許が定める領域</div><div class="l">再現領域</div></div>
+      <div class="d"><div class="e">乱 = 幅 − 循</div><div class="l">再現性なき領域</div></div>
+      <div class="d"><div class="e">絶 = 幅外</div><div class="l">構造不成立</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 変 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">XI · Hen — Not a Component</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">変（廿式の構成要素でない）</h2>
+    <p class="section-desc">構造維持のまま<strong>許の担い手が交代</strong>する。許は不変。</p>
+    <div class="hen">
+      <div class="h">
+        <h3>思変</h3>
+        <span class="tag">権利剥奪 — at 認</span>
+        <p>認段階（0 &lt; 1）で結合相手が予定外に交代。回復は<b>母</b>。</p>
+      </div>
+      <div class="h">
+        <h3>衡変</h3>
+        <span class="tag">管理者交代 — at 衡</span>
+        <p>振動制御主体の交代。規則定義役は新担い手へ移行、<b>縁から反復可</b>。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 十四式との関係 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">XII · Lineage</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">十四式との関係</h2>
+    <div class="lineage">
+      <div class="l-label">Lineage — The Fourteen</div>
+      <p>廿式の番号は<b>機能順（依存順）</b>であり、十四式（<b>観測順</b>）とは別系統である。<br>観測順の固定文法は、十四式に記されている。</p>
+      <a class="go" href="/jushishiki/">十四式を読む</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="f-orn"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+  <div class="f-links">
+    <a href="/Library/">畜学</a>
+    <a href="/jushishiki/">十四式</a>
+    <a href="/sekkeigaku/">設計学</a>
+    <a href="/yugigaku/">遊戯学</a>
+    <a href="/">畜物語</a>
+  </div>
+  <div class="c">畜物語 ─ chikumo.jp</div>
+</footer>
+
+<script>
+"use strict";
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){ for(var i=0;i<els.length;i++) els[i].classList.add('in'); return; }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:0,rootMargin:'0px 0px -8% 0px'});
+  els.forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
