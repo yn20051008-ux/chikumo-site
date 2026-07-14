@@ -1185,21 +1185,33 @@ void main(){
 const terraProg=tryProg(TERRA_VS,TERRA_FS)||makeProg(TERRA_VS_BASE,TERRA_FS_BASE);
 const terraHQ=!!tryProg(TERRA_VS,TERRA_FS);
 
-/* 水面 ── 基本（単純な波色）を fallback に、フレネル反射＋太陽きらめき版を試す */
+/* ゲルストナー波の共有定数（水面VS・夜光虫VSが同じ波を見る。方向gd・波数gk・角速度gw=√(g・k)近似の深水分散） */
+const GERST_CONST=`
+vec2 gd0=vec2(0.9848,0.1736); vec2 gd1=vec2(0.7660,0.6428); vec2 gd2=vec2(0.2588,0.9659);
+float gk0=0.349066; float gk1=0.698132; float gk2=1.366038;
+float gw0=1.8496; float gw1=2.6157; float gw2=3.6588;`;
+/* 水面 ── 基本（単純な波色）を fallback に、フレネル反射＋太陽きらめき版を試す。
+   しおさい2から本物のゲルストナー3成分波（水平変位でとがった波頭）を移植 */
 const WATER_VS=
 `attribute vec2 aPos; uniform mat4 uVP; uniform mediump float uWL; uniform mediump float uT;
-varying vec2 vXZ; varying vec3 vWpos; varying vec3 vMacroN;
-float wv(float x,float z,float t){
-  return 0.14*sin(x*0.23+t*1.4)+0.10*sin(z*0.19-t*1.1)+0.09*sin((x+z)*0.11+t*0.6);
+varying vec2 vXZ; varying vec3 vWpos; varying vec3 vMacroN; varying float vCrest;
+${GERST_CONST}
+float gh(vec2 p){
+  float A0=0.20,A1=0.13,A2=0.07;
+  return A0*sin(dot(gd0,p)*gk0-gw0*uT)+A1*sin(dot(gd1,p)*gk1-gw1*uT)+A2*sin(dot(gd2,p)*gk2-gw2*uT);
 }
 void main(){
-  float x=aPos.x, z=aPos.y;
-  float h=wv(x,z,uT);
+  vec2 p=aPos;
+  float A0=0.20,A1=0.13,A2=0.07;
+  float ph0=dot(gd0,p)*gk0-gw0*uT, ph1=dot(gd1,p)*gk1-gw1*uT, ph2=dot(gd2,p)*gk2-gw2*uT;
+  float h=A0*sin(ph0)+A1*sin(ph1)+A2*sin(ph2);
+  vec2 disp=(0.55*A0*gd0*cos(ph0)+0.35*A1*gd1*cos(ph1)+0.20*A2*gd2*cos(ph2));
   float e=0.6;
-  float hx=wv(x+e,z,uT), hz=wv(x,z+e,uT);
+  float hx=gh(p+vec2(e,0.0)), hz=gh(p+vec2(0.0,e));
   vMacroN=normalize(vec3(-(hx-h)/e,1.0,-(hz-h)/e));
-  vWpos=vec3(x,uWL+h,z);
+  vCrest=clamp(h/max(0.001,A0+A1+A2),-1.0,1.0);
   vXZ=aPos;
+  vWpos=vec3(p.x+disp.x,uWL+h,p.y+disp.y);
   gl_Position=uVP*vec4(vWpos,1.0);
 }`;
 const WATER_FS_BASE=
@@ -1219,11 +1231,12 @@ const WATER_FS=
 ${ACES}
 ${GNOISE}
 ${FOGFN}
-varying vec2 vXZ; varying vec3 vWpos; varying vec3 vMacroN;
+varying vec2 vXZ; varying vec3 vWpos; varying vec3 vMacroN; varying float vCrest;
 uniform mediump float uT; uniform mediump float uWL; uniform vec3 uCam;
 uniform vec3 uWCol; uniform vec3 uWCol2; uniform vec3 uLight; uniform vec3 uSun;
 uniform sampler2D uHTex; uniform float uHMax; uniform float uHalf;
 uniform sampler2D uRefl; uniform vec2 uRes; uniform float uReflOn;
+uniform vec3 uMoonDir; uniform float uMoonStr;
 float terraH(vec2 p){
   vec2 uv=p/(uHalf*2.0)+0.5;
   return texture2D(uHTex,uv).r*uHMax;
@@ -1255,9 +1268,19 @@ void main(){
   float band=sin(depth*40.0-uT*2.0)*0.5+0.5;
   float foam=shore*smoothstep(0.45,0.9,band+fbm2(vXZ*0.5+vec2(uT*0.05,-uT*0.04))*0.5);
   foam+=smoothstep(0.66,0.95,fbm2(vXZ*0.42+vec2(uT*0.05,-uT*0.04)))*0.2;
+  // 波がしらの泡（しおさい2から移植）：とがった波頭が白くくだける
+  float crestFoam=smoothstep(0.62,0.92,vCrest)*(1.0-shore*0.4);
+  foam=clamp(foam+crestFoam*0.6,0.0,1.0);
   c=mix(c,vec3(0.93,0.97,1.0),clamp(foam,0.0,1.0)*0.8);
   vec3 H=normalize(L+V);
   c+=uSun*pow(max(dot(N,H),0.0),160.0)*1.0;               // 太陽のきらめき
+  // 🌙 月の道（しおさい2から移植）：夜、月の方向へ低次＋高次スペキュラを合成して一本の光の道に
+  if(uMoonStr>0.01){
+    vec3 Hm=normalize(normalize(uMoonDir)+V);
+    float mLo=pow(max(dot(N,Hm),0.0),6.0);
+    float mHi=pow(max(dot(N,Hm),0.0),220.0);
+    c+=vec3(0.85,0.9,1.0)*(mLo*0.28+mHi*1.7)*uMoonStr;
+  }
   c=applyFog(c,wp,uCam,L);
   float a=mix(0.68,0.95,smoothstep(0.0,0.4,depth));
   gl_FragColor=vec4(aces(c),max(a,foam*0.85));
@@ -1356,6 +1379,42 @@ void main(){
   gl_FragColor=vec4(aces(col),vFade);
 }`;
 const grassProg=tryProg(GRASS_VS,GRASS_FS);
+
+/* 🦠 夜光虫（しおさい2から移植）：ANGLE_instanced_arraysで海面に漂う発光粒。
+   夜だけ光り、波がしらとこっこの航跡で強まる。非対応端末は展開VBOへフォールバック。 */
+const PLANK_VS=
+`attribute vec2 aQuv; attribute vec3 aInst;
+uniform mat4 uVP; uniform float uT; uniform mediump float uWL; uniform float uNight;
+uniform vec3 uCamR; uniform vec3 uCamU; uniform vec3 uCam; uniform vec3 uPlayer;
+varying vec2 vUV; varying float vB;
+${GERST_CONST}
+void main(){
+  vec2 p=aInst.xy;
+  float rnd=aInst.z;
+  float A0=0.20,A1=0.13;
+  float ph0=dot(gd0,p)*gk0-gw0*uT, ph1=dot(gd1,p)*gk1-gw1*uT;
+  float hw=A0*sin(ph0)+A1*sin(ph1);
+  float crest=clamp(hw/max(0.001,A0+A1),0.0,1.0);
+  vec3 base=vec3(p.x, uWL+hw-0.05+sin(uT*0.7+rnd*17.0)*0.05, p.y);
+  float pd=distance(base.xz,uPlayer.xz);
+  float glow=smoothstep(6.0,1.2,pd);
+  vB=(0.16+0.5*crest*crest+glow*0.9)*(0.6+0.4*sin(uT*2.0+rnd*40.0))*uNight;
+  float dCam=distance(base,uCam);
+  vB*=1.0-smoothstep(60.0,105.0,dCam);
+  float s=0.10+rnd*0.11+glow*0.09;
+  vec3 w=base+uCamR*(aQuv.x-0.5)*2.0*s+uCamU*(aQuv.y-0.5)*2.0*s;
+  vUV=aQuv;
+  gl_Position=uVP*vec4(w,1.0);
+}`;
+const PLANK_FS=
+`precision highp float;
+varying vec2 vUV; varying float vB;
+void main(){
+  float d=length(vUV-vec2(0.5))*2.0;
+  float a=smoothstep(1.0,0.15,d)*vB;
+  gl_FragColor=vec4(vec3(0.30,0.85,1.0)*a,a);
+}`;
+const plankProg=tryProg(PLANK_VS,PLANK_FS);
 
 /* 空 ── フルスクリーン1パス。視線レイで本格的な大気＋太陽＋流れる雲＋夜の星。
    端末が未対応なら 単純グラデーション→描画スキップ の順にフォールバック。 */
@@ -1480,8 +1539,14 @@ const wU={ vp:gl.getUniformLocation(waterProg,'uVP'), wl:gl.getUniformLocation(w
   sunFog:gl.getUniformLocation(waterProg,'uSunFog'), htex:gl.getUniformLocation(waterProg,'uHTex'),
   hmax:gl.getUniformLocation(waterProg,'uHMax'), half:gl.getUniformLocation(waterProg,'uHalf'),
   refl:gl.getUniformLocation(waterProg,'uRefl'), res:gl.getUniformLocation(waterProg,'uRes'),
-  reflOn:gl.getUniformLocation(waterProg,'uReflOn') };
+  reflOn:gl.getUniformLocation(waterProg,'uReflOn'),
+  moonDir:gl.getUniformLocation(waterProg,'uMoonDir'), moonStr:gl.getUniformLocation(waterProg,'uMoonStr') };
 const wA={ pos:gl.getAttribLocation(waterProg,'aPos') };
+const pkU=plankProg?{ vp:gl.getUniformLocation(plankProg,'uVP'), t:gl.getUniformLocation(plankProg,'uT'),
+  wl:gl.getUniformLocation(plankProg,'uWL'), night:gl.getUniformLocation(plankProg,'uNight'),
+  camR:gl.getUniformLocation(plankProg,'uCamR'), camU:gl.getUniformLocation(plankProg,'uCamU'),
+  cam:gl.getUniformLocation(plankProg,'uCam'), player:gl.getUniformLocation(plankProg,'uPlayer') }:null;
+const pkA=plankProg?{ quv:gl.getAttribLocation(plankProg,'aQuv'), inst:gl.getAttribLocation(plankProg,'aInst') }:null;
 const mU={ vp:gl.getUniformLocation(meshProg,'uVP'), lvp:gl.getUniformLocation(meshProg,'uLVP'),
   cam:gl.getUniformLocation(meshProg,'uCam'), time:gl.getUniformLocation(meshProg,'uTime'),
   light:gl.getUniformLocation(meshProg,'uLight'), sun:gl.getUniformLocation(meshProg,'uSun'),
@@ -1969,6 +2034,46 @@ function buildGrass(seed){
   }
 }
 
+/* 🦠 夜光虫の配置（島の海域のみ・水面下の地形の上）。しおさい2の buildPlankton を移植 */
+const plankGeoBuf=gl.createBuffer(), plankInstBuf=gl.createBuffer();
+let plankInstN=0, plankPlainN=0, PLANK_INSTANCED=false;
+function buildPlankton(seed){
+  if(!plankProg){ plankInstN=plankPlainN=0; return; }
+  const rng=mulberry32((seed^0x9e3779b9)>>>0);
+  const want=Math.floor((INST?6000:1200)*QUALITY.grassMul);
+  const inst=new Float32Array(want*3);
+  let n=0;
+  for(let i=0;i<want*3&&n<want;i++){
+    const x=rng()*SIZE-HALF, z=rng()*SIZE-HALF;
+    if(heightAt(x,z)>WL-0.4) continue;   // 水面下の海域だけ（浜より下）
+    const o=n*3;
+    inst[o]=x; inst[o+1]=z; inst[o+2]=rng();
+    n++;
+  }
+  if(INST){
+    PLANK_INSTANCED=true; plankInstN=n; plankPlainN=0;
+    gl.bindBuffer(gl.ARRAY_BUFFER,plankGeoBuf);
+    gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([0,0, 1,0, 1,1, 0,0, 1,1, 0,1]),gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER,plankInstBuf);
+    gl.bufferData(gl.ARRAY_BUFFER,inst.subarray(0,n*3),gl.STATIC_DRAW);
+  }else{
+    PLANK_INSTANCED=false; plankInstN=0;
+    const quv=[[0,0],[1,0],[1,1],[0,0],[1,1],[0,1]];
+    const v=new Float32Array(n*6*5);
+    for(let k=0;k<n;k++){
+      const o3=k*3;
+      for(let q=0;q<6;q++){
+        const o=(k*6+q)*5;
+        v[o]=quv[q][0]; v[o+1]=quv[q][1];
+        v[o+2]=inst[o3]; v[o+3]=inst[o3+1]; v[o+4]=inst[o3+2];
+      }
+    }
+    plankPlainN=n*6;
+    gl.bindBuffer(gl.ARRAY_BUFFER,plankInstBuf);
+    gl.bufferData(gl.ARRAY_BUFFER,v.subarray(0,n*6*5),gl.STATIC_DRAW);
+  }
+}
+
 /* ===== スプライトアトラス（こっこちゃん＋絵文字フル活用） ===== */
 const cocco=new Image(); let coccoReady=false;
 cocco.onload=()=>{ coccoReady=true; buildAtlas(); };
@@ -2185,6 +2290,7 @@ function genWorld(seed){
   gymSpot=findFlatNear(SPAWN.x,SPAWN.z,9,7,16,shopSpot);
   buildPropMeshes(seed);   // 木・岩の実メッシュ（trees[]/rocks[]の配置はそのまま・見た目のみ）
   buildGrass(seed);        // 草原（見た目の追加のみ）
+  buildPlankton(seed);     // 🦠 夜光虫（見た目の追加のみ・島の海域）
   buildRadarLand();
   updateIslandHud();
 }
@@ -5110,6 +5216,10 @@ function render(){
     if(wU.res) gl.uniform2f(wU.res,cv.width,cv.height);
     if(wU.reflOn) gl.uniform1f(wU.reflOn,(reflDrawn&&reflTex)?1:0);
   }
+  // 🌙 月の道：夜（dayF小）ほど強く。深海/雲の上ステージでは出さない
+  const moonStr=(!G.inSea&&!G.inSora)?clamp(1-DL.dayF,0,1):0;
+  if(wU.moonDir) gl.uniform3fv(wU.moonDir,DL.moonDir);
+  if(wU.moonStr) gl.uniform1f(wU.moonStr,moonStr);
   gl.bindBuffer(gl.ARRAY_BUFFER,waterBuf);
   gl.enableVertexAttribArray(wA.pos); gl.vertexAttribPointer(wA.pos,2,gl.FLOAT,false,8,0);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,waterIdxBuf);
@@ -5119,6 +5229,43 @@ function render(){
   gl.drawElements(gl.TRIANGLES,waterIdxN,gl.UNSIGNED_SHORT,0);
   gl.depthMask(true);
   gl.disableVertexAttribArray(wA.pos);
+
+  /* --- 🦠 夜光虫（水面の上に加算合成・夜だけ・島の海域だけ） --- */
+  {
+    const night=(!G.inSea&&!G.inSora)?clamp(1-DL.dayF,0,1):0;
+    if(plankProg&&night>0.02&&(PLANK_INSTANCED?plankInstN>0:plankPlainN>0)){
+      gl.useProgram(plankProg);
+      gl.uniformMatrix4fv(pkU.vp,false,Mvp);
+      gl.uniform1f(pkU.t,G.time%100000.0);
+      gl.uniform1f(pkU.wl,WL);
+      gl.uniform1f(pkU.night,night);
+      gl.uniform3f(pkU.camR,camR[0],camR[1],camR[2]);
+      gl.uniform3f(pkU.camU,camU[0],camU[1],camU[2]);
+      gl.uniform3f(pkU.cam,eye[0],eye[1],eye[2]);
+      gl.uniform3f(pkU.player,P.x,P.y,P.z);
+      gl.enable(gl.BLEND);
+      gl.blendFunc(gl.ONE,gl.ONE);
+      gl.depthMask(false);
+      if(PLANK_INSTANCED){
+        gl.bindBuffer(gl.ARRAY_BUFFER,plankGeoBuf);
+        gl.enableVertexAttribArray(pkA.quv); gl.vertexAttribPointer(pkA.quv,2,gl.FLOAT,false,8,0);
+        gl.bindBuffer(gl.ARRAY_BUFFER,plankInstBuf);
+        gl.enableVertexAttribArray(pkA.inst); gl.vertexAttribPointer(pkA.inst,3,gl.FLOAT,false,12,0);
+        INST.vertexAttribDivisorANGLE(pkA.inst,1);
+        INST.drawArraysInstancedANGLE(gl.TRIANGLES,0,6,plankInstN);
+        INST.vertexAttribDivisorANGLE(pkA.inst,0);
+        gl.disableVertexAttribArray(pkA.quv); gl.disableVertexAttribArray(pkA.inst);
+      }else{
+        gl.bindBuffer(gl.ARRAY_BUFFER,plankInstBuf);
+        gl.enableVertexAttribArray(pkA.quv);  gl.vertexAttribPointer(pkA.quv,2,gl.FLOAT,false,20,0);
+        gl.enableVertexAttribArray(pkA.inst); gl.vertexAttribPointer(pkA.inst,3,gl.FLOAT,false,20,8);
+        gl.drawArrays(gl.TRIANGLES,0,plankPlainN);
+        gl.disableVertexAttribArray(pkA.quv); gl.disableVertexAttribArray(pkA.inst);
+      }
+      gl.depthMask(true);
+      gl.disable(gl.BLEND);
+    }
+  }
 
   /* --- スプライト --- */
   sprN=0; shadN=0;
@@ -5469,7 +5616,9 @@ window.__mori={
   shopSpot(){ return shopSpot; },
   gfx(){ return { reflOn:QUALITY.reflOn, reflOK:REFL_OK, shadowRes:QUALITY.shadowRes,
     grassInstanced:GRASS_INSTANCED, grassInstN:grassInstN, grassN:grassN,
-    terraHQ:!!terraHQ, waterHQ:!!waterHQ }; },
+    terraHQ:!!terraHQ, waterHQ:!!waterHQ,
+    plankProg:!!plankProg, plankInstanced:PLANK_INSTANCED, plankN:(PLANK_INSTANCED?plankInstN:plankPlainN/6),
+    dayF:DL.dayF }; },
   reflForce(v){ QUALITY.reflOn=!!v; slowAcc=-1e9; },
   tod(v){ if(v!=null)G.tod=clamp(v,0,0.999); return {tod:G.tod,dayF:DL.dayF,moonDir:DL.moonDir}; },
 };
