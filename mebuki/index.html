@@ -563,16 +563,30 @@ const Sound=(function(){
     o.type=t||'sawtooth'; o.frequency.setValueAtTime(f0,n); o.frequency.exponentialRampToValueAtTime(Math.max(40,f1),n+d);
     g.gain.setValueAtTime(.0001,n); g.gain.exponentialRampToValueAtTime(v||.3,n+d*0.85); g.gain.exponentialRampToValueAtTime(.0001,n+d+.05);
     o.connect(g); g.connect(master); o.start(n); o.stop(n+d+.07); }
-  let bg=null,bt=null,bs=0,bn=0,bon=false; const SD=60/108/2;
-  const PROG=[ {b:98.00,a:[392.00,466.16,587.33]}, {b:130.81,a:[392.00,523.25,659.25]},
-               {b:87.31 ,a:[349.23,440.00,523.25]}, {b:116.54,a:[349.23,466.16,587.33]} ];
+  let bg=null,bt=null,bs=0,bn=0,bon=false; const SD=60/128/2;   // 128BPM・8分＝はずむ かわいいテンポ
+  /* 🌱 超かわいいオルゴール風BGM（C長調・C–G–Am–Fのやさしいループ）。合成音のみ（技術学：外部音源なし）
+     主旋律＝三角波＋1オクターブ上のサイン(オルゴールのきらめき)／低音＝オムパのはずみ／小節あたま＝やわらかいパッド和音／
+     ループの終わりに きらめきターンアラウンド／裏拍に ちいさなチクッ */
+  const BASS=[130.81, 98.00, 110.00, 87.31];   // C3・G2・A2・F2（各小節のルート）
+  const CHORD=[[523.25,659.25,783.99],[587.33,783.99,987.77],[523.25,659.25,880.00],[698.46,880.00,1046.50]]; // C・G・Am・F
+  const MEL=[  // 32歩＝4小節×8分。0は休符（「タタタッ・タタタッ」のはずむ間）
+    659.25,783.99,1046.50,0, 783.99,659.25,783.99,0,   // C ：ミソド－ソミソ
+    587.33,783.99,987.77,0, 880.00,783.99,587.33,0,    // G ：レソシ－ラソレ
+    523.25,659.25,880.00,0, 659.25,523.25,659.25,0,    // Am：ドミラ－ミドミ
+    698.46,880.00,1046.50,0, 880.00,783.99,698.46,0 ]; // F ：ファラド－ラソファ
   function bnote(f,t,d,ty,v){ const o=ac.createOscillator(),g=ac.createGain(); o.type=ty; o.frequency.setValueAtTime(f,t);
     g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(v,t+.03); g.gain.exponentialRampToValueAtTime(.0001,t+d);
     o.connect(g); g.connect(bg); o.start(t); o.stop(t+d+.02); }
-  function bstep(i,t){ const c=PROG[Math.floor(i/8)%4],k=i%8;
-    if(k%2===0) bnote(c.b,t,SD*1.3,'triangle',.17);
-    bnote(c.a[[0,1,2,1,0,2,1,2][k]],t,SD*0.9,'sine',.13);
-    if(k===4) bnote(c.b*2,t,SD*0.7,'triangle',.08); }
+  function bstep(i,t){ const bar=Math.floor(i/8)%4, k=i%8;
+    const tk=t+((k%2)?SD*0.10:0);                       // 裏拍を少し遅らせる＝かわいいシャッフル
+    const m=MEL[i%32];
+    if(m){ bnote(m,tk,SD*0.92,'triangle',.15); bnote(m*2,tk,SD*0.55,'sine',.045); }  // オルゴールの主旋律＋きらめき
+    if(k%4===0) bnote(BASS[bar],t,SD*1.5,'sine',.22);                                 // オム（ルート）
+    else if(k%4===2) bnote(BASS[bar]*2,t,SD*0.7,'triangle',.10);                      // パッ（オクターブ）
+    if(k===0){ CHORD[bar].forEach(cf=>bnote(cf,t,SD*3.6,'sine',.035)); }              // やわらかいパッド和音
+    if(k%2===1) bnote(2637,tk,0.02,'square',.02);                                     // ちいさなチクッ（はずみ）
+    if(i%32===31){ [1046.50,1318.51,1567.98].forEach((cf,j)=>bnote(cf,t+j*SD*0.16,SD*0.5,'sine',.06)); } // きらめきターンアラウンド
+  }
   function bsched(){ if(!ac||!bon)return; while(bn<ac.currentTime+0.2){ bstep(bs,bn); bn+=SD; bs=(bs+1)%32; } }
   function startBGM(){ if(!ac||muted)return; if(!bg){bg=ac.createGain(); bg.gain.value=.0001; bg.connect(master);}
     if(bon)return; bon=true; bs=0; bn=ac.currentTime+0.1;
