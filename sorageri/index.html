@@ -123,9 +123,12 @@
   #jaLine{margin-top:3px;font-size:12px;color:#bfe0ff;opacity:.85;}
   #dockHint{margin-top:3px;font-size:10px;color:#8fb8d8;opacity:.75;}
   /* 実際の入力欄は見えない位置に薄く置く（値は消さないストリーム方式なので表示は上のkrLineが担う）
-     ※font-size:16px はiOSのフォーカス時自動ズームを防ぐため必須 */
+     ※font-size:16px はiOSのフォーカス時自動ズームを防ぐため必須
+     ※user-select:text はiOSで必須──bodyの user-select:none を継承すると
+       iOS Safariは入力欄へのフォーカス・キャレット・IME入力そのものが壊れる */
   #typebox{position:absolute;left:10px;bottom:2px;width:55%;height:22px;opacity:.02;border:none;background:transparent;
-    color:transparent;font-size:16px;caret-color:transparent;outline:none;pointer-events:auto;user-select:text;-webkit-user-select:text;}
+    color:transparent;font-size:16px;caret-color:transparent;outline:none;pointer-events:auto;
+    user-select:text;-webkit-user-select:text;-webkit-touch-callout:none;}
 
   /* ===== 画面（タイトル・あそびかた・結果 等） ===== */
   .screen{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -840,50 +843,97 @@ function pickSentence(){
   return pickFrom(POOL_L); }
 
 /* ---- タイピング（ハングルIME対応・ストリーム方式） ----
-   入力欄の値は途中で消さない。文が終わったら base（現在文の開始位置）を進めるだけ。
-   こうすると「요→욕→요가」のようにIMEが直前の字にパッチムを合体させてから
-   分離する挙動が起きても、値ずれが自然に自己修復する（消すとIMEが壊れる）。 */
+   入力欄の値はタイピングの最中に消さない。文が終わったら base（現在文の開始位置）を
+   進めるだけ。こうすると「요→욕→요가」のようにIMEが直前の字にパッチムを合体させてから
+   分離する挙動が起きても、値ずれが自然に自己修復する（合成中に消すとIMEが壊れる）。
+
+   スマホの韓国語キーボード対策（PCと違い、こちらは入力が「素直」ではない）：
+   ・スペースは両側とも「あってもなくても良い」── スマホは文末スペースで確定する癖・
+     候補タップの自動スペース・逆に候補確定でスペースが抜ける、が日常的に起きる。
+     厳密一致だと一度ズレた瞬間から全部赤になる（これがスマホでバグる正体）。
+   ・文頭の句読点ゴミ（iOSのダブルスペース→「. 」等）は読み飛ばす。
+   ・手が止まった隙に、確定済みの古い文をこっそり削って入力欄を短く保つ（アイドルトリム）
+     ── IMEの「単語」が文をまたいで育ち、候補確定で過去分ごと書き換えられるのを防ぐ。 */
 const box=$('typebox'), krLine=$('krLine'), jaLine=$('jaLine'), comboLine=$('comboLine');
 let target=null, base=0, kicked=0, typoFlag=false;
+let composing=false, trimTimer=0, trimForceTimer=0;
+box.addEventListener('compositionstart',function(){ composing=true; });
+box.addEventListener('compositionend',function(){ composing=false; scheduleTrim(); });
+function scheduleTrim(){
+  clearTimeout(trimTimer); clearTimeout(trimForceTimer);
+  if(base<=0) return;
+  trimTimer=setTimeout(function(){ tryTrim(false); },350);
+  /* Android(GBoard等)は単語の合成が長く続き compositionend が来ないことがある。
+     900ms 手が止まっていれば合成中でも整理してよい（値の内容は変えず前方を削るだけ） */
+  trimForceTimer=setTimeout(function(){ tryTrim(true); },900);
+}
+function tryTrim(force){
+  if(state!=='play'||base<=0) return;
+  if(composing&&!force) return;
+  box.value=box.value.slice(base); base=0; composing=false;
+}
+const SP_CHARS='  　';           // 半角・NBSP・全角スペースは同一視
+const JUNK='.。,、';                       // 文頭に紛れたら読み飛ばす記号
+function isSp(c){ return SP_CHARS.indexOf(c)>=0; }
+/* 入力segと目標文tの進み具合を測る。スペースは両側とも任意・句読点ゴミは無視。
+   （目標文はハングルとスペースだけ、という SENTENCES の決まりが前提）
+   返り値 ti=目標文の何文字目まで進んだか / si=segの何文字目まで消費したか */
+function matchLen(seg,t){
+  let si=0,ti=0;
+  while(si<seg.length&&ti<t.length){
+    const c=isSp(seg[si])?' ':seg[si];
+    if(c===t[ti]){ si++; ti++; continue; }
+    if(t[ti]===' '){ ti++; continue; }                    // 目標のスペースは打たなくてよい
+    if(c===' '||JUNK.indexOf(c)>=0){ si++; continue; }    // 余分なスペース・句読点ゴミは許す
+    break;
+  }
+  while(si<seg.length&&(isSp(seg[si])||JUNK.indexOf(seg[si])>=0)) si++; // 末尾のゴミも消費扱い
+  while(ti<t.length&&t[ti]===' ') ti++;
+  return {ti:ti,si:si};
+}
 function setSentence(s){ target=s; kicked=0; typoFlag=false; base=box.value.length; renderLine(''); jaLine.textContent=s[1]; }
 function renderLine(seg){
   const t=target?target[0]:''; if(!t){ krLine.innerHTML=''; return; }
-  let m=0; const L=Math.min(seg.length,t.length);
-  while(m<L && seg[m]===t[m]) m++;
+  const r=matchLen(seg,t), bad=seg.length-r.si;
   const fs=Math.max(17,Math.min(30,Math.floor((W*0.92)/Math.max(t.length,4))));
   krLine.style.fontSize=fs+'px';
-  let html='', curSet=false;
+  let html='';
   for(let i=0;i<t.length;i++){
     const chT=t[i], sp=chT===' ';
     let cls,txt;
-    if(i<m){ cls='done'; txt=sp?'·':chT; if(sp)cls+=' sp'; }
-    else if(i<seg.length){
-      if(i===seg.length-1){ cls='cur'; txt=seg[i]===' '?'·':seg[i]; } // 組み立て中の字（まだ間違いと断定しない）
-      else { cls='bad'; txt=seg[i]===' '?'·':seg[i]; }
+    if(i<r.ti){ cls=sp?'done sp':'done'; txt=sp?'·':chT; }
+    else{
+      const j=i-r.ti;
+      if(j<bad){ const sc=seg[r.si+j];
+        // 組み立て中かもしれない最後の1字は「cur」、通り過ぎた間違いは「bad」
+        cls=(r.si+j===seg.length-1)?'cur':'bad'; txt=isSp(sc)?'·':sc;
+      }
+      else if(bad===0&&j===0){ cls='cur'; txt=sp?'·':chT; }
+      else{ cls=sp?'todo sp':'todo'; txt=sp?'·':chT; }
     }
-    else { cls='todo'; if(!curSet && i===Math.max(m,seg.length)){ cls='cur'; curSet=true; txt=sp?'·':chT; }
-      else txt=sp?'·':chT; if(sp&&cls==='todo')cls+=' sp'; }
     html+='<span class="'+cls+'">'+txt+'</span>';
   }
   krLine.innerHTML=html; }
 function onInput(){
   if(state!=='play'||!target) return;
-  if(box.value.length<base) base=box.value.length;   // 全消しなどの保険
-  const seg=box.value.slice(base), t=target[0];
-  let m=0; const L=Math.min(seg.length,t.length);
-  while(m<L && seg[m]===t[m]) m++;
+  if(box.value.length<base) base=box.value.length;   // IMEが過去分ごと書き換えた/全消し等の保険
+  const t=target[0];
+  let seg=box.value.slice(base);
+  while(seg.length&&JUNK.indexOf(seg[0])>=0){ base++; seg=box.value.slice(base); }
+  const r=matchLen(seg,t);
   /* ミス判定：最後の1字はIMEが組み立て中かもしれないので、
      「間違った字を通り過ぎて次を打った」ときだけミスにする */
-  if(seg.length-m>0 && m<seg.length-1 && !typoFlag){
+  if(seg.length-r.si>0 && r.si<seg.length-1 && !typoFlag){
     typoFlag=true; typoN++; combo=0; updateCombo();
     sndTypo(); krLine.classList.remove('shake'); void krLine.offsetWidth; krLine.classList.add('shake');
   }
-  if(m>kicked){
-    for(let i=kicked;i<m;i++){ doKick(t[i]===' '?0.45:1); typedN++; }
-    kicked=m;
+  if(r.ti>kicked){
+    for(let i=kicked;i<r.ti;i++){ doKick(t[i]===' '?0.45:1); typedN++; }
+    kicked=r.ti;
   }
-  if(m>=t.length){ completeSentence(); return; }
-  renderLine(seg); }
+  if(r.ti>=t.length){ completeSentence(); return; }
+  renderLine(seg);
+  scheduleTrim(); }
 box.addEventListener('input',onInput);
 function updateCombo(){ comboLine.textContent = combo>=2 ? '🔥 コンボ ×'+combo : ''; }
 function completeSentence(){
@@ -893,7 +943,8 @@ function completeSentence(){
   sndComplete(); if(combo%5===0) vib(24);
   krLine.classList.remove('clear'); void krLine.offsetWidth; krLine.classList.add('clear');
   burst(px(),py()-10,['✨','⭐','💫'],6);
-  setSentence(pickSentence()); }
+  setSentence(pickSentence());
+  scheduleTrim(); }
 function vyMax(){ return 30+Math.min(combo,15)*0.8; }
 function doKick(mult){
   if(state!=='play') return;
@@ -1113,6 +1164,7 @@ function startGame(){
   kickAnim=0; crashT=0; mileNext=500; crossedBest=false;
   deco=[]; decoTop=0; rainbowDone=false; particles=[]; recentQ=[];
   rec=[]; recAcc=0;
+  clearTimeout(trimTimer); clearTimeout(trimForceTimer); composing=false;
   box.value=''; base=0;
   $('titleScreen').classList.add('hidden'); $('overScreen').classList.add('hidden');
   hud.classList.add('on'); dock.classList.add('on');
@@ -1121,6 +1173,7 @@ function startGame(){
 }
 function startCrash(){
   state='crash'; crashT=0; flying=false; vy=0;
+  clearTimeout(trimTimer); clearTimeout(trimForceTimer);
   box.blur(); dock.classList.remove('on');
   burst(px(),sy(0)-10,['💥','💢','🪶'],10);
   sndCrash(); setTimeout(()=>sndSiren(3.2),600); vib([0,60,40,60]);
@@ -1196,7 +1249,8 @@ fsBtn.addEventListener('click',()=>{
 
 /* 動作テスト用フック（ヘッドレス検証・デバッグ用） */
 window.__sorageri={
-  get:()=>({state,alt,vy,maxAlt,airT,combo,typedN,typoN,sentN,target:target?target[0]:null,sentences:SENTENCES.length}),
+  get:()=>({state,alt,vy,maxAlt,airT,combo,typedN,typoN,sentN,kicked,base,boxLen:box.value.length,
+    target:target?target[0]:null,sentences:SENTENCES.length}),
   type:s=>{ box.value+=s; box.dispatchEvent(new Event('input',{bubbles:true})); },
   start:startGame };
 })();
