@@ -813,6 +813,7 @@ let airT=0, maxAlt=0, simT=0;
 let combo=0, maxCombo=0, typedN=0, typoN=0, sentN=0, kickChain=0;
 let kickAnim=0, crashT=0, mileNext=500;
 let deco=[], decoTop=0, rainbowDone=false, particles=[];
+let streaks=[];   // 速度の線（風のライン）。高度に関係なく上下動を見せて「止まって見える」を防ぐ
 let bestAlt=0, bestAir=0, crossedBest=false;
 try{ bestAlt=+localStorage.getItem('sorageriBestAlt')||0; bestAir=+localStorage.getItem('sorageriBestAir')||0; }catch(e){}
 
@@ -997,6 +998,25 @@ function px(){ return W*0.5; }
 function py(){ return H/2+(camY-alt)*PPM; }
 function sy(a){ return H/2+(camY-a)*PPM; }
 
+/* ---- 速度の線（風のライン） ---- */
+function drawStreaks(){
+  if(state!=='play'&&state!=='crash') return;
+  while(streaks.length<22) streaks.push({sx:Math.random(), wy:camY+(Math.random()*2-1)*80, r:Math.random()});
+  const speed=Math.abs(vy), alpha=Math.min(speed/46,1);
+  if(alpha<=0.02) return;                       // ほぼ静止なら描かない
+  const len=Math.min(10+speed*1.25,76), dir=vy<0?1:-1;   // 落下は世界が上へ流れる＝線は下へのびる
+  ctx.save(); ctx.lineCap='round';
+  ctx.strokeStyle='rgba(255,255,255,'+(0.08+alpha*0.17).toFixed(3)+')';
+  ctx.lineWidth=Math.max(1,1.4*(0.5+alpha*0.7));
+  for(let i=0;i<streaks.length;i++){ const s=streaks[i]; let y=sy(s.wy);
+    if(y<-100){ s.wy=camY+100+Math.random()*40; s.sx=Math.random(); y=sy(s.wy); }
+    else if(y>H+100){ s.wy=camY-100-Math.random()*40; s.sx=Math.random(); y=sy(s.wy); }
+    const x=s.sx*W;
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x, y+len*dir*(0.6+0.8*s.r)); ctx.stroke();
+  }
+  ctx.restore();
+}
+
 /* ---- 描画 ---- */
 let waveT=0;
 function draw(dt){
@@ -1004,6 +1024,11 @@ function draw(dt){
   const cols=skyColors(Math.max(camY,0));
   const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,css(cols[0])); g.addColorStop(1,css(cols[1]));
   ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
+  /* 速度の線（風のライン）── 高度に関係なく上下動を見せる。
+     世界座標(wy)に固定して sy() で描くので、雲と同じ視差で流れ、
+     何も無い高空でも「落ちている／昇っている」速さが目に見える（止まって見えるのを防ぐ） */
+  drawStreaks();
 
   /* 太陽と月 */
   const sunA=Math.max(0,1-camY/3600);
@@ -1089,7 +1114,9 @@ function draw(dt){
     else{
       let rot=0;
       if(kickAnim>0) rot=(1-kickAnim)*TAU*(combo%2?1:-1);       // 空蹴りの回転
-      else rot=Math.max(-.5,Math.min(.5,-vy*.012));
+      else{ rot=Math.max(-.5,Math.min(.5,-vy*.012));
+        if(state==='play'&&vy<-16) rot+=Math.sin(waveT*15)*0.18*Math.min((-vy-16)/34,1); // 落下のばたつき
+      }
       if(state==='crash') rot=Math.PI; // 墜落後は目をまわして転がる
       ctx.rotate(rot);
       if(vy<-30&&state==='play'){ ctx.globalAlpha=.85; }
@@ -1098,6 +1125,10 @@ function draw(dt){
       if(kickAnim>0){ drawEmo('👟',w*.24,h*.42,h*.34,-.6); }
     }
     ctx.restore();
+    // 落下中は左右にはためく風＋汗で「落ちている」ことを強調
+    if(state==='play'&&vy<-14){ const f=Math.min((-vy-14)/40,1);
+      drawEmo('💨',x-w*.66,y-h*.1+Math.sin(waveT*16)*4,14+8*f,0,.35+.4*f);
+      drawEmo('💨',x+w*.66,y-h*.1-Math.sin(waveT*16)*4,14+8*f,0,.35+.4*f); }
     if(state==='play'&&vy<-26){ drawEmo('💦',x+w*.6,y-h*.3,16); }
     if(state==='play'&&combo>=5&&flying){ drawEmo('🔥',x,y+h*.62,14+Math.min(combo,20)*.5,0,.8); }
     if(state==='crash'&&crashT<2.1&&crashT>.15){ drawEmo('😵',x,y-h*.7,20); drawEmo('💫',x+16,y-h*.9,16,waveT*3); }
@@ -1149,8 +1180,11 @@ function loop(now){
     if(crashT>=3.9) gameOver();
     if(windGain) windGain.gain.value=0;
   }
-  const targ=(state==='play'&&flying)||state==='crash' ? Math.max(alt+10,45) : 45;
-  camY+=(targ-camY)*Math.min(1,dt*5);
+  /* カメラは高度を追うが、上下の速さ(vy)ぶんだけ視点をずらす＝落下中はこっこが画面の
+     下へ、上昇中は上へ動いて見える。これで「止まって見える」を解消（視差＋本体移動の二段） */
+  const lead=(state==='play'||state==='crash') ? Math.max(-26,Math.min(30,-vy*0.6)) : 0;
+  const targ=(state==='play'&&flying)||state==='crash' ? Math.max(alt+10+lead,45) : 45;
+  camY+=(targ-camY)*Math.min(1,dt*(state==='crash'?7:5));
   draw(dt);
   requestAnimationFrame(loop);
 }
@@ -1162,7 +1196,7 @@ function startGame(){
   state='play'; alt=0; vy=0; flying=false; camY=45;
   airT=0; maxAlt=0; simT=0; combo=0; maxCombo=0; typedN=0; typoN=0; sentN=0; kickChain=0;
   kickAnim=0; crashT=0; mileNext=500; crossedBest=false;
-  deco=[]; decoTop=0; rainbowDone=false; particles=[]; recentQ=[];
+  deco=[]; decoTop=0; rainbowDone=false; particles=[]; streaks=[]; recentQ=[];
   rec=[]; recAcc=0;
   clearTimeout(trimTimer); clearTimeout(trimForceTimer); composing=false;
   box.value=''; base=0;
