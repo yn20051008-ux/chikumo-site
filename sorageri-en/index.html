@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<script>
+/* こっこ共通: ページを離れたら必ず音を止める（bfcache対策／全ゲーム共通の番人） */
+(function(){
+  var ctxs=[];
+  var OrigAC=window.AudioContext||window.webkitAudioContext;
+  if(OrigAC&&typeof Proxy!=='undefined'&&typeof Reflect!=='undefined'){
+    var P=new Proxy(OrigAC,{construct:function(T,a,nt){
+      var c=Reflect.construct(T,a,nt===P?T:nt);
+      try{ctxs.push(c);}catch(e){}
+      return c;
+    }});
+    try{window.AudioContext=P;}catch(e){}
+    try{if(window.webkitAudioContext)window.webkitAudioContext=P;}catch(e){}
+  }
+  function kill(){for(var i=0;i<ctxs.length;i++){var c=ctxs[i];try{c.suspend();}catch(e){}try{c.close();}catch(e){}}ctxs=[];}
+  window.addEventListener('pagehide',kill);
+  window.addEventListener('pageshow',function(e){if(e.persisted)window.location.reload();});
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+<title>空蹴り英語 ─ SORAGERI ENGLISH｜英語タイピングで空へ</title>
+<meta name="description" content="英語を打つたび、こっこちゃんが空蹴り！打つのを止めると落ちる。島ぐらしの島から飛び立ち、生活英会話300文で空の果てへ。自己ベストのゴーストこっこと競える、英語タイピング上達ゲーム。PC・スマホ対応。">
+<meta name="author" content="畜物語">
+<meta name="robots" content="index, follow">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#081527">
+<meta name="format-detection" content="telephone=no">
+<link rel="canonical" href="https://chikumo.jp/sorageri-en/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chikumo.jp/sorageri-en/">
+<meta property="og:title" content="空蹴り英語 ─ SORAGERI ENGLISH">
+<meta property="og:description" content="英語を打つたび、こっこちゃんが空蹴り！島ぐらしの島から空の果てへ。英語タイピング上達ゲーム。">
+<meta property="og:image" content="https://chikumo.jp/ogp.png">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="畜物語">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="空蹴り英語 ─ SORAGERI ENGLISH">
+<meta name="twitter:description" content="英語を打つたび、こっこちゃんが空蹴り！英語タイピング上達ゲーム。">
+<meta name="twitter:image" content="https://chikumo.jp/ogp.png">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="空蹴り英語">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://chikumonogatarikiroku-default-rtdb.asia-southeast1.firebasedatabase.app">
+<script>
+/* Firebase SDK 非同期ローダー：描画を止めずに順番に読み込む（低帯域でもゲームは即開始）。
+   読込失敗時は時間をおいて/回線復帰(online)で自動再試行 → 遅れてでもランキングを生かす */
+(function(){
+  var base='https://www.gstatic.com/firebasejs/9.23.0/';
+  var files=['firebase-app-compat.js','firebase-database-compat.js','firebase-auth-compat.js'];
+  var next=0, busy=false, fails=0;
+  function load(){
+    if(busy||next>=files.length) return;
+    busy=true;
+    var s=document.createElement('script');
+    s.src=base+files[next]; s.async=true;
+    s.onload=function(){ busy=false; fails=0; next++; load(); };
+    s.onerror=function(){ busy=false; if(s.parentNode) s.parentNode.removeChild(s);
+      setTimeout(load, Math.min(60000, 3000*Math.pow(2,fails++))); };
+    (document.head||document.documentElement).appendChild(s);
+  }
+  window.addEventListener('online', load);
+  load();
+})();
+</script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#081527;
+    font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN','Yu Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+    user-select:none;-webkit-user-select:none;color:#eaf6ff;touch-action:none;}
+  #wrap{position:fixed;inset:0;}
+  canvas{display:block;width:100%;height:100%;}
+  .ctrlbtn{position:absolute;z-index:12;pointer-events:auto;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    border:2px solid rgba(255,255,255,.25);background:rgba(14,34,56,.55);color:#fff;cursor:pointer;width:40px;height:40px;font-size:17px;}
+  .ctrlbtn:active{transform:scale(.92);} .ctrlbtn.off{opacity:.5;}
+  #muteBtn{top:calc(10px + env(safe-area-inset-top));right:calc(58px + env(safe-area-inset-right));}
+  #fsBtn{top:calc(10px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));}
+
+  /* ===== HUD（プレイ中） ===== */
+  #hud{position:absolute;inset:0;z-index:8;pointer-events:none;display:none;}
+  #hud.on{display:block;}
+  #hudAlt{position:absolute;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);
+    font-size:32px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.01em;white-space:nowrap;
+    text-shadow:0 2px 14px rgba(0,30,70,.75);}
+  #hudAlt small{font-size:15px;opacity:.8;font-weight:800;}
+  #hudAir{position:absolute;top:calc(46px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);
+    font-size:12px;font-weight:800;opacity:.9;white-space:nowrap;font-variant-numeric:tabular-nums;
+    text-shadow:0 1px 6px rgba(0,30,70,.7);}
+  #hudNote{position:absolute;top:24%;left:50%;transform:translate(-50%,-50%) scale(0);opacity:0;
+    font-size:26px;font-weight:900;color:#ffe14d;text-shadow:0 0 18px rgba(255,220,90,.8),0 2px 0 rgba(0,0,0,.3);
+    white-space:nowrap;}
+  #hudNote.pop{animation:notePop 1.8s cubic-bezier(.2,1.4,.4,1) forwards;}
+  @keyframes notePop{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}
+    14%{transform:translate(-50%,-50%) scale(1.12);opacity:1}22%{transform:translate(-50%,-50%) scale(1)}
+    80%{opacity:1}100%{transform:translate(-50%,-60%) scale(1);opacity:0}}
+
+  /* ===== タイピングドック（画面下・キーボードの上に浮く） ===== */
+  #dock{position:fixed;left:0;right:0;bottom:0;z-index:14;display:none;text-align:center;pointer-events:auto;
+    padding:6px 10px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg,rgba(4,14,28,0),rgba(4,14,28,.82) 34%);}
+  #dock.on{display:block;}
+  #comboLine{height:18px;font-size:13px;font-weight:900;color:#ffd24d;text-shadow:0 0 10px rgba(255,210,80,.5);
+    font-variant-numeric:tabular-nums;}
+  #krLine{font-weight:900;line-height:1.4;letter-spacing:.01em;min-height:1.5em;word-break:normal;overflow-wrap:break-word;padding:0 8px;}
+  /* 英語は単語で折り返したいので、文字spanはinline・単語は.wでまとめてnowrap（語中で割れない） */
+  #krLine .w{display:inline-block;white-space:nowrap;}
+  #krLine span.ch{padding:0 .5px;border-radius:4px;}
+  #krLine .done{color:#8dffb0;text-shadow:0 0 12px rgba(120,255,170,.45);}
+  #krLine .todo{color:#eaf6ff;opacity:.88;}
+  #krLine .cur{color:#ffe14d;background:rgba(255,225,77,.13);box-shadow:0 2px 0 #ffe14d;animation:curBlink 1.1s steps(2) infinite;}
+  @keyframes curBlink{0%{box-shadow:0 2px 0 #ffe14d}50%{box-shadow:0 2px 0 transparent}}
+  #krLine .bad{color:#fff;background:rgba(255,80,110,.6);}
+  #krLine .sp{opacity:.35;}
+  #krLine.shake{animation:krShake .22s ease;}
+  @keyframes krShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  #krLine.clear{animation:krClear .3s ease;}
+  @keyframes krClear{0%{filter:brightness(2.2);transform:scale(1.06)}100%{filter:none;transform:none}}
+  #jaLine{margin-top:3px;font-size:12px;color:#bfe0ff;opacity:.85;}
+  #dockHint{margin-top:3px;font-size:10px;color:#8fb8d8;opacity:.75;}
+  /* 実際の入力欄は見えない位置に薄く置く（値は消さないストリーム方式なので表示は上のkrLineが担う）
+     ※font-size:16px はiOSのフォーカス時自動ズームを防ぐため必須
+     ※user-select:text はiOSで必須──bodyの user-select:none を継承すると
+       iOS Safariは入力欄へのフォーカス・キャレット・IME入力そのものが壊れる */
+  #typebox{position:absolute;left:10px;bottom:2px;width:55%;height:22px;opacity:.02;border:none;background:transparent;
+    color:transparent;font-size:16px;caret-color:transparent;outline:none;pointer-events:auto;
+    user-select:text;-webkit-user-select:text;-webkit-touch-callout:none;}
+
+  /* ===== 画面（タイトル・あそびかた・結果 等） ===== */
+  .screen{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:24px;overflow-y:auto;
+    background:radial-gradient(ellipse at 50% 36%,rgba(24,66,110,.62),rgba(5,12,30,.95));
+    -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
+  .screen.hidden{display:none;}
+  .hero{width:min(30vw,120px);height:auto;margin-bottom:8px;filter:drop-shadow(0 0 22px rgba(120,210,255,.75));
+    animation:fl 2.6s ease-in-out infinite;}
+  @keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .logo{font-size:15vw;line-height:1;font-weight:900;font-style:italic;letter-spacing:.02em;
+    background:linear-gradient(180deg,#eaffff 0%,#7ce0ff 46%,#3a7bff 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 22px rgba(90,190,255,.6));max-width:10ch;}
+  .logo.small{font-size:9vw;max-width:none;}
+  @media(min-width:560px){.logo{font-size:84px}.logo.small{font-size:50px}}
+  .sub{margin-top:4px;font-size:13px;letter-spacing:.34em;color:#a8dcff;opacity:.92;}
+  .desc{margin-top:16px;font-size:13px;line-height:1.9;opacity:.9;max-width:360px;}
+  .desc b{color:#7ce0ff;}
+  .btn{pointer-events:auto;margin-top:20px;padding:15px 44px;font-size:18px;font-weight:900;letter-spacing:.16em;border:none;border-radius:40px;cursor:pointer;
+    color:#052b47;background:linear-gradient(180deg,#d8f4ff,#57b6ff);box-shadow:0 8px 26px rgba(70,170,255,.45),inset 0 1px 0 rgba(255,255,255,.7);transition:transform .08s;}
+  .btn:active{transform:translateY(2px) scale(.98);}
+  .btn.ghost{background:rgba(255,255,255,.08);color:#e0f4ff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);font-size:14px;padding:12px 26px;margin-top:12px;}
+  .btn-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:12px;}
+  .score-final{margin-top:14px;font-size:13px;letter-spacing:.2em;opacity:.8;}
+  .score-final .v{font-size:52px;font-weight:900;color:#fff;display:block;font-variant-numeric:tabular-nums;text-shadow:0 0 24px rgba(110,200,255,.8);}
+  .nb{margin-top:8px;font-size:12px;color:#7ce0ff;letter-spacing:.2em;opacity:0;}
+  .stat2{margin-top:8px;font-size:12px;opacity:.75;letter-spacing:.08em;line-height:1.9;}
+  .ghostline{margin-top:8px;font-size:12px;color:#cfa8ff;letter-spacing:.06em;}
+  .hint{margin-top:18px;font-size:11px;opacity:.5;letter-spacing:.08em;line-height:1.8;}
+  .credit{margin-top:16px;font-size:10px;letter-spacing:.2em;opacity:.4;}
+  .credit a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3);}
+  a{pointer-events:auto;}
+
+  /* ===== 🏆 世界ランキング ===== */
+  .btn.small{padding:11px 18px;font-size:14px;margin-top:0;}
+  .btn.sub{background:rgba(255,255,255,.08);color:#e0f4ff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);
+    font-size:14px;padding:12px 26px;margin-top:12px;}
+  .rankbox{margin-top:14px;width:100%;max-width:360px;}
+  .rankentry{display:flex;gap:8px;justify-content:center;align-items:center;}
+  .rankentry input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:2px solid rgba(124,224,255,.5);
+    background:rgba(8,24,42,.6);color:#fff;font-size:15px;text-align:center;outline:none;pointer-events:auto;
+    user-select:text;-webkit-user-select:text;}
+  .rankentry input::placeholder{color:rgba(255,255,255,.4);}
+  .rankflag{flex:none;padding:9px 10px;border-radius:10px;border:2px solid rgba(124,224,255,.5);
+    background:rgba(8,24,42,.6);color:#fff;font-size:20px;outline:none;cursor:pointer;line-height:1;pointer-events:auto;}
+  .flagpicker{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:18px;
+    pointer-events:auto;background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
+  .flagpicker.hidden{display:none;}
+  .flagpicker-inner{width:min(94vw,420px);max-height:84vh;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;overscroll-behavior:contain;text-align:center;
+    background:rgba(8,22,40,.96);border:1px solid rgba(124,224,255,.35);border-radius:16px;padding:18px 16px 16px;}
+  .flagpicker-title{font-size:16px;font-weight:800;color:#a8dcff;letter-spacing:.14em;margin-bottom:12px;}
+  .flaggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:6px;margin-bottom:12px;}
+  .flaggrid.hidden{display:none;}
+  .flagopt{font-size:24px;line-height:1;padding:8px 0;border-radius:8px;border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.05);cursor:pointer;color:#fff;}
+  .flagopt:active{transform:scale(.9);} .flagopt.sel{border-color:#7ce0ff;background:rgba(124,224,255,.18);}
+  .rankmsg{min-height:15px;margin-top:8px;font-size:12px;color:#a8dcff;letter-spacing:.05em;}
+  .ranktitle{margin-top:14px;font-size:14px;font-weight:800;color:#a8dcff;letter-spacing:.12em;}
+  .ranktitle.big{font-size:22px;margin-bottom:12px;margin-top:0;}
+  .ranklist{list-style:none;margin:8px auto 0;padding:0;width:100%;max-width:360px;text-align:left;max-height:32vh;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;overscroll-behavior:contain;pointer-events:auto;}
+  .ranklist li{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:8px;
+    background:rgba(255,255,255,.06);margin-bottom:5px;font-variant-numeric:tabular-nums;font-size:14px;}
+  .ranklist li:nth-child(1){background:rgba(255,200,80,.20);}
+  .ranklist li:nth-child(2){background:rgba(210,220,255,.13);}
+  .ranklist li:nth-child(3){background:rgba(255,170,120,.13);}
+  .ranklist .rk{width:30px;flex:none;text-align:center;font-weight:800;}
+  .ranklist .rn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff;}
+  .ranklist .rs{flex:none;font-weight:800;color:#7ce0ff;}
+  .rankempty{justify-content:center;opacity:.6;}
+  #rankScreen .ranklist{max-height:54vh;}
+  /* ===== 結果発表「◯位にランクイン！」 ===== */
+  .rankin-ov{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;pointer-events:auto;
+    background:radial-gradient(ellipse at 50% 44%,rgba(12,34,60,.62),rgba(0,0,0,.84));
+    -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);animation:rankinFade .25s ease;}
+  .rankin-ov.out{animation:rankinFadeOut .42s ease forwards;pointer-events:none;}
+  @keyframes rankinFade{from{opacity:0}to{opacity:1}}
+  @keyframes rankinFadeOut{to{opacity:0}}
+  .rankin-card{position:relative;text-align:center;animation:rankinPop .5s cubic-bezier(.2,1.4,.4,1);}
+  @keyframes rankinPop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+  .rankin-rays{position:absolute;left:50%;top:46%;width:200vmax;height:200vmax;transform:translate(-50%,-50%) scale(.2);
+    opacity:0;pointer-events:none;
+    background:repeating-conic-gradient(from 0deg,rgba(140,220,255,.16) 0deg 7deg,rgba(140,220,255,0) 7deg 14deg);}
+  .rankin-ov.reveal .rankin-rays{animation:rankinRays .6s ease-out forwards,rankinSpin 14s linear infinite .6s;}
+  @keyframes rankinRays{to{opacity:.9;transform:translate(-50%,-50%) scale(1)}}
+  @keyframes rankinSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+  .rankin-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;}
+  .rankin-ov.reveal .rankin-flash{animation:rankinFlash .5s ease-out;}
+  @keyframes rankinFlash{0%{opacity:.85}100%{opacity:0}}
+  .rankin-sub{font-size:15px;letter-spacing:.5em;color:#8fd8ff;font-weight:800;margin-bottom:4px;text-shadow:0 0 12px rgba(120,210,255,.7);}
+  .rankin-ov.reveal .rankin-sub{animation:rankinShine 1.3s ease-in-out infinite;}
+  .rankin-rank{position:relative;display:flex;align-items:baseline;justify-content:center;gap:6px;line-height:1;max-width:96vw;}
+  .rankin-ring{position:absolute;left:50%;top:50%;width:30px;height:30px;border-radius:50%;
+    border:4px solid rgba(140,220,255,.9);transform:translate(-50%,-50%) scale(0);opacity:0;}
+  .rankin-ov.reveal .rankin-ring{animation:rankinRing .7s ease-out forwards;}
+  @keyframes rankinRing{0%{opacity:.9;transform:translate(-50%,-50%) scale(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(14)}}
+  .rankin-num{font-size:min(24vw,150px);font-weight:900;font-style:italic;font-variant-numeric:tabular-nums;
+    white-space:nowrap;padding:0 .06em;line-height:1;
+    background:linear-gradient(180deg,#eaffff 0%,#7ce0ff 38%,#3a9bff 72%,#3a5bff 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 4px 18px rgba(80,170,255,.6));}
+  .rankin-ov.rolling .rankin-num{animation:rankinThrob .25s ease-in-out infinite;}
+  @keyframes rankinThrob{0%,100%{transform:scale(.94)}50%{transform:scale(1.04)}}
+  .rankin-ov.reveal .rankin-num{animation:rankinSlam .55s cubic-bezier(.18,1.6,.4,1) both;}
+  @keyframes rankinSlam{0%{transform:scale(2.4);opacity:0;filter:blur(6px) drop-shadow(0 4px 18px rgba(80,170,255,.6))}55%{transform:scale(.86);opacity:1;filter:blur(0) drop-shadow(0 4px 18px rgba(80,170,255,.6))}100%{transform:scale(1)}}
+  .rankin-pos{font-size:11vw;font-weight:900;color:#8fd8ff;text-shadow:0 0 14px rgba(120,210,255,.8);}
+  .rankin-msg{margin-top:2px;font-size:8vw;font-weight:900;color:#fff;letter-spacing:.06em;opacity:0;
+    text-shadow:0 0 16px rgba(140,220,255,.9),0 2px 0 rgba(0,0,0,.35);}
+  .rankin-msg b{color:#7ce0ff;}
+  .rankin-ov.reveal .rankin-msg{animation:rankinMsgIn .4s ease-out .25s forwards,rankinShine 1.4s ease-in-out infinite .65s;}
+  @keyframes rankinMsgIn{from{opacity:0;transform:translateY(10px) scale(.9)}to{opacity:1;transform:none}}
+  @keyframes rankinShine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.5)}}
+  .rankin-total{margin-top:12px;font-size:14px;color:#cfe8ff;opacity:0;letter-spacing:.1em;}
+  .rankin-ov.reveal .rankin-total{animation:rankinMsgIn .4s ease-out .45s forwards;}
+  .rankin-conf{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+  .rankin-conf i{position:absolute;top:-16px;width:10px;height:15px;border-radius:2px;opacity:.96;animation:rankinConf 2.6s linear forwards;}
+  @keyframes rankinConf{0%{top:-16px}100%{top:112%}}
+  .rankin-fws{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+  .rankin-fw{position:absolute;width:0;height:0;}
+  .rankin-fw i{position:absolute;left:0;top:0;width:7px;height:7px;border-radius:50%;opacity:1;
+    box-shadow:0 0 8px currentColor;animation:rankinFw .9s ease-out forwards;}
+  @keyframes rankinFw{0%{opacity:1;transform:translate(0,0) scale(1.1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)}}
+  .rankin-cocco{position:absolute;left:50%;top:-16vh;width:min(20vw,116px);height:auto;transform:translateX(-50%) scale(.3);opacity:0;
+    pointer-events:none;filter:drop-shadow(0 6px 16px rgba(120,210,255,.6));}
+  .rankin-ov.reveal .rankin-cocco{animation:coccoIn .5s cubic-bezier(.2,1.6,.4,1) .12s forwards,coccoBob 1s ease-in-out 1.1s infinite;}
+  @keyframes coccoIn{from{opacity:0;transform:translateX(-50%) translateY(24px) scale(.3)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+  @keyframes coccoBob{0%,100%{transform:translateX(-50%) translateY(0) rotate(-5deg)}50%{transform:translateX(-50%) translateY(-14px) rotate(5deg)}}
+  .rankin-ov.t-champ{background:radial-gradient(ellipse at 50% 44%,rgba(95,62,8,.72),rgba(10,4,0,.9));}
+  .rankin-ov.t-champ .rankin-rays{background:repeating-conic-gradient(from 0deg,rgba(255,218,100,.26) 0deg 6deg,rgba(255,218,100,0) 6deg 12deg);}
+  .rankin-ov.t-champ .rankin-num{background:linear-gradient(180deg,#fffbe0 0%,#ffe680 32%,#ffc83c 62%,#ff9a1c 100%);
+    -webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 4px 26px rgba(255,200,40,.95));}
+  .rankin-ov.t-champ .rankin-sub{color:#ffe680;letter-spacing:.32em;font-size:17px;text-shadow:0 0 18px rgba(255,215,90,.95);}
+  .rankin-crown{font-size:min(20vw,120px);line-height:1;margin-bottom:-2vh;
+    filter:drop-shadow(0 0 26px rgba(255,215,80,.95));
+    animation:crownDrop .8s cubic-bezier(.2,1.5,.5,1) .15s both,crownFloat 1.6s ease-in-out 1s infinite;}
+  @keyframes crownDrop{from{transform:translateY(-70vh) rotate(-35deg) scale(1.6);opacity:0}
+    60%{transform:translateY(2vh) rotate(6deg) scale(.95);opacity:1}to{transform:translateY(0) rotate(0) scale(1)}}
+  @keyframes crownFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
+  .rankin-shine{position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(115deg,transparent 32%,rgba(255,246,200,.4) 50%,transparent 68%);
+    background-size:280% 100%;animation:shineSweep 1.5s ease-in-out .4s infinite;}
+  @keyframes shineSweep{0%{background-position:130% 0}100%{background-position:-130% 0}}
+  .rankin-ov.t-second .rankin-num{background:linear-gradient(180deg,#ffffff 0%,#e6ecf6 35%,#aebfd6 70%,#7e90ac 100%);
+    -webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 4px 20px rgba(200,220,255,.85));}
+  .rankin-ov.t-second .rankin-sub{color:#dfe9f6;text-shadow:0 0 14px rgba(200,220,255,.8);}
+  .rankin-ov.t-second .rankin-rays{background:repeating-conic-gradient(from 0deg,rgba(210,225,255,.15) 0deg 7deg,rgba(210,225,255,0) 7deg 14deg);}
+  .rankin-ov.t-third .rankin-num{background:linear-gradient(180deg,#ffe9cd 0%,#eeae72 40%,#cd7d3c 75%,#9c5822 100%);
+    -webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 4px 18px rgba(230,150,80,.85));}
+  .rankin-ov.t-third .rankin-sub{color:#ffd2a8;text-shadow:0 0 12px rgba(240,170,100,.8);}
+  .rankin-ov.t-miss{background:radial-gradient(ellipse at 50% 44%,rgba(24,32,44,.74),rgba(2,4,8,.88));}
+  .rankin-ov.t-miss .rankin-rays,.rankin-ov.t-miss .rankin-ring,.rankin-ov.t-miss .rankin-flash{display:none;}
+  .rankin-ov.t-miss .rankin-num{background:linear-gradient(180deg,#d8e2ea 0%,#9fb2c4 60%,#6a8095 100%);
+    -webkit-background-clip:text;background-clip:text;filter:none;animation-duration:.7s;}
+  .rankin-ov.t-miss .rankin-sub{color:#aebfcf;text-shadow:none;animation:none;}
+  .rankin-ov.t-miss .rankin-msg{text-shadow:0 0 10px rgba(150,180,210,.5);}
+  .rankin-ov.t-miss .rankin-cocco{filter:grayscale(.35) drop-shadow(0 6px 14px rgba(140,170,200,.45));}
+  .rankin-retry{margin-top:10px;font-size:16px;font-weight:900;color:#6fc4ff;letter-spacing:.1em;opacity:0;
+    text-shadow:0 0 14px rgba(90,180,255,.9);animation:retryIn .5s ease-out .9s forwards,retryBurn 1.1s ease-in-out 1.5s infinite;}
+  @keyframes retryIn{from{opacity:0;transform:translateY(14px) scale(.8)}to{opacity:1;transform:none}}
+  @keyframes retryBurn{0%,100%{filter:brightness(1)}50%{filter:brightness(1.7)}}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="game"></canvas>
+  <div class="ctrlbtn" id="muteBtn">🔊</div>
+  <div class="ctrlbtn" id="fsBtn">⛶</div>
+
+  <div id="hud">
+    <div id="hudAlt">0<small> m</small></div>
+    <div id="hudAir">⏱ 0:00　👟 0打</div>
+    <div id="hudNote"></div>
+  </div>
+
+  <!-- タイピングドック -->
+  <div id="dock">
+    <div id="comboLine"></div>
+    <div id="krLine"></div>
+    <div id="jaLine"></div>
+    <div id="dockHint">Type the English sentence!（英語で入力してね）</div>
+    <input id="typebox" lang="en" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="英語入力">
+  </div>
+
+  <div class="screen" id="titleScreen">
+    <img class="hero" src="/chikumo.svg" alt="こっこちゃん">
+    <div class="logo">空蹴り英語</div>
+    <div class="sub">SORAGERI ─ 英語タイピング</div>
+    <div class="desc">島ぐらしの島から、空の果てへ。<br>
+      <b>英語</b>を1文字打つたび こっこちゃんが<b>空蹴り</b>！<br>
+      文を打ちきると<b>ボーナス蹴り</b>で ぐんぐん昇る。<br>
+      打つのを止めると…<b>落ちる</b>。墜落したら🚑。<br>
+      <span style="opacity:.75">生活英会話300文で、指と英語をきたえよう。</span></div>
+    <button class="btn" id="startBtn">とびたつ</button>
+    <button class="btn ghost" id="howBtn">あそびかた</button>
+    <button class="btn ghost" id="rankBtn">🏆 世界ランキング</button>
+    <div class="hint" id="titleGhostLine"></div>
+    <div class="hint">大文字・小文字はどちらでもOK。カンマやピリオドは省略しても大丈夫</div>
+    <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+  </div>
+
+  <div class="screen hidden" id="rankScreen">
+    <div class="ranktitle big">🏆 世界ランキング</div>
+    <div style="font-size:11px;opacity:.6;letter-spacing:.1em;margin-bottom:4px">最高高度(m)で競う ／ ⏱は滞空時間</div>
+    <ol class="ranklist" id="rankListTitle"><li class="rankempty">読み込み中…</li></ol>
+    <button class="btn" id="rankBack">もどる</button>
+  </div>
+
+  <div class="screen hidden" id="howScreen">
+    <div class="logo small">あそびかた</div>
+    <div class="desc" style="max-width:380px;text-align:left;">
+      ◆ 画面下に出る<b>英語の文</b>を、そのまま入力しよう。<b>1文字正しく打つたび空蹴り</b>で上昇！ 文を最後まで打ちきると<b>ボーナス蹴り</b>＆コンボ🔥<br><br>
+      ◆ 手が止まると<b>落下</b>する。落ちても大丈夫、<b>打てば空中で立て直せる</b>。地面まで落ちたら墜落…🚑救急車でおしまい。<br><br>
+      ◆ 記録は<b>最高高度(m)</b>と<b>滞空時間</b>。高く昇るほど、島が小さくなり、雲を抜け、夕空、そして<b>星の海</b>へ──景色が変わっていく。<br><br>
+      ◆ 👻<b>ゴーストこっこ</b> ── 自己ベストの飛行が70%透過のこっこちゃんとして<b>いっしょに飛ぶ</b>（この端末に保存）。きのうの自分に、勝て。<br><br>
+      ◆ <b>大文字・小文字は区別しません</b>。カンマ「,」ピリオド「.」アポストロフィ「'」は<b>打っても省いてもOK</b>（<b>don't→dont</b> でも通る）。スペースも省略できます。<br><br>
+      ◆ まちがえた文字は<b>⌫（バックスペース）</b>で直してね。急がば打て、正しく打てば速くなる。
+    </div>
+    <button class="btn" id="howBack">もどる</button>
+  </div>
+
+  <div class="screen hidden" id="overScreen">
+    <div class="logo small" id="overTitle">🚑 びょういんへ…</div>
+    <div class="score-final">最高高度<span class="v" id="finalAlt">0 m</span></div>
+    <div class="stat2" id="statLine">滞空 0:00 ／ 文章 0 ／ 最大コンボ 0 ／ 正確率 100%</div>
+    <div class="nb" id="newBest">★ 自己ベスト更新！ ★</div>
+    <div class="ghostline" id="ghostLine"></div>
+    <div class="rankbox">
+      <div class="rankentry" id="rankEntry">
+        <button type="button" id="rankFlagBtn" class="rankflag" aria-label="国旗をえらぶ">🇯🇵</button>
+        <input id="rankName" maxlength="10" placeholder="なまえ" autocomplete="off" spellcheck="false">
+        <button class="btn small" id="rankSubmit">🏆 登録</button>
+      </div>
+      <div class="rankmsg" id="rankMsg"></div>
+      <div class="ranktitle">🏆 世界ランキング</div>
+      <ol class="ranklist" id="rankList"><li class="rankempty">…</li></ol>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="retryBtn">もういちど</button>
+      <button class="btn ghost" id="shareBtn">記録を共有</button>
+    </div>
+    <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+  </div>
+
+  <!-- 国旗ピッカー -->
+  <div id="flagPicker" class="flagpicker hidden">
+    <div class="flagpicker-inner">
+      <div class="flagpicker-title">国旗をえらぶ</div>
+      <div class="flaggrid" id="flagGridMajor"></div>
+      <button type="button" class="btn sub" id="flagMoreBtn">🏳️ その他をすべて表示</button>
+      <div class="flaggrid all hidden" id="flagGridAll"></div>
+      <button type="button" class="btn small" id="flagPickerClose">とじる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+(function(){
+/* ============================================================================
+   空蹴り英語 ─ SORAGERI ENGLISH
+   英語を1文字打つたび、こっこちゃんが空蹴りして昇る。止めると落ちる。
+   空蹴り（/sorageri/ 韓国語版）の英語版。仕様は同じ。
+   島ぐらし（/mori/）の絵文字の島世界を「空から見下ろす」形で継承した、
+   タイピング・スキルアップ系ジャンルの英語編。
+   ============================================================================ */
+
+/* ==========================================================================
+   ▼▼▼▼▼▼▼▼▼▼▼▼ 英語の文章の追加は ここ ▼▼▼▼▼▼▼▼▼▼▼▼
+   --------------------------------------------------------------------------
+   ・形式：["English sentence", "日本語の意味"], を SENTENCES の中に1行ずつ足すだけ。
+   ・使ってよい文字：アルファベット・スペースが基本。アポストロフィ「'」カンマ「,」
+     ピリオド「.」は使ってOK（プレイ側では打っても省いても正解になる＝don't も dont も通る）。
+     数字・その他の記号（? ! : ; " など）は避ける（スマホで打ちにくく詰まるため）。
+   ・大文字/小文字はゲーム側で区別しない（Hello も hello も正解）。
+   ・長さは自由。スペースを除いて 10文字以下＝低空（序盤）向け、11〜20文字＝中空、
+     21文字以上＝高空向けに、ゲームが自動で振り分ける。
+   ・テーマは「生活英会話でよく使う英語」。カテゴリのコメントに続けて
+     足していくと整理しやすい。
+   ・AIへの頼み方の例：「/sorageri-en/index.html の SENTENCES に、
+     旅行英会話の文章を50個追加して（形式は既存行と同じ・日本語の意味つき）」
+   ========================================================================== */
+var SENTENCES=[
+  /* --- Greetings / あいさつ・基本 --- */
+  ["Hello","こんにちは"],
+  ["Hi there","やあ"],
+  ["Good morning","おはよう"],
+  ["Good afternoon","こんにちは（昼）"],
+  ["Good evening","こんばんは"],
+  ["Good night","おやすみ"],
+  ["Goodbye","さようなら"],
+  ["See you later","またあとで"],
+  ["See you tomorrow","また明日"],
+  ["Take care","気をつけてね"],
+  ["Have a nice day","よい一日を"],
+  ["How are you","元気ですか"],
+  ["I am fine thank you","元気です、ありがとう"],
+  ["Nice to meet you","はじめまして"],
+  ["Long time no see","お久しぶり"],
+  ["Welcome","ようこそ"],
+  ["Thank you","ありがとう"],
+  ["Thanks a lot","どうもありがとう"],
+  ["Thank you so much","本当にありがとう"],
+  ["You are welcome","どういたしまして"],
+  ["I am sorry","ごめんなさい"],
+  ["Excuse me","すみません"],
+  ["No problem","問題ないよ"],
+  ["It is okay","大丈夫だよ"],
+  ["Congratulations","おめでとう"],
+  ["Good luck","がんばってね"],
+  ["Bless you","お大事に（くしゃみ）"],
+  ["Cheers","乾杯／ありがとう"],
+  /* --- Self introduction / 自己紹介 --- */
+  ["My name is Cocco","私の名前はコッコです"],
+  ["What is your name","名前は何ですか"],
+  ["I am from Japan","私は日本出身です"],
+  ["Where are you from","どこ出身ですか"],
+  ["How old are you","何歳ですか"],
+  ["I am twenty years old","私は二十歳です"],
+  ["I am a student","私は学生です"],
+  ["I am an office worker","私は会社員です"],
+  ["I live in Tokyo","私は東京に住んでいます"],
+  ["I have two brothers","兄弟が二人います"],
+  ["What do you do","お仕事は何ですか"],
+  ["What are your hobbies","趣味は何ですか"],
+  ["I like playing games","ゲームをするのが好きです"],
+  ["I am learning English","私は英語を勉強しています"],
+  ["I love music","音楽が大好きです"],
+  ["Nice to see you again","また会えてうれしいです"],
+  ["This is my friend","こちらは私の友だちです"],
+  ["Pleased to meet you","お会いできてうれしいです"],
+  /* --- Responses / 返事・あいづち --- */
+  ["Yes please","はい、お願いします"],
+  ["No thank you","いいえ、けっこうです"],
+  ["I see","なるほど"],
+  ["Really","本当に"],
+  ["Of course","もちろん"],
+  ["Sure","いいよ"],
+  ["Maybe","たぶん"],
+  ["I think so","そう思います"],
+  ["I do not think so","そうは思いません"],
+  ["I agree with you","賛成です"],
+  ["That is right","その通り"],
+  ["That is true","たしかに"],
+  ["I am not sure","よくわかりません"],
+  ["I do not know","わかりません"],
+  ["I understand","わかりました"],
+  ["Got it","了解"],
+  ["Let me think","考えさせて"],
+  ["Just a moment","ちょっと待って"],
+  ["Please wait a moment","少々お待ちください"],
+  ["Could you say that again","もう一度言ってもらえますか"],
+  ["Please speak slowly","ゆっくり話してください"],
+  ["What do you mean","どういう意味ですか"],
+  ["That sounds good","いいですね"],
+  ["No worries","気にしないで"],
+  /* --- Meals / 食事 --- */
+  ["I am hungry","おなかがすいた"],
+  ["I am thirsty","のどが渇いた"],
+  ["I am full","おなかいっぱい"],
+  ["Let us eat","食べましょう"],
+  ["It is delicious","おいしい"],
+  ["This tastes great","とてもおいしい"],
+  ["It is too spicy","辛すぎる"],
+  ["It is sweet","甘い"],
+  ["What would you like","何にしますか"],
+  ["I would like a coffee","コーヒーをください"],
+  ["Water please","お水をください"],
+  ["Can I see the menu","メニューを見せてください"],
+  ["I will have this one","これにします"],
+  ["One more please","もう一つください"],
+  ["Check please","お会計お願いします"],
+  ["How much is it","いくらですか"],
+  ["Can I get this to go","持ち帰りできますか"],
+  ["For here please","ここで食べます"],
+  ["What do you recommend","おすすめは何ですか"],
+  ["Let us have lunch together","一緒にお昼を食べよう"],
+  ["I am on a diet","ダイエット中なんだ"],
+  ["Enjoy your meal","召し上がれ"],
+  ["It was really good","本当においしかった"],
+  ["Can I have the receipt","レシートをください"],
+  /* --- Shopping / 買いもの --- */
+  ["How much is this","これはいくらですか"],
+  ["It is too expensive","高すぎます"],
+  ["That is cheap","安いですね"],
+  ["Can you give me a discount","まけてもらえますか"],
+  ["I will take it","これを買います"],
+  ["I am just looking","見ているだけです"],
+  ["Do you have another color","ほかの色はありますか"],
+  ["Do you have a bigger one","もっと大きいのはありますか"],
+  ["Can I try it on","試着してもいいですか"],
+  ["I will pay by card","カードで払います"],
+  ["I will pay in cash","現金で払います"],
+  ["Can I have a bag","袋をもらえますか"],
+  ["Where is the fitting room","試着室はどこですか"],
+  ["It does not fit","サイズが合いません"],
+  ["Can I return this","これを返品できますか"],
+  ["It is on sale","セール中です"],
+  ["It is sold out","売り切れです"],
+  ["Do you take credit cards","クレジットカードは使えますか"],
+  /* --- Getting around / 移動・交通 --- */
+  ["Where is the station","駅はどこですか"],
+  ["Where is the bathroom","トイレはどこですか"],
+  ["How do I get there","そこへはどう行きますか"],
+  ["Is it far from here","ここから遠いですか"],
+  ["It is near here","ここから近いです"],
+  ["Turn right","右に曲がって"],
+  ["Turn left","左に曲がって"],
+  ["Go straight ahead","まっすぐ進んで"],
+  ["Stop here please","ここで停めてください"],
+  ["Take me to the airport","空港までお願いします"],
+  ["I will take the train","電車で行きます"],
+  ["Where can I buy a ticket","切符はどこで買えますか"],
+  ["Which way is the exit","出口はどちらですか"],
+  ["I am lost","道に迷いました"],
+  ["Can you show me on the map","地図で示してもらえますか"],
+  ["How long does it take","どのくらいかかりますか"],
+  ["Is this seat taken","この席は空いていますか"],
+  ["I missed my train","電車に乗り遅れました"],
+  /* --- Weather / 天気 --- */
+  ["It is a nice day today","今日はいい天気です"],
+  ["The weather is bad","天気が悪いです"],
+  ["It is raining","雨が降っています"],
+  ["It is snowing","雪が降っています"],
+  ["It is windy","風が強いです"],
+  ["It is hot today","今日は暑いです"],
+  ["It is cold outside","外は寒いです"],
+  ["It is warm today","今日は暖かいです"],
+  ["Take an umbrella","傘を持って行って"],
+  ["The sky is clear","空が晴れています"],
+  ["It looks like rain","雨が降りそうです"],
+  ["There is a rainbow","虹が出ています"],
+  ["It will be sunny tomorrow","明日は晴れるでしょう"],
+  ["The stars are beautiful","星がきれいです"],
+  ["What a lovely day","なんていい日でしょう"],
+  /* --- Time / 時間・約束 --- */
+  ["What time is it now","今何時ですか"],
+  ["It is three o clock","3時です"],
+  ["What day is it today","今日は何曜日ですか"],
+  ["It is Monday","月曜日です"],
+  ["What are you doing this weekend","週末は何をしますか"],
+  ["Let us meet tomorrow","明日会いましょう"],
+  ["Are you free tonight","今夜ひまですか"],
+  ["I have an appointment","約束があります"],
+  ["Sorry I am late","遅れてごめんなさい"],
+  ["Please hurry up","急いでください"],
+  ["I do not have time","時間がありません"],
+  ["We still have time","まだ時間があります"],
+  ["I will be there soon","もうすぐ着きます"],
+  ["Give me five minutes","5分だけ待って"],
+  ["See you next time","また今度ね"],
+  /* --- Feelings / 気持ち --- */
+  ["I am happy","うれしい"],
+  ["I am so glad","とてもうれしい"],
+  ["I am sad","悲しい"],
+  ["That is interesting","おもしろいね"],
+  ["I am bored","退屈だ"],
+  ["I am tired","疲れた"],
+  ["I am sleepy","眠い"],
+  ["I am excited","わくわくする"],
+  ["I am nervous","緊張する"],
+  ["I am surprised","びっくりした"],
+  ["I am scared","こわい"],
+  ["Do not worry","心配しないで"],
+  ["Cheer up","元気出して"],
+  ["You can do it","君ならできる"],
+  ["That is amazing","すごいね"],
+  ["That is so cute","とてもかわいい"],
+  ["That is cool","かっこいい"],
+  ["I miss you","会いたいな"],
+  ["I love you","愛してる"],
+  ["I feel great today","今日は気分がいい"],
+  ["I really like it","とても気に入った"],
+  ["It makes me smile","笑顔になれる"],
+  /* --- Body & health / からだ・健康 --- */
+  ["I do not feel well","体調が悪いです"],
+  ["I have a headache","頭が痛いです"],
+  ["I have a stomachache","おなかが痛いです"],
+  ["I caught a cold","風邪をひきました"],
+  ["I have a fever","熱があります"],
+  ["I have a cough","咳が出ます"],
+  ["Do you have any medicine","薬はありますか"],
+  ["I need to see a doctor","医者に診てもらわないと"],
+  ["Please get some rest","ゆっくり休んでね"],
+  ["Get well soon","早く良くなってね"],
+  ["Take care of yourself","お大事に"],
+  ["I exercise every day","毎日運動しています"],
+  ["I go to bed early","早く寝ます"],
+  ["Drink plenty of water","水をたくさん飲んで"],
+  ["I feel much better now","だいぶ良くなりました"],
+  /* --- Home & daily life / 家・毎日のくらし --- */
+  ["Time to wake up","起きる時間だよ"],
+  ["I brush my teeth","歯を磨きます"],
+  ["I am having breakfast","朝ごはんを食べています"],
+  ["I am leaving now","もう出かけます"],
+  ["I am home","ただいま"],
+  ["I want to go home","家に帰りたい"],
+  ["I need to clean my room","部屋を掃除しないと"],
+  ["I am doing the laundry","洗濯をしています"],
+  ["I am cooking dinner","夕飯を作っています"],
+  ["I will wash the dishes","皿を洗います"],
+  ["Please take out the trash","ゴミを出しておいて"],
+  ["I am taking a shower","シャワーを浴びています"],
+  ["I am watching television","テレビを見ています"],
+  ["I am reading a book","本を読んでいます"],
+  ["I am going for a walk","散歩に行ってきます"],
+  ["Let us take a photo","写真を撮ろう"],
+  /* --- School & work / 学校・仕事 --- */
+  ["I am going to school","学校へ行きます"],
+  ["I have a lot of homework","宿題がたくさんある"],
+  ["I have a test tomorrow","明日テストがあります"],
+  ["I passed the exam","試験に合格した"],
+  ["May I ask a question","質問してもいいですか"],
+  ["I am going to work","仕事に行きます"],
+  ["I have a meeting today","今日は会議があります"],
+  ["I am very busy today","今日はとても忙しい"],
+  ["I finished my work","仕事が終わりました"],
+  ["I am off work now","もう退勤しました"],
+  ["I will do my best","ベストを尽くします"],
+  ["Let us take a break","休憩しましょう"],
+  ["Good job today","今日もお疲れさま"],
+  ["Can you help me with this","これを手伝ってもらえますか"],
+  /* --- Phone & contact / 電話・連絡 --- */
+  ["Hello who is this","もしもし、どちらさま"],
+  ["Please call me later","あとで電話してね"],
+  ["I will text you","メッセージ送るね"],
+  ["What is your number","電話番号は何ですか"],
+  ["Please contact me","連絡してください"],
+  ["I did not get your message","メッセージが届いていません"],
+  ["My battery is dead","電池が切れました"],
+  ["Is there free wifi here","ここに無料wifiはありますか"],
+  ["Can you send me the photo","写真を送ってもらえますか"],
+  ["Sorry wrong number","番号違いです、ごめんなさい"],
+  ["Can you talk right now","今話せますか"],
+  ["I cannot hear you well","よく聞こえません"],
+  ["I will call you back","かけ直します"],
+  /* --- Travel / 旅行 --- */
+  ["I am going on a trip","旅行に行きます"],
+  ["I made a reservation","予約しました"],
+  ["I would like to check in","チェックインしたいです"],
+  ["I am checking out","チェックアウトします"],
+  ["Can I leave my luggage here","荷物を預けられますか"],
+  ["Can you recommend a place","おすすめの場所はありますか"],
+  ["Could you take our picture","写真を撮ってもらえますか"],
+  ["This place is beautiful","ここは美しいです"],
+  ["What a great view","なんていい景色でしょう"],
+  ["I bought a souvenir","おみやげを買いました"],
+  ["I want to come here again","またここに来たいです"],
+  ["Have a good trip","よい旅を"],
+  ["I lost my passport","パスポートをなくしました"],
+  ["I can see the ocean","海が見えます"],
+  ["I want to live on an island","島で暮らしたいな"],
+  /* --- Help & asking / 助け・たずねる --- */
+  ["Please help me","助けてください"],
+  ["Thank you for your help","助けてくれてありがとう"],
+  ["Can you help me","手伝ってもらえますか"],
+  ["What is this","これは何ですか"],
+  ["How do I use this","これはどう使いますか"],
+  ["How do you say this in English","これは英語で何と言いますか"],
+  ["Do you speak Japanese","日本語を話せますか"],
+  ["Could you write it down","書いてもらえますか"],
+  ["It is an emergency","緊急事態です"],
+  ["Please be careful","気をつけてください"],
+  ["That is dangerous","それは危ないです"],
+  ["I found it","見つけました"],
+  ["Please call the police","警察を呼んでください"],
+  ["Where is the nearest hospital","一番近い病院はどこですか"],
+  /* --- Compliments & encouragement / ほめる・応援・その他 --- */
+  ["Well done","よくやったね"],
+  ["You did great","すごくよかったよ"],
+  ["You are the best","君が一番だ"],
+  ["You are getting better","上達しているね"],
+  ["Never give up","あきらめないで"],
+  ["I am rooting for you","応援してるよ"],
+  ["Follow your dreams","夢を追いかけて"],
+  ["Keep it up","その調子"],
+  ["Take your time","ゆっくりでいいよ"],
+  ["Let us be friends","友だちになろう"],
+  ["Happy birthday to you","お誕生日おめでとう"],
+  ["Happy new year","あけましておめでとう"],
+  ["Merry Christmas","メリークリスマス"],
+  ["Where are you going","どこへ行くの"],
+  ["What are you doing","何してるの"],
+  ["Let us go together","一緒に行こう"],
+  ["Come with me","一緒に来て"],
+  ["I am flying in the sky","空を飛んでいます"],
+  ["I am above the clouds","雲の上にいます"],
+  ["I want to fly higher","もっと高く飛びたい"],
+  ["I touched a star","星にさわった"],
+  ["The world looks so small","世界がとても小さく見える"],
+  /* --- More everyday phrases / 日常のひとこと --- */
+  ["Long day today","今日は長い一日だ"],
+  ["Let us go home","もう帰ろう"],
+  ["I am on my way","今向かっているよ"],
+  ["Wait for me","待ってて"],
+  ["Slow down please","ちょっと落ち着いて"],
+  ["It is my turn","私の番だよ"],
+  ["Let me try","やらせてみて"],
+  ["Do not give up","あきらめないで"],
+  ["One more time","もう一回"],
+  ["That was close","あぶなかった"],
+  ["Almost there","もうすぐだよ"],
+  ["Keep going","その調子で続けて"],
+  ["I did it","やった"],
+  ["We made it","やり遂げたね"],
+  ["What a day","なんて一日だ"],
+  ["See you soon","またすぐ会おう"],
+  /* --- Contractions / 短縮形（アポストロフィは打っても省いてもOK） --- */
+  ["I'm so happy","とてもうれしい"],
+  ["It's up to you","君しだいだよ"],
+  ["Don't worry about it","気にしないで"],
+  ["That's a good idea","いい考えだね"],
+  ["Let's get started","始めよう"],
+  ["I can't wait","待ちきれない"],
+  ["You're doing great","よくやってるよ"],
+  ["What's going on","どうしたの"],
+  ["I don't mind","かまわないよ"],
+  ["We're almost there","もうすぐ着くよ"],
+  ["It's a beautiful day","いい天気だね"],
+  ["I'll be right back","すぐ戻るね"]
+];
+/* ▲▲▲▲▲▲▲▲▲▲▲▲ 英語の文章の追加は ここまで ▲▲▲▲▲▲▲▲▲▲▲▲ */
+
+const $=id=>document.getElementById(id);
+const cv=$('game'), ctx=cv.getContext('2d');
+const TAU=Math.PI*2;
+let W=0,H=0,DPR=1,PPM=1;
+function resize(){ DPR=Math.min(window.devicePixelRatio||1,2); W=window.innerWidth; H=window.innerHeight;
+  cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0); PPM=H/130; }
+window.addEventListener('resize',resize); resize();
+
+/* ---- こっこちゃん（公式SVG）＆絵文字スプライト ---- */
+const cocco=new Image(); cocco.src='/chikumo.svg'; const AR=298/390;
+const emoCache={};
+function emoImg(ch){ let c=emoCache[ch];
+  if(!c){ c=document.createElement('canvas'); c.width=c.height=112; const x=c.getContext('2d');
+    x.font='92px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+    x.textAlign='center'; x.textBaseline='middle'; x.fillText(ch,56,62); emoCache[ch]=c; }
+  return c; }
+function drawEmo(ch,x,y,s,rot,alpha){
+  ctx.save(); ctx.globalAlpha=alpha==null?1:alpha; ctx.translate(x,y); if(rot)ctx.rotate(rot);
+  ctx.drawImage(emoImg(ch),-s/2,-s/2,s,s); ctx.restore(); }
+
+/* ---- サウンド（WebAudio・外部音源なし） ---- */
+let AC=null, master=null, windGain=null;
+let muted=false; try{ muted=localStorage.getItem('sorageriEnMute')==='1'; }catch(e){}
+function ac(){
+  if(!AC){ const A=window.AudioContext||window.webkitAudioContext; if(!A) return null;
+    AC=new A(); master=AC.createGain(); master.gain.value=muted?0:1; master.connect(AC.destination);
+    /* 風の音（上昇・落下の速さで強くなる） */
+    const len=AC.sampleRate, buf=AC.createBuffer(1,len,AC.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+    const src=AC.createBufferSource(); src.buffer=buf; src.loop=true;
+    const lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=420;
+    windGain=AC.createGain(); windGain.gain.value=0;
+    src.connect(lp); lp.connect(windGain); windGain.connect(master); src.start();
+  }
+  if(AC.state==='suspended') AC.resume();
+  return AC; }
+function blip(f,dur,type,vol,f2){ const A=ac(); if(!A) return;
+  const t=A.currentTime, o=A.createOscillator(), g=A.createGain();
+  o.type=type||'square'; o.frequency.setValueAtTime(f,t);
+  if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+  g.gain.setValueAtTime(vol||.15,t); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t+dur+.02); }
+function sndKick(n){ blip(430*Math.pow(2,(n%10)/12),.08,'square',.14,700*Math.pow(2,(n%10)/12)); }
+function sndComplete(){ [523,659,784].forEach((f,i)=>setTimeout(()=>blip(f,.12,'triangle',.16),i*55)); setTimeout(()=>blip(1568,.2,'sine',.1),180); }
+function sndTypo(){ blip(120,.09,'triangle',.1); }
+function sndMile(){ blip(880,.4,'sine',.12); setTimeout(()=>blip(1760,.5,'sine',.08),90); }
+function sndBest(){ [660,880,1100,1320].forEach((f,i)=>setTimeout(()=>blip(f,.14,'triangle',.13),i*70)); }
+function sndCrash(){ const A=ac(); if(!A) return;
+  blip(300,.5,'sawtooth',.2,50);
+  const t=A.currentTime, len=A.sampleRate*.4, buf=A.createBuffer(1,len,A.sampleRate), d=buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*(1-i/len);
+  const s=A.createBufferSource(); s.buffer=buf; const g=A.createGain(); g.gain.value=.25;
+  s.connect(g); g.connect(master); s.start(t); }
+function sndSiren(dur){ const A=ac(); if(!A) return;
+  const t0=A.currentTime, o=A.createOscillator(), g=A.createGain();
+  o.type='square'; g.gain.value=.06;
+  for(let t=0;t<dur;t+=.62){ o.frequency.setValueAtTime(750,t0+t); o.frequency.setValueAtTime(950,t0+t+.31); }
+  g.gain.setValueAtTime(.06,t0); g.gain.linearRampToValueAtTime(.0001,t0+dur);
+  o.connect(g); g.connect(master); o.start(t0); o.stop(t0+dur); }
+function vib(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+
+/* ---- ゲーム状態 ---- */
+let state='title';           // title | play | crash | over
+let alt=0, vy=0, flying=false, camY=45;
+let airT=0, maxAlt=0, simT=0;
+let combo=0, maxCombo=0, typedN=0, typoN=0, sentN=0, kickChain=0;
+let kickAnim=0, crashT=0, mileNext=500;
+let deco=[], decoTop=0, rainbowDone=false, particles=[];
+let bestAlt=0, bestAir=0, crossedBest=false;
+try{ bestAlt=+localStorage.getItem('sorageriEnBestAlt')||0; bestAir=+localStorage.getItem('sorageriEnBestAir')||0; }catch(e){}
+
+/* ---- 👻 ゴースト（自己ベストの飛行をこの端末に録画・再生） ---- */
+const GHOST_KEY='sorageriEnGhost', GHOST_STEP=0.2, GHOST_MAX=3600; // 0.2秒刻み・最長12分
+let ghost=null; try{ ghost=JSON.parse(localStorage.getItem(GHOST_KEY)||'null'); }catch(e){}
+if(ghost && !(ghost.samples && ghost.samples.length)) ghost=null;
+let rec=[], recAcc=0;
+function ghostAltAt(t){ if(!ghost) return null;
+  const i=t/GHOST_STEP, a=Math.floor(i), s=ghost.samples;
+  if(a>=s.length-1) return s.length?s[s.length-1]:null;
+  return s[a]+(s[a+1]-s[a])*(i-a); }
+
+/* ---- 文章えらび ---- */
+const POOL_S=[],POOL_M=[],POOL_L=[];
+SENTENCES.forEach((p,i)=>{ const n=p[0].replace(/ /g,'').length;   // スペースを除いた文字数で振り分け
+  (n<=10?POOL_S:n<=20?POOL_M:POOL_L).push(i); });
+let recentQ=[];
+function pickFrom(pool){
+  for(let tries=0;tries<24;tries++){ const i=pool[Math.floor(Math.random()*pool.length)];
+    if(recentQ.indexOf(i)<0){ recentQ.push(i); if(recentQ.length>12) recentQ.shift(); return SENTENCES[i]; } }
+  return SENTENCES[pool[Math.floor(Math.random()*pool.length)]]; }
+function pickSentence(){
+  if(sentN<3) return pickFrom(POOL_S);                       // 出だしは短く＝すぐ飛べる
+  const r=Math.random(), hi=Math.min(alt/4000,1);            // 高いほど長文が増える
+  if(r<0.42-hi*0.22) return pickFrom(POOL_S);
+  if(r<0.85-hi*0.15) return pickFrom(POOL_M);
+  return pickFrom(POOL_L); }
+
+/* ---- タイピング（英語・ストリーム方式／韓国語版と同じ骨格） ----
+   入力欄の値はタイピングの最中に消さない。文が終わったら base（現在文の開始位置）を
+   進めるだけ。英語は合成（IME）が無いぶん素直だが、スマホの英語キーボードは別の
+   「おせっかい」を挟むので、判定は寛容にする：
+   ・大文字/小文字は区別しない（Hello も hello も正解。スマホの自動大文字化に強い）。
+   ・スペースは両側とも「あってもなくても良い」── 単語確定時の自動スペース・逆に
+     抜ける、が起きる。厳密一致だと一度ズレた瞬間から全部赤になる（スマホで詰む正体）。
+   ・アポストロフィ「'」カンマ「,」ピリオド「.」等は打っても省いてもよい（don't も dont も可）。
+     スマホのスマート引用符（’）も同一視する。
+   ・手が止まった隙に、確定済みの古い文をこっそり削って入力欄を短く保つ（アイドルトリム）
+     ── オートコレクトが文をまたいで前の単語を書き換えるのを防ぐ。 */
+const box=$('typebox'), krLine=$('krLine'), jaLine=$('jaLine'), comboLine=$('comboLine');
+let target=null, base=0, kicked=0, typoFlag=false;
+let composing=false, trimTimer=0, trimForceTimer=0;
+box.addEventListener('compositionstart',function(){ composing=true; });
+box.addEventListener('compositionend',function(){ composing=false; scheduleTrim(); });
+function scheduleTrim(){
+  clearTimeout(trimTimer); clearTimeout(trimForceTimer);
+  if(base<=0) return;
+  trimTimer=setTimeout(function(){ tryTrim(false); },350);
+  /* Android(GBoard等)は単語の合成が長く続き compositionend が来ないことがある。
+     900ms 手が止まっていれば合成中でも整理してよい（値の内容は変えず前方を削るだけ） */
+  trimForceTimer=setTimeout(function(){ tryTrim(true); },900);
+}
+function tryTrim(force){
+  if(state!=='play'||base<=0) return;
+  if(composing&&!force) return;
+  box.value=box.value.slice(base); base=0; composing=false;
+}
+const SP_CHARS='  　';           // 半角・NBSP・全角スペースは同一視
+const SKIP="'’‘\".,!?;:-–—";      // 打っても省いてもよい記号（アポストロフィ・句読点など）
+function isSp(c){ return SP_CHARS.indexOf(c)>=0; }
+function normC(c){ return isSp(c)?' ':c.toLowerCase(); }   // 大文字小文字・スペース種を正規化
+function skipT(c){ return c===' '||SKIP.indexOf(c)>=0; }   // 目標側：打たなくてよい文字
+function skipS(c){ return isSp(c)||SKIP.indexOf(c)>=0; }   // 入力側：余分でも無視してよい文字
+/* 入力segと目標文tの進み具合を測る。大文字小文字は無視・スペース/記号は両側とも任意。
+   返り値 ti=目標文の何文字目まで進んだか / si=segの何文字目まで消費したか */
+function matchLen(seg,t){
+  let si=0,ti=0;
+  while(si<seg.length&&ti<t.length){
+    if(normC(seg[si])===normC(t[ti])){ si++; ti++; continue; }
+    if(skipT(t[ti])){ ti++; continue; }    // 目標のスペース・記号は打たなくてよい
+    if(skipS(seg[si])){ si++; continue; }  // 余分なスペース・記号は許す
+    break;
+  }
+  while(si<seg.length&&skipS(seg[si])) si++; // 末尾のスペース・記号も消費扱い
+  while(ti<t.length&&skipT(t[ti])) ti++;     // 目標末尾のスペース・記号も進めておく
+  return {ti:ti,si:si};
+}
+function setSentence(s){ target=s; kicked=0; typoFlag=false; base=box.value.length; renderLine(''); jaLine.textContent=s[1]; }
+function esc(c){ return c==='<'?'&lt;':c==='>'?'&gt;':c==='&'?'&amp;':c; }
+function renderLine(seg){
+  const t=target?target[0]:''; if(!t){ krLine.innerHTML=''; return; }
+  const r=matchLen(seg,t), bad=seg.length-r.si;
+  // 英語は語数が多いぶん1文字あたりを小さめに。長文は折り返す前提でサイズを段階化
+  const fs = t.length<=16?27 : t.length<=26?23 : t.length<=38?20 : 18;
+  krLine.style.fontSize=fs+'px';
+  // 各目標文字の状態（done/cur/bad/todo）と表示文字を決め、単語ごとにまとめて折り返す
+  let html='', word='', open=false;
+  const flush=()=>{ if(open){ html+='<span class="w">'+word+'</span>'; word=''; open=false; } };
+  for(let i=0;i<t.length;i++){
+    const chT=t[i];
+    if(chT===' '){ flush(); html+=' '; continue; }   // 目標のスペース＝折り返し可能な単語区切り
+    let cls,txt=esc(chT);
+    if(i<r.ti){ cls='done'; }
+    else{
+      const j=i-r.ti;
+      if(j<bad){ const sc=seg[r.si+j];
+        cls=(r.si+j===seg.length-1)?'cur':'bad';       // 最後の1字はcur、通り過ぎた間違いはbad
+        if(!isSp(sc)) txt=esc(sc);
+      }
+      else if(bad===0&&j===0){ cls='cur'; }
+      else{ cls='todo'; }
+    }
+    word+='<span class="ch '+cls+'">'+txt+'</span>'; open=true;
+  }
+  flush();
+  krLine.innerHTML=html; }
+function onInput(){
+  if(state!=='play'||!target) return;
+  if(box.value.length<base) base=box.value.length;   // IMEが過去分ごと書き換えた/全消し等の保険
+  const t=target[0];
+  let seg=box.value.slice(base);
+  while(seg.length&&skipS(seg[0])){ base++; seg=box.value.slice(base); }  // 文頭に紛れた記号/スペースは読み飛ばす
+  const r=matchLen(seg,t);
+  /* ミス判定：最後の1字はまだ打鍵の途中かもしれないので、
+     「間違った字を通り過ぎて次を打った」ときだけミスにする */
+  if(seg.length-r.si>0 && r.si<seg.length-1 && !typoFlag){
+    typoFlag=true; typoN++; combo=0; updateCombo();
+    sndTypo(); krLine.classList.remove('shake'); void krLine.offsetWidth; krLine.classList.add('shake');
+  }
+  if(r.ti>kicked){
+    for(let i=kicked;i<r.ti;i++){ doKick(t[i]===' '?0.45:1); typedN++; }
+    kicked=r.ti;
+  }
+  if(r.ti>=t.length){ completeSentence(); return; }
+  renderLine(seg);
+  scheduleTrim(); }
+box.addEventListener('input',onInput);
+function updateCombo(){ comboLine.textContent = combo>=2 ? '🔥 コンボ ×'+combo : ''; }
+function completeSentence(){
+  sentN++; combo++; if(combo>maxCombo)maxCombo=combo; updateCombo();
+  doKick(0); // 文クリアのボーナス蹴り
+  vy=Math.min(vy+9+Math.min(combo,12)*1.2, vyMax()+8);
+  sndComplete(); if(combo%5===0) vib(24);
+  krLine.classList.remove('clear'); void krLine.offsetWidth; krLine.classList.add('clear');
+  burst(px(),py()-10,['✨','⭐','💫'],6);
+  setSentence(pickSentence());
+  scheduleTrim(); }
+function vyMax(){ return 30+Math.min(combo,15)*0.8; }
+function doKick(mult){
+  if(state!=='play') return;
+  if(mult>0){ vy=Math.min(vy+13*mult, vyMax()); kickChain++; sndKick(kickChain); }
+  if(!flying && vy>0){ flying=true; burst(px(),py()+16,['💨','🌿','✨'],8); }
+  kickAnim=1;
+  if(mult>0){ particles.push({x:px()-14,y:py()+20,vx:-30-Math.random()*40,vy:40+Math.random()*30,life:.5,ch:'💨',s:20}); }
+}
+
+/* ---- パーティクル ---- */
+function burst(x,y,chs,n){ for(let i=0;i<n;i++){ const a=Math.random()*TAU,sp=40+Math.random()*90;
+  particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-30,life:.6+Math.random()*.5,ch:chs[i%chs.length],s:14+Math.random()*10}); } }
+
+/* ---- 背景の飾り（高度の帯ごとに生まれる） ---- */
+function spawnUpTo(a){
+  while(decoTop<a){
+    decoTop+=6; const A=decoTop, r=Math.random();
+    const push=(e,s,vx,far)=>deco.push({a:A+Math.random()*6,x:Math.random(),e,s,vx:vx||0,far:!!far,tw:Math.random()*TAU});
+    if(A>25&&A<420&&r<.14) push(Math.random()<.7?'🕊️':'🦋',18+Math.random()*10,(Math.random()-.5)*18);
+    if(A>140&&A<3600){ if(r<.4) push('☁️',44+Math.random()*84,(Math.random()-.5)*6,Math.random()<.4); }
+    if(A>550&&A<2600&&r<.05) push('🎈',26+Math.random()*10,(Math.random()-.5)*8);
+    if(A>2000&&A<5600&&r<.045) push('✈️',30+Math.random()*14,(Math.random()<.5?1:-1)*(26+Math.random()*20));
+    if(A>3400&&A<7400&&r<.2) push('☁️',30+Math.random()*40,(Math.random()-.5)*4,true);
+    if(A>5400&&A<9500&&r<.05) push('🚀',30+Math.random()*12,0);
+    if(A>7800&&r<.045) push('🛰️',26+Math.random()*10,(Math.random()-.5)*10);
+    if(A>9000&&r<.035) push(['🪐','🌕','☄️','🛸'][Math.floor(Math.random()*4)],30+Math.random()*22,0);
+    if(A>4600){ const n=1+Math.floor(Math.random()*3);
+      for(let i=0;i<n;i++) deco.push({a:A+Math.random()*6,x:Math.random(),e:'*',s:1+Math.random()*2,vx:0,far:false,tw:Math.random()*TAU}); }
+    if(!rainbowDone&&A>1150){ rainbowDone=true; push('🌈',180,0); }
+  } }
+
+/* ---- 空の色（高度で変わるグラデーション） ---- */
+const SKY=[ // [高度, 上の色, 下の色]
+  [0,[126,200,255],[214,240,255]],
+  [900,[90,160,240],[168,214,255]],
+  [2800,[46,105,205],[125,172,235]],
+  [5500,[22,50,110],[58,102,172]],
+  [8500,[7,15,46],[22,50,110]],
+  [12000,[2,3,15],[10,16,48]] ];
+function lerpC(a,b,t){ return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]; }
+function skyColors(a){
+  let i=0; while(i<SKY.length-1&&a>SKY[i+1][0]) i++;
+  if(i>=SKY.length-1) return [SKY[SKY.length-1][1],SKY[SKY.length-1][2]];
+  const t=(a-SKY[i][0])/(SKY[i+1][0]-SKY[i][0]);
+  return [lerpC(SKY[i][1],SKY[i+1][1],t),lerpC(SKY[i][2],SKY[i+1][2],t)]; }
+function css(c){ return 'rgb('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+')'; }
+
+/* ---- 座標 ---- */
+function px(){ return W*0.5; }
+function py(){ return H/2+(camY-alt)*PPM; }
+function sy(a){ return H/2+(camY-a)*PPM; }
+
+/* ---- 描画 ---- */
+let waveT=0;
+function draw(dt){
+  waveT+=dt;
+  const cols=skyColors(Math.max(camY,0));
+  const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,css(cols[0])); g.addColorStop(1,css(cols[1]));
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
+  /* 太陽と月 */
+  const sunA=Math.max(0,1-camY/3600);
+  if(sunA>0){ ctx.save(); ctx.globalAlpha=sunA*.95;
+    const sx=W*.82, syy=H*.14+camY*.004*PPM;
+    const rg=ctx.createRadialGradient(sx,syy,4,sx,syy,90);
+    rg.addColorStop(0,'rgba(255,250,210,.95)'); rg.addColorStop(.3,'rgba(255,236,150,.5)'); rg.addColorStop(1,'rgba(255,236,150,0)');
+    ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(sx,syy,90,0,TAU); ctx.fill();
+    drawEmo('☀️',sx,syy,46,0,sunA); ctx.restore(); }
+  const moonA=Math.min(1,Math.max(0,(camY-6000)/2500));
+  if(moonA>0) drawEmo('🌙',W*.16,H*.12,44,0,moonA);
+
+  /* 高い空の星（帯スポーン分＋またたき） */
+  spawnUpTo(camY+90);
+  for(let i=deco.length-1;i>=0;i--){ const d=deco[i];
+    if(d.a<camY-95){ deco.splice(i,1); continue; }
+    d.x+=(d.vx*dt)/W; if(d.x>1.15)d.x-=1.3; if(d.x<-0.15)d.x+=1.3;
+    const yy=d.far? H/2+(camY-d.a)*PPM*.55 : sy(d.a);
+    if(yy<-80||yy>H+80) continue;
+    if(d.e==='*'){ const tw=.5+.5*Math.sin(waveT*2+d.tw);
+      ctx.globalAlpha=Math.min(1,(camY-3800)/2000)*(.35+.65*tw); ctx.fillStyle='#fff';
+      ctx.fillRect(d.x*W,yy,d.s,d.s); ctx.globalAlpha=1; }
+    else drawEmo(d.e,d.x*W,yy,d.far?d.s*.6:d.s,0,d.far?.55:1);
+  }
+
+  /* 海と島（地上近く） */
+  const gy=sy(0);
+  if(gy<H+60){
+    const sea=ctx.createLinearGradient(0,gy+6,0,H);
+    sea.addColorStop(0,'#3fb7e8'); sea.addColorStop(.4,'#1f7fc4'); sea.addColorStop(1,'#0d4a86');
+    ctx.fillStyle=sea; ctx.fillRect(0,gy+6,W,H-gy);
+    ctx.globalAlpha=.5; ctx.fillStyle='#eaffff';
+    for(let i=0;i<9;i++){ const wx=((i*.13+waveT*.02)%1)*W, wy=gy+12+((i*37)%Math.max(H-gy-16,1));
+      ctx.fillRect(wx,wy,14+6*Math.sin(waveT*2+i),2); }
+    ctx.globalAlpha=1;
+    drawEmo('🐳',W*.12,gy+34,26,0,.9);
+    drawEmo('⛵',W*.88,gy+16,22,0,.95);
+    /* 島本体（すな山＋みどり＋くらしの絵文字＝島ぐらしの記憶） */
+    ctx.fillStyle='#f2e0a8'; ctx.beginPath(); ctx.ellipse(W*.5,gy+26,W*.30,34,0,0,TAU); ctx.fill();
+    ctx.fillStyle='#7ecb6a'; ctx.beginPath(); ctx.ellipse(W*.5,gy+16,W*.24,20,0,0,TAU); ctx.fill();
+    drawEmo('🌴',W*.34,gy-8,40); drawEmo('🌳',W*.62,gy-6,36); drawEmo('🏠',W*.5,gy-6,32);
+    drawEmo('🌼',W*.42,gy+8,14); drawEmo('🌷',W*.57,gy+10,14); drawEmo('⛱️',W*.69,gy+2,24); drawEmo('🐚',W*.45,gy+20,12);
+  }
+  /* 空撮の島（高く昇るほど小さくなる島ぐらしの島） */
+  if(alt>150){
+    const a=Math.min(1,(alt-150)/160)*Math.max(0,1-(alt-2600)/1600);
+    if(a>0){ const s=Math.max(.14,Math.min(1,900/alt));
+      ctx.save(); ctx.globalAlpha=a*.9;
+      const ix=W*.5+Math.sin(waveT*.1)*8, iy=H-36-s*24;
+      ctx.fillStyle='rgba(40,140,210,.55)'; ctx.beginPath(); ctx.ellipse(ix,iy,150*s+26,44*s+10,0,0,TAU); ctx.fill();
+      drawEmo('🏝️',ix,iy,150*s+30); drawEmo('⛵',ix-90*s-20,iy+8,12+10*s,0,.8);
+      ctx.restore(); }
+  }
+
+  /* 自己ベスト高度のライン */
+  if(bestAlt>3){ const by=sy(bestAlt);
+    if(by>-20&&by<H+20){ ctx.save(); ctx.strokeStyle='rgba(124,224,255,.7)'; ctx.setLineDash([10,8]); ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(0,by); ctx.lineTo(W,by); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle='rgba(124,224,255,.9)'; ctx.font='900 12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText('🏁 自己ベスト '+Math.floor(bestAlt).toLocaleString()+'m',8,by-6); ctx.restore(); } }
+
+  /* 👻 ゴーストこっこ（自己ベストの飛行・70%透過） */
+  if(ghost&&(state==='play'||state==='crash')&&flying){
+    const ga=ghostAltAt(simT);
+    if(ga!=null){ const gx=W*.5-Math.min(W*.24,110), gyy=sy(ga);
+      if(gyy>-60&&gyy<H+60){ ctx.save(); ctx.globalAlpha=.3;
+        const h=Math.min(W,H)*.14, w=h*AR;
+        ctx.translate(gx,gyy); ctx.drawImage(cocco,-w/2,-h/2,w,h); ctx.restore();
+        ctx.globalAlpha=.5; ctx.fillStyle='#cfa8ff'; ctx.font='900 10px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('👻 BEST',gx,gyy-Math.min(W,H)*.14*.62); ctx.globalAlpha=1; } } }
+
+  /* パーティクル */
+  for(let i=particles.length-1;i>=0;i--){ const p=particles[i];
+    p.life-=dt; if(p.life<=0){ particles.splice(i,1); continue; }
+    p.x+=p.vx*dt; p.y+=p.vy*dt+ (flying?vy*PPM*dt*.4:0); p.vy+=60*dt;
+    drawEmo(p.ch,p.x,p.y,p.s,0,Math.min(1,p.life*2)); }
+
+  /* こっこちゃん本体 */
+  if(state!=='over'){
+    const x=px(), y=py(), h=Math.min(W,H)*.16, w=h*AR;
+    ctx.save(); ctx.translate(x,y);
+    if(state==='crash'&&crashT>2.1){ /* 救急車の中 */ }
+    else{
+      let rot=0;
+      if(kickAnim>0) rot=(1-kickAnim)*TAU*(combo%2?1:-1);       // 空蹴りの回転
+      else rot=Math.max(-.5,Math.min(.5,-vy*.012));
+      if(state==='crash') rot=Math.PI; // 墜落後は目をまわして転がる
+      ctx.rotate(rot);
+      if(vy<-30&&state==='play'){ ctx.globalAlpha=.85; }
+      ctx.drawImage(cocco,-w/2,-h/2,w,h);
+      ctx.globalAlpha=1;
+      if(kickAnim>0){ drawEmo('👟',w*.24,h*.42,h*.34,-.6); }
+    }
+    ctx.restore();
+    if(state==='play'&&vy<-26){ drawEmo('💦',x+w*.6,y-h*.3,16); }
+    if(state==='play'&&combo>=5&&flying){ drawEmo('🔥',x,y+h*.62,14+Math.min(combo,20)*.5,0,.8); }
+    if(state==='crash'&&crashT<2.1&&crashT>.15){ drawEmo('😵',x,y-h*.7,20); drawEmo('💫',x+16,y-h*.9,16,waveT*3); }
+  }
+
+  /* 🚑 救急車の一幕 */
+  if(state==='crash'){
+    const gyc=sy(0);
+    if(crashT<.5){ ctx.fillStyle='rgba(255,255,255,'+(0.5-crashT)+')'; ctx.fillRect(0,0,W,H); }
+    let ax=null;
+    if(crashT>=.6&&crashT<2.1) ax=-60+((crashT-.6)/1.5)*(W*.5-20+60);
+    else if(crashT>=2.1&&crashT<2.6) ax=W*.5-20;
+    else if(crashT>=2.6) ax=W*.5-20+((crashT-2.6)/1.2)*(W*.65+80);
+    if(ax!=null){ ctx.save(); ctx.translate(ax,gyc-16); ctx.scale(-1,1); drawEmo('🚑',0,0,46); ctx.restore();
+      if(Math.floor(crashT*6)%2===0) drawEmo('✨',ax+6,gyc-40,10);
+      drawEmo('💨',ax-34,gyc-8,16,0,.6); }
+  }
+}
+
+/* ---- HUD ---- */
+const hud=$('hud'), hudAlt=$('hudAlt'), hudAir=$('hudAir'), hudNote=$('hudNote');
+function fmtAir(s){ s=Math.floor(s); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+function note(t){ hudNote.textContent=t; hudNote.classList.remove('pop'); void hudNote.offsetWidth; hudNote.classList.add('pop'); }
+
+/* ---- メインループ ---- */
+let last=performance.now();
+function loop(now){
+  const dt=Math.min((now-last)/1000,.05); last=now;
+  if(state==='play'){
+    simT+=dt;
+    if(kickAnim>0) kickAnim=Math.max(0,kickAnim-dt*2.6);
+    if(flying){
+      const g=24*(0.55+0.45*Math.min(alt/60,1));   // 島の近くはやさしい上昇気流
+      vy-=g*dt; if(vy<-62)vy=-62;
+      alt+=vy*dt;
+      if(alt>maxAlt){ maxAlt=alt;
+        if(!crossedBest&&bestAlt>3&&maxAlt>bestAlt){ crossedBest=true; note('🏁 自己ベスト超え！'); sndBest(); vib([0,30,40,30]); } }
+      if(alt>=mileNext){ note('⛰ '+mileNext.toLocaleString()+'m！'); sndMile(); mileNext+=500; }
+      if(alt<=0&&vy<0){ alt=0; startCrash(); }
+      else airT+=dt;
+      recAcc+=dt; while(recAcc>=GHOST_STEP){ recAcc-=GHOST_STEP; if(rec.length<GHOST_MAX) rec.push(Math.round(alt*10)/10); }
+    }
+    hudAlt.innerHTML=Math.floor(alt).toLocaleString()+'<small> m</small>';
+    hudAir.textContent='⏱ '+fmtAir(airT)+'　👟 '+typedN+'打';
+    if(windGain) windGain.gain.value=(muted?0:1)*Math.min(Math.abs(vy)/70,1)*.13;
+  }else if(state==='crash'){
+    crashT+=dt;
+    if(kickAnim>0) kickAnim=0;
+    if(crashT>=3.9) gameOver();
+    if(windGain) windGain.gain.value=0;
+  }
+  const targ=(state==='play'&&flying)||state==='crash' ? Math.max(alt+10,45) : 45;
+  camY+=(targ-camY)*Math.min(1,dt*5);
+  draw(dt);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ---- 進行 ---- */
+const dock=$('dock');
+function startGame(){
+  state='play'; alt=0; vy=0; flying=false; camY=45;
+  airT=0; maxAlt=0; simT=0; combo=0; maxCombo=0; typedN=0; typoN=0; sentN=0; kickChain=0;
+  kickAnim=0; crashT=0; mileNext=500; crossedBest=false;
+  deco=[]; decoTop=0; rainbowDone=false; particles=[]; recentQ=[];
+  rec=[]; recAcc=0;
+  clearTimeout(trimTimer); clearTimeout(trimForceTimer); composing=false;
+  box.value=''; base=0;
+  $('titleScreen').classList.add('hidden'); $('overScreen').classList.add('hidden');
+  hud.classList.add('on'); dock.classList.add('on');
+  updateCombo(); setSentence(pickSentence());
+  ac(); box.focus();
+}
+function startCrash(){
+  state='crash'; crashT=0; flying=false; vy=0;
+  clearTimeout(trimTimer); clearTimeout(trimForceTimer);
+  box.blur(); dock.classList.remove('on');
+  burst(px(),sy(0)-10,['💥','💢','🪶'],10);
+  sndCrash(); setTimeout(()=>sndSiren(3.2),600); vib([0,60,40,60]);
+}
+function gameOver(){
+  state='over'; hud.classList.remove('on');
+  const score=Math.floor(maxAlt), air=Math.floor(airT);
+  const acc=typedN+typoN>0 ? Math.round(typedN/(typedN+typoN)*100) : 100;
+  $('finalAlt').textContent=score.toLocaleString()+' m';
+  $('statLine').textContent='滞空 '+fmtAir(air)+' ／ 文章 '+sentN+' ／ 最大コンボ '+maxCombo+' ／ 正確率 '+acc+'%';
+  const nb=$('newBest'); nb.style.opacity=0;
+  const gl=$('ghostLine');
+  const prevGhostAlt=ghost?ghost.alt:0;
+  if(score>bestAlt){ bestAlt=score; bestAir=air; nb.style.opacity=1;
+    try{ localStorage.setItem('sorageriEnBestAlt',String(score)); localStorage.setItem('sorageriEnBestAir',String(air)); }catch(e){} }
+  /* 👻 ゴースト保存：最高高度を更新したら、この飛行が次のゴーストになる */
+  if(rec.length&&score>=prevGhostAlt){
+    ghost={alt:score,air:air,step:GHOST_STEP,samples:rec.slice(0,GHOST_MAX)};
+    try{ localStorage.setItem(GHOST_KEY,JSON.stringify(ghost)); }catch(e){}
+    gl.textContent= prevGhostAlt>0 ? '👻 ゴースト更新！次はこの飛行と競える' : '👻 ゴースト誕生！次から自己ベストと並んで飛べる';
+  }else if(ghost){
+    gl.textContent='👻 ゴースト('+Math.floor(ghost.alt).toLocaleString()+'m)には届かず…もういちど！';
+  }else gl.textContent='';
+  $('overScreen').classList.remove('hidden');
+  if(window.CoccoRank) window.CoccoRank.onGameOver(score,air);
+}
+function ghostTitleLine(){ const el=$('titleGhostLine');
+  el.textContent = ghost ? '👻 ゴーストこっこ待機中：自己ベスト '+Math.floor(ghost.alt).toLocaleString()+'m（この端末に保存）'
+                         : '👻 一度飛ぶと、自己ベストのゴーストこっこと競えるようになるよ'; }
+ghostTitleLine();
+
+/* ---- 画面あちこちのボタン ---- */
+$('startBtn').addEventListener('click',startGame);
+$('retryBtn').addEventListener('click',()=>{ ghostTitleLine(); startGame(); });
+$('howBtn').addEventListener('click',()=>{ $('titleScreen').classList.add('hidden'); $('howScreen').classList.remove('hidden'); });
+$('howBack').addEventListener('click',()=>{ $('howScreen').classList.add('hidden'); $('titleScreen').classList.remove('hidden'); });
+$('rankBtn').addEventListener('click',()=>{ $('titleScreen').classList.add('hidden'); $('rankScreen').classList.remove('hidden');
+  if(window.CoccoRank) window.CoccoRank.onShowRanking(); });
+$('rankBack').addEventListener('click',()=>{ $('rankScreen').classList.add('hidden'); $('titleScreen').classList.remove('hidden'); ghostTitleLine(); });
+$('shareBtn').addEventListener('click',()=>{
+  const txt='【空蹴り英語】英語タイピングで 最高高度 '+Math.floor(maxAlt).toLocaleString()+'m・滞空 '+fmtAir(airT)+' まで飛べた！🐤👟 #畜物語 #空蹴り英語 https://chikumo.jp/sorageri-en/';
+  if(navigator.share){ navigator.share({text:txt}).catch(()=>{}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(()=>{ const b=$('shareBtn'); b.textContent='コピーした！'; setTimeout(()=>b.textContent='記録を共有',1500); }).catch(()=>{}); }
+});
+
+/* プレイ中は、どこを触っても入力フォーカスを離さない（キーボードを閉じさせない） */
+document.addEventListener('pointerdown',e=>{
+  if(state!=='play') return;
+  const t=e.target;
+  if(t===box) return;
+  if(t.closest&&t.closest('#muteBtn,#fsBtn')) return;
+  e.preventDefault(); box.focus();
+},{passive:false});
+
+/* ソフトキーボードが出たら、ドックをキーボードの真上へ */
+if(window.visualViewport){
+  const vv=window.visualViewport;
+  const fix=()=>{ const off=Math.max(0,window.innerHeight-vv.height-vv.offsetTop);
+    dock.style.transform=off?'translateY(-'+off+'px)':''; };
+  vv.addEventListener('resize',fix); vv.addEventListener('scroll',fix);
+}
+
+/* ---- 🔊 / ⛶ ---- */
+const muteBtn=$('muteBtn'), fsBtn=$('fsBtn');
+function applyMute(){ muteBtn.textContent=muted?'🔇':'🔊'; muteBtn.classList.toggle('off',muted);
+  if(master) master.gain.value=muted?0:1; try{ localStorage.setItem('sorageriEnMute',muted?'1':'0'); }catch(e){} }
+muteBtn.addEventListener('click',()=>{ muted=!muted; ac(); applyMute(); });
+applyMute();
+fsBtn.addEventListener('click',()=>{
+  const d=document, el=d.documentElement;
+  if(!d.fullscreenElement&&!d.webkitFullscreenElement){ (el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el); }
+  else{ (d.exitFullscreen||d.webkitExitFullscreen||function(){}).call(d); } });
+
+/* 動作テスト用フック（ヘッドレス検証・デバッグ用） */
+window.__sorageriEn={
+  get:()=>({state,alt,vy,maxAlt,airT,combo,typedN,typoN,sentN,kicked,base,boxLen:box.value.length,
+    target:target?target[0]:null,sentences:SENTENCES.length}),
+  type:s=>{ box.value+=s; box.dispatchEvent(new Event('input',{bubbles:true})); },
+  start:startGame };
+})();
+</script>
+
+<script>
+/* ===== 世界ランキング（Firebase Realtime Database・空蹴り英語 専用ノード rankings/sorageriEn）
+   score=最高高度(m)・air=滞空時間(秒)。1端末1枠・自己ベストのみ保持
+   ※韓国語版(/sorageri/)とは別ノード・別ランキング ===== */
+(function boot(){
+  if(typeof firebase==='undefined'||!firebase.database||!firebase.auth){
+    var n=boot._n=(boot._n||0)+1;
+    setTimeout(boot, n<120?500:3000);
+    return;
+  }
+  try{ if(!firebase.apps||!firebase.apps.length) firebase.initializeApp({
+    apiKey:"AIzaSyBw5-6oAuOmgYC_7G27Z0Qavwn78ZrkhdQ",
+    authDomain:"chikumonogatarikiroku.firebaseapp.com",
+    databaseURL:"https://chikumonogatarikiroku-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:"chikumonogatarikiroku",
+    storageBucket:"chikumonogatarikiroku.firebasestorage.app",
+    messagingSenderId:"725202431277",
+    appId:"1:725202431277:web:c49c911cfcae26d63ab7a4"
+  }); }catch(e){}
+  var db; try{ db=firebase.database(); }catch(e){ return; }
+  var ref=db.ref('rankings/sorageriEn');
+  var SCORE_CAP=999999;
+  var NAME_KEY='sorageriEnName', UID_KEY='sorageriEnUid', FLAG_KEY='sorageriEnFlag';
+  var selFlag='🇯🇵';
+  function flagOf(cc){ return cc.replace(/./g,function(c){ return String.fromCodePoint(0x1F1E6+c.charCodeAt(0)-65); }); }
+  var MAJOR=('JP US GB CA AU KR CN TW HK TH VN PH ID MY SG IN FR DE IT ES PT NL SE BR MX AR RU UA TR EG ZA SA NZ').split(' ').map(flagOf);
+  var ALL_CC=('AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW').split(' ');
+  var ALL=['🏳️','🏴','🏁','🇺🇳','🇪🇺'].concat(ALL_CC.map(flagOf));
+  var $=function(id){return document.getElementById(id);};
+  var pending=null, lastSubmitTs=0;
+  var myUid=null, authReady=false, authDone=false;
+  function ensureAuth(){ if(!firebase.auth){ authDone=true; return; } var a; try{ a=firebase.auth(); }catch(e){ authDone=true; return; }
+    a.onAuthStateChanged(function(u){ if(u){ myUid=u.uid; authReady=true; authDone=true; } });
+    if(!a.currentUser){ a.signInAnonymously().catch(function(){ authDone=true; }); } }
+  ensureAuth();
+  function localUid(){ var u; try{ u=localStorage.getItem(UID_KEY); }catch(e){}
+    if(!u){ u='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); try{ localStorage.setItem(UID_KEY,u); }catch(e){} } return u; }
+  function uid(){ return myUid || localUid(); }
+  function esc(s){ return String(s).replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; }); }
+  function fmtName(s){ s=(s||'').replace(/\s+/g,' ').trim().slice(0,10); return s||'ななし'; }
+  function fmtAir(s){ s=Math.max(0,Math.floor(+s||0)); return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
+  function renderInto(elId, rows){
+    var el=$(elId); if(!el) return;
+    if(!rows||!rows.length){ el.innerHTML='<li class="rankempty">まだ記録がありません</li>'; return; }
+    el.innerHTML=rows.map(function(r,i){
+      var medal=['🥇','🥈','🥉'][i]||((i+1)+'.');
+      var fl=r.flag?esc(r.flag)+' ':'';
+      var air=(r.air!=null)?' <span style="opacity:.55;font-size:11px">⏱'+fmtAir(r.air)+'</span>':'';
+      return '<li><span class="rk">'+medal+'</span><span class="rn">'+fl+esc(r.name)+air+'</span><span class="rs">'+Number(r.score).toLocaleString()+'m</span></li>';
+    }).join('');
+  }
+  function loadTop(targets, after){
+    ref.orderByChild('score').limitToLast(10000).once('value').then(function(snap){
+      var rows=[]; snap.forEach(function(c){ var v=c.val()||{}; rows.push({uid:c.key,name:v.name,flag:v.flag,score:+v.score||0,air:(v.air!=null?+v.air:null)}); });
+      rows.sort(function(a,b){return b.score-a.score;});
+      targets.forEach(function(t){ renderInto(t,rows); });
+      if(after) after(rows);
+    }).catch(function(e){ targets.forEach(function(t){ var el=$(t); if(el) el.innerHTML='<li class="rankempty">読み込めませんでした</li>'; }); });
+  }
+  function vib(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+  function celebrate(rank, total){
+    var old=document.getElementById('rankinOv'); if(old&&old.parentNode) old.parentNode.removeChild(old);
+    var ov=document.createElement('div'); ov.id='rankinOv'; ov.className='rankin-ov';
+    ov.innerHTML='<div class="rankin-flash"></div><div class="rankin-rays"></div><div class="rankin-fws"></div><div class="rankin-conf"></div>'
+      +'<div class="rankin-card">'
+      +'<img class="rankin-cocco" src="/chikumo.svg" alt="">'
+      +'<div class="rankin-sub" id="riSub">結果発表</div>'
+      +'<div class="rankin-rank"><span class="rankin-ring"></span><span class="rankin-num" id="riNum">?</span><span class="rankin-pos">位</span></div>'
+      +'<div class="rankin-msg" id="riMsg">…</div>'
+      +'<div class="rankin-total" id="riTot"></div></div>';
+    document.body.appendChild(ov);
+    setTimeout(function(){ if(ov.parentNode){ ov.classList.add('out');
+      setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },450); } }, 15000);
+    var numEl=ov.querySelector('#riNum'), subEl=ov.querySelector('#riSub'),
+        msgEl=ov.querySelector('#riMsg'), totEl=ov.querySelector('#riTot'), confEl=ov.querySelector('.rankin-conf'),
+        fwsEl=ov.querySelector('.rankin-fws');
+    var killed=false, revealed=false, fwTimer=0;
+    function firework(){ var fw=document.createElement('div'); fw.className='rankin-fw';
+      fw.style.left=(12+Math.random()*76)+'%'; fw.style.top=(12+Math.random()*44)+'%';
+      var hue=Math.floor(Math.random()*360), n=14, html='';
+      for(var i=0;i<n;i++){ var a=(i/n)*6.283, d=44+Math.random()*46;
+        html+='<i style="--dx:'+Math.round(Math.cos(a)*d)+'px;--dy:'+Math.round(Math.sin(a)*d)+'px;background:hsl('+(hue+Math.floor(Math.random()*50))+',100%,64%)"></i>'; }
+      fw.innerHTML=html; fwsEl.appendChild(fw); setTimeout(function(){ if(fw.parentNode) fw.parentNode.removeChild(fw); },950); }
+    var kill=function(){ if(killed)return; killed=true; if(fwTimer) clearInterval(fwTimer); ov.classList.add('out'); setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },420); };
+    var roll=setInterval(function(){ numEl.textContent=Math.floor(Math.random()*Math.max(total,9))+1; }, 68);
+    var revealT;
+    function doReveal(){
+      if(revealed)return; revealed=true; clearInterval(roll); clearTimeout(revealT);
+      setTimeout(kill, rank===1?8500 : rank===2?6300 : rank===3?5700 : rank<=10?4600 : 4300);
+      try{
+      numEl.textContent=rank;
+      var dg=String(rank).length;
+      numEl.style.fontSize = dg<=1?'min(34vw,200px)' : dg===2?'min(26vw,156px)' : dg===3?'min(20vw,118px)' : 'min(15vw,92px)';
+      var tier = rank===1?'champ' : rank===2?'second' : rank===3?'third' : rank<=10?'top10' : 'miss';
+      ov.classList.add('reveal','t-'+tier);
+      if(tier==='champ'){
+        var card=ov.querySelector('.rankin-card');
+        if(card&&card.insertAdjacentHTML){
+          card.insertAdjacentHTML('afterbegin','<div class="rankin-crown">👑</div>');
+          ov.insertAdjacentHTML('beforeend','<div class="rankin-shine"></div>');
+        }
+        subEl.textContent='👑 WORLD CHAMPION 👑';
+        msgEl.innerHTML='<b>優勝！！</b>世界でいちばん高い空だ！';
+      }else if(tier==='second'){
+        subEl.textContent='🥈 SILVER 🥈';
+        msgEl.innerHTML='<b>準優勝！</b>頂点まであと一蹴り！';
+      }else if(tier==='third'){
+        subEl.textContent='🥉 BRONZE 🥉';
+        msgEl.innerHTML='<b>表彰台！</b>3位入賞！';
+      }else if(tier==='top10'){
+        subEl.textContent='★ おめでとう ★';
+        msgEl.innerHTML='<b>TOP10入り！</b>ランクイン！';
+      }else{
+        subEl.textContent='— RESULT —';
+        msgEl.innerHTML='😢 TOP10 ならず…';
+        var card2=ov.querySelector('.rankin-card');
+        if(card2&&card2.insertAdjacentHTML)
+          card2.insertAdjacentHTML('beforeend','<div class="rankin-retry">🔥 つぎこそ TOP10 だ！！</div>');
+      }
+      if(total) totEl.textContent = tier==='miss'
+        ? '全 '+total+' 人中 ／ TOP10まで あと '+(rank-10)+'人'
+        : '全 '+total+' 人中';
+      var pal = tier==='champ'?['#ffd24d','#ffe680','#fff7cf','#ffb31c','#ff9a3c','#fff']
+        : tier==='second'?['#ffffff','#e6ecf6','#b8c6dd','#9fb0c8','#7ce0ff']
+        : tier==='third'?['#ffd2a0','#eeae72','#cd7d3c','#ffb86e','#fff']
+        : tier==='miss'?['#7a8ba6','#5a6d8a','#9fb2c8']
+        : ['#7ce0ff','#4db8ff','#9affc0','#ffd24d','#ff5d6c','#fff7cf','#fff'];
+      var N = tier==='champ'?120 : tier==='second'?72 : tier==='third'?58 : tier==='miss'?12 : 48;
+      var html='';
+      for(var i=0;i<N;i++){ html+='<i style="left:'+(Math.random()*100)+'%;background:'+pal[i%pal.length]
+        +';animation-delay:'+(Math.random()*0.35).toFixed(2)+'s;animation-duration:'+((tier==='miss'?3.2:2.0)+Math.random()*1.6).toFixed(2)
+        +'s;transform:rotate('+Math.floor(Math.random()*360)+'deg)"></i>'; }
+      confEl.innerHTML=html;
+      if(tier!=='miss'){
+        firework();
+        fwTimer=setInterval(firework, tier==='champ'?190 : tier==='second'?330 : tier==='third'?430 : 420);
+      }
+      vib(tier==='champ'?[0,60,40,60,40,160] : tier==='miss'?[0,30] : [0,40,40,90]);
+      }catch(e){ kill(); }
+    }
+    vib(30);
+    ov.classList.add('rolling');
+    revealT=setTimeout(doReveal, 1050);
+    ov.addEventListener('click', function(){ try{ if(!revealed){ doReveal(); return; } }catch(e){} kill(); });
+  }
+  function celebrateMine(rows){
+    var my=uid(), idx=-1; for(var i=0;i<rows.length;i++){ if(rows[i].uid===my){ idx=i; break; } }
+    if(idx>=0) celebrate(idx+1, rows.length);
+  }
+  function submit(){
+    if(!pending) return;
+    var msg=$('rankMsg'), btn=$('rankSubmit');
+    if(!myUid && !authDone){ if(msg) msg.textContent='接続中…数秒後にもう一度押してね'; ensureAuth(); return; }
+    var now=Date.now(); if(now-lastSubmitTs<1500) return; lastSubmitTs=now;
+    var name=fmtName($('rankName')&&$('rankName').value);
+    var flag=selFlag||'🇯🇵';
+    try{ localStorage.setItem(NAME_KEY,name); localStorage.setItem(FLAG_KEY,flag); }catch(e){}
+    var score=Math.max(0,Math.min(SCORE_CAP,Math.floor(pending.score||0)));
+    var air=Math.max(0,Math.min(999999,Math.floor(pending.air||0)));
+    if(btn) btn.disabled=true;
+    ref.child(uid()).transaction(function(cur){
+      if(cur && (cur.score||0)>=score){ cur.name=name; cur.flag=flag; return cur; }
+      return { name:name, flag:flag, score:score, air:air, ts:now };
+    }).then(function(res){
+      var kept = res && res.snapshot && (res.snapshot.val()||{}).score>score;
+      if(msg){ msg.textContent = kept ? '自己ベスト('+Number((res.snapshot.val()||{}).score).toLocaleString()+'m)を表示中🏆' : '登録しました！🏆'; }
+      pending=null; loadTop(['rankList'], celebrateMine);
+    }).catch(function(e){ if(msg){ msg.textContent='登録に失敗しました（接続を確認）'; } if(btn) btn.disabled=false; });
+  }
+  function onGameOver(score, air){
+    pending={score:score, air:air};
+    var msg=$('rankMsg'); if(msg) msg.textContent='';
+    var btn=$('rankSubmit'); if(btn) btn.disabled=false;
+    var nm=$('rankName'); if(nm){ try{ nm.value=localStorage.getItem(NAME_KEY)||''; }catch(e){} }
+    setFlag(selFlag);
+    loadTop(['rankList']);
+    var entry=$('rankEntry'); var sc=Math.max(0,Math.floor(score||0));
+    if(!uid()){ if(entry) entry.style.display=''; if(msg) msg.textContent='なまえを入れて登録できます🏆'; return; }
+    ref.child(uid()).once('value').then(function(snap){
+      var best = snap.exists() ? (+( (snap.val()||{}).score )||0) : -1;
+      var canReg = (best<0) || (sc>best);
+      if(entry) entry.style.display = canReg ? '' : 'none';
+      if(btn) btn.disabled = !canReg;
+      if(msg) msg.textContent = canReg ? (best<0?'初登録できます！🏆':'自己ベスト更新！登録できます🎉')
+                                       : '自己ベスト '+best.toLocaleString()+'m（今回は更新ならず）';
+    }).catch(function(){ if(entry) entry.style.display=''; });
+  }
+  function setFlag(f){ selFlag=f; var b=$('rankFlagBtn'); if(b) b.textContent=f; try{ localStorage.setItem(FLAG_KEY,f); }catch(e){} }
+  function buildGrid(elId, flags){ var el=$(elId); if(!el||el._built) return; el._built=true;
+    el.innerHTML=flags.map(function(f){ return '<button type="button" class="flagopt'+(f===selFlag?' sel':'')+'" data-f="'+f+'">'+f+'</button>'; }).join('');
+    el.addEventListener('click', function(e){ var t=e.target&&e.target.closest?e.target.closest('.flagopt'):null; if(!t)return; setFlag(t.getAttribute('data-f')); closePicker(); }); }
+  function openPicker(){ buildGrid('flagGridMajor', MAJOR); var p=$('flagPicker'); if(p) p.classList.remove('hidden'); }
+  function closePicker(){ var p=$('flagPicker'); if(p) p.classList.add('hidden'); }
+  function showAllFlags(){ buildGrid('flagGridAll', ALL); var g=$('flagGridAll'); if(g) g.classList.remove('hidden'); var b=$('flagMoreBtn'); if(b) b.classList.add('hidden'); }
+  (function(){ try{ var sv=localStorage.getItem(FLAG_KEY); if(sv) selFlag=sv; }catch(e){} setFlag(selFlag);
+    var fb=$('rankFlagBtn'); if(fb) fb.addEventListener('click', openPicker);
+    var mb=$('flagMoreBtn'); if(mb) mb.addEventListener('click', showAllFlags);
+    var pc=$('flagPickerClose'); if(pc) pc.addEventListener('click', closePicker);
+    var pov=$('flagPicker'); if(pov) pov.addEventListener('click', function(e){ if(e.target===pov) closePicker(); });
+  })();
+  var sb=$('rankSubmit'); if(sb) sb.addEventListener('click', submit);
+  var ni=$('rankName'); if(ni) ni.addEventListener('keydown', function(e){ if(e.key==='Enter') submit(); });
+  window.CoccoRank={ onGameOver:onGameOver, onShowRanking:function(){ loadTop(['rankListTitle']); }, submit:submit, celebrate:celebrate };
+})();
+</script>
+</body>
+</html>
