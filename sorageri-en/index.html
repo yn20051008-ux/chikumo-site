@@ -77,6 +77,9 @@
     user-select:none;-webkit-user-select:none;color:#eaf6ff;touch-action:none;}
   #wrap{position:fixed;inset:0;}
   canvas{display:block;width:100%;height:100%;}
+  /* 二層構成：#sky=WebGLの計算生成スカイ（背景）／#game=Canvas2Dの遊び・こっこ・HUD（前面・透過） */
+  #sky,#game{position:absolute;inset:0;}
+  #sky{z-index:0;} #game{z-index:1;}
   .ctrlbtn{position:absolute;z-index:12;pointer-events:auto;border-radius:50%;display:flex;align-items:center;justify-content:center;
     border:2px solid rgba(255,255,255,.25);background:rgba(14,34,56,.55);color:#fff;cursor:pointer;width:40px;height:40px;font-size:17px;}
   .ctrlbtn:active{transform:scale(.92);} .ctrlbtn.off{opacity:.5;}
@@ -294,6 +297,7 @@
 </head>
 <body>
 <div id="wrap">
+  <canvas id="sky"></canvas>
   <canvas id="game"></canvas>
   <div class="ctrlbtn" id="muteBtn">🔊</div>
   <div class="ctrlbtn" id="fsBtn">⛶</div>
@@ -754,10 +758,86 @@ var SENTENCES=[
 
 const $=id=>document.getElementById(id);
 const cv=$('game'), ctx=cv.getContext('2d');
+const skyCv=$('sky');
 const TAU=Math.PI*2;
-let W=0,H=0,DPR=1,PPM=1;
+let W=0,H=0,DPR=1,PPM=1,skyDPR=1;
+
+/* ===== 計算生成スカイ（背景・WebGL一枚のフルスクリーンシェーダ＝galaxy/pulse型の二層）
+   高度(uCamY)を渡し、フラグメントシェーダで空を計算生成する（雲の層・星・オーロラ）。
+   遊び本体・こっこ・タイピング・HUDは前面のCanvas2D(#game)がそのまま担う。
+   非対応環境では初期化がnullを返し、#game 側が従来のグラデ空を描く＝純粋な上乗せ。 ===== */
+const SKYGL=(function initSky(){
+  let gl=null;
+  try{ gl=skyCv.getContext('webgl',{antialias:false,alpha:false,depth:false,stencil:false,preserveDrawingBuffer:false})
+        ||skyCv.getContext('experimental-webgl',{antialias:false,alpha:false}); }catch(e){}
+  if(!gl) return null;
+  const VS='attribute vec2 aPos;void main(){gl_Position=vec4(aPos,0.0,1.0);}';
+  const FS=[
+'precision highp float;',
+'uniform vec2 uRes; uniform float uCamY,uPPM,uTime; uniform vec3 uTop,uBot;',
+'float hash(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+34.5);return fract(p.x*p.y*95.43);}',
+'float vnoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);',
+'  float a=hash(i),b=hash(i+vec2(1.0,0.0)),c=hash(i+vec2(0.0,1.0)),d=hash(i+vec2(1.0,1.0));',
+'  return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);}',
+'float fbm(vec2 p){float v=0.0,a=0.55;for(int i=0;i<4;i++){v+=a*vnoise(p);p=p*2.02+7.0;a*=0.5;}return v;}',
+'float win(float x,float lo,float hi,float fd){return smoothstep(lo-fd,lo+fd,x)*(1.0-smoothstep(hi-fd,hi+fd,x));}',
+'void main(){',
+'  vec2 fc=gl_FragCoord.xy; float topY=uRes.y-fc.y;',
+'  float worldAlt=uCamY-(topY-uRes.y*0.5)/uPPM;',   // Canvas2Dの sy() と同じ写像＝視差が一致
+'  float t=clamp(topY/uRes.y,0.0,1.0);',
+'  vec3 col=mix(uTop,uBot,t);',                      // 土台＝既存グラデ（高度で色が変わる）
+'  float xM=fc.x/uPPM;',
+'  float caF=uCamY*0.55-(topY-uRes.y*0.5)/uPPM;',    // 遠景はゆっくり＝視差の奥行き
+'  float nF=fbm(vec2(xM*0.010+uTime*0.004,caF*0.010));',
+'  float cloudF=smoothstep(0.52,0.92,nF)*win(worldAlt,-200.0,4200.0,900.0);',
+'  col=mix(col,vec3(1.0),cloudF*0.15);',
+'  float nN=fbm(vec2(xM*0.006-uTime*0.008+30.0,worldAlt*0.006));',
+'  float cloudN=smoothstep(0.55,0.96,nN)*win(worldAlt,-100.0,3600.0,800.0);',
+'  col=mix(col,vec3(1.0),cloudN*0.22);',
+'  float starA=smoothstep(3600.0,5600.0,worldAlt);',
+'  if(starA>0.001){vec2 sg=floor(vec2(fc.x,topY)/2.2);float h=hash(sg);',
+'    float star=step(0.994,h)*(0.5+0.5*sin(uTime*3.0+h*30.0));',
+'    col+=vec3(0.9,0.95,1.0)*star*starA;}',
+'  float aur=smoothstep(6200.0,8200.0,worldAlt)*(1.0-smoothstep(12000.0,13500.0,worldAlt));',
+'  if(aur>0.001){float band=sin(worldAlt*0.0016+fc.x/uRes.x*7.0+uTime*0.25);',
+'    float ribbon=smoothstep(0.55,1.0,band);',
+'    vec3 ac=mix(vec3(0.2,0.9,0.7),vec3(0.5,0.4,1.0),0.5+0.5*sin(fc.x/uRes.x*3.0+uTime*0.2));',
+'    col+=ac*ribbon*aur*0.18;}',
+'  gl_FragColor=vec4(col,1.0);',
+'}'].join('\n');
+  function sh(type,src){ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) return null; return s; }
+  const vs=sh(gl.VERTEX_SHADER,VS), fs=sh(gl.FRAGMENT_SHADER,FS);
+  if(!vs||!fs) return null;
+  const prog=gl.createProgram(); gl.attachShader(prog,vs); gl.attachShader(prog,fs); gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)) return null;
+  gl.useProgram(prog);
+  const buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1, 3,-1, -1,3]),gl.STATIC_DRAW); // 大三角形で全画面
+  const aPos=gl.getAttribLocation(prog,'aPos'); gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
+  const U={ res:gl.getUniformLocation(prog,'uRes'), camY:gl.getUniformLocation(prog,'uCamY'),
+    ppm:gl.getUniformLocation(prog,'uPPM'), time:gl.getUniformLocation(prog,'uTime'),
+    top:gl.getUniformLocation(prog,'uTop'), bot:gl.getUniformLocation(prog,'uBot') };
+  skyCv.addEventListener('webglcontextlost',function(e){ e.preventDefault(); location.reload(); });
+  return {
+    resize(){ skyDPR=Math.min(DPR,1.5)*0.7;                 // 空は柔らかいので低解像度で描いて負荷を下げる
+      skyCv.width=Math.max(1,Math.round(W*skyDPR)); skyCv.height=Math.max(1,Math.round(H*skyDPR));
+      gl.viewport(0,0,skyCv.width,skyCv.height); },
+    render(camYv,timev,topC,botC){
+      gl.useProgram(prog); gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+      gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0); gl.enableVertexAttribArray(aPos);
+      gl.uniform2f(U.res,skyCv.width,skyCv.height);
+      gl.uniform1f(U.camY,camYv); gl.uniform1f(U.ppm,PPM*skyDPR); gl.uniform1f(U.time,timev);
+      gl.uniform3f(U.top,topC[0]/255,topC[1]/255,topC[2]/255);
+      gl.uniform3f(U.bot,botC[0]/255,botC[1]/255,botC[2]/255);
+      gl.drawArrays(gl.TRIANGLES,0,3); }
+  };
+})();
+
 function resize(){ DPR=Math.min(window.devicePixelRatio||1,2); W=window.innerWidth; H=window.innerHeight;
-  cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0); PPM=H/130; }
+  cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0); PPM=H/130;
+  if(SKYGL) SKYGL.resize(); }
 window.addEventListener('resize',resize); resize();
 
 /* ---- こっこちゃん（公式SVG）＆絵文字スプライト ---- */
@@ -1038,8 +1118,15 @@ let waveT=0;
 function draw(dt){
   waveT+=dt;
   const cols=skyColors(Math.max(camY,0));
-  const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,css(cols[0])); g.addColorStop(1,css(cols[1]));
-  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  if(SKYGL){
+    // 背景は計算生成スカイ（WebGL）に任せ、前面のCanvas2Dは透過にして重畳する
+    SKYGL.render(camY, waveT, cols[0], cols[1]);
+    ctx.clearRect(0,0,W,H);
+  }else{
+    // フォールバック：従来どおりCanvas2Dのグラデ空を塗る
+    const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,css(cols[0])); g.addColorStop(1,css(cols[1]));
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  }
 
   /* 速度の線（風のライン）── 高度に関係なく上下動を見せる。
      世界座標(wy)に固定して sy() で描くので、雲と同じ視差で流れ、
@@ -1300,8 +1387,9 @@ fsBtn.addEventListener('click',()=>{
 /* 動作テスト用フック（ヘッドレス検証・デバッグ用） */
 window.__sorageriEn={
   get:()=>({state,alt,vy,maxAlt,airT,combo,typedN,typoN,sentN,kicked,base,boxLen:box.value.length,
-    target:target?target[0]:null,sentences:SENTENCES.length}),
+    skygl:!!SKYGL,target:target?target[0]:null,sentences:SENTENCES.length}),
   type:s=>{ box.value+=s; box.dispatchEvent(new Event('input',{bubbles:true})); },
+  jump:a=>{ alt=a; maxAlt=Math.max(maxAlt,a); camY=a+10; flying=true; },  // 検証用：高度を跳ばす
   start:startGame };
 })();
 </script>
