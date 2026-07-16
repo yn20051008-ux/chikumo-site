@@ -76,6 +76,14 @@
     font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN','Yu Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
     user-select:none;-webkit-user-select:none;color:#eaf6ff;touch-action:none;}
   #wrap{position:fixed;inset:0;}
+  /* ミス演出：赤フラッシュ＋画面シェイク */
+  #missFlash{position:absolute;inset:0;z-index:15;pointer-events:none;opacity:0;
+    background:radial-gradient(ellipse at 50% 60%,rgba(255,40,80,0) 40%,rgba(255,30,70,.55) 100%);}
+  #missFlash.on{animation:missFl .34s ease-out;}
+  @keyframes missFl{0%{opacity:1}100%{opacity:0}}
+  #wrap.shake{animation:wrapShake .26s cubic-bezier(.36,.07,.19,.97);}
+  @keyframes wrapShake{10%,90%{transform:translate(-2px,1px)}20%,80%{transform:translate(4px,-2px)}
+    30%,50%,70%{transform:translate(-6px,2px)}40%,60%{transform:translate(6px,-1px)}}
   canvas{display:block;width:100%;height:100%;}
   /* 二層構成：#sky=WebGLの計算生成スカイ（背景）／#game=Canvas2Dの遊び・こっこ・HUD（前面・透過） */
   #sky,#game{position:absolute;inset:0;}
@@ -119,7 +127,7 @@
   #krLine .todo{color:#eaf6ff;opacity:.88;}
   #krLine .cur{color:#ffe14d;background:rgba(255,225,77,.13);box-shadow:0 2px 0 #ffe14d;animation:curBlink 1.1s steps(2) infinite;}
   @keyframes curBlink{0%{box-shadow:0 2px 0 #ffe14d}50%{box-shadow:0 2px 0 transparent}}
-  #krLine .bad{color:#fff;background:rgba(255,80,110,.6);}
+  #krLine .bad{color:#fff;background:rgba(255,80,110,.6);text-decoration:line-through;} /* 色に頼らず「形」でも誤りを示す */
   #krLine .sp{opacity:.35;}
   #krLine.shake{animation:krShake .22s ease;}
   @keyframes krShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
@@ -299,6 +307,7 @@
 <div id="wrap">
   <canvas id="sky"></canvas>
   <canvas id="game"></canvas>
+  <div id="missFlash"></div>
   <div class="ctrlbtn" id="muteBtn">🔊</div>
   <div class="ctrlbtn" id="fsBtn">⛶</div>
 
@@ -375,6 +384,13 @@
       <button class="btn ghost" id="shareBtn">記録を共有</button>
     </div>
     <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+  </div>
+
+  <!-- ポーズ（離脱・タブ切替で自動ポーズ→タップで再開） -->
+  <div class="screen hidden" id="pauseScreen">
+    <div class="logo small">ひとやすみ</div>
+    <div class="desc">こっこはその場で待っています。<br>準備ができたら再開してね。</div>
+    <button class="btn" id="resumeBtn">▶ 再開</button>
   </div>
 
   <!-- 国旗ピッカー -->
@@ -898,7 +914,7 @@ let state='title';           // title | play | crash | over
 let alt=0, vy=0, flying=false, camY=45;
 let airT=0, maxAlt=0, simT=0;
 let combo=0, maxCombo=0, typedN=0, typoN=0, sentN=0, kickChain=0;
-let kickAnim=0, crashT=0, mileNext=500;
+let kickAnim=0, crashT=0, mileNext=500, missT=0, graceT=0, paused=false;
 let deco=[], decoTop=0, rainbowDone=false, particles=[];
 let streaks=[];   // 速度の線（風のライン）。高度に関係なく上下動を見せて「止まって見える」を防ぐ
 let bestAlt=0, bestAir=0, crossedBest=false;
@@ -923,12 +939,22 @@ function pickFrom(pool){
   for(let tries=0;tries<24;tries++){ const i=pool[Math.floor(Math.random()*pool.length)];
     if(recentQ.indexOf(i)<0){ recentQ.push(i); if(recentQ.length>12) recentQ.shift(); return SENTENCES[i]; } }
   return SENTENCES[pool[Math.floor(Math.random()*pool.length)]]; }
+/* 連続正解(combo)が伸びるほど文を長くする＝要求打鍵が増え、いつか失速して降りてくる
+   （＝畜学②「必ず終わる」。上級者もどこかで追いつかれる。ミスでcomboが切れると短文に戻る＝休息） */
 function pickSentence(){
-  if(sentN<3) return pickFrom(POOL_S);                       // 出だしは短く＝すぐ飛べる
-  const r=Math.random(), hi=Math.min(alt/4000,1);            // 高いほど長文が増える
-  if(r<0.42-hi*0.22) return pickFrom(POOL_S);
-  if(r<0.85-hi*0.15) return pickFrom(POOL_M);
-  return pickFrom(POOL_L); }
+  const c=combo;
+  if(sentN<2) return pickFrom(POOL_S);                       // 出だしは短く＝すぐ飛べる（オンボーディング）
+  let base;
+  if(c<3)       base=pickFrom(POOL_S);
+  else if(c<7)  base=pickFrom(Math.random()<0.5?POOL_S:POOL_M);
+  else if(c<12) base=pickFrom(Math.random()<0.5?POOL_M:POOL_L);
+  else          base=pickFrom(POOL_L);
+  // 超連続では2文つないで超長文に（＝どんな速い指もいつか失速して降りる＝必ず終わる）
+  if(c>=16 && Math.random()<Math.min(0.2+(c-16)*0.06,0.7)){
+    const b2=pickFrom(POOL_M);
+    base=[base[0]+' '+b2[0], base[1]+'　'+b2[1]];
+  }
+  return base; }
 
 /* ---- タイピング（英語・ストリーム方式／韓国語版と同じ骨格） ----
    入力欄の値はタイピングの最中に消さない。文が終わったら base（現在文の開始位置）を
@@ -1022,7 +1048,8 @@ function onInput(){
      「間違った字を通り過ぎて次を打った」ときだけミスにする */
   if(seg.length-r.si>0 && r.si<seg.length-1 && !typoFlag){
     typoFlag=true; typoN++; combo=0; updateCombo();
-    sndTypo(); krLine.classList.remove('shake'); void krLine.offsetWidth; krLine.classList.add('shake');
+    vy-=17; if(vy<-62)vy=-62;           // ミスで失速＝一気に高度を失う（正確さが生存に効く）
+    missEffect();
   }
   if(r.ti>kicked){
     for(let i=kicked;i<r.ti;i++){ doKick(t[i]===' '?0.45:1); typedN++; }
@@ -1042,13 +1069,25 @@ function completeSentence(){
   burst(px(),py()-10,['✨','⭐','💫'],6);
   setSentence(pickSentence());
   scheduleTrim(); }
-function vyMax(){ return 30+Math.min(combo,15)*0.8; }
+function vyMax(){ return 30+Math.min(combo,22)*0.95; }  // 連続正解(技能)が高いほど上限も上げる＝速い指ほど高く
 function doKick(mult){
   if(state!=='play') return;
   if(mult>0){ vy=Math.min(vy+13*mult, vyMax()); kickChain++; sndKick(kickChain); }
-  if(!flying && vy>0){ flying=true; burst(px(),py()+16,['💨','🌿','✨'],8); }
+  if(!flying && vy>0){ flying=true; graceT=1.8; burst(px(),py()+16,['💨','🌿','✨'],8); }  // 飛び立ち直後は猶予
   kickAnim=1;
   if(mult>0){ particles.push({x:px()-14,y:py()+20,vx:-30-Math.random()*40,vy:40+Math.random()*30,life:.5,ch:'💨',s:20}); }
+}
+
+/* ---- ミス演出（強化）：赤フラッシュ＋画面シェイク＋💥＋こっこの被弾＋振動＋音 ---- */
+const missFlash=$('missFlash'), wrapEl=$('wrap');
+function missEffect(){
+  sndTypo();
+  krLine.classList.remove('shake'); void krLine.offsetWidth; krLine.classList.add('shake');
+  missFlash.classList.remove('on'); void missFlash.offsetWidth; missFlash.classList.add('on');
+  wrapEl.classList.remove('shake'); void wrapEl.offsetWidth; wrapEl.classList.add('shake');
+  burst(px(),py()-6,['💥','💢','✖️'],7);
+  missT=0.5;                            // こっこが一瞬うろたえる（描画側で赤み＋💥）
+  vib([0,55,30,55]);
 }
 
 /* ---- パーティクル ---- */
@@ -1200,8 +1239,10 @@ function draw(dt){
       if(gyy>-60&&gyy<H+60){ ctx.save(); ctx.globalAlpha=.3;
         const h=Math.min(W,H)*.14, w=h*AR;
         ctx.translate(gx,gyy); ctx.drawImage(cocco,-w/2,-h/2,w,h); ctx.restore();
-        ctx.globalAlpha=.5; ctx.fillStyle='#cfa8ff'; ctx.font='900 10px sans-serif'; ctx.textAlign='center';
-        ctx.fillText('👻 BEST',gx,gyy-Math.min(W,H)*.14*.62); ctx.globalAlpha=1; } } }
+        // 自己ベスト(ゴースト)との高度差を表示＝競っている感（リードは水色・負けは桃色）
+        const d=Math.round(alt-ga), lead=d>=0;
+        ctx.globalAlpha=.85; ctx.fillStyle=lead?'#8dffb0':'#ff9ec4'; ctx.font='900 11px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('👻 '+(lead?'+':'')+d.toLocaleString()+'m',gx,gyy-Math.min(W,H)*.14*.62); ctx.globalAlpha=1; } } }
 
   /* パーティクル */
   for(let i=particles.length-1;i>=0;i--){ const p=particles[i];
@@ -1221,6 +1262,7 @@ function draw(dt){
         if(state==='play'&&vy<-16) rot+=Math.sin(waveT*15)*0.18*Math.min((-vy-16)/34,1); // 落下のばたつき
       }
       if(state==='crash') rot=Math.PI; // 墜落後は目をまわして転がる
+      if(missT>0) rot+=Math.sin(missT*60)*0.22*missT*2;   // 被弾でうろたえる揺れ
       ctx.rotate(rot);
       if(vy<-30&&state==='play'){ ctx.globalAlpha=.85; }
       ctx.drawImage(cocco,-w/2,-h/2,w,h);
@@ -1228,6 +1270,9 @@ function draw(dt){
       if(kickAnim>0){ drawEmo('👟',w*.24,h*.42,h*.34,-.6); }
     }
     ctx.restore();
+    // ミス直後：💥と😖でうろたえを強調
+    if(state==='play'&&missT>0){ drawEmo('💥',x+w*.5,y-h*.55,20+missT*18,0,Math.min(1,missT*3));
+      drawEmo('😖',x,y-h*.72,18,0,Math.min(1,missT*3)); }
     // 落下中は左右にはためく風＋汗で「落ちている」ことを強調
     if(state==='play'&&vy<-14){ const f=Math.min((-vy-14)/40,1);
       drawEmo('💨',x-w*.66,y-h*.1+Math.sin(waveT*16)*4,14+8*f,0,.35+.4*f);
@@ -1257,15 +1302,37 @@ function fmtAir(s){ s=Math.floor(s); return Math.floor(s/60)+':'+String(s%60).pa
 function note(t){ hudNote.textContent=t; hudNote.classList.remove('pop'); void hudNote.offsetWidth; hudNote.classList.add('pop'); }
 
 /* ---- メインループ ---- */
+/* ---- ポーズ（タブ切替・離脱で自動停止→タップで再開。通知や着信で1回を失わない） ---- */
+function pauseGame(){
+  if(paused || state!=='play') return;
+  paused=true; dock.classList.remove('on'); box.blur();
+  if(AC){ try{ AC.suspend(); }catch(e){} }
+  $('pauseScreen').classList.remove('hidden');
+}
+function resumeGame(){
+  if(!paused) return;
+  paused=false; $('pauseScreen').classList.add('hidden');
+  if(state==='play'){ dock.classList.add('on'); ac(); box.focus(); }
+  last=performance.now();
+}
+document.addEventListener('visibilitychange',function(){ if(document.hidden) pauseGame(); });
+$('resumeBtn').addEventListener('click',resumeGame);
+
 let last=performance.now();
 function loop(now){
+  if(paused){ last=now; requestAnimationFrame(loop); return; }   // ポーズ中は時間を止める
   const dt=Math.min((now-last)/1000,.05); last=now;
   if(state==='play'){
     simT+=dt;
     if(kickAnim>0) kickAnim=Math.max(0,kickAnim-dt*2.6);
+    if(missT>0) missT=Math.max(0,missT-dt);
     if(flying){
-      const g=24*(0.55+0.45*Math.min(alt/60,1));   // 島の近くはやさしい上昇気流
-      vy-=g*dt; if(vy<-62)vy=-62;
+      if(graceT>0) graceT=Math.max(0,graceT-dt);
+      let g=24*(0.55+0.45*Math.min(alt/60,1))*(graceT>0?0.5:1);      // 島の近くはやさしい／飛び立ち直後は猶予
+      if(vy<0) g*=2.0;                                               // 落下は速い＝ダイブ感（間延びした落下を防ぐ）
+      vy-=g*dt;
+      const term=-(80+alt*0.045);                                   // 高いほど終端速度も速い＝高所ストールは戻れないダイブ＝必ず終わる
+      if(vy<term)vy=term;
       alt+=vy*dt;
       if(alt>maxAlt){ maxAlt=alt;
         if(!crossedBest&&bestAlt>3&&maxAlt>bestAlt){ crossedBest=true; note('🏁 自己ベスト超え！'); sndBest(); vib([0,30,40,30]); } }
@@ -1275,7 +1342,7 @@ function loop(now){
       recAcc+=dt; while(recAcc>=GHOST_STEP){ recAcc-=GHOST_STEP; if(rec.length<GHOST_MAX) rec.push(Math.round(alt*10)/10); }
     }
     hudAlt.innerHTML=Math.floor(alt).toLocaleString()+'<small> m</small>';
-    hudAir.textContent='⏱ '+fmtAir(airT)+'　👟 '+typedN+'打';
+    hudAir.textContent='⏱ '+fmtAir(airT)+'　⌨ '+(airT>0.5?Math.round(typedN/airT*60):0)+'/分';
     if(windGain) windGain.gain.value=(muted?0:1)*Math.min(Math.abs(vy)/70,1)*.13;
   }else if(state==='crash'){
     crashT+=dt;
@@ -1298,7 +1365,7 @@ const dock=$('dock');
 function startGame(){
   state='play'; alt=0; vy=0; flying=false; camY=45;
   airT=0; maxAlt=0; simT=0; combo=0; maxCombo=0; typedN=0; typoN=0; sentN=0; kickChain=0;
-  kickAnim=0; crashT=0; mileNext=500; crossedBest=false;
+  kickAnim=0; crashT=0; mileNext=500; crossedBest=false; missT=0; paused=false;
   deco=[]; decoTop=0; rainbowDone=false; particles=[]; streaks=[]; recentQ=[];
   rec=[]; recAcc=0;
   clearTimeout(trimTimer); clearTimeout(trimForceTimer); composing=false;
@@ -1320,7 +1387,9 @@ function gameOver(){
   const score=Math.floor(maxAlt), air=Math.floor(airT);
   const acc=typedN+typoN>0 ? Math.round(typedN/(typedN+typoN)*100) : 100;
   $('finalAlt').textContent=score.toLocaleString()+' m';
-  $('statLine').textContent='滞空 '+fmtAir(air)+' ／ 文章 '+sentN+' ／ 最大コンボ '+maxCombo+' ／ 正確率 '+acc+'%';
+  const cpm = air>0 ? Math.round(typedN/air*60) : 0;   // 打鍵速度＝タイピング上達の指標
+  $('statLine').innerHTML='⌨ <b style="color:#7ce0ff">'+cpm+' 打/分</b>（WPM '+Math.round(cpm/5)+'）　正確率 '+acc+'%<br>'
+    +'滞空 '+fmtAir(air)+' ／ 文章 '+sentN+' ／ 最大コンボ '+maxCombo;
   const nb=$('newBest'); nb.style.opacity=0;
   const gl=$('ghostLine');
   const prevGhostAlt=ghost?ghost.alt:0;
