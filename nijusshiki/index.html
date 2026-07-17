@@ -153,6 +153,12 @@ main,header,footer,.topbar{position:relative;z-index:1;}
 .hero .sub2{margin-top:1.2rem;font-size:clamp(0.82rem,1.6vw,0.95rem);font-weight:300;color:var(--text-secondary);letter-spacing:0.14em;line-height:2.1;}
 .hero .sub2 a{color:var(--gold);text-decoration:none;border-bottom:1px solid var(--line-strong);transition:color .2s,border-color .2s;}
 .hero .sub2 a:hover{color:var(--gold-bright);border-color:var(--gold);}
+.hero .updated-badge{
+  display:inline-block;margin-top:2.4rem;padding:0.42rem 1.5rem;
+  font-family:var(--font-mono);font-size:0.64rem;letter-spacing:0.28em;
+  color:var(--gold-dim);text-transform:uppercase;
+  border:1px solid var(--line);border-radius:99px;
+}
 
 /* ORNAMENT DIVIDER */
 .o-divider{display:flex;align-items:center;gap:1.2rem;max-width:1040px;margin:0 auto;padding:0 clamp(1.4rem,5vw,3rem);}
@@ -317,6 +323,9 @@ section{padding:clamp(4rem,10vw,7.5rem) clamp(1.4rem,5vw,3rem);}
 .hen .h .tag{font-family:var(--font-mono);font-size:0.64rem;letter-spacing:0.18em;color:var(--text-tertiary);text-transform:uppercase;margin-bottom:0.8rem;display:block;}
 .hen .h p{font-size:0.92rem;color:var(--text-secondary);line-height:2.05;}
 .hen .h p b{color:var(--gold);font-weight:600;}
+.hen-note{margin-top:1.8rem;padding:1.6rem 1.8rem;border:1px solid var(--line);background:var(--bg-inset);font-size:0.95rem;color:var(--text-secondary);line-height:2.15;letter-spacing:0.03em;position:relative;}
+.hen-note::before{content:"";position:absolute;left:0;top:0;width:3px;height:100%;background:linear-gradient(to bottom,var(--g-jittai),transparent);}
+.hen-note b{color:var(--gold);font-weight:600;}
 
 /* LINEAGE — 十四式へ */
 .lineage{
@@ -346,6 +355,7 @@ footer .f-links{display:flex;gap:1.7rem;justify-content:center;flex-wrap:wrap;ma
 footer a{font-family:var(--font-mono);font-size:0.74rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
 footer a:hover{color:var(--gold-bright);}
 footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--text-tertiary);}
+footer .updated{margin-top:0.9rem;font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.24em;color:var(--gold-dim);text-transform:uppercase;}
 
 /* reveal */
 .reveal{opacity:0;transform:translateY(26px);transition:opacity 1.1s var(--ease-out),transform 1.1s var(--ease-out);}
@@ -378,6 +388,7 @@ footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;co
     <div class="ornament"><span class="h-line"></span><span class="diamond"></span><span class="h-line"></span></div>
     <div class="sub">固定構造。廿式は不変。<br>更新対象は五式のみ。</div>
     <div class="sub2">番号は機能順（依存順）── <a href="/jushishiki/">十四式</a>（観測順）とは別系統。</div>
+    <div class="updated-badge">更新日 2026-07-17</div>
   </div>
 </header>
 
@@ -638,6 +649,7 @@ footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;co
         <p>振動制御主体の交代。規則定義役は新担い手へ移行、<b>縁から反復可</b>。</p>
       </div>
     </div>
+    <p class="hen-note"><b>思変の矛盾</b>は差分の内容に現れず、観測では<b>循と判別できない</b>。帰属の根に残り、<b>継ₙ → 認ₙ₊₁</b> で消えない。</p>
   </div>
 </section>
 
@@ -668,6 +680,7 @@ footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;co
     <a href="/">畜物語</a>
   </div>
   <div class="c">畜物語 ─ chikumo.jp</div>
+  <div class="updated">更新日 · Last Updated 2026-07-17</div>
 </footer>
 
 <script>
