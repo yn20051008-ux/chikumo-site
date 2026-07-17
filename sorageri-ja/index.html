@@ -320,8 +320,8 @@
     <div id="comboLine"></div>
     <div id="krLine"></div>
     <div id="jaLine"></div>
-    <div id="dockHint">ひらがなで入力！（漢字に変換しないでね）</div>
-    <input id="typebox" lang="ja" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="ひらがな入力">
+    <div id="dockHint">ローマ字で入力！（PCはIMEをオフ＝半角英数に。スマホはかな入力でもOK）</div>
+    <input id="typebox" lang="ja" inputmode="latin" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="ローマ字入力">
   </div>
 
   <div class="screen" id="titleScreen">
@@ -337,7 +337,7 @@
     <button class="btn ghost" id="howBtn">あそびかた</button>
     <button class="btn ghost" id="rankBtn">🏆 世界ランキング</button>
     <div class="hint" id="titleGhostLine"></div>
-    <div class="hint">ローマ字入力でもかな入力でもOK。漢字に変換せず、ひらがなのまま打ってね</div>
+    <div class="hint">PCは<b>ローマ字入力・IMEオフ（半角英数）</b>がおすすめ。スマホはかな入力でもOK</div>
     <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
   </div>
 
@@ -356,7 +356,7 @@
       ◆ <b>連続で正解</b>するほど文が長くなる＝どんどん難しく！ <b>ミスすると失速</b>して落ちかける。正確に速く打とう。<br><br>
       ◆ 記録は<b>最高高度(m)</b>と<b>タイピング速度(打/分)</b>。高く昇るほど、島が小さくなり、雲を抜け、夕空、そして<b>星の海</b>へ──景色が変わっていく。<br><br>
       ◆ 👻<b>ゴーストこっこ</b> ── 自己ベストの飛行が70%透過のこっこちゃんとして<b>いっしょに飛ぶ</b>（この端末に保存）。きのうの自分に、勝て。<br><br>
-      ◆ <b>入力のコツ</b>：ローマ字入力でもかな入力でもOK。<b>漢字に変換せず、ひらがなのまま</b>打ってね（スペース・エンターで変換しない）。まちがえたら<b>⌫（バックスペース）</b>で直せる。
+      ◆ <b>入力のコツ</b>：<b>PCはローマ字入力・IMEをオフ（半角英数）</b>にしてね。し=si/shi、つ=tu/tsu、ん=nn、っ=子音重ね（って→tte）など、どの打ち方でもOK。<b>スマホはかな入力</b>でもそのまま打てる。まちがえたら<b>⌫（バックスペース）</b>で直せる。
     </div>
     <button class="btn" id="howBack">もどる</button>
   </div>
@@ -970,43 +970,122 @@ function tryTrim(force){
 const SP_CHARS='  　';           // 半角・NBSP・全角スペースは同一視
 const JUNK='.。,、';                       // 文頭に紛れたら読み飛ばす記号
 function isSp(c){ return SP_CHARS.indexOf(c)>=0; }
-/* 入力segと目標文tの進み具合を測る。スペースは両側とも任意・句読点ゴミは無視。
-   （目標文はハングルとスペースだけ、という SENTENCES の決まりが前提）
-   返り値 ti=目標文の何文字目まで進んだか / si=segの何文字目まで消費したか */
+/* ===== ローマ字入力エンジン（IMEオフのローマ字＋スマホのかな入力の両対応） =====
+   ターゲットはひらがな。打った文字列(seg)は「ローマ字(半角英数)」でも「ひらがな」でも受ける。
+   日本語はかな漢字変換があるため『ひらがなのまま入力』はPCで詰まりやすい → ローマ字(IMEオフ)を
+   正式対応し、変換の要らない入力で確実に進めるようにする。し=si/shi、つ=tu/tsu、ん=nn/n、
+   っ=子音重ね/xtu、拗音(きょ=kyo)などの揺れを許容する。 */
+const HIRA=/[ぁ-ゖ]/;                 // ひらがな（かな入力の直接判定）
+const VOW='aiueo';
+const SMALLY={'ゃ':1,'ゅ':1,'ょ':1,'ぁ':1,'ぃ':1,'ぅ':1,'ぇ':1,'ぉ':1,'ゎ':1}; // 拗音を作る小書きかな
+const RM={
+ 'あ':['a'],'い':['i','yi'],'う':['u','wu','whu'],'え':['e'],'お':['o'],
+ 'か':['ka','ca'],'き':['ki'],'く':['ku','cu','qu'],'け':['ke'],'こ':['ko','co'],
+ 'が':['ga'],'ぎ':['gi'],'ぐ':['gu'],'げ':['ge'],'ご':['go'],
+ 'さ':['sa'],'し':['si','shi','ci'],'す':['su'],'せ':['se','ce'],'そ':['so'],
+ 'ざ':['za'],'じ':['ji','zi'],'ず':['zu'],'ぜ':['ze'],'ぞ':['zo'],
+ 'た':['ta'],'ち':['ti','chi'],'つ':['tu','tsu'],'て':['te'],'と':['to'],
+ 'だ':['da'],'ぢ':['di'],'づ':['du'],'で':['de'],'ど':['do'],
+ 'な':['na'],'に':['ni'],'ぬ':['nu'],'ね':['ne'],'の':['no'],
+ 'は':['ha'],'ひ':['hi'],'ふ':['fu','hu'],'へ':['he'],'ほ':['ho'],
+ 'ば':['ba'],'び':['bi'],'ぶ':['bu'],'べ':['be'],'ぼ':['bo'],
+ 'ぱ':['pa'],'ぴ':['pi'],'ぷ':['pu'],'ぺ':['pe'],'ぽ':['po'],
+ 'ま':['ma'],'み':['mi'],'む':['mu'],'め':['me'],'も':['mo'],
+ 'や':['ya'],'ゆ':['yu'],'よ':['yo'],
+ 'ら':['ra'],'り':['ri'],'る':['ru'],'れ':['re'],'ろ':['ro'],
+ 'わ':['wa'],'を':['wo','o'],
+ 'ぁ':['xa','la'],'ぃ':['xi','li'],'ぅ':['xu','lu'],'ぇ':['xe','le'],'ぉ':['xo','lo'],
+ 'ゃ':['xya','lya'],'ゅ':['xyu','lyu'],'ょ':['xyo','lyo']
+};
+const YO={
+ 'きゃ':['kya'],'きゅ':['kyu'],'きょ':['kyo'],
+ 'しゃ':['sya','sha'],'しゅ':['syu','shu'],'しょ':['syo','sho'],'しぇ':['sye','she'],
+ 'ちゃ':['tya','cha','cya'],'ちゅ':['tyu','chu','cyu'],'ちょ':['tyo','cho','cyo'],'ちぇ':['tye','che'],
+ 'にゃ':['nya'],'にゅ':['nyu'],'にょ':['nyo'],
+ 'ひゃ':['hya'],'ひゅ':['hyu'],'ひょ':['hyo'],
+ 'みゃ':['mya'],'みゅ':['myu'],'みょ':['myo'],
+ 'りゃ':['rya'],'りゅ':['ryu'],'りょ':['ryo'],
+ 'ぎゃ':['gya'],'ぎゅ':['gyu'],'ぎょ':['gyo'],
+ 'じゃ':['ja','jya','zya'],'じゅ':['ju','jyu','zyu'],'じょ':['jo','jyo','zyo'],'じぇ':['je','jye','zye'],
+ 'びゃ':['bya'],'びゅ':['byu'],'びょ':['byo'],
+ 'ぴゃ':['pya'],'ぴゅ':['pyu'],'ぴょ':['pyo'],
+ 'ふぁ':['fa','fwa'],'ふぃ':['fi','fwi'],'ふぇ':['fe','fwe'],'ふぉ':['fo','fwo'],
+ 'てぃ':['thi'],'でぃ':['dhi'],'うぃ':['wi','whi'],'うぇ':['we','whe']
+};
+function unitCand(t,ki){   // ki位置のかな1単位（拗音なら2文字）のローマ字候補と、進めるかな数
+  const a=t[ki], b=t[ki+1];
+  if(b&&SMALLY[b]){ const key=a+b; const cand=(YO[key]||[]).slice();
+    const bs=RM[a]||[], ss=RM[b]||[];
+    for(let x=0;x<bs.length;x++) for(let y=0;y<ss.length;y++) cand.push(bs[x]+ss[y]); // 基音+小書き(ki+xyo・fu+xa等)も許容
+    return {adv:2, cand:cand}; }
+  return {adv:1, cand:(RM[a]||[a]).slice()};
+}
+/* strが ki位置のかなユニットの打ち始めになりうるか（んの単独n・っの子音重ねのルックアヘッド用） */
+function canStart(t,ki,str){
+  if(ki>=t.length||!str) return false;
+  if(HIRA.test(str[0])) return str[0]===t[ki];
+  if(t[ki]==='っ'||t[ki]==='ん') return true;
+  const u=unitCand(t,ki);
+  for(let i=0;i<u.cand.length;i++){ const c=u.cand[i]; if(str.indexOf(c)===0||c.indexOf(str)===0) return true; }
+  return false;
+}
+/* 返り値 ti=ひらがな何文字ぶん確定 / si=segを何文字消費 / bad=無効な打鍵があるか */
 function matchLen(seg,t){
-  let si=0,ti=0;
-  while(si<seg.length&&ti<t.length){
-    const c=isSp(seg[si])?' ':seg[si];
-    if(c===t[ti]){ si++; ti++; continue; }
-    if(t[ti]===' '){ ti++; continue; }                    // 目標のスペースは打たなくてよい
-    if(c===' '||JUNK.indexOf(c)>=0){ si++; continue; }    // 余分なスペース・句読点ゴミは許す
-    break;
+  let si=0, ki=0, bad=false;
+  while(ki<t.length){
+    while(si<seg.length && (isSp(seg[si])||JUNK.indexOf(seg[si])>=0||seg[si]==='ー')) si++; // 空白・記号・長音は読み飛ばす
+    if(si>=seg.length) break;
+    const ch=seg[si];
+    if(HIRA.test(ch)){                       // (1) ひらがな直接入力（スマホのかな入力・IME確定分）
+      if(ch===t[ki]){ si++; ki++; continue; }
+      bad=true; break;
+    }
+    const rem=seg.slice(si).toLowerCase();   // (2) ローマ字
+    let adv=0, used=0, partial=false;
+    if(t[ki]==='っ'){
+      let full=null; const so=['xtu','ltu','xtsu','ltsu'];
+      for(let i=0;i<so.length;i++){ if(rem.indexOf(so[i])===0 && (!full||so[i].length>full.length)) full=so[i]; }
+      if(full){ used=full.length; adv=1; }
+      else{
+        const nx=(t[ki+1]==='ん')?{cand:['n']}:(t[ki+1]==='っ')?{cand:['x']}:unitCand(t,ki+1);
+        const cons={}; for(let i=0;i<nx.cand.length;i++){ const f=nx.cand[i][0]; if(f&&VOW.indexOf(f)<0) cons[f]=1; }
+        if(rem.length>=2 && cons[rem[0]]){ used=1; adv=1; }                 // 子音重ね（tte→っ=t）
+        else if(rem.length>=1 && (cons[rem[0]]||'xl'.indexOf(rem[0])===0)){ partial=true; }
+        else{ bad=true; break; }
+      }
+    } else if(t[ki]==='ん'){
+      const last=(ki+1>=t.length);
+      // 子音（yを除く）の前では n 単独可＝次のかなが打ち始められるなら n 1つでんを確定（konnichiha 等）
+      if(!last && rem[0]==='n' && rem.length>=2 && rem[1]!=='y' && VOW.indexOf(rem[1])<0 && canStart(t,ki+1,rem.slice(1))){ used=1; adv=1; }
+      else if(rem.indexOf('nn')===0||rem.indexOf("n'")===0||rem.indexOf('xn')===0){ used=2; adv=1; }
+      else if(rem==='n'){ partial=true; }
+      else{ bad=true; break; }
+    } else {
+      const u=unitCand(t,ki); let full=null;
+      for(let i=0;i<u.cand.length;i++){ const c=u.cand[i]; if(rem.indexOf(c)===0 && (!full||c.length>full.length)) full=c; }
+      if(full){ used=full.length; adv=u.adv; }
+      else{ for(let i=0;i<u.cand.length;i++){ if(u.cand[i].indexOf(rem)===0){ partial=true; break; } }
+        if(!partial){ bad=true; break; } }
+    }
+    if(partial) break;         // 有効な途中（あと1〜2打で確定）＝ミスではない
+    si+=used; ki+=adv;
   }
-  while(si<seg.length&&(isSp(seg[si])||JUNK.indexOf(seg[si])>=0)) si++; // 末尾のゴミも消費扱い
-  while(ti<t.length&&t[ti]===' ') ti++;
-  return {ti:ti,si:si};
+  return {ti:ki, si:si, bad:bad};
 }
 function setSentence(s){ target=s; kicked=0; typoFlag=false; base=box.value.length; renderLine(''); jaLine.textContent=s[1]; }
 function renderLine(seg){
   const t=target?target[0]:''; if(!t){ krLine.innerHTML=''; return; }
-  const r=matchLen(seg,t), bad=seg.length-r.si;
+  const r=matchLen(seg,t);
   const fs=Math.max(17,Math.min(30,Math.floor((W*0.92)/Math.max(t.length,4))));
   krLine.style.fontSize=fs+'px';
+  // ローマ字なので入力そのものは表示せず、ひらがなの進み具合だけ見せる（打てた=緑／今ここ=黄／これから=白）
   let html='';
   for(let i=0;i<t.length;i++){
-    const chT=t[i], sp=chT===' ';
-    let cls,txt;
-    if(i<r.ti){ cls=sp?'done sp':'done'; txt=sp?'·':chT; }
-    else{
-      const j=i-r.ti;
-      if(j<bad){ const sc=seg[r.si+j];
-        // 組み立て中かもしれない最後の1字は「cur」、通り過ぎた間違いは「bad」
-        cls=(r.si+j===seg.length-1)?'cur':'bad'; txt=isSp(sc)?'·':sc;
-      }
-      else if(bad===0&&j===0){ cls='cur'; txt=sp?'·':chT; }
-      else{ cls=sp?'todo sp':'todo'; txt=sp?'·':chT; }
-    }
-    html+='<span class="'+cls+'">'+txt+'</span>';
+    let cls;
+    if(i<r.ti) cls='done';
+    else if(i===r.ti) cls=r.bad?'bad':'cur';   // ミス中はカーソル位置を赤く
+    else cls='todo';
+    html+='<span class="'+cls+'">'+t[i]+'</span>';
   }
   krLine.innerHTML=html; }
 function onInput(){
@@ -1016,9 +1095,10 @@ function onInput(){
   let seg=box.value.slice(base);
   while(seg.length&&JUNK.indexOf(seg[0])>=0){ base++; seg=box.value.slice(base); }
   const r=matchLen(seg,t);
-  /* ミス判定：最後の1字はIMEが組み立て中かもしれないので、
-     「間違った字を通り過ぎて次を打った」ときだけミスにする */
-  if(seg.length-r.si>0 && r.si<seg.length-1 && !typoFlag){
+  /* ミス判定：ローマ字の「途中(有効prefix)」はミスにしない。無効な打鍵(bad)でも、末尾1文字は
+     かなIMEの合成中かもしれないので猶予し、間違いを通り過ぎて次も打った（未消費が2文字以上）
+     ときだけ失速させる（他版と同じ作法。単発ミスは⌫ですぐ直せる） */
+  if(r.bad && (seg.length-r.si)>=2 && !typoFlag){
     typoFlag=true; typoN++; combo=0; updateCombo();
     vy-=17; if(vy<-62)vy=-62;           // ミスで失速＝一気に高度を失う（正確さが生存に効く）
     missEffect();
