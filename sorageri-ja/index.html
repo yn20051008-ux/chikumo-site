@@ -1,0 +1,1644 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<script>
+/* こっこ共通: ページを離れたら必ず音を止める（bfcache対策／全ゲーム共通の番人） */
+(function(){
+  var ctxs=[];
+  var OrigAC=window.AudioContext||window.webkitAudioContext;
+  if(OrigAC&&typeof Proxy!=='undefined'&&typeof Reflect!=='undefined'){
+    var P=new Proxy(OrigAC,{construct:function(T,a,nt){
+      var c=Reflect.construct(T,a,nt===P?T:nt);
+      try{ctxs.push(c);}catch(e){}
+      return c;
+    }});
+    try{window.AudioContext=P;}catch(e){}
+    try{if(window.webkitAudioContext)window.webkitAudioContext=P;}catch(e){}
+  }
+  function kill(){for(var i=0;i<ctxs.length;i++){var c=ctxs[i];try{c.suspend();}catch(e){}try{c.close();}catch(e){}}ctxs=[];}
+  window.addEventListener('pagehide',kill);
+  window.addEventListener('pageshow',function(e){if(e.persisted)window.location.reload();});
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+<title>空蹴り にほんご ─ SORAGERI JP｜ひらがなタイピングで空へ</title>
+<meta name="description" content="ひらがなを打つたび、こっこちゃんが空蹴り！打つのを止めると落ちる。島ぐらしの島から飛び立ち、生活会話300文で空の果てへ。自己ベストのゴーストこっこと競える、日本語（ローマ字・かな）タイピング上達ゲーム。PC・スマホ対応。">
+<meta name="author" content="畜物語">
+<meta name="robots" content="index, follow">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#081527">
+<meta name="format-detection" content="telephone=no">
+<link rel="canonical" href="https://chikumo.jp/sorageri-ja/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chikumo.jp/sorageri-ja/">
+<meta property="og:title" content="空蹴り にほんご ─ SORAGERI JP">
+<meta property="og:description" content="ひらがなを打つたび、こっこちゃんが空蹴り！島ぐらしの島から空の果てへ。日本語タイピング上達ゲーム。">
+<meta property="og:image" content="https://chikumo.jp/ogp.png">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:site_name" content="畜物語">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="空蹴り にほんご ─ SORAGERI JP">
+<meta name="twitter:description" content="ひらがなを打つたび、こっこちゃんが空蹴り！日本語タイピング上達ゲーム。">
+<meta name="twitter:image" content="https://chikumo.jp/ogp.png">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="空蹴りにほんご">
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://chikumonogatarikiroku-default-rtdb.asia-southeast1.firebasedatabase.app">
+<script>
+/* Firebase SDK 非同期ローダー：描画を止めずに順番に読み込む（低帯域でもゲームは即開始）。
+   読込失敗時は時間をおいて/回線復帰(online)で自動再試行 → 遅れてでもランキングを生かす */
+(function(){
+  var base='https://www.gstatic.com/firebasejs/9.23.0/';
+  var files=['firebase-app-compat.js','firebase-database-compat.js','firebase-auth-compat.js'];
+  var next=0, busy=false, fails=0;
+  function load(){
+    if(busy||next>=files.length) return;
+    busy=true;
+    var s=document.createElement('script');
+    s.src=base+files[next]; s.async=true;
+    s.onload=function(){ busy=false; fails=0; next++; load(); };
+    s.onerror=function(){ busy=false; if(s.parentNode) s.parentNode.removeChild(s);
+      setTimeout(load, Math.min(60000, 3000*Math.pow(2,fails++))); };
+    (document.head||document.documentElement).appendChild(s);
+  }
+  window.addEventListener('online', load);
+  load();
+})();
+</script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#081527;
+    font-family:'Helvetica Neue',Arial,'Hiragino Kaku Gothic ProN','Yu Gothic','Apple SD Gothic Neo','Noto Sans KR',sans-serif;
+    user-select:none;-webkit-user-select:none;color:#eaf6ff;touch-action:none;}
+  #wrap{position:fixed;inset:0;}
+  /* ミス演出：赤フラッシュ＋画面シェイク */
+  #missFlash{position:absolute;inset:0;z-index:15;pointer-events:none;opacity:0;
+    background:radial-gradient(ellipse at 50% 60%,rgba(255,40,80,0) 40%,rgba(255,30,70,.55) 100%);}
+  #missFlash.on{animation:missFl .34s ease-out;}
+  @keyframes missFl{0%{opacity:1}100%{opacity:0}}
+  #wrap.shake{animation:wrapShake .26s cubic-bezier(.36,.07,.19,.97);}
+  @keyframes wrapShake{10%,90%{transform:translate(-2px,1px)}20%,80%{transform:translate(4px,-2px)}
+    30%,50%,70%{transform:translate(-6px,2px)}40%,60%{transform:translate(6px,-1px)}}
+  canvas{display:block;width:100%;height:100%;}
+  /* 二層構成：#sky=WebGLの計算生成スカイ（背景）／#game=Canvas2Dの遊び・こっこ・HUD（前面・透過） */
+  #sky,#game{position:absolute;inset:0;}
+  #sky{z-index:0;} #game{z-index:1;}
+  .ctrlbtn{position:absolute;z-index:12;pointer-events:auto;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    border:2px solid rgba(255,255,255,.25);background:rgba(14,34,56,.55);color:#fff;cursor:pointer;width:40px;height:40px;font-size:17px;}
+  .ctrlbtn:active{transform:scale(.92);} .ctrlbtn.off{opacity:.5;}
+  #muteBtn{top:calc(10px + env(safe-area-inset-top));right:calc(58px + env(safe-area-inset-right));}
+  #fsBtn{top:calc(10px + env(safe-area-inset-top));right:calc(12px + env(safe-area-inset-right));}
+
+  /* ===== HUD（プレイ中） ===== */
+  #hud{position:absolute;inset:0;z-index:8;pointer-events:none;display:none;}
+  #hud.on{display:block;}
+  #hudAlt{position:absolute;top:calc(8px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);
+    font-size:32px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:.01em;white-space:nowrap;
+    text-shadow:0 2px 14px rgba(0,30,70,.75);}
+  #hudAlt small{font-size:15px;opacity:.8;font-weight:800;}
+  #hudAir{position:absolute;top:calc(46px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);
+    font-size:12px;font-weight:800;opacity:.9;white-space:nowrap;font-variant-numeric:tabular-nums;
+    text-shadow:0 1px 6px rgba(0,30,70,.7);}
+  #hudNote{position:absolute;top:24%;left:50%;transform:translate(-50%,-50%) scale(0);opacity:0;
+    font-size:26px;font-weight:900;color:#ffe14d;text-shadow:0 0 18px rgba(255,220,90,.8),0 2px 0 rgba(0,0,0,.3);
+    white-space:nowrap;}
+  #hudNote.pop{animation:notePop 1.8s cubic-bezier(.2,1.4,.4,1) forwards;}
+  @keyframes notePop{0%{transform:translate(-50%,-50%) scale(.3);opacity:0}
+    14%{transform:translate(-50%,-50%) scale(1.12);opacity:1}22%{transform:translate(-50%,-50%) scale(1)}
+    80%{opacity:1}100%{transform:translate(-50%,-60%) scale(1);opacity:0}}
+
+  /* ===== タイピングドック（画面下・キーボードの上に浮く） ===== */
+  #dock{position:fixed;left:0;right:0;bottom:0;z-index:14;display:none;text-align:center;pointer-events:auto;
+    padding:6px 10px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg,rgba(4,14,28,0),rgba(4,14,28,.82) 34%);}
+  #dock.on{display:block;}
+  #comboLine{height:18px;font-size:13px;font-weight:900;color:#ffd24d;text-shadow:0 0 10px rgba(255,210,80,.5);
+    font-variant-numeric:tabular-nums;}
+  #krLine{font-weight:900;line-height:1.4;letter-spacing:.02em;min-height:1.5em;word-break:keep-all;}
+  #krLine span{display:inline-block;padding:0 1px;border-radius:6px;}
+  #krLine .done{color:#8dffb0;text-shadow:0 0 12px rgba(120,255,170,.45);}
+  #krLine .todo{color:#eaf6ff;opacity:.88;}
+  #krLine .cur{color:#ffe14d;background:rgba(255,225,77,.13);box-shadow:0 2px 0 #ffe14d;animation:curBlink 1.1s steps(2) infinite;}
+  @keyframes curBlink{0%{box-shadow:0 2px 0 #ffe14d}50%{box-shadow:0 2px 0 transparent}}
+  #krLine .bad{color:#fff;background:rgba(255,80,110,.6);text-decoration:line-through;} /* 色に頼らず「形」でも誤りを示す */
+  #krLine .sp{opacity:.35;}
+  #krLine.shake{animation:krShake .22s ease;}
+  @keyframes krShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  #krLine.clear{animation:krClear .3s ease;}
+  @keyframes krClear{0%{filter:brightness(2.2);transform:scale(1.06)}100%{filter:none;transform:none}}
+  #jaLine{margin-top:3px;font-size:12px;color:#bfe0ff;opacity:.85;}
+  #dockHint{margin-top:3px;font-size:10px;color:#8fb8d8;opacity:.75;}
+  /* 実際の入力欄は見えない位置に薄く置く（値は消さないストリーム方式なので表示は上のkrLineが担う）
+     ※font-size:16px はiOSのフォーカス時自動ズームを防ぐため必須
+     ※user-select:text はiOSで必須──bodyの user-select:none を継承すると
+       iOS Safariは入力欄へのフォーカス・キャレット・IME入力そのものが壊れる */
+  #typebox{position:absolute;left:10px;bottom:2px;width:55%;height:22px;opacity:.02;border:none;background:transparent;
+    color:transparent;font-size:16px;caret-color:transparent;outline:none;pointer-events:auto;
+    user-select:text;-webkit-user-select:text;-webkit-touch-callout:none;}
+
+  /* ===== 画面（タイトル・あそびかた・結果 等） ===== */
+  .screen{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:24px;overflow-y:auto;
+    background:radial-gradient(ellipse at 50% 36%,rgba(24,66,110,.62),rgba(5,12,30,.95));
+    -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
+  .screen.hidden{display:none;}
+  .hero{width:min(30vw,120px);height:auto;margin-bottom:8px;filter:drop-shadow(0 0 22px rgba(120,210,255,.75));
+    animation:fl 2.6s ease-in-out infinite;}
+  @keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  .logo{font-size:15vw;line-height:1;font-weight:900;font-style:italic;letter-spacing:.02em;
+    background:linear-gradient(180deg,#eaffff 0%,#7ce0ff 46%,#3a7bff 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 22px rgba(90,190,255,.6));max-width:10ch;}
+  .logo.small{font-size:9vw;max-width:none;}
+  @media(min-width:560px){.logo{font-size:84px}.logo.small{font-size:50px}}
+  .sub{margin-top:4px;font-size:13px;letter-spacing:.34em;color:#a8dcff;opacity:.92;}
+  .desc{margin-top:16px;font-size:13px;line-height:1.9;opacity:.9;max-width:360px;}
+  .desc b{color:#7ce0ff;}
+  .btn{pointer-events:auto;margin-top:20px;padding:15px 44px;font-size:18px;font-weight:900;letter-spacing:.16em;border:none;border-radius:40px;cursor:pointer;
+    color:#052b47;background:linear-gradient(180deg,#d8f4ff,#57b6ff);box-shadow:0 8px 26px rgba(70,170,255,.45),inset 0 1px 0 rgba(255,255,255,.7);transition:transform .08s;}
+  .btn:active{transform:translateY(2px) scale(.98);}
+  .btn.ghost{background:rgba(255,255,255,.08);color:#e0f4ff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);font-size:14px;padding:12px 26px;margin-top:12px;}
+  .btn-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:12px;}
+  .score-final{margin-top:14px;font-size:13px;letter-spacing:.2em;opacity:.8;}
+  .score-final .v{font-size:52px;font-weight:900;color:#fff;display:block;font-variant-numeric:tabular-nums;text-shadow:0 0 24px rgba(110,200,255,.8);}
+  .nb{margin-top:8px;font-size:12px;color:#7ce0ff;letter-spacing:.2em;opacity:0;}
+  .stat2{margin-top:8px;font-size:12px;opacity:.75;letter-spacing:.08em;line-height:1.9;}
+  .ghostline{margin-top:8px;font-size:12px;color:#cfa8ff;letter-spacing:.06em;}
+  .hint{margin-top:18px;font-size:11px;opacity:.5;letter-spacing:.08em;line-height:1.8;}
+  .credit{margin-top:16px;font-size:10px;letter-spacing:.2em;opacity:.4;}
+  .credit a{color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,.3);}
+  a{pointer-events:auto;}
+
+  /* ===== 🏆 世界ランキング ===== */
+  .btn.small{padding:11px 18px;font-size:14px;margin-top:0;}
+  .btn.sub{background:rgba(255,255,255,.08);color:#e0f4ff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);
+    font-size:14px;padding:12px 26px;margin-top:12px;}
+  .rankbox{margin-top:14px;width:100%;max-width:360px;}
+  .rankentry{display:flex;gap:8px;justify-content:center;align-items:center;}
+  .rankentry input{flex:1;min-width:0;padding:10px 12px;border-radius:10px;border:2px solid rgba(124,224,255,.5);
+    background:rgba(8,24,42,.6);color:#fff;font-size:15px;text-align:center;outline:none;pointer-events:auto;
+    user-select:text;-webkit-user-select:text;}
+  .rankentry input::placeholder{color:rgba(255,255,255,.4);}
+  .rankflag{flex:none;padding:9px 10px;border-radius:10px;border:2px solid rgba(124,224,255,.5);
+    background:rgba(8,24,42,.6);color:#fff;font-size:20px;outline:none;cursor:pointer;line-height:1;pointer-events:auto;}
+  .flagpicker{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:18px;
+    pointer-events:auto;background:rgba(0,0,0,.72);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);}
+  .flagpicker.hidden{display:none;}
+  .flagpicker-inner{width:min(94vw,420px);max-height:84vh;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;overscroll-behavior:contain;text-align:center;
+    background:rgba(8,22,40,.96);border:1px solid rgba(124,224,255,.35);border-radius:16px;padding:18px 16px 16px;}
+  .flagpicker-title{font-size:16px;font-weight:800;color:#a8dcff;letter-spacing:.14em;margin-bottom:12px;}
+  .flaggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:6px;margin-bottom:12px;}
+  .flaggrid.hidden{display:none;}
+  .flagopt{font-size:24px;line-height:1;padding:8px 0;border-radius:8px;border:1px solid rgba(255,255,255,.12);
+    background:rgba(255,255,255,.05);cursor:pointer;color:#fff;}
+  .flagopt:active{transform:scale(.9);} .flagopt.sel{border-color:#7ce0ff;background:rgba(124,224,255,.18);}
+  .rankmsg{min-height:15px;margin-top:8px;font-size:12px;color:#a8dcff;letter-spacing:.05em;}
+  .ranktitle{margin-top:14px;font-size:14px;font-weight:800;color:#a8dcff;letter-spacing:.12em;}
+  .ranktitle.big{font-size:22px;margin-bottom:12px;margin-top:0;}
+  .ranklist{list-style:none;margin:8px auto 0;padding:0;width:100%;max-width:360px;text-align:left;max-height:32vh;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;overscroll-behavior:contain;pointer-events:auto;}
+  .ranklist li{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:8px;
+    background:rgba(255,255,255,.06);margin-bottom:5px;font-variant-numeric:tabular-nums;font-size:14px;}
+  .ranklist li:nth-child(1){background:rgba(255,200,80,.20);}
+  .ranklist li:nth-child(2){background:rgba(210,220,255,.13);}
+  .ranklist li:nth-child(3){background:rgba(255,170,120,.13);}
+  .ranklist .rk{width:30px;flex:none;text-align:center;font-weight:800;}
+  .ranklist .rn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff;}
+  .ranklist .rs{flex:none;font-weight:800;color:#7ce0ff;}
+  .rankempty{justify-content:center;opacity:.6;}
+  #rankScreen .ranklist{max-height:54vh;}
+  /* ===== 結果発表「◯位にランクイン！」 ===== */
+  .rankin-ov{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;pointer-events:auto;
+    background:radial-gradient(ellipse at 50% 44%,rgba(12,34,60,.62),rgba(0,0,0,.84));
+    -webkit-backdrop-filter:blur(2px);backdrop-filter:blur(2px);animation:rankinFade .25s ease;}
+  .rankin-ov.out{animation:rankinFadeOut .42s ease forwards;pointer-events:none;}
+  @keyframes rankinFade{from{opacity:0}to{opacity:1}}
+  @keyframes rankinFadeOut{to{opacity:0}}
+  .rankin-card{position:relative;text-align:center;animation:rankinPop .5s cubic-bezier(.2,1.4,.4,1);}
+  @keyframes rankinPop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+  .rankin-rays{position:absolute;left:50%;top:46%;width:200vmax;height:200vmax;transform:translate(-50%,-50%) scale(.2);
+    opacity:0;pointer-events:none;
+    background:repeating-conic-gradient(from 0deg,rgba(140,220,255,.16) 0deg 7deg,rgba(140,220,255,0) 7deg 14deg);}
+  .rankin-ov.reveal .rankin-rays{animation:rankinRays .6s ease-out forwards,rankinSpin 14s linear infinite .6s;}
+  @keyframes rankinRays{to{opacity:.9;transform:translate(-50%,-50%) scale(1)}}
+  @keyframes rankinSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+  .rankin-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;}
+  .rankin-ov.reveal .rankin-flash{animation:rankinFlash .5s ease-out;}
+  @keyframes rankinFlash{0%{opacity:.85}100%{opacity:0}}
+  .rankin-sub{font-size:15px;letter-spacing:.5em;color:#8fd8ff;font-weight:800;margin-bottom:4px;text-shadow:0 0 12px rgba(120,210,255,.7);}
+  .rankin-ov.reveal .rankin-sub{animation:rankinShine 1.3s ease-in-out infinite;}
+  .rankin-rank{position:relative;display:flex;align-items:baseline;justify-content:center;gap:6px;line-height:1;max-width:96vw;}
+  .rankin-ring{position:absolute;left:50%;top:50%;width:30px;height:30px;border-radius:50%;
+    border:4px solid rgba(140,220,255,.9);transform:translate(-50%,-50%) scale(0);opacity:0;}
+  .rankin-ov.reveal .rankin-ring{animation:rankinRing .7s ease-out forwards;}
+  @keyframes rankinRing{0%{opacity:.9;transform:translate(-50%,-50%) scale(0)}100%{opacity:0;transform:translate(-50%,-50%) scale(14)}}
+  .rankin-num{font-size:min(24vw,150px);font-weight:900;font-style:italic;font-variant-numeric:tabular-nums;
+    white-space:nowrap;padding:0 .06em;line-height:1;
+    background:linear-gradient(180deg,#eaffff 0%,#7ce0ff 38%,#3a9bff 72%,#3a5bff 100%);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    filter:drop-shadow(0 4px 18px rgba(80,170,255,.6));}
+  .rankin-ov.rolling .rankin-num{animation:rankinThrob .25s ease-in-out infinite;}
+  @keyframes rankinThrob{0%,100%{transform:scale(.94)}50%{transform:scale(1.04)}}
+  .rankin-ov.reveal .rankin-num{animation:rankinSlam .55s cubic-bezier(.18,1.6,.4,1) both;}
+  @keyframes rankinSlam{0%{transform:scale(2.4);opacity:0;filter:blur(6px) drop-shadow(0 4px 18px rgba(80,170,255,.6))}55%{transform:scale(.86);opacity:1;filter:blur(0) drop-shadow(0 4px 18px rgba(80,170,255,.6))}100%{transform:scale(1)}}
+  .rankin-pos{font-size:11vw;font-weight:900;color:#8fd8ff;text-shadow:0 0 14px rgba(120,210,255,.8);}
+  .rankin-msg{margin-top:2px;font-size:8vw;font-weight:900;color:#fff;letter-spacing:.06em;opacity:0;
+    text-shadow:0 0 16px rgba(140,220,255,.9),0 2px 0 rgba(0,0,0,.35);}
+  .rankin-msg b{color:#7ce0ff;}
+  .rankin-ov.reveal .rankin-msg{animation:rankinMsgIn .4s ease-out .25s forwards,rankinShine 1.4s ease-in-out infinite .65s;}
+  @keyframes rankinMsgIn{from{opacity:0;transform:translateY(10px) scale(.9)}to{opacity:1;transform:none}}
+  @keyframes rankinShine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.5)}}
+  .rankin-total{margin-top:12px;font-size:14px;color:#cfe8ff;opacity:0;letter-spacing:.1em;}
+  .rankin-ov.reveal .rankin-total{animation:rankinMsgIn .4s ease-out .45s forwards;}
+  .rankin-conf{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+  .rankin-conf i{position:absolute;top:-16px;width:10px;height:15px;border-radius:2px;opacity:.96;animation:rankinConf 2.6s linear forwards;}
+  @keyframes rankinConf{0%{top:-16px}100%{top:112%}}
+  .rankin-fws{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+  .rankin-fw{position:absolute;width:0;height:0;}
+  .rankin-fw i{position:absolute;left:0;top:0;width:7px;height:7px;border-radius:50%;opacity:1;
+    box-shadow:0 0 8px currentColor;animation:rankinFw .9s ease-out forwards;}
+  @keyframes rankinFw{0%{opacity:1;transform:translate(0,0) scale(1.1)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(.3)}}
+  .rankin-cocco{position:absolute;left:50%;top:-16vh;width:min(20vw,116px);height:auto;transform:translateX(-50%) scale(.3);opacity:0;
+    pointer-events:none;filter:drop-shadow(0 6px 16px rgba(120,210,255,.6));}
+  .rankin-ov.reveal .rankin-cocco{animation:coccoIn .5s cubic-bezier(.2,1.6,.4,1) .12s forwards,coccoBob 1s ease-in-out 1.1s infinite;}
+  @keyframes coccoIn{from{opacity:0;transform:translateX(-50%) translateY(24px) scale(.3)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+  @keyframes coccoBob{0%,100%{transform:translateX(-50%) translateY(0) rotate(-5deg)}50%{transform:translateX(-50%) translateY(-14px) rotate(5deg)}}
+  .rankin-ov.t-champ{background:radial-gradient(ellipse at 50% 44%,rgba(95,62,8,.72),rgba(10,4,0,.9));}
+  .rankin-ov.t-champ .rankin-rays{background:repeating-conic-gradient(from 0deg,rgba(255,218,100,.26) 0deg 6deg,rgba(255,218,100,0) 6deg 12deg);}
+  .rankin-ov.t-champ .rankin-num{background:linear-gradient(180deg,#fffbe0 0%,#ffe680 32%,#ffc83c 62%,#ff9a1c 100%);
+    -webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 4px 26px rgba(255,200,40,.95));}
+  .rankin-ov.t-champ .rankin-sub{color:#ffe680;letter-spacing:.32em;font-size:17px;text-shadow:0 0 18px rgba(255,215,90,.95);}
+  .rankin-crown{font-size:min(20vw,120px);line-height:1;margin-bottom:-2vh;
+    filter:drop-shadow(0 0 26px rgba(255,215,80,.95));
+    animation:crownDrop .8s cubic-bezier(.2,1.5,.5,1) .15s both,crownFloat 1.6s ease-in-out 1s infinite;}
+  @keyframes crownDrop{from{transform:translateY(-70vh) rotate(-35deg) scale(1.6);opacity:0}
+    60%{transform:translateY(2vh) rotate(6deg) scale(.95);opacity:1}to{transform:translateY(0) rotate(0) scale(1)}}
+  @keyframes crownFloat{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-12px) rotate(3deg)}}
+  .rankin-shine{position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(115deg,transparent 32%,rgba(255,246,200,.4) 50%,transparent 68%);
+    background-size:280% 100%;animation:shineSweep 1.5s ease-in-out .4s infinite;}
+  @keyframes shineSweep{0%{background-position:130% 0}100%{background-position:-130% 0}}
+  .rankin-ov.t-second .rankin-num{background:linear-gradient(180deg,#ffffff 0%,#e6ecf6 35%,#aebfd6 70%,#7e90ac 100%);
+    -webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 4px 20px rgba(200,220,255,.85));}
+  .rankin-ov.t-second .rankin-sub{color:#dfe9f6;text-shadow:0 0 14px rgba(200,220,255,.8);}
+  .rankin-ov.t-second .rankin-rays{background:repeating-conic-gradient(from 0deg,rgba(210,225,255,.15) 0deg 7deg,rgba(210,225,255,0) 7deg 14deg);}
+  .rankin-ov.t-third .rankin-num{background:linear-gradient(180deg,#ffe9cd 0%,#eeae72 40%,#cd7d3c 75%,#9c5822 100%);
+    -webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 4px 18px rgba(230,150,80,.85));}
+  .rankin-ov.t-third .rankin-sub{color:#ffd2a8;text-shadow:0 0 12px rgba(240,170,100,.8);}
+  .rankin-ov.t-miss{background:radial-gradient(ellipse at 50% 44%,rgba(24,32,44,.74),rgba(2,4,8,.88));}
+  .rankin-ov.t-miss .rankin-rays,.rankin-ov.t-miss .rankin-ring,.rankin-ov.t-miss .rankin-flash{display:none;}
+  .rankin-ov.t-miss .rankin-num{background:linear-gradient(180deg,#d8e2ea 0%,#9fb2c4 60%,#6a8095 100%);
+    -webkit-background-clip:text;background-clip:text;filter:none;animation-duration:.7s;}
+  .rankin-ov.t-miss .rankin-sub{color:#aebfcf;text-shadow:none;animation:none;}
+  .rankin-ov.t-miss .rankin-msg{text-shadow:0 0 10px rgba(150,180,210,.5);}
+  .rankin-ov.t-miss .rankin-cocco{filter:grayscale(.35) drop-shadow(0 6px 14px rgba(140,170,200,.45));}
+  .rankin-retry{margin-top:10px;font-size:16px;font-weight:900;color:#6fc4ff;letter-spacing:.1em;opacity:0;
+    text-shadow:0 0 14px rgba(90,180,255,.9);animation:retryIn .5s ease-out .9s forwards,retryBurn 1.1s ease-in-out 1.5s infinite;}
+  @keyframes retryIn{from{opacity:0;transform:translateY(14px) scale(.8)}to{opacity:1;transform:none}}
+  @keyframes retryBurn{0%,100%{filter:brightness(1)}50%{filter:brightness(1.7)}}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="sky"></canvas>
+  <canvas id="game"></canvas>
+  <div id="missFlash"></div>
+  <div class="ctrlbtn" id="muteBtn">🔊</div>
+  <div class="ctrlbtn" id="fsBtn">⛶</div>
+
+  <div id="hud">
+    <div id="hudAlt">0<small> m</small></div>
+    <div id="hudAir">⏱ 0:00　👟 0打</div>
+    <div id="hudNote"></div>
+  </div>
+
+  <!-- タイピングドック -->
+  <div id="dock">
+    <div id="comboLine"></div>
+    <div id="krLine"></div>
+    <div id="jaLine"></div>
+    <div id="dockHint">ひらがなで入力！（漢字に変換しないでね）</div>
+    <input id="typebox" lang="ja" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" aria-label="ひらがな入力">
+  </div>
+
+  <div class="screen" id="titleScreen">
+    <img class="hero" src="/chikumo.svg" alt="こっこちゃん">
+    <div class="logo">空蹴り<span style="font-size:.42em;vertical-align:.4em;letter-spacing:.05em">にほんご</span></div>
+    <div class="sub">SORAGERI ─ 日本語タイピング</div>
+    <div class="desc">島ぐらしの島から、空の果てへ。<br>
+      <b>ひらがな</b>を1文字打つたび こっこちゃんが<b>空蹴り</b>！<br>
+      文を打ちきると<b>ボーナス蹴り</b>で ぐんぐん昇る。<br>
+      打つのを止めると…<b>落ちる</b>。墜落したら🚑。<br>
+      <span style="opacity:.75">生活会話300文で、タイピングをきたえよう。</span></div>
+    <button class="btn" id="startBtn">とびたつ</button>
+    <button class="btn ghost" id="howBtn">あそびかた</button>
+    <button class="btn ghost" id="rankBtn">🏆 世界ランキング</button>
+    <div class="hint" id="titleGhostLine"></div>
+    <div class="hint">ローマ字入力でもかな入力でもOK。漢字に変換せず、ひらがなのまま打ってね</div>
+    <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+  </div>
+
+  <div class="screen hidden" id="rankScreen">
+    <div class="ranktitle big">🏆 世界ランキング</div>
+    <div style="font-size:11px;opacity:.6;letter-spacing:.1em;margin-bottom:4px">最高高度(m)で競う ／ ⏱は滞空時間</div>
+    <ol class="ranklist" id="rankListTitle"><li class="rankempty">読み込み中…</li></ol>
+    <button class="btn" id="rankBack">もどる</button>
+  </div>
+
+  <div class="screen hidden" id="howScreen">
+    <div class="logo small">あそびかた</div>
+    <div class="desc" style="max-width:380px;text-align:left;">
+      ◆ 画面下に出る<b>ひらがなの文</b>を、そのまま入力しよう。<b>1文字正しく打つたび空蹴り</b>で上昇！ 文を最後まで打ちきると<b>ボーナス蹴り</b>＆コンボ🔥（下に漢字のお手本も出るよ）<br><br>
+      ◆ 手が止まると<b>落下</b>する。落ちても大丈夫、<b>打てば空中で立て直せる</b>。地面まで落ちたら墜落…🚑救急車でおしまい。<br><br>
+      ◆ <b>連続で正解</b>するほど文が長くなる＝どんどん難しく！ <b>ミスすると失速</b>して落ちかける。正確に速く打とう。<br><br>
+      ◆ 記録は<b>最高高度(m)</b>と<b>タイピング速度(打/分)</b>。高く昇るほど、島が小さくなり、雲を抜け、夕空、そして<b>星の海</b>へ──景色が変わっていく。<br><br>
+      ◆ 👻<b>ゴーストこっこ</b> ── 自己ベストの飛行が70%透過のこっこちゃんとして<b>いっしょに飛ぶ</b>（この端末に保存）。きのうの自分に、勝て。<br><br>
+      ◆ <b>入力のコツ</b>：ローマ字入力でもかな入力でもOK。<b>漢字に変換せず、ひらがなのまま</b>打ってね（スペース・エンターで変換しない）。まちがえたら<b>⌫（バックスペース）</b>で直せる。
+    </div>
+    <button class="btn" id="howBack">もどる</button>
+  </div>
+
+  <div class="screen hidden" id="overScreen">
+    <div class="logo small" id="overTitle">🚑 びょういんへ…</div>
+    <div class="score-final">最高高度<span class="v" id="finalAlt">0 m</span></div>
+    <div class="stat2" id="statLine">滞空 0:00 ／ 文章 0 ／ 最大コンボ 0 ／ 正確率 100%</div>
+    <div class="nb" id="newBest">★ 自己ベスト更新！ ★</div>
+    <div class="ghostline" id="ghostLine"></div>
+    <div class="rankbox">
+      <div class="rankentry" id="rankEntry">
+        <button type="button" id="rankFlagBtn" class="rankflag" aria-label="国旗をえらぶ">🇯🇵</button>
+        <input id="rankName" maxlength="10" placeholder="なまえ" autocomplete="off" spellcheck="false">
+        <button class="btn small" id="rankSubmit">🏆 登録</button>
+      </div>
+      <div class="rankmsg" id="rankMsg"></div>
+      <div class="ranktitle">🏆 世界ランキング</div>
+      <ol class="ranklist" id="rankList"><li class="rankempty">…</li></ol>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="retryBtn">もういちど</button>
+      <button class="btn ghost" id="shareBtn">記録を共有</button>
+    </div>
+    <div class="credit">畜物語 ─ <a href="/">chikumo.jp</a></div>
+  </div>
+
+  <!-- ポーズ（離脱・タブ切替で自動ポーズ→タップで再開） -->
+  <div class="screen hidden" id="pauseScreen">
+    <div class="logo small">ひとやすみ</div>
+    <div class="desc">こっこはその場で待っています。<br>準備ができたら再開してね。</div>
+    <button class="btn" id="resumeBtn">▶ 再開</button>
+  </div>
+
+  <!-- 国旗ピッカー -->
+  <div id="flagPicker" class="flagpicker hidden">
+    <div class="flagpicker-inner">
+      <div class="flagpicker-title">国旗をえらぶ</div>
+      <div class="flaggrid" id="flagGridMajor"></div>
+      <button type="button" class="btn sub" id="flagMoreBtn">🏳️ その他をすべて表示</button>
+      <div class="flaggrid all hidden" id="flagGridAll"></div>
+      <button type="button" class="btn small" id="flagPickerClose">とじる</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+(function(){
+/* ============================================================================
+   空蹴り にほんご ─ SORAGERI JP
+   ひらがなを1文字打つたび、こっこちゃんが空蹴りして昇る。止めると落ちる。
+   空蹴り（/sorageri/ 韓国語版）の日本語版。仕様は同じ。
+   ターゲットは「ひらがな」文＝ローマ字入力でもかな入力でも打てて、漢字変換はしない
+   （子どもでも打てる・照合が安定する）。各文にお手本の漢字表記を添える。
+   ============================================================================ */
+
+/* ==========================================================================
+   ▼▼▼▼▼▼▼▼▼▼▼▼ 日本語（ひらがな）の文章の追加は ここ ▼▼▼▼▼▼▼▼▼▼▼▼
+   --------------------------------------------------------------------------
+   ・形式：["ひらがなのぶん", "漢字まじりのお手本"], を SENTENCES に1行ずつ足すだけ。
+     1つめ＝プレイヤーが打つ文字（ひらがなのみ）。2つめ＝画面下に出るお手本（漢字OK）。
+   ・1つめ（打つ文）で使ってよい文字：ひらがなのみ。カタカナ・漢字・長音符「ー」・
+     記号・数字・スペースは使わない（ローマ字/かな入力で素直に打て、変換で詰まらないように）。
+     小さいかな（っ ゃ ゅ ょ ぁ 等）・ん はOK。「おかあさん」「こうえん」のように
+     長音もひらがなで書く。
+   ・長さは自由。空白を除いて 6文字以下＝低空（序盤）向け、7〜11文字＝中空、
+     12文字以上＝高空向けに、ゲームが自動で振り分ける。
+   ・テーマは「生活会話でよく使う日本語」。カテゴリのコメントに続けて足すと整理しやすい。
+   ・AIへの頼み方の例：「/sorageri-ja/index.html の SENTENCES に、
+     旅行会話のひらがな文を50個追加して（1つめはひらがなのみ・2つめは漢字のお手本）」
+   ========================================================================== */
+var SENTENCES=[
+  /* --- あいさつ・基本 --- */
+  ["おはよう","おはよう"],
+  ["おはようございます","おはようございます"],
+  ["こんにちは","こんにちは"],
+  ["こんばんは","こんばんは"],
+  ["おやすみなさい","おやすみなさい"],
+  ["さようなら","さようなら"],
+  ["またあした","また明日"],
+  ["またね","またね"],
+  ["いってきます","行ってきます"],
+  ["いってらっしゃい","行ってらっしゃい"],
+  ["ただいま","ただいま"],
+  ["おかえりなさい","おかえりなさい"],
+  ["ありがとう","ありがとう"],
+  ["ありがとうございます","ありがとうございます"],
+  ["どういたしまして","どういたしまして"],
+  ["ごめんなさい","ごめんなさい"],
+  ["すみません","すみません"],
+  ["だいじょうぶです","大丈夫です"],
+  ["はい","はい"],
+  ["いいえ","いいえ"],
+  ["よろしくおねがいします","よろしくお願いします"],
+  ["はじめまして","はじめまして"],
+  ["おげんきですか","お元気ですか"],
+  ["おひさしぶりです","お久しぶりです"],
+  ["おつかれさまです","お疲れさまです"],
+  ["おめでとう","おめでとう"],
+  ["ようこそ","ようこそ"],
+  ["しつれいします","失礼します"],
+  ["いらっしゃいませ","いらっしゃいませ"],
+  ["よいいちにちを","よい一日を"],
+  /* --- 自己紹介 --- */
+  ["わたしはがくせいです","私は学生です"],
+  ["おなまえはなんですか","お名前は何ですか"],
+  ["なまえはこっこです","名前はこっこです"],
+  ["にほんじんです","日本人です"],
+  ["なんさいですか","何歳ですか"],
+  ["はたちです","二十歳です"],
+  ["どこからきましたか","どこから来ましたか"],
+  ["とうきょうにすんでいます","東京に住んでいます"],
+  ["かぞくはよにんです","家族は四人です"],
+  ["しゅみはなんですか","趣味は何ですか"],
+  ["しゅみはどくしょです","趣味は読書です"],
+  ["かいしゃいんです","会社員です"],
+  ["にほんごをべんきょうしています","日本語を勉強しています"],
+  ["おんがくがすきです","音楽が好きです"],
+  ["どうぞよろしく","どうぞよろしく"],
+  ["あいたかったです","会いたかったです"],
+  ["ともだちになりましょう","友だちになりましょう"],
+  /* --- 返事・あいづち --- */
+  ["わかりました","分かりました"],
+  ["わかりません","分かりません"],
+  ["そうです","そうです"],
+  ["そうですね","そうですね"],
+  ["ほんとうですか","本当ですか"],
+  ["なるほど","なるほど"],
+  ["もちろんです","もちろんです"],
+  ["たぶんそうです","たぶんそうです"],
+  ["いいですよ","いいですよ"],
+  ["だめです","だめです"],
+  ["ちょっとまってください","ちょっと待ってください"],
+  ["もういちどおねがいします","もう一度お願いします"],
+  ["ゆっくりはなしてください","ゆっくり話してください"],
+  ["どういういみですか","どういう意味ですか"],
+  ["わかりましたか","分かりましたか"],
+  ["きこえますか","聞こえますか"],
+  ["だいじょうぶですか","大丈夫ですか"],
+  ["きにしないで","気にしないで"],
+  ["まかせてください","任せてください"],
+  ["がんばってください","頑張ってください"],
+  /* --- 食事 --- */
+  ["おなかがすきました","お腹がすきました"],
+  ["のどがかわきました","のどが渇きました"],
+  ["おなかがいっぱいです","お腹がいっぱいです"],
+  ["いただきます","いただきます"],
+  ["ごちそうさまでした","ごちそうさまでした"],
+  ["おいしいです","おいしいです"],
+  ["とてもおいしいです","とてもおいしいです"],
+  ["からいです","辛いです"],
+  ["あまいです","甘いです"],
+  ["なにをたべますか","何を食べますか"],
+  ["みずをください","水をください"],
+  ["めにゅうをみせてください","メニューを見せてください"],
+  ["これをください","これをください"],
+  ["おかいけいおねがいします","お会計お願いします"],
+  ["いくらですか","いくらですか"],
+  ["おすすめはなんですか","おすすめは何ですか"],
+  ["いっしょにたべましょう","一緒に食べましょう"],
+  ["もういっぱいください","もう一杯ください"],
+  ["おもちかえりできますか","お持ち帰りできますか"],
+  ["ここでたべます","ここで食べます"],
+  ["とてもおいしかったです","とてもおいしかったです"],
+  /* --- 買いもの --- */
+  ["これはいくらですか","これはいくらですか"],
+  ["たかすぎます","高すぎます"],
+  ["やすいですね","安いですね"],
+  ["これをかいます","これを買います"],
+  ["みているだけです","見ているだけです"],
+  ["ほかのいろはありますか","他の色はありますか"],
+  ["もっとおおきいのはありますか","もっと大きいのはありますか"],
+  ["ためしてもいいですか","試してもいいですか"],
+  ["かあどではらえますか","カードで払えますか"],
+  ["げんきんではらいます","現金で払います"],
+  ["ふくろをください","袋をください"],
+  ["れしいとをください","レシートをください"],
+  ["へんぴんできますか","返品できますか"],
+  ["せえるちゅうです","セール中です"],
+  ["うりきれです","売り切れです"],
+  ["ぷれぜんとです","プレゼントです"],
+  /* --- 移動・交通 --- */
+  ["えきはどこですか","駅はどこですか"],
+  ["といれはどこですか","トイレはどこですか"],
+  ["どうやっていきますか","どうやって行きますか"],
+  ["ここからとおいですか","ここから遠いですか"],
+  ["ちかいです","近いです"],
+  ["みぎにまがってください","右に曲がってください"],
+  ["ひだりにまがってください","左に曲がってください"],
+  ["まっすぐいってください","まっすぐ行ってください"],
+  ["ここでとめてください","ここで止めてください"],
+  ["くうこうまでおねがいします","空港までお願いします"],
+  ["でんしゃにのります","電車に乗ります"],
+  ["きっぷはどこでかいますか","切符はどこで買いますか"],
+  ["でぐちはどちらですか","出口はどちらですか"],
+  ["みちにまよいました","道に迷いました"],
+  ["ちずをみせてください","地図を見せてください"],
+  ["じかんはどれくらいですか","時間はどれくらいですか"],
+  ["でんしゃにのりおくれました","電車に乗り遅れました"],
+  ["ばすていはどこですか","バス停はどこですか"],
+  /* --- 天気 --- */
+  ["きょうはいいてんきです","今日はいい天気です"],
+  ["てんきがわるいです","天気が悪いです"],
+  ["あめがふっています","雨が降っています"],
+  ["ゆきがふっています","雪が降っています"],
+  ["かぜがつよいです","風が強いです"],
+  ["あついですね","暑いですね"],
+  ["さむいですね","寒いですね"],
+  ["あたたかいです","暖かいです"],
+  ["すずしいです","涼しいです"],
+  ["かさをもっていってください","傘を持って行ってください"],
+  ["そらがはれています","空が晴れています"],
+  ["あめがふりそうです","雨が降りそうです"],
+  ["にじがでています","虹が出ています"],
+  ["あしたははれるでしょう","明日は晴れるでしょう"],
+  ["ほしがきれいです","星がきれいです"],
+  ["いいてんきになりました","いい天気になりました"],
+  /* --- 時間・約束 --- */
+  ["いまなんじですか","今何時ですか"],
+  ["さんじです","三時です"],
+  ["きょうはなんにちですか","今日は何日ですか"],
+  ["なんようびですか","何曜日ですか"],
+  ["げつようびです","月曜日です"],
+  ["しゅうまつはなにをしますか","週末は何をしますか"],
+  ["あしたあいましょう","明日会いましょう"],
+  ["いつひまですか","いつ暇ですか"],
+  ["やくそくがあります","約束があります"],
+  ["おくれてごめんなさい","遅れてごめんなさい"],
+  ["いそいでください","急いでください"],
+  ["じかんがありません","時間がありません"],
+  ["まだじかんがあります","まだ時間があります"],
+  ["もうすぐつきます","もうすぐ着きます"],
+  ["ごふんまってください","五分待ってください"],
+  ["またこんどね","また今度ね"],
+  /* --- 気持ち --- */
+  ["うれしいです","嬉しいです"],
+  ["かなしいです","悲しいです"],
+  ["たのしいです","楽しいです"],
+  ["おもしろいです","面白いです"],
+  ["つまらないです","つまらないです"],
+  ["つかれました","疲れました"],
+  ["ねむいです","眠いです"],
+  ["わくわくします","わくわくします"],
+  ["きんちょうします","緊張します"],
+  ["びっくりしました","びっくりしました"],
+  ["こわいです","怖いです"],
+  ["しんぱいしないで","心配しないで"],
+  ["げんきだして","元気出して"],
+  ["きみならできる","君ならできる"],
+  ["すごいですね","すごいですね"],
+  ["かわいいです","かわいいです"],
+  ["かっこいいです","かっこいいです"],
+  ["あいたいです","会いたいです"],
+  ["だいすきです","大好きです"],
+  ["きぶんがいいです","気分がいいです"],
+  ["きにいりました","気に入りました"],
+  ["しあわせです","幸せです"],
+  /* --- からだ・健康 --- */
+  ["ぐあいがわるいです","具合が悪いです"],
+  ["あたまがいたいです","頭が痛いです"],
+  ["おなかがいたいです","お腹が痛いです"],
+  ["かぜをひきました","風邪をひきました"],
+  ["ねつがあります","熱があります"],
+  ["せきがでます","咳が出ます"],
+  ["くすりはありますか","薬はありますか"],
+  ["びょういんへいきます","病院へ行きます"],
+  ["ゆっくりやすんでください","ゆっくり休んでください"],
+  ["おだいじに","お大事に"],
+  ["はやくよくなってね","早く良くなってね"],
+  ["まいにちうんどうします","毎日運動します"],
+  ["はやくねます","早く寝ます"],
+  ["みずをたくさんのみます","水をたくさん飲みます"],
+  ["だいぶよくなりました","だいぶ良くなりました"],
+  /* --- 家・毎日のくらし --- */
+  ["おきるじかんです","起きる時間です"],
+  ["かおをあらいます","顔を洗います"],
+  ["はをみがきます","歯を磨きます"],
+  ["あさごはんをたべます","朝ごはんを食べます"],
+  ["ふくをきます","服を着ます"],
+  ["いえをでます","家を出ます"],
+  ["いえにかえりたいです","家に帰りたいです"],
+  ["そうじをします","掃除をします"],
+  ["せんたくをします","洗濯をします"],
+  ["りょうりをします","料理をします"],
+  ["おさらをあらいます","お皿を洗います"],
+  ["ごみをすてます","ごみを捨てます"],
+  ["しゃわあをあびます","シャワーを浴びます"],
+  ["てれびをみます","テレビを見ます"],
+  ["ほんをよみます","本を読みます"],
+  ["さんぽにいきます","散歩に行きます"],
+  ["しゃしんをとります","写真を撮ります"],
+  /* --- 学校・仕事 --- */
+  ["がっこうへいきます","学校へ行きます"],
+  ["べんきょうします","勉強します"],
+  ["しゅくだいがおおいです","宿題が多いです"],
+  ["あしたてすとがあります","明日テストがあります"],
+  ["しけんにごうかくしました","試験に合格しました"],
+  ["しつもんがあります","質問があります"],
+  ["かいしゃへいきます","会社へ行きます"],
+  ["きょうはかいぎがあります","今日は会議があります"],
+  ["きょうはいそがしいです","今日は忙しいです"],
+  ["しごとがおわりました","仕事が終わりました"],
+  ["いっしょうけんめいやります","一生懸命やります"],
+  ["すこしやすみましょう","少し休みましょう"],
+  ["きょうもおつかれさま","今日もお疲れさま"],
+  ["てつだってもらえますか","手伝ってもらえますか"],
+  /* --- 電話・連絡 --- */
+  ["もしもし","もしもし"],
+  ["あとででんわします","後で電話します"],
+  ["めえるをおくります","メールを送ります"],
+  ["でんわばんごうはなんですか","電話番号は何ですか"],
+  ["れんらくしてください","連絡してください"],
+  ["でんちがきれました","電池が切れました"],
+  ["わいふぁいはありますか","wifiはありますか"],
+  ["しゃしんをおくってください","写真を送ってください"],
+  ["いまはなせますか","今話せますか"],
+  ["よくきこえません","よく聞こえません"],
+  ["かけなおします","かけ直します"],
+  ["あとでれんらくします","後で連絡します"],
+  /* --- 旅行 --- */
+  ["りょこうにいきます","旅行に行きます"],
+  ["よやくしました","予約しました"],
+  ["ちぇっくいんおねがいします","チェックインお願いします"],
+  ["にもつをあずけられますか","荷物を預けられますか"],
+  ["しゃしんをとってください","写真を撮ってください"],
+  ["ここはうつくしいです","ここは美しいです"],
+  ["けしきがいいですね","景色がいいですね"],
+  ["おみやげをかいました","お土産を買いました"],
+  ["またきたいです","また来たいです"],
+  ["たのしいりょこうを","楽しい旅行を"],
+  ["ぱすぽうとをなくしました","パスポートをなくしました"],
+  ["うみがみえます","海が見えます"],
+  ["しまでくらしたいです","島で暮らしたいです"],
+  ["おんせんにはいりたいです","温泉に入りたいです"],
+  /* --- 助け・たずねる --- */
+  ["たすけてください","助けてください"],
+  ["てつだってください","手伝ってください"],
+  ["これはなんですか","これは何ですか"],
+  ["これはどうやってつかいますか","これはどうやって使いますか"],
+  ["えいごをはなせますか","英語を話せますか"],
+  ["かいてください","書いてください"],
+  ["よんでください","読んでください"],
+  ["きをつけてください","気をつけてください"],
+  ["あぶないです","危ないです"],
+  ["みつけました","見つけました"],
+  ["けいさつをよんでください","警察を呼んでください"],
+  ["たいへんです","大変です"],
+  ["いそいでたすけてください","急いで助けてください"],
+  /* --- ほめる・応援・その他 --- */
+  ["よくできました","よくできました"],
+  ["すばらしいです","素晴らしいです"],
+  ["きみがいちばんだ","君が一番だ"],
+  ["じょうずになりましたね","上手になりましたね"],
+  ["あきらめないで","諦めないで"],
+  ["できますよ","できますよ"],
+  ["おうえんしています","応援しています"],
+  ["ゆめをかなえてね","夢をかなえてね"],
+  ["きょうもふぁいと","今日もファイト"],
+  ["ゆっくりでいいよ","ゆっくりでいいよ"],
+  ["おたんじょうびおめでとう","お誕生日おめでとう"],
+  ["あけましておめでとう","あけましておめでとう"],
+  ["めりいくりすます","メリークリスマス"],
+  ["どこへいくのですか","どこへ行くのですか"],
+  ["なにをしていますか","何をしていますか"],
+  ["いっしょにいきましょう","一緒に行きましょう"],
+  ["いっしょにあそぼう","一緒に遊ぼう"],
+  ["そらをとんでいます","空を飛んでいます"],
+  ["くものうえにいます","雲の上にいます"],
+  ["もっとたかくとびたい","もっと高く飛びたい"],
+  ["ほしにさわりました","星に触りました"],
+  ["せかいがちいさくみえる","世界が小さく見える"],
+  /* --- 日常のひとこと --- */
+  ["きょうもいちにちがんばろう","今日も一日頑張ろう"],
+  ["そろそろかえろう","そろそろ帰ろう"],
+  ["いまむかっています","今向かっています"],
+  ["まっててね","待っててね"],
+  ["わたしのばんです","私の番です"],
+  ["やってみます","やってみます"],
+  ["もういっかい","もう一回"],
+  ["あぶなかった","危なかった"],
+  ["もうすこしだ","もう少しだ"],
+  ["やったね","やったね"],
+  ["なんていいひだろう","なんていい日だろう"],
+  ["またすぐあおう","またすぐ会おう"],
+  ["おさきにしつれいします","お先に失礼します"],
+  ["きょうはここまで","今日はここまで"],
+  ["ゆっくりやすんでね","ゆっくり休んでね"],
+  ["きょうはたのしかった","今日は楽しかった"],
+  ["あめがやみました","雨が止みました"],
+  ["みちをおしえてください","道を教えてください"],
+  ["おなじものをください","同じものをください"],
+  ["きをつけてかえってね","気をつけて帰ってね"]
+];
+/* ▲▲▲▲▲▲▲▲▲▲▲▲ 日本語（ひらがな）の文章の追加は ここまで ▲▲▲▲▲▲▲▲▲▲▲▲ */
+
+const $=id=>document.getElementById(id);
+const cv=$('game'), ctx=cv.getContext('2d');
+const skyCv=$('sky');
+const TAU=Math.PI*2;
+let W=0,H=0,DPR=1,PPM=1,skyDPR=1;
+
+/* ===== 計算生成スカイ（背景・WebGL一枚のフルスクリーンシェーダ＝galaxy/pulse型の二層）
+   高度(uCamY)を渡し、フラグメントシェーダで空を計算生成する（雲の層・星・オーロラ）。
+   遊び本体・こっこ・タイピング・HUDは前面のCanvas2D(#game)がそのまま担う。
+   非対応環境では初期化がnullを返し、#game 側が従来のグラデ空を描く＝純粋な上乗せ。 ===== */
+const SKYGL=(function initSky(){
+  let gl=null;
+  try{ gl=skyCv.getContext('webgl',{antialias:false,alpha:false,depth:false,stencil:false,preserveDrawingBuffer:false})
+        ||skyCv.getContext('experimental-webgl',{antialias:false,alpha:false}); }catch(e){}
+  if(!gl) return null;
+  const VS='attribute vec2 aPos;void main(){gl_Position=vec4(aPos,0.0,1.0);}';
+  const FS=[
+'precision highp float;',
+'uniform vec2 uRes; uniform float uCamY,uPPM,uTime; uniform vec3 uTop,uBot;',
+'float hash(vec2 p){p=fract(p*vec2(127.1,311.7));p+=dot(p,p+34.5);return fract(p.x*p.y*95.43);}',
+'float vnoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);',
+'  float a=hash(i),b=hash(i+vec2(1.0,0.0)),c=hash(i+vec2(0.0,1.0)),d=hash(i+vec2(1.0,1.0));',
+'  return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);}',
+'float fbm(vec2 p){float v=0.0,a=0.55;for(int i=0;i<4;i++){v+=a*vnoise(p);p=p*2.02+7.0;a*=0.5;}return v;}',
+'float win(float x,float lo,float hi,float fd){return smoothstep(lo-fd,lo+fd,x)*(1.0-smoothstep(hi-fd,hi+fd,x));}',
+'void main(){',
+'  vec2 fc=gl_FragCoord.xy; float topY=uRes.y-fc.y;',
+'  float worldAlt=uCamY-(topY-uRes.y*0.5)/uPPM;',
+'  float t=clamp(topY/uRes.y,0.0,1.0);',
+'  vec3 col=mix(uTop,uBot,t);',
+'  float xM=fc.x/uPPM;',
+'  float caF=uCamY*0.55-(topY-uRes.y*0.5)/uPPM;',
+'  float nF=fbm(vec2(xM*0.010+uTime*0.004,caF*0.010));',
+'  float cloudF=smoothstep(0.52,0.92,nF)*win(worldAlt,-200.0,4200.0,900.0);',
+'  col=mix(col,vec3(1.0),cloudF*0.15);',
+'  float nN=fbm(vec2(xM*0.006-uTime*0.008+30.0,worldAlt*0.006));',
+'  float cloudN=smoothstep(0.55,0.96,nN)*win(worldAlt,-100.0,3600.0,800.0);',
+'  col=mix(col,vec3(1.0),cloudN*0.22);',
+'  float starA=smoothstep(3600.0,5600.0,worldAlt);',
+'  if(starA>0.001){vec2 sg=floor(vec2(fc.x,topY)/2.2);float h=hash(sg);',
+'    float star=step(0.994,h)*(0.5+0.5*sin(uTime*3.0+h*30.0));',
+'    col+=vec3(0.9,0.95,1.0)*star*starA;}',
+'  float aur=smoothstep(6200.0,8200.0,worldAlt)*(1.0-smoothstep(12000.0,13500.0,worldAlt));',
+'  if(aur>0.001){float band=sin(worldAlt*0.0016+fc.x/uRes.x*7.0+uTime*0.25);',
+'    float ribbon=smoothstep(0.55,1.0,band);',
+'    vec3 ac=mix(vec3(0.2,0.9,0.7),vec3(0.5,0.4,1.0),0.5+0.5*sin(fc.x/uRes.x*3.0+uTime*0.2));',
+'    col+=ac*ribbon*aur*0.18;}',
+'  gl_FragColor=vec4(col,1.0);',
+'}'].join('\n');
+  function sh(type,src){ const s=gl.createShader(type); gl.shaderSource(s,src); gl.compileShader(s);
+    if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)) return null; return s; }
+  const vs=sh(gl.VERTEX_SHADER,VS), fs=sh(gl.FRAGMENT_SHADER,FS);
+  if(!vs||!fs) return null;
+  const prog=gl.createProgram(); gl.attachShader(prog,vs); gl.attachShader(prog,fs); gl.linkProgram(prog);
+  if(!gl.getProgramParameter(prog,gl.LINK_STATUS)) return null;
+  gl.useProgram(prog);
+  const buf=gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+  gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1, 3,-1, -1,3]),gl.STATIC_DRAW);
+  const aPos=gl.getAttribLocation(prog,'aPos'); gl.enableVertexAttribArray(aPos);
+  gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0);
+  const U={ res:gl.getUniformLocation(prog,'uRes'), camY:gl.getUniformLocation(prog,'uCamY'),
+    ppm:gl.getUniformLocation(prog,'uPPM'), time:gl.getUniformLocation(prog,'uTime'),
+    top:gl.getUniformLocation(prog,'uTop'), bot:gl.getUniformLocation(prog,'uBot') };
+  skyCv.addEventListener('webglcontextlost',function(e){ e.preventDefault(); location.reload(); });
+  return {
+    resize(){ skyDPR=Math.min(DPR,1.5)*0.7;
+      skyCv.width=Math.max(1,Math.round(W*skyDPR)); skyCv.height=Math.max(1,Math.round(H*skyDPR));
+      gl.viewport(0,0,skyCv.width,skyCv.height); },
+    render(camYv,timev,topC,botC){
+      gl.useProgram(prog); gl.bindBuffer(gl.ARRAY_BUFFER,buf);
+      gl.vertexAttribPointer(aPos,2,gl.FLOAT,false,0,0); gl.enableVertexAttribArray(aPos);
+      gl.uniform2f(U.res,skyCv.width,skyCv.height);
+      gl.uniform1f(U.camY,camYv); gl.uniform1f(U.ppm,PPM*skyDPR); gl.uniform1f(U.time,timev);
+      gl.uniform3f(U.top,topC[0]/255,topC[1]/255,topC[2]/255);
+      gl.uniform3f(U.bot,botC[0]/255,botC[1]/255,botC[2]/255);
+      gl.drawArrays(gl.TRIANGLES,0,3); }
+  };
+})();
+
+function resize(){ DPR=Math.min(window.devicePixelRatio||1,2); W=window.innerWidth; H=window.innerHeight;
+  cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR); ctx.setTransform(DPR,0,0,DPR,0,0); PPM=H/130;
+  if(SKYGL) SKYGL.resize(); }
+window.addEventListener('resize',resize); resize();
+
+/* ---- こっこちゃん（公式SVG）＆絵文字スプライト ---- */
+const cocco=new Image(); cocco.src='/chikumo.svg'; const AR=298/390;
+const emoCache={};
+function emoImg(ch){ let c=emoCache[ch];
+  if(!c){ c=document.createElement('canvas'); c.width=c.height=112; const x=c.getContext('2d');
+    x.font='92px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+    x.textAlign='center'; x.textBaseline='middle'; x.fillText(ch,56,62); emoCache[ch]=c; }
+  return c; }
+function drawEmo(ch,x,y,s,rot,alpha){
+  ctx.save(); ctx.globalAlpha=alpha==null?1:alpha; ctx.translate(x,y); if(rot)ctx.rotate(rot);
+  ctx.drawImage(emoImg(ch),-s/2,-s/2,s,s); ctx.restore(); }
+
+/* ---- サウンド（WebAudio・外部音源なし） ---- */
+let AC=null, master=null, windGain=null;
+let muted=false; try{ muted=localStorage.getItem('sorageriJaMute')==='1'; }catch(e){}
+function ac(){
+  if(!AC){ const A=window.AudioContext||window.webkitAudioContext; if(!A) return null;
+    AC=new A(); master=AC.createGain(); master.gain.value=muted?0:1; master.connect(AC.destination);
+    /* 風の音（上昇・落下の速さで強くなる） */
+    const len=AC.sampleRate, buf=AC.createBuffer(1,len,AC.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+    const src=AC.createBufferSource(); src.buffer=buf; src.loop=true;
+    const lp=AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=420;
+    windGain=AC.createGain(); windGain.gain.value=0;
+    src.connect(lp); lp.connect(windGain); windGain.connect(master); src.start();
+  }
+  if(AC.state==='suspended') AC.resume();
+  return AC; }
+function blip(f,dur,type,vol,f2){ const A=ac(); if(!A) return;
+  const t=A.currentTime, o=A.createOscillator(), g=A.createGain();
+  o.type=type||'square'; o.frequency.setValueAtTime(f,t);
+  if(f2) o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+  g.gain.setValueAtTime(vol||.15,t); g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t+dur+.02); }
+function sndKick(n){ blip(430*Math.pow(2,(n%10)/12),.08,'square',.14,700*Math.pow(2,(n%10)/12)); }
+function sndComplete(){ [523,659,784].forEach((f,i)=>setTimeout(()=>blip(f,.12,'triangle',.16),i*55)); setTimeout(()=>blip(1568,.2,'sine',.1),180); }
+function sndTypo(){ blip(120,.09,'triangle',.1); }
+function sndMile(){ blip(880,.4,'sine',.12); setTimeout(()=>blip(1760,.5,'sine',.08),90); }
+function sndBest(){ [660,880,1100,1320].forEach((f,i)=>setTimeout(()=>blip(f,.14,'triangle',.13),i*70)); }
+function sndCrash(){ const A=ac(); if(!A) return;
+  blip(300,.5,'sawtooth',.2,50);
+  const t=A.currentTime, len=A.sampleRate*.4, buf=A.createBuffer(1,len,A.sampleRate), d=buf.getChannelData(0);
+  for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*(1-i/len);
+  const s=A.createBufferSource(); s.buffer=buf; const g=A.createGain(); g.gain.value=.25;
+  s.connect(g); g.connect(master); s.start(t); }
+function sndSiren(dur){ const A=ac(); if(!A) return;
+  const t0=A.currentTime, o=A.createOscillator(), g=A.createGain();
+  o.type='square'; g.gain.value=.06;
+  for(let t=0;t<dur;t+=.62){ o.frequency.setValueAtTime(750,t0+t); o.frequency.setValueAtTime(950,t0+t+.31); }
+  g.gain.setValueAtTime(.06,t0); g.gain.linearRampToValueAtTime(.0001,t0+dur);
+  o.connect(g); g.connect(master); o.start(t0); o.stop(t0+dur); }
+function vib(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+
+/* ---- ゲーム状態 ---- */
+let state='title';           // title | play | crash | over
+let alt=0, vy=0, flying=false, camY=45;
+let airT=0, maxAlt=0, simT=0;
+let combo=0, maxCombo=0, typedN=0, typoN=0, sentN=0, kickChain=0;
+let kickAnim=0, crashT=0, mileNext=500, missT=0, graceT=0, paused=false;
+let deco=[], decoTop=0, rainbowDone=false, particles=[];
+let streaks=[];   // 速度の線（風のライン）。高度に関係なく上下動を見せて「止まって見える」を防ぐ
+let bestAlt=0, bestAir=0, crossedBest=false;
+try{ bestAlt=+localStorage.getItem('sorageriJaBestAlt')||0; bestAir=+localStorage.getItem('sorageriJaBestAir')||0; }catch(e){}
+
+/* ---- 👻 ゴースト（自己ベストの飛行をこの端末に録画・再生） ---- */
+const GHOST_KEY='sorageriJaGhost', GHOST_STEP=0.2, GHOST_MAX=3600; // 0.2秒刻み・最長12分
+let ghost=null; try{ ghost=JSON.parse(localStorage.getItem(GHOST_KEY)||'null'); }catch(e){}
+if(ghost && !(ghost.samples && ghost.samples.length)) ghost=null;
+let rec=[], recAcc=0;
+function ghostAltAt(t){ if(!ghost) return null;
+  const i=t/GHOST_STEP, a=Math.floor(i), s=ghost.samples;
+  if(a>=s.length-1) return s.length?s[s.length-1]:null;
+  return s[a]+(s[a+1]-s[a])*(i-a); }
+
+/* ---- 文章えらび ---- */
+const POOL_S=[],POOL_M=[],POOL_L=[];
+SENTENCES.forEach((p,i)=>{ const n=p[0].replace(/ /g,'').length;   // ひらがなの文字数で振り分け
+  (n<=6?POOL_S:n<=11?POOL_M:POOL_L).push(i); });
+let recentQ=[];
+function pickFrom(pool){
+  for(let tries=0;tries<24;tries++){ const i=pool[Math.floor(Math.random()*pool.length)];
+    if(recentQ.indexOf(i)<0){ recentQ.push(i); if(recentQ.length>12) recentQ.shift(); return SENTENCES[i]; } }
+  return SENTENCES[pool[Math.floor(Math.random()*pool.length)]]; }
+/* 連続正解(combo)が伸びるほど文を長くする＝要求打鍵が増え、いつか失速して降りてくる
+   （＝畜学②「必ず終わる」。上級者もどこかで追いつかれる。ミスでcomboが切れると短文に戻る＝休息） */
+function pickSentence(){
+  const c=combo;
+  if(sentN<2) return pickFrom(POOL_S);                       // 出だしは短く＝すぐ飛べる（オンボーディング）
+  let base;
+  if(c<3)       base=pickFrom(POOL_S);
+  else if(c<7)  base=pickFrom(Math.random()<0.5?POOL_S:POOL_M);
+  else if(c<12) base=pickFrom(Math.random()<0.5?POOL_M:POOL_L);
+  else          base=pickFrom(POOL_L);
+  // 超連続では2文つないで超長文に（＝どんな速い指もいつか失速して降りる＝必ず終わる）
+  if(c>=16 && Math.random()<Math.min(0.2+(c-16)*0.06,0.7)){
+    const b2=pickFrom(POOL_M);
+    base=[base[0]+' '+b2[0], base[1]+'　'+b2[1]];
+  }
+  return base; }
+
+/* ---- タイピング（ハングルIME対応・ストリーム方式） ----
+   入力欄の値はタイピングの最中に消さない。文が終わったら base（現在文の開始位置）を
+   進めるだけ。こうすると「요→욕→요가」のようにIMEが直前の字にパッチムを合体させてから
+   分離する挙動が起きても、値ずれが自然に自己修復する（合成中に消すとIMEが壊れる）。
+
+   スマホの韓国語キーボード対策（PCと違い、こちらは入力が「素直」ではない）：
+   ・スペースは両側とも「あってもなくても良い」── スマホは文末スペースで確定する癖・
+     候補タップの自動スペース・逆に候補確定でスペースが抜ける、が日常的に起きる。
+     厳密一致だと一度ズレた瞬間から全部赤になる（これがスマホでバグる正体）。
+   ・文頭の句読点ゴミ（iOSのダブルスペース→「. 」等）は読み飛ばす。
+   ・手が止まった隙に、確定済みの古い文をこっそり削って入力欄を短く保つ（アイドルトリム）
+     ── IMEの「単語」が文をまたいで育ち、候補確定で過去分ごと書き換えられるのを防ぐ。 */
+const box=$('typebox'), krLine=$('krLine'), jaLine=$('jaLine'), comboLine=$('comboLine');
+let target=null, base=0, kicked=0, typoFlag=false;
+let composing=false, trimTimer=0, trimForceTimer=0;
+box.addEventListener('compositionstart',function(){ composing=true; });
+box.addEventListener('compositionend',function(){ composing=false; scheduleTrim(); });
+function scheduleTrim(){
+  clearTimeout(trimTimer); clearTimeout(trimForceTimer);
+  if(base<=0) return;
+  trimTimer=setTimeout(function(){ tryTrim(false); },350);
+  /* Android(GBoard等)は単語の合成が長く続き compositionend が来ないことがある。
+     900ms 手が止まっていれば合成中でも整理してよい（値の内容は変えず前方を削るだけ） */
+  trimForceTimer=setTimeout(function(){ tryTrim(true); },900);
+}
+function tryTrim(force){
+  if(state!=='play'||base<=0) return;
+  if(composing&&!force) return;
+  box.value=box.value.slice(base); base=0; composing=false;
+}
+const SP_CHARS='  　';           // 半角・NBSP・全角スペースは同一視
+const JUNK='.。,、';                       // 文頭に紛れたら読み飛ばす記号
+function isSp(c){ return SP_CHARS.indexOf(c)>=0; }
+/* 入力segと目標文tの進み具合を測る。スペースは両側とも任意・句読点ゴミは無視。
+   （目標文はハングルとスペースだけ、という SENTENCES の決まりが前提）
+   返り値 ti=目標文の何文字目まで進んだか / si=segの何文字目まで消費したか */
+function matchLen(seg,t){
+  let si=0,ti=0;
+  while(si<seg.length&&ti<t.length){
+    const c=isSp(seg[si])?' ':seg[si];
+    if(c===t[ti]){ si++; ti++; continue; }
+    if(t[ti]===' '){ ti++; continue; }                    // 目標のスペースは打たなくてよい
+    if(c===' '||JUNK.indexOf(c)>=0){ si++; continue; }    // 余分なスペース・句読点ゴミは許す
+    break;
+  }
+  while(si<seg.length&&(isSp(seg[si])||JUNK.indexOf(seg[si])>=0)) si++; // 末尾のゴミも消費扱い
+  while(ti<t.length&&t[ti]===' ') ti++;
+  return {ti:ti,si:si};
+}
+function setSentence(s){ target=s; kicked=0; typoFlag=false; base=box.value.length; renderLine(''); jaLine.textContent=s[1]; }
+function renderLine(seg){
+  const t=target?target[0]:''; if(!t){ krLine.innerHTML=''; return; }
+  const r=matchLen(seg,t), bad=seg.length-r.si;
+  const fs=Math.max(17,Math.min(30,Math.floor((W*0.92)/Math.max(t.length,4))));
+  krLine.style.fontSize=fs+'px';
+  let html='';
+  for(let i=0;i<t.length;i++){
+    const chT=t[i], sp=chT===' ';
+    let cls,txt;
+    if(i<r.ti){ cls=sp?'done sp':'done'; txt=sp?'·':chT; }
+    else{
+      const j=i-r.ti;
+      if(j<bad){ const sc=seg[r.si+j];
+        // 組み立て中かもしれない最後の1字は「cur」、通り過ぎた間違いは「bad」
+        cls=(r.si+j===seg.length-1)?'cur':'bad'; txt=isSp(sc)?'·':sc;
+      }
+      else if(bad===0&&j===0){ cls='cur'; txt=sp?'·':chT; }
+      else{ cls=sp?'todo sp':'todo'; txt=sp?'·':chT; }
+    }
+    html+='<span class="'+cls+'">'+txt+'</span>';
+  }
+  krLine.innerHTML=html; }
+function onInput(){
+  if(state!=='play'||!target) return;
+  if(box.value.length<base) base=box.value.length;   // IMEが過去分ごと書き換えた/全消し等の保険
+  const t=target[0];
+  let seg=box.value.slice(base);
+  while(seg.length&&JUNK.indexOf(seg[0])>=0){ base++; seg=box.value.slice(base); }
+  const r=matchLen(seg,t);
+  /* ミス判定：最後の1字はIMEが組み立て中かもしれないので、
+     「間違った字を通り過ぎて次を打った」ときだけミスにする */
+  if(seg.length-r.si>0 && r.si<seg.length-1 && !typoFlag){
+    typoFlag=true; typoN++; combo=0; updateCombo();
+    vy-=17; if(vy<-62)vy=-62;           // ミスで失速＝一気に高度を失う（正確さが生存に効く）
+    missEffect();
+  }
+  if(r.ti>kicked){
+    for(let i=kicked;i<r.ti;i++){ doKick(t[i]===' '?0.45:1); typedN++; }
+    kicked=r.ti;
+  }
+  if(r.ti>=t.length){ completeSentence(); return; }
+  renderLine(seg);
+  scheduleTrim(); }
+box.addEventListener('input',onInput);
+function updateCombo(){ comboLine.textContent = combo>=2 ? '🔥 コンボ ×'+combo : ''; }
+function completeSentence(){
+  sentN++; combo++; if(combo>maxCombo)maxCombo=combo; updateCombo();
+  doKick(0); // 文クリアのボーナス蹴り
+  vy=Math.min(vy+9+Math.min(combo,12)*1.2, vyMax()+8);
+  sndComplete(); if(combo%5===0) vib(24);
+  krLine.classList.remove('clear'); void krLine.offsetWidth; krLine.classList.add('clear');
+  burst(px(),py()-10,['✨','⭐','💫'],6);
+  setSentence(pickSentence());
+  scheduleTrim(); }
+function vyMax(){ return 30+Math.min(combo,22)*0.95; }  // 連続正解(技能)が高いほど上限も上げる＝速い指ほど高く
+function doKick(mult){
+  if(state!=='play') return;
+  if(mult>0){ vy=Math.min(vy+13*mult, vyMax()); kickChain++; sndKick(kickChain); }
+  if(!flying && vy>0){ flying=true; graceT=1.8; burst(px(),py()+16,['💨','🌿','✨'],8); }  // 飛び立ち直後は猶予
+  kickAnim=1;
+  if(mult>0){ particles.push({x:px()-14,y:py()+20,vx:-30-Math.random()*40,vy:40+Math.random()*30,life:.5,ch:'💨',s:20}); }
+}
+
+/* ---- ミス演出（強化）：赤フラッシュ＋画面シェイク＋💥＋こっこの被弾＋振動＋音 ---- */
+const missFlash=$('missFlash'), wrapEl=$('wrap');
+function missEffect(){
+  sndTypo();
+  krLine.classList.remove('shake'); void krLine.offsetWidth; krLine.classList.add('shake');
+  missFlash.classList.remove('on'); void missFlash.offsetWidth; missFlash.classList.add('on');
+  wrapEl.classList.remove('shake'); void wrapEl.offsetWidth; wrapEl.classList.add('shake');
+  burst(px(),py()-6,['💥','💢','✖️'],7);
+  missT=0.5;
+  vib([0,55,30,55]);
+}
+
+/* ---- パーティクル ---- */
+function burst(x,y,chs,n){ for(let i=0;i<n;i++){ const a=Math.random()*TAU,sp=40+Math.random()*90;
+  particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-30,life:.6+Math.random()*.5,ch:chs[i%chs.length],s:14+Math.random()*10}); } }
+
+/* ---- 背景の飾り（高度の帯ごとに生まれる） ---- */
+function spawnUpTo(a){
+  while(decoTop<a){
+    decoTop+=6; const A=decoTop, r=Math.random();
+    const push=(e,s,vx,far)=>deco.push({a:A+Math.random()*6,x:Math.random(),e,s,vx:vx||0,far:!!far,tw:Math.random()*TAU});
+    if(A>25&&A<420&&r<.14) push(Math.random()<.7?'🕊️':'🦋',18+Math.random()*10,(Math.random()-.5)*18);
+    if(A>140&&A<3600){ if(r<.4) push('☁️',44+Math.random()*84,(Math.random()-.5)*6,Math.random()<.4); }
+    if(A>550&&A<2600&&r<.05) push('🎈',26+Math.random()*10,(Math.random()-.5)*8);
+    if(A>2000&&A<5600&&r<.045) push('✈️',30+Math.random()*14,(Math.random()<.5?1:-1)*(26+Math.random()*20));
+    if(A>3400&&A<7400&&r<.2) push('☁️',30+Math.random()*40,(Math.random()-.5)*4,true);
+    if(A>5400&&A<9500&&r<.05) push('🚀',30+Math.random()*12,0);
+    if(A>7800&&r<.045) push('🛰️',26+Math.random()*10,(Math.random()-.5)*10);
+    if(A>9000&&r<.035) push(['🪐','🌕','☄️','🛸'][Math.floor(Math.random()*4)],30+Math.random()*22,0);
+    if(A>4600){ const n=1+Math.floor(Math.random()*3);
+      for(let i=0;i<n;i++) deco.push({a:A+Math.random()*6,x:Math.random(),e:'*',s:1+Math.random()*2,vx:0,far:false,tw:Math.random()*TAU}); }
+    if(!rainbowDone&&A>1150){ rainbowDone=true; push('🌈',180,0); }
+  } }
+
+/* ---- 空の色（高度で変わるグラデーション） ---- */
+const SKY=[ // [高度, 上の色, 下の色]
+  [0,[126,200,255],[214,240,255]],
+  [900,[90,160,240],[168,214,255]],
+  [2800,[46,105,205],[125,172,235]],
+  [5500,[22,50,110],[58,102,172]],
+  [8500,[7,15,46],[22,50,110]],
+  [12000,[2,3,15],[10,16,48]] ];
+function lerpC(a,b,t){ return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]; }
+function skyColors(a){
+  let i=0; while(i<SKY.length-1&&a>SKY[i+1][0]) i++;
+  if(i>=SKY.length-1) return [SKY[SKY.length-1][1],SKY[SKY.length-1][2]];
+  const t=(a-SKY[i][0])/(SKY[i+1][0]-SKY[i][0]);
+  return [lerpC(SKY[i][1],SKY[i+1][1],t),lerpC(SKY[i][2],SKY[i+1][2],t)]; }
+function css(c){ return 'rgb('+(c[0]|0)+','+(c[1]|0)+','+(c[2]|0)+')'; }
+
+/* ---- 座標 ---- */
+function px(){ return W*0.5; }
+function py(){ return H/2+(camY-alt)*PPM; }
+function sy(a){ return H/2+(camY-a)*PPM; }
+
+/* ---- 速度の線（風のライン） ---- */
+function drawStreaks(){
+  if(state!=='play'&&state!=='crash') return;
+  while(streaks.length<22) streaks.push({sx:Math.random(), wy:camY+(Math.random()*2-1)*80, r:Math.random()});
+  const speed=Math.abs(vy), alpha=Math.min(speed/46,1);
+  if(alpha<=0.02) return;                       // ほぼ静止なら描かない
+  const len=Math.min(10+speed*1.25,76), dir=vy<0?1:-1;   // 落下は世界が上へ流れる＝線は下へのびる
+  ctx.save(); ctx.lineCap='round';
+  ctx.strokeStyle='rgba(255,255,255,'+(0.08+alpha*0.17).toFixed(3)+')';
+  ctx.lineWidth=Math.max(1,1.4*(0.5+alpha*0.7));
+  for(let i=0;i<streaks.length;i++){ const s=streaks[i]; let y=sy(s.wy);
+    if(y<-100){ s.wy=camY+100+Math.random()*40; s.sx=Math.random(); y=sy(s.wy); }
+    else if(y>H+100){ s.wy=camY-100-Math.random()*40; s.sx=Math.random(); y=sy(s.wy); }
+    const x=s.sx*W;
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x, y+len*dir*(0.6+0.8*s.r)); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/* ---- 描画 ---- */
+let waveT=0;
+function draw(dt){
+  waveT+=dt;
+  const cols=skyColors(Math.max(camY,0));
+  if(SKYGL){
+    // 背景は計算生成スカイ（WebGL）に任せ、前面のCanvas2Dは透過にして重畳する
+    SKYGL.render(camY, waveT, cols[0], cols[1]);
+    ctx.clearRect(0,0,W,H);
+  }else{
+    // フォールバック：従来どおりCanvas2Dのグラデ空を塗る
+    const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,css(cols[0])); g.addColorStop(1,css(cols[1]));
+    ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  }
+
+  /* 速度の線（風のライン）── 高度に関係なく上下動を見せる。
+     世界座標(wy)に固定して sy() で描くので、雲と同じ視差で流れ、
+     何も無い高空でも「落ちている／昇っている」速さが目に見える（止まって見えるのを防ぐ） */
+  drawStreaks();
+
+  /* 太陽と月 */
+  const sunA=Math.max(0,1-camY/3600);
+  if(sunA>0){ ctx.save(); ctx.globalAlpha=sunA*.95;
+    const sx=W*.82, syy=H*.14+camY*.004*PPM;
+    const rg=ctx.createRadialGradient(sx,syy,4,sx,syy,90);
+    rg.addColorStop(0,'rgba(255,250,210,.95)'); rg.addColorStop(.3,'rgba(255,236,150,.5)'); rg.addColorStop(1,'rgba(255,236,150,0)');
+    ctx.fillStyle=rg; ctx.beginPath(); ctx.arc(sx,syy,90,0,TAU); ctx.fill();
+    drawEmo('☀️',sx,syy,46,0,sunA); ctx.restore(); }
+  const moonA=Math.min(1,Math.max(0,(camY-6000)/2500));
+  if(moonA>0) drawEmo('🌙',W*.16,H*.12,44,0,moonA);
+
+  /* 高い空の星（帯スポーン分＋またたき） */
+  spawnUpTo(camY+90);
+  for(let i=deco.length-1;i>=0;i--){ const d=deco[i];
+    if(d.a<camY-95){ deco.splice(i,1); continue; }
+    d.x+=(d.vx*dt)/W; if(d.x>1.15)d.x-=1.3; if(d.x<-0.15)d.x+=1.3;
+    const yy=d.far? H/2+(camY-d.a)*PPM*.55 : sy(d.a);
+    if(yy<-80||yy>H+80) continue;
+    if(d.e==='*'){ const tw=.5+.5*Math.sin(waveT*2+d.tw);
+      ctx.globalAlpha=Math.min(1,(camY-3800)/2000)*(.35+.65*tw); ctx.fillStyle='#fff';
+      ctx.fillRect(d.x*W,yy,d.s,d.s); ctx.globalAlpha=1; }
+    else drawEmo(d.e,d.x*W,yy,d.far?d.s*.6:d.s,0,d.far?.55:1);
+  }
+
+  /* 海と島（地上近く） */
+  const gy=sy(0);
+  if(gy<H+60){
+    const sea=ctx.createLinearGradient(0,gy+6,0,H);
+    sea.addColorStop(0,'#3fb7e8'); sea.addColorStop(.4,'#1f7fc4'); sea.addColorStop(1,'#0d4a86');
+    ctx.fillStyle=sea; ctx.fillRect(0,gy+6,W,H-gy);
+    ctx.globalAlpha=.5; ctx.fillStyle='#eaffff';
+    for(let i=0;i<9;i++){ const wx=((i*.13+waveT*.02)%1)*W, wy=gy+12+((i*37)%Math.max(H-gy-16,1));
+      ctx.fillRect(wx,wy,14+6*Math.sin(waveT*2+i),2); }
+    ctx.globalAlpha=1;
+    drawEmo('🐳',W*.12,gy+34,26,0,.9);
+    drawEmo('⛵',W*.88,gy+16,22,0,.95);
+    /* 島本体（すな山＋みどり＋くらしの絵文字＝島ぐらしの記憶） */
+    ctx.fillStyle='#f2e0a8'; ctx.beginPath(); ctx.ellipse(W*.5,gy+26,W*.30,34,0,0,TAU); ctx.fill();
+    ctx.fillStyle='#7ecb6a'; ctx.beginPath(); ctx.ellipse(W*.5,gy+16,W*.24,20,0,0,TAU); ctx.fill();
+    drawEmo('🌴',W*.34,gy-8,40); drawEmo('🌳',W*.62,gy-6,36); drawEmo('🏠',W*.5,gy-6,32);
+    drawEmo('🌼',W*.42,gy+8,14); drawEmo('🌷',W*.57,gy+10,14); drawEmo('⛱️',W*.69,gy+2,24); drawEmo('🐚',W*.45,gy+20,12);
+  }
+  /* 空撮の島（高く昇るほど小さくなる島ぐらしの島） */
+  if(alt>150){
+    const a=Math.min(1,(alt-150)/160)*Math.max(0,1-(alt-2600)/1600);
+    if(a>0){ const s=Math.max(.14,Math.min(1,900/alt));
+      ctx.save(); ctx.globalAlpha=a*.9;
+      const ix=W*.5+Math.sin(waveT*.1)*8, iy=H-36-s*24;
+      ctx.fillStyle='rgba(40,140,210,.55)'; ctx.beginPath(); ctx.ellipse(ix,iy,150*s+26,44*s+10,0,0,TAU); ctx.fill();
+      drawEmo('🏝️',ix,iy,150*s+30); drawEmo('⛵',ix-90*s-20,iy+8,12+10*s,0,.8);
+      ctx.restore(); }
+  }
+
+  /* 自己ベスト高度のライン */
+  if(bestAlt>3){ const by=sy(bestAlt);
+    if(by>-20&&by<H+20){ ctx.save(); ctx.strokeStyle='rgba(124,224,255,.7)'; ctx.setLineDash([10,8]); ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(0,by); ctx.lineTo(W,by); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle='rgba(124,224,255,.9)'; ctx.font='900 12px sans-serif'; ctx.textAlign='left';
+      ctx.fillText('🏁 自己ベスト '+Math.floor(bestAlt).toLocaleString()+'m',8,by-6); ctx.restore(); } }
+
+  /* 👻 ゴーストこっこ（自己ベストの飛行・70%透過） */
+  if(ghost&&(state==='play'||state==='crash')&&flying){
+    const ga=ghostAltAt(simT);
+    if(ga!=null){ const gx=W*.5-Math.min(W*.24,110), gyy=sy(ga);
+      if(gyy>-60&&gyy<H+60){ ctx.save(); ctx.globalAlpha=.3;
+        const h=Math.min(W,H)*.14, w=h*AR;
+        ctx.translate(gx,gyy); ctx.drawImage(cocco,-w/2,-h/2,w,h); ctx.restore();
+        // 自己ベスト(ゴースト)との高度差を表示＝競っている感（リードは水色・負けは桃色）
+        const d=Math.round(alt-ga), lead=d>=0;
+        ctx.globalAlpha=.85; ctx.fillStyle=lead?'#8dffb0':'#ff9ec4'; ctx.font='900 11px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('👻 '+(lead?'+':'')+d.toLocaleString()+'m',gx,gyy-Math.min(W,H)*.14*.62); ctx.globalAlpha=1; } } }
+
+  /* パーティクル */
+  for(let i=particles.length-1;i>=0;i--){ const p=particles[i];
+    p.life-=dt; if(p.life<=0){ particles.splice(i,1); continue; }
+    p.x+=p.vx*dt; p.y+=p.vy*dt+ (flying?vy*PPM*dt*.4:0); p.vy+=60*dt;
+    drawEmo(p.ch,p.x,p.y,p.s,0,Math.min(1,p.life*2)); }
+
+  /* こっこちゃん本体 */
+  if(state!=='over'){
+    const x=px(), y=py(), h=Math.min(W,H)*.16, w=h*AR;
+    ctx.save(); ctx.translate(x,y);
+    if(state==='crash'&&crashT>2.1){ /* 救急車の中 */ }
+    else{
+      let rot=0;
+      if(kickAnim>0) rot=(1-kickAnim)*TAU*(combo%2?1:-1);       // 空蹴りの回転
+      else{ rot=Math.max(-.5,Math.min(.5,-vy*.012));
+        if(state==='play'&&vy<-16) rot+=Math.sin(waveT*15)*0.18*Math.min((-vy-16)/34,1); // 落下のばたつき
+      }
+      if(state==='crash') rot=Math.PI; // 墜落後は目をまわして転がる
+      if(missT>0) rot+=Math.sin(missT*60)*0.22*missT*2;   // 被弾でうろたえる揺れ
+      ctx.rotate(rot);
+      if(vy<-30&&state==='play'){ ctx.globalAlpha=.85; }
+      ctx.drawImage(cocco,-w/2,-h/2,w,h);
+      ctx.globalAlpha=1;
+      if(kickAnim>0){ drawEmo('👟',w*.24,h*.42,h*.34,-.6); }
+    }
+    ctx.restore();
+    // ミス直後：💥と😖でうろたえを強調
+    if(state==='play'&&missT>0){ drawEmo('💥',x+w*.5,y-h*.55,20+missT*18,0,Math.min(1,missT*3));
+      drawEmo('😖',x,y-h*.72,18,0,Math.min(1,missT*3)); }
+    // 落下中は左右にはためく風＋汗で「落ちている」ことを強調
+    if(state==='play'&&vy<-14){ const f=Math.min((-vy-14)/40,1);
+      drawEmo('💨',x-w*.66,y-h*.1+Math.sin(waveT*16)*4,14+8*f,0,.35+.4*f);
+      drawEmo('💨',x+w*.66,y-h*.1-Math.sin(waveT*16)*4,14+8*f,0,.35+.4*f); }
+    if(state==='play'&&vy<-26){ drawEmo('💦',x+w*.6,y-h*.3,16); }
+    if(state==='play'&&combo>=5&&flying){ drawEmo('🔥',x,y+h*.62,14+Math.min(combo,20)*.5,0,.8); }
+    if(state==='crash'&&crashT<2.1&&crashT>.15){ drawEmo('😵',x,y-h*.7,20); drawEmo('💫',x+16,y-h*.9,16,waveT*3); }
+  }
+
+  /* 🚑 救急車の一幕 */
+  if(state==='crash'){
+    const gyc=sy(0);
+    if(crashT<.5){ ctx.fillStyle='rgba(255,255,255,'+(0.5-crashT)+')'; ctx.fillRect(0,0,W,H); }
+    let ax=null;
+    if(crashT>=.6&&crashT<2.1) ax=-60+((crashT-.6)/1.5)*(W*.5-20+60);
+    else if(crashT>=2.1&&crashT<2.6) ax=W*.5-20;
+    else if(crashT>=2.6) ax=W*.5-20+((crashT-2.6)/1.2)*(W*.65+80);
+    if(ax!=null){ ctx.save(); ctx.translate(ax,gyc-16); ctx.scale(-1,1); drawEmo('🚑',0,0,46); ctx.restore();
+      if(Math.floor(crashT*6)%2===0) drawEmo('✨',ax+6,gyc-40,10);
+      drawEmo('💨',ax-34,gyc-8,16,0,.6); }
+  }
+}
+
+/* ---- HUD ---- */
+const hud=$('hud'), hudAlt=$('hudAlt'), hudAir=$('hudAir'), hudNote=$('hudNote');
+function fmtAir(s){ s=Math.floor(s); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+function note(t){ hudNote.textContent=t; hudNote.classList.remove('pop'); void hudNote.offsetWidth; hudNote.classList.add('pop'); }
+
+/* ---- メインループ ---- */
+/* ---- ポーズ（タブ切替・離脱で自動停止→タップで再開。通知や着信で1回を失わない） ---- */
+function pauseGame(){
+  if(paused || state!=='play') return;
+  paused=true; dock.classList.remove('on'); box.blur();
+  clearTimeout(trimTimer); clearTimeout(trimForceTimer);
+  if(AC){ try{ AC.suspend(); }catch(e){} }
+  $('pauseScreen').classList.remove('hidden');
+}
+function resumeGame(){
+  if(!paused) return;
+  paused=false; $('pauseScreen').classList.add('hidden');
+  if(state==='play'){ dock.classList.add('on'); ac(); box.focus(); }
+  last=performance.now();
+}
+document.addEventListener('visibilitychange',function(){ if(document.hidden) pauseGame(); });
+$('resumeBtn').addEventListener('click',resumeGame);
+
+let last=performance.now();
+function loop(now){
+  if(paused){ last=now; requestAnimationFrame(loop); return; }   // ポーズ中は時間を止める
+  const dt=Math.min((now-last)/1000,.05); last=now;
+  if(state==='play'){
+    simT+=dt;
+    if(kickAnim>0) kickAnim=Math.max(0,kickAnim-dt*2.6);
+    if(missT>0) missT=Math.max(0,missT-dt);
+    if(flying){
+      if(graceT>0) graceT=Math.max(0,graceT-dt);
+      let g=24*(0.55+0.45*Math.min(alt/60,1))*(graceT>0?0.5:1);      // 島の近くはやさしい／飛び立ち直後は猶予
+      if(vy<0) g*=2.0;                                               // 落下は速い＝ダイブ感（間延びした落下を防ぐ）
+      vy-=g*dt;
+      const term=-(80+alt*0.045);                                   // 高いほど終端速度も速い＝高所ストールは戻れないダイブ＝必ず終わる
+      if(vy<term)vy=term;
+      alt+=vy*dt;
+      if(alt>maxAlt){ maxAlt=alt;
+        if(!crossedBest&&bestAlt>3&&maxAlt>bestAlt){ crossedBest=true; note('🏁 自己ベスト超え！'); sndBest(); vib([0,30,40,30]); } }
+      if(alt>=mileNext){ note('⛰ '+mileNext.toLocaleString()+'m！'); sndMile(); mileNext+=500; }
+      if(alt<=0&&vy<0){ alt=0; startCrash(); }
+      else airT+=dt;
+      recAcc+=dt; while(recAcc>=GHOST_STEP){ recAcc-=GHOST_STEP; if(rec.length<GHOST_MAX) rec.push(Math.round(alt*10)/10); }
+    }
+    hudAlt.innerHTML=Math.floor(alt).toLocaleString()+'<small> m</small>';
+    hudAir.textContent='⏱ '+fmtAir(airT)+'　⌨ '+(airT>0.5?Math.round(typedN/airT*60):0)+'/分';
+    if(windGain) windGain.gain.value=(muted?0:1)*Math.min(Math.abs(vy)/70,1)*.13;
+  }else if(state==='crash'){
+    crashT+=dt;
+    if(kickAnim>0) kickAnim=0;
+    if(crashT>=3.9) gameOver();
+    if(windGain) windGain.gain.value=0;
+  }
+  /* カメラは高度を追うが、上下の速さ(vy)ぶんだけ視点をずらす＝落下中はこっこが画面の
+     下へ、上昇中は上へ動いて見える。これで「止まって見える」を解消（視差＋本体移動の二段） */
+  const lead=(state==='play'||state==='crash') ? Math.max(-26,Math.min(30,-vy*0.6)) : 0;
+  const targ=(state==='play'&&flying)||state==='crash' ? Math.max(alt+10+lead,45) : 45;
+  camY+=(targ-camY)*Math.min(1,dt*(state==='crash'?7:5));
+  draw(dt);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ---- 進行 ---- */
+const dock=$('dock');
+function startGame(){
+  state='play'; alt=0; vy=0; flying=false; camY=45;
+  airT=0; maxAlt=0; simT=0; combo=0; maxCombo=0; typedN=0; typoN=0; sentN=0; kickChain=0;
+  kickAnim=0; crashT=0; mileNext=500; crossedBest=false; missT=0; paused=false;
+  deco=[]; decoTop=0; rainbowDone=false; particles=[]; streaks=[]; recentQ=[];
+  rec=[]; recAcc=0;
+  clearTimeout(trimTimer); clearTimeout(trimForceTimer); composing=false;
+  box.value=''; base=0;
+  $('titleScreen').classList.add('hidden'); $('overScreen').classList.add('hidden');
+  hud.classList.add('on'); dock.classList.add('on');
+  updateCombo(); setSentence(pickSentence());
+  ac(); box.focus();
+}
+function startCrash(){
+  state='crash'; crashT=0; flying=false; vy=0;
+  clearTimeout(trimTimer); clearTimeout(trimForceTimer);
+  box.blur(); dock.classList.remove('on');
+  burst(px(),sy(0)-10,['💥','💢','🪶'],10);
+  sndCrash(); setTimeout(()=>sndSiren(3.2),600); vib([0,60,40,60]);
+}
+function gameOver(){
+  state='over'; hud.classList.remove('on');
+  const score=Math.floor(maxAlt), air=Math.floor(airT);
+  const acc=typedN+typoN>0 ? Math.round(typedN/(typedN+typoN)*100) : 100;
+  $('finalAlt').textContent=score.toLocaleString()+' m';
+  const cpm = air>0 ? Math.round(typedN/air*60) : 0;   // 打鍵速度＝タイピング上達の指標
+  $('statLine').innerHTML='⌨ <b style="color:#7ce0ff">'+cpm+' 打/分</b>（WPM '+Math.round(cpm/5)+'）　正確率 '+acc+'%<br>'
+    +'滞空 '+fmtAir(air)+' ／ 文章 '+sentN+' ／ 最大コンボ '+maxCombo;
+  const nb=$('newBest'); nb.style.opacity=0;
+  const gl=$('ghostLine');
+  const prevGhostAlt=ghost?ghost.alt:0;
+  if(score>bestAlt){ bestAlt=score; bestAir=air; nb.style.opacity=1;
+    try{ localStorage.setItem('sorageriJaBestAlt',String(score)); localStorage.setItem('sorageriJaBestAir',String(air)); }catch(e){} }
+  /* 👻 ゴースト保存：最高高度を更新したら、この飛行が次のゴーストになる */
+  if(rec.length&&score>=prevGhostAlt){
+    ghost={alt:score,air:air,step:GHOST_STEP,samples:rec.slice(0,GHOST_MAX)};
+    try{ localStorage.setItem(GHOST_KEY,JSON.stringify(ghost)); }catch(e){}
+    gl.textContent= prevGhostAlt>0 ? '👻 ゴースト更新！次はこの飛行と競える' : '👻 ゴースト誕生！次から自己ベストと並んで飛べる';
+  }else if(ghost){
+    gl.textContent='👻 ゴースト('+Math.floor(ghost.alt).toLocaleString()+'m)には届かず…もういちど！';
+  }else gl.textContent='';
+  $('overScreen').classList.remove('hidden');
+  if(window.CoccoRank) window.CoccoRank.onGameOver(score,air);
+}
+function ghostTitleLine(){ const el=$('titleGhostLine');
+  el.textContent = ghost ? '👻 ゴーストこっこ待機中：自己ベスト '+Math.floor(ghost.alt).toLocaleString()+'m（この端末に保存）'
+                         : '👻 一度飛ぶと、自己ベストのゴーストこっこと競えるようになるよ'; }
+ghostTitleLine();
+
+/* ---- 画面あちこちのボタン ---- */
+$('startBtn').addEventListener('click',startGame);
+$('retryBtn').addEventListener('click',()=>{ ghostTitleLine(); startGame(); });
+$('howBtn').addEventListener('click',()=>{ $('titleScreen').classList.add('hidden'); $('howScreen').classList.remove('hidden'); });
+$('howBack').addEventListener('click',()=>{ $('howScreen').classList.add('hidden'); $('titleScreen').classList.remove('hidden'); });
+$('rankBtn').addEventListener('click',()=>{ $('titleScreen').classList.add('hidden'); $('rankScreen').classList.remove('hidden');
+  if(window.CoccoRank) window.CoccoRank.onShowRanking(); });
+$('rankBack').addEventListener('click',()=>{ $('rankScreen').classList.add('hidden'); $('titleScreen').classList.remove('hidden'); ghostTitleLine(); });
+$('shareBtn').addEventListener('click',()=>{
+  const txt='【空蹴りにほんご】ひらがなタイピングで 最高高度 '+Math.floor(maxAlt).toLocaleString()+'m・滞空 '+fmtAir(airT)+' まで飛べた！🐤👟 #畜物語 #空蹴り https://chikumo.jp/sorageri-ja/';
+  if(navigator.share){ navigator.share({text:txt}).catch(()=>{}); }
+  else if(navigator.clipboard){ navigator.clipboard.writeText(txt).then(()=>{ const b=$('shareBtn'); b.textContent='コピーした！'; setTimeout(()=>b.textContent='記録を共有',1500); }).catch(()=>{}); }
+});
+
+/* プレイ中は、どこを触っても入力フォーカスを離さない（キーボードを閉じさせない） */
+document.addEventListener('pointerdown',e=>{
+  if(state!=='play') return;
+  const t=e.target;
+  if(t===box) return;
+  if(t.closest&&t.closest('#muteBtn,#fsBtn')) return;
+  e.preventDefault(); box.focus();
+},{passive:false});
+
+/* ソフトキーボードが出たら、ドックをキーボードの真上へ */
+if(window.visualViewport){
+  const vv=window.visualViewport;
+  const fix=()=>{ const off=Math.max(0,window.innerHeight-vv.height-vv.offsetTop);
+    dock.style.transform=off?'translateY(-'+off+'px)':''; };
+  vv.addEventListener('resize',fix); vv.addEventListener('scroll',fix);
+}
+
+/* ---- 🔊 / ⛶ ---- */
+const muteBtn=$('muteBtn'), fsBtn=$('fsBtn');
+function applyMute(){ muteBtn.textContent=muted?'🔇':'🔊'; muteBtn.classList.toggle('off',muted);
+  if(master) master.gain.value=muted?0:1; try{ localStorage.setItem('sorageriJaMute',muted?'1':'0'); }catch(e){} }
+muteBtn.addEventListener('click',()=>{ muted=!muted; ac(); applyMute(); });
+applyMute();
+fsBtn.addEventListener('click',()=>{
+  const d=document, el=d.documentElement;
+  if(!d.fullscreenElement&&!d.webkitFullscreenElement){ (el.requestFullscreen||el.webkitRequestFullscreen||function(){}).call(el); }
+  else{ (d.exitFullscreen||d.webkitExitFullscreen||function(){}).call(d); } });
+
+/* 動作テスト用フック（ヘッドレス検証・デバッグ用） */
+window.__sorageriJa={
+  get:()=>({state,alt,vy,maxAlt,airT,combo,typedN,typoN,sentN,kicked,base,boxLen:box.value.length,skygl:!!SKYGL,
+    target:target?target[0]:null,sentences:SENTENCES.length}),
+  type:s=>{ box.value+=s; box.dispatchEvent(new Event('input',{bubbles:true})); },
+  jump:a=>{ alt=a; maxAlt=Math.max(maxAlt,a); camY=a+10; flying=true; },  // 検証用：高度を跳ばす
+  start:startGame };
+})();
+</script>
+
+<script>
+/* ===== 世界ランキング（Firebase Realtime Database・空蹴りにほんご専用ノード rankings/sorageriJa）
+   score=最高高度(m)・air=滞空時間(秒)。1端末1枠・自己ベストのみ保持 ===== */
+(function boot(){
+  if(typeof firebase==='undefined'||!firebase.database||!firebase.auth){
+    var n=boot._n=(boot._n||0)+1;
+    setTimeout(boot, n<120?500:3000);
+    return;
+  }
+  try{ if(!firebase.apps||!firebase.apps.length) firebase.initializeApp({
+    apiKey:"AIzaSyBw5-6oAuOmgYC_7G27Z0Qavwn78ZrkhdQ",
+    authDomain:"chikumonogatarikiroku.firebaseapp.com",
+    databaseURL:"https://chikumonogatarikiroku-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:"chikumonogatarikiroku",
+    storageBucket:"chikumonogatarikiroku.firebasestorage.app",
+    messagingSenderId:"725202431277",
+    appId:"1:725202431277:web:c49c911cfcae26d63ab7a4"
+  }); }catch(e){}
+  var db; try{ db=firebase.database(); }catch(e){ return; }
+  var ref=db.ref('rankings/sorageriJa');
+  var SCORE_CAP=999999;
+  var NAME_KEY='sorageriJaName', UID_KEY='sorageriJaUid', FLAG_KEY='sorageriJaFlag';
+  var selFlag='🇯🇵';
+  function flagOf(cc){ return cc.replace(/./g,function(c){ return String.fromCodePoint(0x1F1E6+c.charCodeAt(0)-65); }); }
+  var MAJOR=('JP US GB CA AU KR CN TW HK TH VN PH ID MY SG IN FR DE IT ES PT NL SE BR MX AR RU UA TR EG ZA SA NZ').split(' ').map(flagOf);
+  var ALL_CC=('AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW').split(' ');
+  var ALL=['🏳️','🏴','🏁','🇺🇳','🇪🇺'].concat(ALL_CC.map(flagOf));
+  var $=function(id){return document.getElementById(id);};
+  var pending=null, lastSubmitTs=0;
+  var myUid=null, authReady=false, authDone=false;
+  function ensureAuth(){ if(!firebase.auth){ authDone=true; return; } var a; try{ a=firebase.auth(); }catch(e){ authDone=true; return; }
+    a.onAuthStateChanged(function(u){ if(u){ myUid=u.uid; authReady=true; authDone=true; } });
+    if(!a.currentUser){ a.signInAnonymously().catch(function(){ authDone=true; }); } }
+  ensureAuth();
+  function localUid(){ var u; try{ u=localStorage.getItem(UID_KEY); }catch(e){}
+    if(!u){ u='u'+Date.now().toString(36)+Math.random().toString(36).slice(2,8); try{ localStorage.setItem(UID_KEY,u); }catch(e){} } return u; }
+  function uid(){ return myUid || localUid(); }
+  function esc(s){ return String(s).replace(/[<>&"]/g,function(c){return {'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]; }); }
+  function fmtName(s){ s=(s||'').replace(/\s+/g,' ').trim().slice(0,10); return s||'ななし'; }
+  function fmtAir(s){ s=Math.max(0,Math.floor(+s||0)); return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2); }
+  function renderInto(elId, rows){
+    var el=$(elId); if(!el) return;
+    if(!rows||!rows.length){ el.innerHTML='<li class="rankempty">まだ記録がありません</li>'; return; }
+    el.innerHTML=rows.map(function(r,i){
+      var medal=['🥇','🥈','🥉'][i]||((i+1)+'.');
+      var fl=r.flag?esc(r.flag)+' ':'';
+      var air=(r.air!=null)?' <span style="opacity:.55;font-size:11px">⏱'+fmtAir(r.air)+'</span>':'';
+      return '<li><span class="rk">'+medal+'</span><span class="rn">'+fl+esc(r.name)+air+'</span><span class="rs">'+Number(r.score).toLocaleString()+'m</span></li>';
+    }).join('');
+  }
+  function loadTop(targets, after){
+    ref.orderByChild('score').limitToLast(10000).once('value').then(function(snap){
+      var rows=[]; snap.forEach(function(c){ var v=c.val()||{}; rows.push({uid:c.key,name:v.name,flag:v.flag,score:+v.score||0,air:(v.air!=null?+v.air:null)}); });
+      rows.sort(function(a,b){return b.score-a.score;});
+      targets.forEach(function(t){ renderInto(t,rows); });
+      if(after) after(rows);
+    }).catch(function(e){ targets.forEach(function(t){ var el=$(t); if(el) el.innerHTML='<li class="rankempty">読み込めませんでした</li>'; }); });
+  }
+  function vib(p){ try{ if(navigator.vibrate) navigator.vibrate(p); }catch(e){} }
+  function celebrate(rank, total){
+    var old=document.getElementById('rankinOv'); if(old&&old.parentNode) old.parentNode.removeChild(old);
+    var ov=document.createElement('div'); ov.id='rankinOv'; ov.className='rankin-ov';
+    ov.innerHTML='<div class="rankin-flash"></div><div class="rankin-rays"></div><div class="rankin-fws"></div><div class="rankin-conf"></div>'
+      +'<div class="rankin-card">'
+      +'<img class="rankin-cocco" src="/chikumo.svg" alt="">'
+      +'<div class="rankin-sub" id="riSub">結果発表</div>'
+      +'<div class="rankin-rank"><span class="rankin-ring"></span><span class="rankin-num" id="riNum">?</span><span class="rankin-pos">位</span></div>'
+      +'<div class="rankin-msg" id="riMsg">…</div>'
+      +'<div class="rankin-total" id="riTot"></div></div>';
+    document.body.appendChild(ov);
+    setTimeout(function(){ if(ov.parentNode){ ov.classList.add('out');
+      setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },450); } }, 15000);
+    var numEl=ov.querySelector('#riNum'), subEl=ov.querySelector('#riSub'),
+        msgEl=ov.querySelector('#riMsg'), totEl=ov.querySelector('#riTot'), confEl=ov.querySelector('.rankin-conf'),
+        fwsEl=ov.querySelector('.rankin-fws');
+    var killed=false, revealed=false, fwTimer=0;
+    function firework(){ var fw=document.createElement('div'); fw.className='rankin-fw';
+      fw.style.left=(12+Math.random()*76)+'%'; fw.style.top=(12+Math.random()*44)+'%';
+      var hue=Math.floor(Math.random()*360), n=14, html='';
+      for(var i=0;i<n;i++){ var a=(i/n)*6.283, d=44+Math.random()*46;
+        html+='<i style="--dx:'+Math.round(Math.cos(a)*d)+'px;--dy:'+Math.round(Math.sin(a)*d)+'px;background:hsl('+(hue+Math.floor(Math.random()*50))+',100%,64%)"></i>'; }
+      fw.innerHTML=html; fwsEl.appendChild(fw); setTimeout(function(){ if(fw.parentNode) fw.parentNode.removeChild(fw); },950); }
+    var kill=function(){ if(killed)return; killed=true; if(fwTimer) clearInterval(fwTimer); ov.classList.add('out'); setTimeout(function(){ if(ov.parentNode) ov.parentNode.removeChild(ov); },420); };
+    var roll=setInterval(function(){ numEl.textContent=Math.floor(Math.random()*Math.max(total,9))+1; }, 68);
+    var revealT;
+    function doReveal(){
+      if(revealed)return; revealed=true; clearInterval(roll); clearTimeout(revealT);
+      setTimeout(kill, rank===1?8500 : rank===2?6300 : rank===3?5700 : rank<=10?4600 : 4300);
+      try{
+      numEl.textContent=rank;
+      var dg=String(rank).length;
+      numEl.style.fontSize = dg<=1?'min(34vw,200px)' : dg===2?'min(26vw,156px)' : dg===3?'min(20vw,118px)' : 'min(15vw,92px)';
+      var tier = rank===1?'champ' : rank===2?'second' : rank===3?'third' : rank<=10?'top10' : 'miss';
+      ov.classList.add('reveal','t-'+tier);
+      if(tier==='champ'){
+        var card=ov.querySelector('.rankin-card');
+        if(card&&card.insertAdjacentHTML){
+          card.insertAdjacentHTML('afterbegin','<div class="rankin-crown">👑</div>');
+          ov.insertAdjacentHTML('beforeend','<div class="rankin-shine"></div>');
+        }
+        subEl.textContent='👑 WORLD CHAMPION 👑';
+        msgEl.innerHTML='<b>優勝！！</b>世界でいちばん高い空だ！';
+      }else if(tier==='second'){
+        subEl.textContent='🥈 SILVER 🥈';
+        msgEl.innerHTML='<b>準優勝！</b>頂点まであと一蹴り！';
+      }else if(tier==='third'){
+        subEl.textContent='🥉 BRONZE 🥉';
+        msgEl.innerHTML='<b>表彰台！</b>3位入賞！';
+      }else if(tier==='top10'){
+        subEl.textContent='★ おめでとう ★';
+        msgEl.innerHTML='<b>TOP10入り！</b>ランクイン！';
+      }else{
+        subEl.textContent='— RESULT —';
+        msgEl.innerHTML='😢 TOP10 ならず…';
+        var card2=ov.querySelector('.rankin-card');
+        if(card2&&card2.insertAdjacentHTML)
+          card2.insertAdjacentHTML('beforeend','<div class="rankin-retry">🔥 つぎこそ TOP10 だ！！</div>');
+      }
+      if(total) totEl.textContent = tier==='miss'
+        ? '全 '+total+' 人中 ／ TOP10まで あと '+(rank-10)+'人'
+        : '全 '+total+' 人中';
+      var pal = tier==='champ'?['#ffd24d','#ffe680','#fff7cf','#ffb31c','#ff9a3c','#fff']
+        : tier==='second'?['#ffffff','#e6ecf6','#b8c6dd','#9fb0c8','#7ce0ff']
+        : tier==='third'?['#ffd2a0','#eeae72','#cd7d3c','#ffb86e','#fff']
+        : tier==='miss'?['#7a8ba6','#5a6d8a','#9fb2c8']
+        : ['#7ce0ff','#4db8ff','#9affc0','#ffd24d','#ff5d6c','#fff7cf','#fff'];
+      var N = tier==='champ'?120 : tier==='second'?72 : tier==='third'?58 : tier==='miss'?12 : 48;
+      var html='';
+      for(var i=0;i<N;i++){ html+='<i style="left:'+(Math.random()*100)+'%;background:'+pal[i%pal.length]
+        +';animation-delay:'+(Math.random()*0.35).toFixed(2)+'s;animation-duration:'+((tier==='miss'?3.2:2.0)+Math.random()*1.6).toFixed(2)
+        +'s;transform:rotate('+Math.floor(Math.random()*360)+'deg)"></i>'; }
+      confEl.innerHTML=html;
+      if(tier!=='miss'){
+        firework();
+        fwTimer=setInterval(firework, tier==='champ'?190 : tier==='second'?330 : tier==='third'?430 : 420);
+      }
+      vib(tier==='champ'?[0,60,40,60,40,160] : tier==='miss'?[0,30] : [0,40,40,90]);
+      }catch(e){ kill(); }
+    }
+    vib(30);
+    ov.classList.add('rolling');
+    revealT=setTimeout(doReveal, 1050);
+    ov.addEventListener('click', function(){ try{ if(!revealed){ doReveal(); return; } }catch(e){} kill(); });
+  }
+  function celebrateMine(rows){
+    var my=uid(), idx=-1; for(var i=0;i<rows.length;i++){ if(rows[i].uid===my){ idx=i; break; } }
+    if(idx>=0) celebrate(idx+1, rows.length);
+  }
+  function submit(){
+    if(!pending) return;
+    var msg=$('rankMsg'), btn=$('rankSubmit');
+    if(!myUid && !authDone){ if(msg) msg.textContent='接続中…数秒後にもう一度押してね'; ensureAuth(); return; }
+    var now=Date.now(); if(now-lastSubmitTs<1500) return; lastSubmitTs=now;
+    var name=fmtName($('rankName')&&$('rankName').value);
+    var flag=selFlag||'🇯🇵';
+    try{ localStorage.setItem(NAME_KEY,name); localStorage.setItem(FLAG_KEY,flag); }catch(e){}
+    var score=Math.max(0,Math.min(SCORE_CAP,Math.floor(pending.score||0)));
+    var air=Math.max(0,Math.min(999999,Math.floor(pending.air||0)));
+    if(btn) btn.disabled=true;
+    ref.child(uid()).transaction(function(cur){
+      if(cur && (cur.score||0)>=score){ cur.name=name; cur.flag=flag; return cur; }
+      return { name:name, flag:flag, score:score, air:air, ts:now };
+    }).then(function(res){
+      var kept = res && res.snapshot && (res.snapshot.val()||{}).score>score;
+      if(msg){ msg.textContent = kept ? '自己ベスト('+Number((res.snapshot.val()||{}).score).toLocaleString()+'m)を表示中🏆' : '登録しました！🏆'; }
+      pending=null; loadTop(['rankList'], celebrateMine);
+    }).catch(function(e){ if(msg){ msg.textContent='登録に失敗しました（接続を確認）'; } if(btn) btn.disabled=false; });
+  }
+  function onGameOver(score, air){
+    pending={score:score, air:air};
+    var msg=$('rankMsg'); if(msg) msg.textContent='';
+    var btn=$('rankSubmit'); if(btn) btn.disabled=false;
+    var nm=$('rankName'); if(nm){ try{ nm.value=localStorage.getItem(NAME_KEY)||''; }catch(e){} }
+    setFlag(selFlag);
+    loadTop(['rankList']);
+    var entry=$('rankEntry'); var sc=Math.max(0,Math.floor(score||0));
+    if(!uid()){ if(entry) entry.style.display=''; if(msg) msg.textContent='なまえを入れて登録できます🏆'; return; }
+    ref.child(uid()).once('value').then(function(snap){
+      var best = snap.exists() ? (+( (snap.val()||{}).score )||0) : -1;
+      var canReg = (best<0) || (sc>best);
+      if(entry) entry.style.display = canReg ? '' : 'none';
+      if(btn) btn.disabled = !canReg;
+      if(msg) msg.textContent = canReg ? (best<0?'初登録できます！🏆':'自己ベスト更新！登録できます🎉')
+                                       : '自己ベスト '+best.toLocaleString()+'m（今回は更新ならず）';
+    }).catch(function(){ if(entry) entry.style.display=''; });
+  }
+  function setFlag(f){ selFlag=f; var b=$('rankFlagBtn'); if(b) b.textContent=f; try{ localStorage.setItem(FLAG_KEY,f); }catch(e){} }
+  function buildGrid(elId, flags){ var el=$(elId); if(!el||el._built) return; el._built=true;
+    el.innerHTML=flags.map(function(f){ return '<button type="button" class="flagopt'+(f===selFlag?' sel':'')+'" data-f="'+f+'">'+f+'</button>'; }).join('');
+    el.addEventListener('click', function(e){ var t=e.target&&e.target.closest?e.target.closest('.flagopt'):null; if(!t)return; setFlag(t.getAttribute('data-f')); closePicker(); }); }
+  function openPicker(){ buildGrid('flagGridMajor', MAJOR); var p=$('flagPicker'); if(p) p.classList.remove('hidden'); }
+  function closePicker(){ var p=$('flagPicker'); if(p) p.classList.add('hidden'); }
+  function showAllFlags(){ buildGrid('flagGridAll', ALL); var g=$('flagGridAll'); if(g) g.classList.remove('hidden'); var b=$('flagMoreBtn'); if(b) b.classList.add('hidden'); }
+  (function(){ try{ var sv=localStorage.getItem(FLAG_KEY); if(sv) selFlag=sv; }catch(e){} setFlag(selFlag);
+    var fb=$('rankFlagBtn'); if(fb) fb.addEventListener('click', openPicker);
+    var mb=$('flagMoreBtn'); if(mb) mb.addEventListener('click', showAllFlags);
+    var pc=$('flagPickerClose'); if(pc) pc.addEventListener('click', closePicker);
+    var pov=$('flagPicker'); if(pov) pov.addEventListener('click', function(e){ if(e.target===pov) closePicker(); });
+  })();
+  var sb=$('rankSubmit'); if(sb) sb.addEventListener('click', submit);
+  var ni=$('rankName'); if(ni) ni.addEventListener('keydown', function(e){ if(e.key==='Enter') submit(); });
+  window.CoccoRank={ onGameOver:onGameOver, onShowRanking:function(){ loadTop(['rankListTitle']); }, submit:submit, celebrate:celebrate };
+})();
+</script>
+</body>
+</html>

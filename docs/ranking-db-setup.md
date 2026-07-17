@@ -1,6 +1,6 @@
 # ランキング（結果発表）DB セットアップ & セキュリティ手順
 
-対象ゲーム：コッコリンク（/link/）・コッコ救出（/rescue/）・こっこの森（/mori/ 総資産ランキング）・コッコスプラット3D（/splat3d/）・こっこダービー（/derby/ 通算勝ち点ランキング）・コッコグレイズ（/graze/ 弾幕回避スコアランキング）・コッコ・インベーダー（/invaders/ 迎撃スコアランキング）・コッコラッシュ（/rush/ 通勤ランスコアランキング）・コッコ縁波（/ennami/ 家の高さスコアランキング）・コッコ天秤（/tenbin/ 数学の塔スコアランキング）・コッコ継（/tsugi/ 世界史・到達時代スコアランキング）・コッコ大河（/taiga/ 日本史・到達時代スコアランキング）・コッコ地球（/chikyu/ 地理・到達地域スコアランキング）・コッコ元素（/genso/ 化学・到達段スコア）・コッコ生命（/seimei/ 生物・到達段スコア）・コッコ英語（/eigo/ 英語・到達段スコア）・コッコおりづる（/origami/ 折り鶴スコアランキング）・コッコROM（/rom/ 封の刻スコアランキング）・空蹴り（/sorageri/ 最高高度ランキング）・空蹴り英語（/sorageri-en/ 最高高度ランキング）
+対象ゲーム：コッコリンク（/link/）・コッコ救出（/rescue/）・こっこの森（/mori/ 総資産ランキング）・コッコスプラット3D（/splat3d/）・こっこダービー（/derby/ 通算勝ち点ランキング）・コッコグレイズ（/graze/ 弾幕回避スコアランキング）・コッコ・インベーダー（/invaders/ 迎撃スコアランキング）・コッコラッシュ（/rush/ 通勤ランスコアランキング）・コッコ縁波（/ennami/ 家の高さスコアランキング）・コッコ天秤（/tenbin/ 数学の塔スコアランキング）・コッコ継（/tsugi/ 世界史・到達時代スコアランキング）・コッコ大河（/taiga/ 日本史・到達時代スコアランキング）・コッコ地球（/chikyu/ 地理・到達地域スコアランキング）・コッコ元素（/genso/ 化学・到達段スコア）・コッコ生命（/seimei/ 生物・到達段スコア）・コッコ英語（/eigo/ 英語・到達段スコア）・コッコおりづる（/origami/ 折り鶴スコアランキング）・コッコROM（/rom/ 封の刻スコアランキング）・空蹴り（/sorageri/ 最高高度ランキング）・空蹴り英語（/sorageri-en/ 最高高度ランキング）・空蹴りにほんご（/sorageri-ja/ 最高高度ランキング）
 保存先：既存 Firebase プロジェクト `chikumonogatarikiroku` の Realtime Database
 ノード：リンク=`rankings/link` ／ 救出=`rankings/rescue` ／ こっこの森=`rankings/mori` ／ スプラット3D=`rankings/splat3d` ／ ダービー=`rankings/derby` ／ グレイズ=`rankings/graze` ／ インベーダー=`rankings/invaders` ／ ラッシュ=`rankings/rush`（**新規DBは不要**）
 
@@ -292,6 +292,18 @@
           "ts":    { ".validate": "newData.isNumber()" },
           "$other": { ".validate": false }
         }
+      },
+      "sorageriJa": {
+        "$uid": {
+          ".write": "auth != null && auth.uid === $uid && (!data.exists() || newData.child('score').val() >= data.child('score').val())",
+          ".validate": "newData.hasChildren(['name','score'])",
+          "name":  { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "flag":  { ".validate": "newData.isString() && newData.val().length <= 16" },
+          "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999999" },
+          "air":   { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 999999" },
+          "ts":    { ".validate": "newData.isNumber()" },
+          "$other": { ".validate": false }
+        }
       }
     },
     "letters": {
@@ -437,6 +449,11 @@
 - 空蹴り（/sorageri/）の英語版。仕組み・登録/閲覧・ゴースト・保存の考え方はすべて韓国語版と同じ。`score`=最高高度(m)、`air`=滞空時間(秒)。
 - **韓国語版とは完全に別のランキング**：ノードは `rankings/sorageriEn`（**新規DBは不要**）。ブラウザ保存キー（自己ベスト・ゴースト・なまえ・国旗・ミュート）も `sorageriEn*` で分離しているので、同じ端末で両方を別々に遊べる。
 - 強化ルール運用中の場合は上のルールに `sorageriEn` ノードを追記して公開する。匿名認証OFFの“オープン”状態でも登録は動く。
+
+## 空蹴りにほんご（/sorageri-ja/）について
+- 空蹴りの日本語版。プレイヤーが打つのは**ひらがなの文**（ローマ字/かな入力で打て、漢字変換はしない）。仕組み・登録/閲覧・ゴースト・保存の考え方はすべて他版と同じ。`score`=最高高度(m)、`air`=滞空時間(秒)。
+- **他版とは完全に別のランキング**：ノードは `rankings/sorageriJa`（**新規DBは不要**）。ブラウザ保存キー（自己ベスト・ゴースト・なまえ・国旗・ミュート）も `sorageriJa*` で分離しているので、同じ端末で韓国語版・英語版・日本語版を別々に遊べる。
+- 強化ルール運用中の場合は上のルールに `sorageriJa` ノードを追記して公開する。匿名認証OFFの“オープン”状態でも登録は動く。
 
 ## 動作テスト
 1. （上記2ステップ実施後）https://chikumo.jp/link/ ・ /rescue/ ・ /mori/ をプレイ → /mori/ はあさ7時に🏆から名前を入れて「登録」
