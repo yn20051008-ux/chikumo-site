@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<title>示式 — 設計書作成手順（畜学第二書）</title>
+<meta name="description" content="示式は設計書作成手順。畜学第二書、廿式の次に置く固定構造。原則・十項・工程・検・停止は不変で、更新対象は事例のみ。応を持つ全計画（行事・開発・旅程・調査）を、許を核に外部への指向を確定した文書として作り回す。">
+<meta name="keywords" content="示式, 設計書, 畜学第二書, 廿式, 許, 核, 適応, 十項, 工程, 検, 録, 停止, 中断, 中止, 思, 鳴, 示, 応, 継, 認, 循, 乱, 絶, 赦">
+<meta property="og:title" content="示式 — 設計書作成手順（畜学第二書）">
+<meta property="og:description" content="示式は設計書作成手順。廿式に従属する固定構造。原則・十項・工程・検・停止は不変、更新対象は事例のみ。応を持つ全計画を許を核に文書化する。">
+<meta property="og:type" content="website">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://chikumo.jp/shishiki/">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "示式 — 設計書作成手順（畜学第二書）",
+  "description": "示式は設計書作成手順。畜学第二書、廿式の次に置く固定構造。原則・十項・工程・検・停止は不変で、更新対象は事例のみ。",
+  "articleBody": "示式は設計書作成手順である。畜学第二書であり、廿式の次に置く。固定構造であり、原則・十項・工程・検・停止は不変、更新対象は事例のみ。示式は廿式に従属し、廿式の語を再定義しない。対象は応を持つ全計画（行事・開発・旅程・調査・その他）。設計書＝示であり、許を核として外部への指向を確定した文書。作成は中央側（思→鳴）を通り、文書化が示、実行が応で、応は文書の外にある。十項は目的・幅・許・範囲・構成・工程・担い・適応・差分・継。工程は思→鳴→示→検→応→録→継。検は合格五条。停止は中断（衡停止・再開可）と中止（絶・再開なし）。",
+  "mainEntityOfPage": { "@type": "WebPage" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "示式とは何か",
+      "acceptedAnswer": { "@type": "Answer", "text": "示式は設計書作成手順である。畜学第二書であり、廿式の次に置く固定構造。原則・十項・工程・検・停止は不変で、更新対象は事例のみ。応を持つ全計画（行事・開発・旅程・調査）を対象とする。" }
+    },
+    {
+      "@type": "Question",
+      "name": "示式と廿式の関係は何か",
+      "acceptedAnswer": { "@type": "Answer", "text": "示式は廿式に従属する。廿式の語を再定義しない。設計書＝示（許を核として外部への指向を確定した文書）であり、作成は中央側（思→鳴）を通り、文書化が示、実行が応。応は文書の外にある。検・録は示式の局所語。" }
+    },
+    {
+      "@type": "Question",
+      "name": "設計書の十項とは何か",
+      "acceptedAnswer": { "@type": "Answer", "text": "目的・幅・許・範囲・構成・工程・担い・適応・差分・継の十項。順序固定、省略不可。該当が無い項は「無し」と記す。核（仕事の性質）と適応（実行者の性質）は分離し、参照は核→適応の一方向のみ。" }
+    },
+    {
+      "@type": "Question",
+      "name": "中断と中止の違いは何か",
+      "acceptedAnswer": { "@type": "Answer", "text": "中断は応の途中で許の判定不能・矛盾・無断補完が発覚した場合、実行を止め鳴へ戻す。衡停止に相当し構造実体は維持、再開可。中止は幅を割った場合で絶に相当、同一設計書での再開はない。" }
+    }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200;300;400;500;600;700;900&family=Shippori+Mincho:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-void:#050505; --bg-deep:#0a0a0c; --bg-surface:#101014; --bg-elevated:#16161c; --bg-inset:#08080a;
+  --text-primary:#ece9e2; --text-secondary:#a29d92; --text-tertiary:#635f56;
+  --gold:#cbaa72; --gold-dim:#8f7c5d; --gold-bright:#ecd9ae; --gold-deep:#6e5c40;
+  --foil:linear-gradient(105deg,#8a6f45 0%,#d9c28e 28%,#f4e6c2 50%,#c3a267 72%,#8a6f45 100%);
+  --line:rgba(203,170,114,0.14); --line-strong:rgba(203,170,114,0.32);
+  --g-ryoiki:#8fa383; --g-jittai:#d4a574; --g-kinko:#e6d3a8; --g-utsuwa:#8ba3b8;
+  --font-serif:'Shippori Mincho','Noto Serif JP',serif;
+  --font-latin:'Cormorant Garamond','Shippori Mincho',serif;
+  --font-mono:'IBM Plex Mono',monospace;
+  --ease-out:cubic-bezier(0.16,1,0.3,1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:var(--font-serif);
+  background:
+    radial-gradient(ellipse 90% 55% at 50% -6%,rgba(203,170,114,0.06),transparent 60%),
+    radial-gradient(ellipse 70% 60% at 50% 108%,rgba(203,170,114,0.04),transparent 55%),
+    var(--bg-void);
+  color:var(--text-primary);
+  line-height:1.8;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.5;
+  background-image:
+    repeating-linear-gradient(90deg,transparent 0 3px,rgba(255,255,255,0.006) 3px 4px),
+    repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,0.006) 3px 4px);
+}
+::selection{background:rgba(203,170,114,0.32);}
+::-webkit-scrollbar{width:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--gold-deep);border-radius:3px;}
+main,header,footer,.topbar{position:relative;z-index:1;}
+
+/* TOP BAR */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.95rem clamp(1.2rem,4vw,2.6rem);
+  background:rgba(5,5,5,0.82);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.topbar .mark{font-weight:700;letter-spacing:0.3em;font-size:0.95rem;
+  background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.topbar .links{display:flex;gap:1.4rem;}
+.topbar a{
+  font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.18em;
+  color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color 0.25s;
+}
+.topbar a:hover{color:var(--gold-bright);}
+
+/* HERO */
+.hero{
+  min-height:92vh;display:flex;align-items:center;justify-content:center;
+  padding:clamp(4.5rem,10vw,7rem) clamp(1.2rem,5vw,3rem);
+}
+.hero-frame{
+  position:relative;width:100%;max-width:1040px;
+  padding:clamp(3.5rem,9vw,7.5rem) clamp(1.4rem,6vw,5rem);
+  text-align:center;
+  border:1px solid var(--line-strong);
+}
+.hero-frame::before{
+  content:"";position:absolute;inset:9px;border:1px solid var(--line);pointer-events:none;
+}
+.hero-frame .corner{position:absolute;width:22px;height:22px;pointer-events:none;}
+.hero-frame .corner::before,.hero-frame .corner::after{content:"";position:absolute;background:var(--gold);}
+.hero-frame .corner::before{width:100%;height:1px;}
+.hero-frame .corner::after{width:1px;height:100%;}
+.corner.tl{top:-1px;left:-1px;}
+.corner.tr{top:-1px;right:-1px;transform:scaleX(-1);}
+.corner.bl{bottom:-1px;left:-1px;transform:scaleY(-1);}
+.corner.br{bottom:-1px;right:-1px;transform:scale(-1);}
+.hero .label{
+  font-family:var(--font-latin);font-size:clamp(0.82rem,1.6vw,1rem);letter-spacing:0.5em;
+  color:var(--gold-dim);text-transform:uppercase;margin-bottom:2.6rem;font-weight:500;
+  padding-left:0.5em;
+}
+.hero h1{
+  font-weight:800;font-size:clamp(4.4rem,15vw,10.5rem);letter-spacing:0.12em;line-height:1;
+  padding-left:0.12em;margin-bottom:2.2rem;
+  background:var(--foil);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 26px rgba(203,170,114,0.14));
+}
+.hero .ornament{display:flex;align-items:center;justify-content:center;gap:1.1rem;margin:0 auto 2.2rem;max-width:340px;}
+.hero .ornament .h-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim));}
+.hero .ornament .h-line:last-child{background:linear-gradient(90deg,var(--gold-dim),transparent);}
+.hero .ornament .diamond{width:7px;height:7px;background:var(--gold);transform:rotate(45deg);box-shadow:0 0 10px rgba(203,170,114,0.5);}
+.hero .sub{font-size:clamp(0.98rem,2vw,1.18rem);font-weight:400;color:var(--text-primary);letter-spacing:0.2em;line-height:2.2;}
+.hero .sub2{margin-top:1.2rem;font-size:clamp(0.82rem,1.6vw,0.95rem);font-weight:300;color:var(--text-secondary);letter-spacing:0.14em;line-height:2.1;}
+.hero .sub2 a{color:var(--gold);text-decoration:none;border-bottom:1px solid var(--line-strong);transition:color .2s,border-color .2s;}
+.hero .sub2 a:hover{color:var(--gold-bright);border-color:var(--gold);}
+.hero .updated-badge{
+  display:inline-block;margin-top:2.4rem;padding:0.42rem 1.5rem;
+  font-family:var(--font-mono);font-size:0.64rem;letter-spacing:0.28em;
+  color:var(--gold-dim);text-transform:uppercase;
+  border:1px solid var(--line);border-radius:99px;
+}
+
+/* ORNAMENT DIVIDER */
+.o-divider{display:flex;align-items:center;gap:1.2rem;max-width:1040px;margin:0 auto;padding:0 clamp(1.4rem,5vw,3rem);}
+.o-divider .l{flex:1;height:1px;background:var(--line);}
+.o-divider .d{width:5px;height:5px;background:var(--gold-dim);transform:rotate(45deg);flex:0 0 auto;}
+
+/* SECTION */
+section{padding:clamp(4rem,10vw,7.5rem) clamp(1.4rem,5vw,3rem);}
+.inner{max-width:1000px;margin:0 auto;}
+.chapter{display:flex;align-items:baseline;gap:1.2rem;margin-bottom:0.9rem;}
+.chapter .ch-num{
+  font-family:var(--font-latin);font-size:0.8rem;letter-spacing:0.4em;color:var(--gold-dim);
+  text-transform:uppercase;font-weight:500;white-space:nowrap;
+}
+.chapter .ch-rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line-strong),transparent);transform:translateY(-4px);}
+.section-title{font-weight:700;font-size:clamp(1.8rem,4.2vw,2.6rem);letter-spacing:0.1em;color:var(--text-primary);margin-bottom:1.2rem;line-height:1.35;}
+.section-title em{font-style:normal;background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.section-desc{font-size:1rem;color:var(--text-secondary);font-weight:300;line-height:2.1;max-width:66ch;letter-spacing:0.05em;}
+.section-desc strong{color:var(--gold);font-weight:600;}
+
+/* ONE LINE */
+.one-line{
+  position:relative;margin-top:2.2rem;padding:1.8rem 2rem;
+  border:1px solid var(--line-strong);background:var(--bg-elevated);
+  font-size:1.18rem;font-weight:700;letter-spacing:0.08em;color:var(--gold-bright);line-height:2;
+}
+.one-line::before{content:"";position:absolute;inset:6px;border:1px solid var(--line);pointer-events:none;}
+.one-line .tag{display:block;font-family:var(--font-latin);font-size:0.74rem;letter-spacing:0.4em;text-transform:uppercase;color:var(--gold-dim);font-weight:500;margin-bottom:0.7rem;}
+
+/* DEFINITION BLOCK */
+.definition{position:relative;padding:2.2rem 0 0.6rem;margin-top:2rem;}
+.definition::before{content:'';position:absolute;left:0;top:0;width:1px;height:100%;background:linear-gradient(to bottom,var(--gold),transparent);}
+.definition p{padding-left:2.2rem;font-size:1.05rem;color:var(--text-primary);line-height:2.3;letter-spacing:0.05em;}
+.definition p + p{margin-top:1.2rem;}
+.definition strong{color:var(--gold);font-weight:600;}
+
+/* POSITION PAIRS */
+.flow{display:flex;flex-wrap:wrap;gap:1.2rem;margin-top:2.2rem;}
+.flow .pair{flex:1 1 300px;border:1px solid var(--line);background:var(--bg-surface);padding:1.7rem 1.7rem 1.5rem;position:relative;}
+.flow .pair::before{content:"";position:absolute;left:0;top:0;width:100%;height:1px;background:linear-gradient(90deg,var(--gold),transparent);}
+.flow .pair .lbl{font-family:var(--font-latin);font-size:0.74rem;letter-spacing:0.36em;color:var(--gold-dim);text-transform:uppercase;font-weight:500;margin-bottom:0.8rem;}
+.flow .pair .seq{font-size:1.5rem;font-weight:600;letter-spacing:0.08em;color:var(--text-primary);}
+.flow .pair .seq .ar{color:var(--gold-dim);margin:0 0.4em;font-size:1.05rem;}
+.flow .pair .note{margin-top:0.55rem;font-size:0.86rem;color:var(--text-secondary);letter-spacing:0.05em;line-height:1.95;}
+
+/* RULE LIST */
+.rule-list{list-style:none;margin-top:2.2rem;border-top:1px solid var(--line);counter-reset:rl;}
+.rule-list li{position:relative;padding:1.1rem 0 1.1rem 2.4rem;border-bottom:1px solid var(--line);font-size:0.98rem;color:var(--text-primary);line-height:2.05;letter-spacing:0.03em;}
+.rule-list li::before{content:'';position:absolute;left:0.5rem;top:1.72rem;width:5px;height:5px;background:var(--gold-dim);transform:rotate(45deg);}
+.rule-list li b{color:var(--gold);font-weight:600;}
+.rule-list.num li{padding-left:3rem;}
+.rule-list.num li::before{content:counter(rl);counter-increment:rl;background:none;transform:none;width:auto;height:auto;
+  left:0.4rem;top:1.1rem;font-family:var(--font-latin);font-size:0.95rem;color:var(--gold-dim);font-weight:500;}
+
+/* 10 CARDS */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1rem;margin-top:2.4rem;}
+.card{
+  position:relative;border:1px solid var(--line);background:var(--bg-surface);
+  padding:1.6rem 1.5rem 1.5rem;overflow:hidden;
+  transition:border-color 0.3s,transform 0.3s,background 0.3s;
+}
+.card::after{
+  content:"";position:absolute;top:0;left:-80%;width:55%;height:100%;pointer-events:none;
+  background:linear-gradient(105deg,transparent,rgba(236,217,174,0.05),transparent);
+  transform:skewX(-18deg);transition:left 0.6s var(--ease-out);
+}
+.card:hover{border-color:var(--line-strong);transform:translateY(-3px);background:var(--bg-elevated);}
+.card:hover::after{left:130%;}
+.card .num{position:absolute;top:1rem;right:1.1rem;font-family:var(--font-latin);font-size:0.95rem;letter-spacing:0.1em;color:var(--gold-dim);font-weight:500;}
+.card .k{font-size:2rem;font-weight:700;line-height:1;margin-bottom:0.6rem;color:var(--text-primary);text-shadow:0 0 18px rgba(203,170,114,0.16);}
+.card .def{font-size:0.9rem;color:var(--text-secondary);line-height:1.95;letter-spacing:0.02em;}
+.card .def b{color:var(--gold);font-weight:600;}
+
+/* PROCESS FLOW */
+.proc{margin-top:2.6rem;display:flex;flex-direction:column;gap:0;}
+.proc .step{
+  position:relative;border:1px solid var(--line);background:var(--bg-surface);
+  padding:1.4rem 1.6rem 1.3rem 4.2rem;transition:border-color .3s;
+}
+.proc .step:hover{border-color:var(--line-strong);}
+.proc .step .pn{position:absolute;left:1.3rem;top:1.35rem;font-family:var(--font-latin);font-size:0.9rem;color:var(--gold-dim);font-weight:500;}
+.proc .step .pk{font-size:1.25rem;font-weight:700;letter-spacing:0.14em;color:var(--gold-bright);}
+.proc .step .pt{margin-top:0.35rem;font-size:0.9rem;color:var(--text-secondary);line-height:1.95;letter-spacing:0.03em;}
+.proc .step .pt b{color:var(--gold);font-weight:600;}
+.proc .plink{width:1px;height:20px;background:linear-gradient(to bottom,var(--gold-dim),var(--line));margin:0 0 0 2.05rem;}
+
+/* COMPARE */
+.compare{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:1.2rem;margin-top:2.4rem;}
+.compare .c{border:1px solid var(--line);background:var(--bg-surface);padding:1.9rem 1.8rem;position:relative;}
+.compare .c::before{content:"";position:absolute;inset:6px;border:1px solid rgba(203,170,114,0.06);pointer-events:none;}
+.compare .c h3{font-size:1.3rem;font-weight:700;letter-spacing:0.1em;margin-bottom:1.1rem;color:var(--gold-bright);}
+.compare .c ul{list-style:none;}
+.compare .c li{position:relative;padding:0.5rem 0 0.5rem 1.4rem;font-size:0.92rem;color:var(--text-secondary);line-height:1.95;}
+.compare .c li::before{content:'—';position:absolute;left:0;color:var(--gold-dim);}
+.compare .c li b{color:var(--gold);font-weight:600;}
+
+/* TABLE */
+.table-wrap{margin-top:2.4rem;overflow-x:auto;border:1px solid var(--line);}
+table.applic{border-collapse:collapse;width:100%;min-width:640px;font-size:0.88rem;}
+table.applic th,table.applic td{border:1px solid var(--line);padding:0.85rem 1rem;text-align:left;line-height:1.85;vertical-align:top;}
+table.applic thead th{background:var(--bg-elevated);color:var(--gold-bright);font-weight:700;letter-spacing:0.08em;}
+table.applic tbody th{background:var(--bg-surface);color:var(--gold);font-weight:600;white-space:nowrap;}
+table.applic td{color:var(--text-secondary);}
+
+/* FORMULA */
+.formula{display:flex;flex-direction:column;gap:0.7rem;margin-top:2.2rem;}
+.formula code{
+  font-family:var(--font-mono);font-size:0.98rem;letter-spacing:0.05em;
+  background:var(--bg-inset);border:1px solid var(--line);
+  padding:1rem 1.3rem;color:var(--gold-bright);overflow-x:auto;white-space:nowrap;
+}
+
+/* NOTE BLOCK */
+.slab{margin-top:2.4rem;padding:1.9rem 2rem;border:1px solid var(--line);background:var(--bg-inset);position:relative;
+  font-size:0.98rem;color:var(--text-secondary);line-height:2.2;letter-spacing:0.03em;}
+.slab::before{content:"";position:absolute;left:0;top:0;width:3px;height:100%;background:linear-gradient(to bottom,var(--g-jittai),transparent);}
+.slab b{color:var(--gold);font-weight:600;}
+
+/* LINEAGE — 廿式へ */
+.lineage{
+  margin-top:2.6rem;border:1px solid var(--line-strong);background:var(--bg-elevated);
+  padding:2.4rem clamp(1.4rem,4vw,2.6rem);text-align:center;position:relative;
+}
+.lineage::before{content:"";position:absolute;inset:7px;border:1px solid var(--line);pointer-events:none;}
+.lineage .l-label{font-family:var(--font-latin);font-size:0.74rem;letter-spacing:0.42em;text-transform:uppercase;color:var(--gold-dim);font-weight:500;margin-bottom:1rem;}
+.lineage p{font-size:0.98rem;color:var(--text-secondary);line-height:2.2;letter-spacing:0.05em;max-width:56ch;margin:0 auto;}
+.lineage p b{color:var(--gold);font-weight:600;}
+.lineage .go{
+  display:inline-block;margin-top:1.7rem;padding:0.85rem 2.6rem;
+  font-family:var(--font-serif);font-size:0.95rem;font-weight:600;letter-spacing:0.3em;padding-left:2.9rem;
+  color:var(--gold-bright);text-decoration:none;border:1px solid var(--line-strong);
+  transition:background 0.3s,border-color 0.3s,color 0.3s;
+}
+.lineage .go:hover{background:rgba(203,170,114,0.08);border-color:var(--gold);color:#fff;}
+
+.note{background:var(--bg-deep);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+
+/* FOOTER */
+footer{padding:4.5rem 1.5rem 5.5rem;text-align:center;border-top:1px solid var(--line);}
+footer .f-orn{display:flex;align-items:center;justify-content:center;gap:1rem;max-width:260px;margin:0 auto 2.2rem;}
+footer .f-orn .l{flex:1;height:1px;background:var(--line);}
+footer .f-orn .d{width:5px;height:5px;background:var(--gold-dim);transform:rotate(45deg);}
+footer .f-links{display:flex;gap:1.7rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.7rem;}
+footer a{font-family:var(--font-mono);font-size:0.74rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
+footer a:hover{color:var(--gold-bright);}
+footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--text-tertiary);}
+footer .updated{margin-top:0.9rem;font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.24em;color:var(--gold-dim);text-transform:uppercase;}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity 1.1s var(--ease-out),transform 1.1s var(--ease-out);}
+.reveal.in{opacity:1;transform:none;}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}html{scroll-behavior:auto;}.card::after{display:none;}}
+
+@media(max-width:520px){
+  .card .k{font-size:1.7rem;}
+  .proc .step{padding-left:3.6rem;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="mark">示式</span>
+  <span class="links">
+    <a href="/Library/">畜学</a>
+    <a href="/nijusshiki/">廿式</a>
+    <a href="/">畜物語</a>
+  </span>
+</div>
+
+<header class="hero">
+  <div class="hero-frame">
+    <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+    <div class="label">Shishiki — The Design Procedure</div>
+    <h1>示式</h1>
+    <div class="ornament"><span class="h-line"></span><span class="diamond"></span><span class="h-line"></span></div>
+    <div class="sub">設計書作成手順。畜学第二書。<br>原則・十項・工程・検・停止は不変。</div>
+    <div class="sub2">廿式の次に置く。<a href="/nijusshiki/">廿式</a>に従属し、廿式の語を再定義しない。</div>
+    <div class="updated-badge">更新日 2026-07-18</div>
+  </div>
+</header>
+
+<main>
+
+<!-- 冒頭定義 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">I · The Second Book</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">設計書を作り回す手順<em>示式</em></h2>
+    <div class="one-line"><span class="tag">In One Line</span>示式は──<strong>設計書作成手順</strong>。原則・十項・工程・検・停止は不変。更新対象は事例のみ。</div>
+    <div class="definition">
+      <p>示式は<strong>固定構造</strong>である。原則・十項・工程・検・停止は不変。更新対象は<strong>事例のみ</strong>。昇格を経た注記でのみ手順に反映する。</p>
+      <p>示式は<strong>廿式に従属</strong>する。廿式の語を再定義しない。<strong>検・録</strong>は示式の局所語である。</p>
+      <p>対象は<strong>応を持つ全計画</strong>──行事・開発・旅程・調査・その他。分野知識は各設計書に入り、示式には入らない。本書の工程は<strong>設計書を作り回す工程</strong>。十項6の工程は<strong>応の工程</strong>。別物である。</p>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 位置 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">II · Position</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">位置 — 廿式との対応</h2>
+    <p class="section-desc">設計書＝<strong>示</strong>。許を核として外部への指向を確定した文書。作成は中央側（思→鳴）を通り、文書化が<strong>示</strong>、実行が<strong>応</strong>。応は文書の外にある。</p>
+    <ul class="rule-list">
+      <li><b>設計書＝示</b>。許を核として外部への指向を確定した文書。</li>
+      <li>実行者の交代は<b>適応の差替</b>であり変でない。核が不変なら出力は循に保たれる。</li>
+      <li>許の定め手の交代は<b>衡変</b>に相当。許は不変、縁から反復可。</li>
+      <li>応の途中の中断は<b>衡停止</b>に相当。構造実体は維持、再開可。</li>
+      <li>幅を割る中止は<b>絶</b>。同一設計書での再開なし。</li>
+      <li>器のみ＝<b>認（0 &lt; 1）</b>。実行・判定・差分が回って<b>住（1）</b>。</li>
+    </ul>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 原則 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">III · Principles — Fixed</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">原則（固定）</h2>
+    <p class="section-desc">十の原則。<strong>幅・許を先に確定</strong>し、<strong>核と適応を分離</strong>し、<strong>全工程は判定を持つ</strong>。</p>
+    <ol class="rule-list num">
+      <li>幅・許を先に確定する。許の確定前に構成・工程を書かない（判定不能のため）。</li>
+      <li>核＝<b>仕事の性質</b>、適応＝<b>実行者の性質</b>。参照は核→適応の一方向のみ。逆参照は禁止。</li>
+      <li>全工程は<b>判定</b>を持つ。判定なき記述は手順でない。</li>
+      <li>差分は帰属先を定めて記録する。帰属先なき追記は差分でない（再現に働かない）。</li>
+      <li>思は未成形を許す（選別しない）。鳴で確定し、示以降は循のみを記す。</li>
+      <li>解釈・比喩・感情語を用いない。</li>
+      <li>出力が乱に落ちた場合、引き直しの反復でなく<b>赦</b>で戻す。許の再確認→工程修正→再実行。実行は住から。</li>
+      <li>実行者による許の無断補完・再解釈は禁止。思変と同型の矛盾を帰属の根に残し、継で消えない。発覚時は停止に従う。</li>
+      <li>周回中、許は不変。改定は次周回の鳴でのみ行い、更新日と共に記す。</li>
+      <li>応の判定は設計書の許に対して行う。設計書を参照しない実行は住でない。出力が偶然循に入っても再現でない。</li>
+    </ol>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 十項 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">IV · The Ten — Order Fixed</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">十項（設計書の構成要素・順序固定）</h2>
+    <p class="section-desc">全項は<strong>省略不可</strong>。該当が無い項は「無し」と記す（未記載と区別する）。各項の分量は応の規模に比例させる。末尾に更新日を持つ。</p>
+    <div class="cards">
+      <div class="card"><span class="num">1</span><div class="k">目的</div><div class="def"><b>応の指定</b>。何が実体化すれば成立か</div></div>
+      <div class="card"><span class="num">2</span><div class="k">幅</div><div class="def">制約と外部前提の列挙。期日・予算・定員・資源。前提には破れた場合の帰結（<b>赦の経路か絶か</b>）を付す</div></div>
+      <div class="card"><span class="num">3</span><div class="k">許</div><div class="def"><b>合格条件</b>。実行者によらず判定可能な文で記す。定め手を記す。複数条件は全必須か優先順を定める</div></div>
+      <div class="card"><span class="num">4</span><div class="k">範囲</div><div class="def">扱う領域と<b>扱わない領域</b>の明示</div></div>
+      <div class="card"><span class="num">5</span><div class="k">構成</div><div class="def">応に必要な要素の列</div></div>
+      <div class="card"><span class="num">6</span><div class="k">工程</div><div class="def"><b>応の工程列</b>。各工程に入力・操作・出力・判定</div></div>
+      <div class="card"><span class="num">7</span><div class="k">担い</div><div class="def">応の実行者と判定の担い手の割当。<b>交換可能</b>に保つ</div></div>
+      <div class="card"><span class="num">8</span><div class="k">適応</div><div class="def">実行者別の補正。<b>核から分離</b>して置く。交代時は破棄可</div></div>
+      <div class="card"><span class="num">9</span><div class="k">差分</div><div class="def">記録先と記録形式の指定。次周回が無い場合の帰属先（他設計書の思の素材・事例庫）も定める</div></div>
+      <div class="card"><span class="num">10</span><div class="k">継</div><div class="def">次周回への遷移規則。<b>昇格条件</b>を含む</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 工程 -->
+<section class="note">
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">V · Process</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">工程（作成から周回まで）</h2>
+    <p class="section-desc">設計書を作り回す七つの工程。<strong>思→鳴→示→検→応→録→継</strong>。継ₙ→認ₙ₊₁ で次周回へ降りる。</p>
+    <div class="proc">
+      <div class="step"><span class="pn">0</span><div class="pk">思</div><div class="pt">素材・要望・制約・前提を未成形のまま列挙する。<b>判定</b>：追加が尽きた、または定めた収集期限に達した</div></div>
+      <div class="plink"></div>
+      <div class="step"><span class="pn">1</span><div class="pk">鳴</div><div class="pt">目的・幅・許を確定する。<b>判定</b>：許が判定可能な文で書け、定め手と優先順が定まっている</div></div>
+      <div class="plink"></div>
+      <div class="step"><span class="pn">2</span><div class="pk">示</div><div class="pt">十項を満たす文書に固定する。<b>判定</b>：十項の充足（「無し」含む）</div></div>
+      <div class="plink"></div>
+      <div class="step"><span class="pn">3</span><div class="pk">検</div><div class="pt">文書自体を検証する。<b>判定</b>：検の五条</div></div>
+      <div class="plink"></div>
+      <div class="step"><span class="pn">4</span><div class="pk">応</div><div class="pt">実行者へ引き渡し、実体化する。<b>判定</b>：担いに記した判定の担い手が、設計書の許に対して合否を判定する。判定不能・前提破れは停止に従う</div></div>
+      <div class="plink"></div>
+      <div class="step"><span class="pn">5</span><div class="pk">録</div><div class="pt">差分を指定先へ記録する。<b>判定</b>：帰属先の明記</div></div>
+      <div class="plink"></div>
+      <div class="step"><span class="pn">6</span><div class="pk">継</div><div class="pt">昇格判定を行い、次周回へ遷移する。<b>判定</b>：継ₙ→認ₙ₊₁ の成立。次周回が無い場合は9差分の定めに従い帰属</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 検 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">VI · Verification</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">検（設計書の合格五条）</h2>
+    <ol class="rule-list num">
+      <li>許が<b>幅の内</b>にある。幅外の合格条件は不成立。</li>
+      <li>許のみで合否が決まる。<b>読み手の解釈を要しない</b>。</li>
+      <li>複数の許に全必須か優先順が定まっている。衝突時に判定不能とならない。</li>
+      <li>核に<b>実行者の性質が混入していない</b>。</li>
+      <li>異なる実行者で出力が循に収まる。収まらぬ場合、核への依存漏れか許の判定不能。</li>
+    </ol>
+    <p class="section-desc" style="margin-top:1.4rem;">※5は実施可能な場合の測定。実施不能時は1〜4で代替。</p>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 停止 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">VII · Halt vs. Absence</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">停止（中断と中止）</h2>
+    <div class="compare">
+      <div class="c">
+        <h3>中断</h3>
+        <ul>
+          <li>応の途中で許の判定不能・矛盾・無断補完が発覚した場合。</li>
+          <li>実行を止め、周回を切り、<b>鳴へ戻す</b>。</li>
+          <li><b>衡停止</b>に相当。構造実体は維持、再開可。</li>
+        </ul>
+      </div>
+      <div class="c">
+        <h3>中止</h3>
+        <ul>
+          <li>幅を割った場合は<b>絶</b>。</li>
+          <li>同一設計書での再開なし。</li>
+          <li>録は行い、差分は他の認の素材として残す。</li>
+        </ul>
+      </div>
+    </div>
+    <p class="slab"><b>前提破れ</b>：帰結が赦の経路なら循へ戻して続行。幅外なら中止。</p>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 更新規則 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">VIII · Update Rules</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">更新規則</h2>
+    <ul class="rule-list">
+      <li>原則・十項・工程・検・停止：<b>固定</b>。</li>
+      <li>事例：周回毎に追記。</li>
+      <li>昇格：同型の差分が<b>複数周回で再現</b>した場合のみ、手順の注記へ反映（継）。</li>
+      <li>単発の応の差分：<b>事例庫</b>に置き、他設計書の思で参照可。</li>
+      <li>適応：実行者交代時に差替・破棄可。核は不変。</li>
+    </ul>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 適用例 -->
+<section class="note">
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">IX · Universality</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">適用例（普遍性の確認）</h2>
+    <p class="section-desc">中身は毎回異なる。<strong>問列は不変</strong>。探索型の応も、成果物を差分の収集と定めれば許を書ける。</p>
+    <div class="table-wrap">
+      <table class="applic">
+        <thead>
+          <tr><th>項</th><th>誕生日会</th><th>アプリ開発</th><th>旅行計画</th><th>調査</th></tr>
+        </thead>
+        <tbody>
+          <tr><th>目的（応）</th><td>当日の実施</td><td>動作するソフトウェア</td><td>旅程の実行</td><td>候補比較表の提示</td></tr>
+          <tr><th>幅</th><td>日付・予算・会場定員</td><td>納期・予算・技術制約</td><td>日程・予算・体力</td><td>期限・調査費</td></tr>
+          <tr><th>前提の例</th><td>晴天（破れ→室内案＝赦の経路）</td><td>外部APIの継続（破れ→代替API＝赦の経路）</td><td>運行（破れ→迂回＝赦の経路）</td><td>資料の入手可否（破れ→範囲縮小）</td></tr>
+          <tr><th>許</th><td>予算内・アレルギー対応・必須出席者の出席</td><td>受け入れテスト全件合格</td><td>必須訪問地の到達・一日移動時間の上限内</td><td>候補N件以上・各候補に判定材料が付く</td></tr>
+          <tr><th>担い</th><td>幹事・家族</td><td>開発者・AI</td><td>未来の自分・同行者</td><td>調査者（人・AI）</td></tr>
+          <tr><th>差分</th><td>次回への記録</td><td>障害・改善の記録</td><td>行程の記録</td><td>除外理由の記録</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 自己適用 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">X · Self-Application</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">自己適用</h2>
+    <p class="section-desc">示式は自身の十項を満たす。目的＝<strong>設計書の再現的作成</strong>（応＝各設計書）。幅＝廿式との無矛盾。許＝検の五条。範囲＝応を持つ計画。廿式の語の再定義は扱わない。構成＝本書の章。工程＝本書の工程。担い＝書き手（交換可能）。適応＝無し。差分＝事例。継＝昇格規則。</p>
+    <p class="slab">幅を割る改定（<b>廿式と矛盾する改定</b>）は絶であり、本書は同一構造で再開しない。</p>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 構成式 -->
+<section class="note">
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">XI · Composition</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">構成式</h2>
+    <div class="formula">
+      <code>設計書 = 示（許を核とする）</code>
+      <code>核 → 適応（一方向参照）</code>
+      <code>周回 = 思 → 鳴 → 示 → 検 → 応 → 録 → 継ₙ → 認ₙ₊₁</code>
+      <code>中断 = 衡停止（維持・再開可） ｜ 中止 = 絶（再開なし）</code>
+      <code>前提破れ → 赦の経路（幅内） ｜ 絶（幅外）</code>
+      <code>書くのみ = 認（0 &lt; 1）。回って 住（1）</code>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 廿式との関係 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">XII · Lineage</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">廿式との関係</h2>
+    <div class="lineage">
+      <div class="l-label">Lineage — The Kernel</div>
+      <p>示式は<b>廿式に従属</b>する。廿式の語を再定義しない。<br>不変の固定構造（カーネル）は、廿式に記されている。</p>
+      <a class="go" href="/nijusshiki/">廿式を読む</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="f-orn"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+  <div class="f-links">
+    <a href="/Library/">畜学</a>
+    <a href="/nijusshiki/">廿式</a>
+    <a href="/sekkeigaku/">設計学</a>
+    <a href="/shikogaku/">思考学</a>
+    <a href="/">畜物語</a>
+  </div>
+  <div class="c">畜物語 ─ chikumo.jp</div>
+  <div class="updated">更新日 · Last Updated 2026-07-18</div>
+</footer>
+
+<script>
+"use strict";
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){ for(var i=0;i<els.length;i++) els[i].classList.add('in'); return; }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:0,rootMargin:'0px 0px -8% 0px'});
+  els.forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
