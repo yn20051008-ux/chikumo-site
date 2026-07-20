@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+<title>鳴分岐 — 思→鳴の分岐（畜学第二書）</title>
+<meta name="description" content="鳴分岐は思→鳴の遷移に分岐を定める。廿式の次に置く固定構造。成立→示、中央の新規素材→思戻り、外部依存・消尽・上限→前提化か探索型。反復には幅の内に上限を記す。位置・規則・分岐・効果・適用例・対応・構成式は不変で、更新対象は事例のみ。">
+<meta name="keywords" content="鳴分岐, 思, 鳴, 示, 分岐, 成立, 思戻り, 打切り, 前提化, 探索型, 消尽, 上限, 廿式, 示式, 畜学第二書, 反復, 差分">
+<meta property="og:title" content="鳴分岐 — 思→鳴の分岐（畜学第二書）">
+<meta property="og:description" content="鳴分岐は思→鳴の遷移に分岐を定める固定構造。成立→示／思戻り／前提化・探索型の三経路。反復には上限を記し、幅の破れに先行して打切る。">
+<meta property="og:type" content="website">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://chikumo.jp/meibunki/">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "鳴分岐 — 思→鳴の分岐（畜学第二書）",
+  "description": "鳴分岐は思→鳴の遷移に分岐を定める。廿式の次に置く固定構造。成立・思戻り・打切り（前提化か探索型）の三経路。更新対象は事例のみ。",
+  "articleBody": "鳴分岐は思→鳴の遷移に分岐を定める。廿式の次に置く畜学第二書であり、廿式に従属する固定構造。位置・規則・分岐・効果・適用例・対応・構成式は不変で、更新対象は事例のみ。対象は五式が稼働する全ての衡の全周回、中央（思→鳴）のみを扱い、示以降は扱わない。鳴は確定の成立でのみ数え、不成立の試行は思の継続であり五式の逆行でない。分岐は三経路──成立（確定→示へ）、思戻り（不成立かつ中央で確定可能な新規素材の発生→思へ加え再試行）、打切り（不成立かつ新規素材なし＝消尽、または上限到達→前提化か探索型の二択）。反復の上限は幅の内に記し、幅の破れに先行して打切る。示式の工程0思と1鳴の間に本分岐が入る。",
+  "mainEntityOfPage": { "@type": "WebPage" }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "鳴分岐とは何か",
+      "acceptedAnswer": { "@type": "Answer", "text": "鳴分岐は思→鳴の遷移に分岐を定める固定構造。廿式の次に置く畜学第二書で、中央（思→鳴）のみを扱い示以降は扱わない。成立・思戻り・打切り（前提化か探索型）の三経路を持ち、反復には幅の内に上限を記す。" }
+    },
+    {
+      "@type": "Question",
+      "name": "鳴分岐の三経路とは何か",
+      "acceptedAnswer": { "@type": "Answer", "text": "成立（確定→示へ）、思戻り（不成立かつ試行中に中央で確定可能な新規素材が発生→素材を思へ加え再試行。外部依存は前提化か探索型へ）、打切り（不成立かつ新規素材なし＝消尽、または上限到達→前提化か探索型の二択。選択の担い手を事前に定める）。" }
+    },
+    {
+      "@type": "Question",
+      "name": "なぜ反復に上限を記すのか",
+      "acceptedAnswer": { "@type": "Answer", "text": "幅の破れに先行して打切るため。上限なき反復は幅の未確定であり判定不能。上限（回数または期限）は幅の内に記す。反復の回数・打切りの別は差分に含め、次周回の上限設定の素材となる。" }
+    },
+    {
+      "@type": "Question",
+      "name": "鳴分岐と示式の関係は何か",
+      "acceptedAnswer": { "@type": "Answer", "text": "示式の工程0思と1鳴の間に本分岐が入る。示式の文面は変更しない。成立判定＝示式1鳴の判定、前提化＝示式十項2への記載、探索型＝示式適用例の定め、反復の記録＝示式5録で差分として記す。示式の中断（応段階）と本分岐（示の前）は別系統。" }
+    }
+  ]
+}
+</script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200;300;400;500;600;700;900&family=Shippori+Mincho:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-void:#050505; --bg-deep:#0a0a0c; --bg-surface:#101014; --bg-elevated:#16161c; --bg-inset:#08080a;
+  --text-primary:#ece9e2; --text-secondary:#a29d92; --text-tertiary:#635f56;
+  --gold:#cbaa72; --gold-dim:#8f7c5d; --gold-bright:#ecd9ae; --gold-deep:#6e5c40;
+  --foil:linear-gradient(105deg,#8a6f45 0%,#d9c28e 28%,#f4e6c2 50%,#c3a267 72%,#8a6f45 100%);
+  --line:rgba(203,170,114,0.14); --line-strong:rgba(203,170,114,0.32);
+  --g-seiritsu:#8fa383; --g-omodori:#d4a574; --g-uchikiri:#c98f8f;
+  --font-serif:'Shippori Mincho','Noto Serif JP',serif;
+  --font-latin:'Cormorant Garamond','Shippori Mincho',serif;
+  --font-mono:'IBM Plex Mono',monospace;
+  --ease-out:cubic-bezier(0.16,1,0.3,1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:var(--font-serif);
+  background:
+    radial-gradient(ellipse 90% 55% at 50% -6%,rgba(203,170,114,0.06),transparent 60%),
+    radial-gradient(ellipse 70% 60% at 50% 108%,rgba(203,170,114,0.04),transparent 55%),
+    var(--bg-void);
+  color:var(--text-primary);
+  line-height:1.8;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.5;
+  background-image:
+    repeating-linear-gradient(90deg,transparent 0 3px,rgba(255,255,255,0.006) 3px 4px),
+    repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,0.006) 3px 4px);
+}
+::selection{background:rgba(203,170,114,0.32);}
+::-webkit-scrollbar{width:8px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--gold-deep);border-radius:3px;}
+main,header,footer,.topbar{position:relative;z-index:1;}
+
+/* TOP BAR */
+.topbar{
+  position:sticky;top:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.95rem clamp(1.2rem,4vw,2.6rem);
+  background:rgba(5,5,5,0.82);
+  -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.topbar .mark{font-weight:700;letter-spacing:0.3em;font-size:0.95rem;
+  background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.topbar .links{display:flex;gap:1.4rem;}
+.topbar a{
+  font-family:var(--font-mono);font-size:0.72rem;letter-spacing:0.18em;
+  color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color 0.25s;
+}
+.topbar a:hover{color:var(--gold-bright);}
+
+/* HERO */
+.hero{
+  min-height:92vh;display:flex;align-items:center;justify-content:center;
+  padding:clamp(4.5rem,10vw,7rem) clamp(1.2rem,5vw,3rem);
+}
+.hero-frame{
+  position:relative;width:100%;max-width:1040px;
+  padding:clamp(3.5rem,9vw,7.5rem) clamp(1.4rem,6vw,5rem);
+  text-align:center;
+  border:1px solid var(--line-strong);
+}
+.hero-frame::before{
+  content:"";position:absolute;inset:9px;border:1px solid var(--line);pointer-events:none;
+}
+.hero-frame .corner{position:absolute;width:22px;height:22px;pointer-events:none;}
+.hero-frame .corner::before,.hero-frame .corner::after{content:"";position:absolute;background:var(--gold);}
+.hero-frame .corner::before{width:100%;height:1px;}
+.hero-frame .corner::after{width:1px;height:100%;}
+.corner.tl{top:-1px;left:-1px;}
+.corner.tr{top:-1px;right:-1px;transform:scaleX(-1);}
+.corner.bl{bottom:-1px;left:-1px;transform:scaleY(-1);}
+.corner.br{bottom:-1px;right:-1px;transform:scale(-1);}
+.hero .label{
+  font-family:var(--font-latin);font-size:clamp(0.82rem,1.6vw,1rem);letter-spacing:0.5em;
+  color:var(--gold-dim);text-transform:uppercase;margin-bottom:2.6rem;font-weight:500;
+  padding-left:0.5em;
+}
+.hero h1{
+  font-weight:800;font-size:clamp(3.6rem,13vw,9rem);letter-spacing:0.1em;line-height:1;
+  padding-left:0.1em;margin-bottom:2.2rem;
+  background:var(--foil);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 26px rgba(203,170,114,0.14));
+}
+.hero .ornament{display:flex;align-items:center;justify-content:center;gap:1.1rem;margin:0 auto 2.2rem;max-width:340px;}
+.hero .ornament .h-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold-dim));}
+.hero .ornament .h-line:last-child{background:linear-gradient(90deg,var(--gold-dim),transparent);}
+.hero .ornament .diamond{width:7px;height:7px;background:var(--gold);transform:rotate(45deg);box-shadow:0 0 10px rgba(203,170,114,0.5);}
+.hero .sub{font-size:clamp(0.98rem,2vw,1.18rem);font-weight:400;color:var(--text-primary);letter-spacing:0.2em;line-height:2.2;}
+.hero .sub2{margin-top:1.2rem;font-size:clamp(0.82rem,1.6vw,0.95rem);font-weight:300;color:var(--text-secondary);letter-spacing:0.14em;line-height:2.1;}
+.hero .sub2 a{color:var(--gold);text-decoration:none;border-bottom:1px solid var(--line-strong);transition:color .2s,border-color .2s;}
+.hero .sub2 a:hover{color:var(--gold-bright);border-color:var(--gold);}
+.hero .updated-badge{
+  display:inline-block;margin-top:2.4rem;padding:0.42rem 1.5rem;
+  font-family:var(--font-mono);font-size:0.64rem;letter-spacing:0.28em;
+  color:var(--gold-dim);text-transform:uppercase;
+  border:1px solid var(--line);border-radius:99px;
+}
+
+/* ORNAMENT DIVIDER */
+.o-divider{display:flex;align-items:center;gap:1.2rem;max-width:1040px;margin:0 auto;padding:0 clamp(1.4rem,5vw,3rem);}
+.o-divider .l{flex:1;height:1px;background:var(--line);}
+.o-divider .d{width:5px;height:5px;background:var(--gold-dim);transform:rotate(45deg);flex:0 0 auto;}
+
+/* SECTION */
+section{padding:clamp(4rem,10vw,7.5rem) clamp(1.4rem,5vw,3rem);}
+.inner{max-width:1000px;margin:0 auto;}
+.chapter{display:flex;align-items:baseline;gap:1.2rem;margin-bottom:0.9rem;}
+.chapter .ch-num{
+  font-family:var(--font-latin);font-size:0.8rem;letter-spacing:0.4em;color:var(--gold-dim);
+  text-transform:uppercase;font-weight:500;white-space:nowrap;
+}
+.chapter .ch-rule{flex:1;height:1px;background:linear-gradient(90deg,var(--line-strong),transparent);transform:translateY(-4px);}
+.section-title{font-weight:700;font-size:clamp(1.8rem,4.2vw,2.6rem);letter-spacing:0.1em;color:var(--text-primary);margin-bottom:1.2rem;line-height:1.35;}
+.section-title em{font-style:normal;background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.section-desc{font-size:1rem;color:var(--text-secondary);font-weight:300;line-height:2.1;max-width:66ch;letter-spacing:0.05em;}
+.section-desc strong{color:var(--gold);font-weight:600;}
+
+/* ONE LINE */
+.one-line{
+  position:relative;margin-top:2.2rem;padding:1.8rem 2rem;
+  border:1px solid var(--line-strong);background:var(--bg-elevated);
+  font-size:1.18rem;font-weight:700;letter-spacing:0.08em;color:var(--gold-bright);line-height:2;
+}
+.one-line::before{content:"";position:absolute;inset:6px;border:1px solid var(--line);pointer-events:none;}
+.one-line .tag{display:block;font-family:var(--font-latin);font-size:0.74rem;letter-spacing:0.4em;text-transform:uppercase;color:var(--gold-dim);font-weight:500;margin-bottom:0.7rem;}
+
+/* DEFINITION BLOCK */
+.definition{position:relative;padding:2.2rem 0 0.6rem;margin-top:2rem;}
+.definition::before{content:'';position:absolute;left:0;top:0;width:1px;height:100%;background:linear-gradient(to bottom,var(--gold),transparent);}
+.definition p{padding-left:2.2rem;font-size:1.05rem;color:var(--text-primary);line-height:2.3;letter-spacing:0.05em;}
+.definition p + p{margin-top:1.2rem;}
+.definition strong{color:var(--gold);font-weight:600;}
+
+/* SEQUENCE STRIP (思→鳴→示) */
+.seqstrip{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:0.6rem;margin-top:2.6rem;}
+.seqstrip .node{border:1px solid var(--line-strong);background:var(--bg-surface);padding:1rem 1.6rem;text-align:center;min-width:104px;}
+.seqstrip .node .nk{font-size:1.8rem;font-weight:700;color:var(--gold-bright);line-height:1.1;}
+.seqstrip .node .nt{font-family:var(--font-mono);font-size:0.58rem;letter-spacing:0.16em;color:var(--text-tertiary);text-transform:uppercase;margin-top:0.3rem;}
+.seqstrip .node.here{background:linear-gradient(180deg,var(--bg-elevated),var(--bg-surface));border-color:var(--gold);}
+.seqstrip .node.here .nk{background:var(--foil);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.seqstrip .ar{color:var(--gold-dim);font-size:1.4rem;}
+.seqstrip .loop{font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.16em;color:var(--gold-dim);}
+
+/* RULE LIST */
+.rule-list{list-style:none;margin-top:2.2rem;border-top:1px solid var(--line);counter-reset:rl;}
+.rule-list li{position:relative;padding:1.1rem 0 1.1rem 2.4rem;border-bottom:1px solid var(--line);font-size:0.98rem;color:var(--text-primary);line-height:2.05;letter-spacing:0.03em;}
+.rule-list li::before{content:'';position:absolute;left:0.5rem;top:1.72rem;width:5px;height:5px;background:var(--gold-dim);transform:rotate(45deg);}
+.rule-list li b{color:var(--gold);font-weight:600;}
+.rule-list.num li{padding-left:3rem;}
+.rule-list.num li::before{content:counter(rl);counter-increment:rl;background:none;transform:none;width:auto;height:auto;
+  left:0.4rem;top:1.1rem;font-family:var(--font-latin);font-size:0.95rem;color:var(--gold-dim);font-weight:500;}
+
+/* THREE PATHS */
+.paths{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.2rem;margin-top:2.6rem;}
+.path{position:relative;border:1px solid var(--line);background:var(--bg-surface);padding:1.9rem 1.8rem 1.7rem;overflow:hidden;transition:border-color .3s,transform .3s;}
+.path::before{content:"";position:absolute;left:0;top:0;width:100%;height:2px;background:linear-gradient(90deg,var(--pc),transparent);}
+.path:hover{border-color:var(--line-strong);transform:translateY(-3px);}
+.path .phead{display:flex;align-items:baseline;gap:0.7rem;margin-bottom:0.9rem;}
+.path .pk{font-size:1.5rem;font-weight:700;letter-spacing:0.1em;color:var(--pc);}
+.path .parrow{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.14em;color:var(--text-tertiary);text-transform:uppercase;}
+.path .pd{font-size:0.92rem;color:var(--text-secondary);line-height:2;letter-spacing:0.02em;}
+.path .pd b{color:var(--gold);font-weight:600;}
+.path .fork{margin-top:1rem;border-top:1px dashed var(--line);padding-top:1rem;display:flex;flex-direction:column;gap:0.8rem;}
+.path .fork .f{position:relative;padding-left:1.3rem;font-size:0.88rem;color:var(--text-secondary);line-height:1.9;}
+.path .fork .f::before{content:'—';position:absolute;left:0;color:var(--gold-dim);}
+.path .fork .f b{color:var(--gold-bright);font-weight:600;}
+
+/* SLAB / NOTE */
+.slab{margin-top:2.4rem;padding:1.9rem 2rem;border:1px solid var(--line);background:var(--bg-inset);position:relative;
+  font-size:0.98rem;color:var(--text-secondary);line-height:2.2;letter-spacing:0.03em;}
+.slab::before{content:"";position:absolute;left:0;top:0;width:3px;height:100%;background:linear-gradient(to bottom,var(--g-omodori),transparent);}
+.slab b{color:var(--gold);font-weight:600;}
+
+/* EFFECT CARDS */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:1rem;margin-top:2.4rem;}
+.card{position:relative;border:1px solid var(--line);background:var(--bg-surface);padding:1.6rem 1.6rem 1.5rem;transition:border-color .3s,transform .3s,background .3s;}
+.card:hover{border-color:var(--line-strong);transform:translateY(-3px);background:var(--bg-elevated);}
+.card .k{font-size:1.15rem;font-weight:700;letter-spacing:0.06em;color:var(--gold-bright);margin-bottom:0.5rem;}
+.card .def{font-size:0.9rem;color:var(--text-secondary);line-height:2;letter-spacing:0.02em;}
+.card .def b{color:var(--gold);font-weight:600;}
+
+/* TABLE */
+.table-wrap{margin-top:2.4rem;overflow-x:auto;border:1px solid var(--line);}
+table.applic{border-collapse:collapse;width:100%;min-width:640px;font-size:0.88rem;}
+table.applic th,table.applic td{border:1px solid var(--line);padding:0.85rem 1rem;text-align:left;line-height:1.85;vertical-align:top;}
+table.applic thead th{background:var(--bg-elevated);color:var(--gold-bright);font-weight:700;letter-spacing:0.08em;}
+table.applic tbody th{background:var(--bg-surface);color:var(--gold);font-weight:600;white-space:nowrap;}
+table.applic td{color:var(--text-secondary);}
+
+/* CORRESPOND (示式との対応) */
+.corr{list-style:none;margin-top:2.4rem;display:flex;flex-direction:column;gap:0.9rem;}
+.corr li{display:flex;flex-wrap:wrap;align-items:center;gap:0.6rem 0.9rem;border:1px solid var(--line);background:var(--bg-surface);padding:1.1rem 1.4rem;}
+.corr li .a{font-weight:700;color:var(--gold-bright);letter-spacing:0.04em;font-size:0.98rem;}
+.corr li .eq{color:var(--gold-dim);font-family:var(--font-mono);font-size:0.8rem;}
+.corr li .b{color:var(--text-secondary);font-size:0.92rem;line-height:1.9;}
+
+/* FORMULA */
+.formula{display:flex;flex-direction:column;gap:0.7rem;margin-top:2.2rem;}
+.formula code{
+  font-family:var(--font-mono);font-size:0.98rem;letter-spacing:0.05em;
+  background:var(--bg-inset);border:1px solid var(--line);
+  padding:1rem 1.3rem;color:var(--gold-bright);overflow-x:auto;white-space:nowrap;
+}
+
+/* LINEAGE */
+.lineage{
+  margin-top:2.6rem;border:1px solid var(--line-strong);background:var(--bg-elevated);
+  padding:2.4rem clamp(1.4rem,4vw,2.6rem);text-align:center;position:relative;
+}
+.lineage::before{content:"";position:absolute;inset:7px;border:1px solid var(--line);pointer-events:none;}
+.lineage .l-label{font-family:var(--font-latin);font-size:0.74rem;letter-spacing:0.42em;text-transform:uppercase;color:var(--gold-dim);font-weight:500;margin-bottom:1rem;}
+.lineage p{font-size:0.98rem;color:var(--text-secondary);line-height:2.2;letter-spacing:0.05em;max-width:56ch;margin:0 auto;}
+.lineage p b{color:var(--gold);font-weight:600;}
+.lineage .gos{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:1.7rem;}
+.lineage .go{
+  display:inline-block;padding:0.85rem 2.4rem;
+  font-family:var(--font-serif);font-size:0.95rem;font-weight:600;letter-spacing:0.28em;padding-left:2.68rem;
+  color:var(--gold-bright);text-decoration:none;border:1px solid var(--line-strong);
+  transition:background 0.3s,border-color 0.3s,color 0.3s;
+}
+.lineage .go:hover{background:rgba(203,170,114,0.08);border-color:var(--gold);color:#fff;}
+
+.note{background:var(--bg-deep);border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+
+/* FOOTER */
+footer{padding:4.5rem 1.5rem 5.5rem;text-align:center;border-top:1px solid var(--line);}
+footer .f-orn{display:flex;align-items:center;justify-content:center;gap:1rem;max-width:260px;margin:0 auto 2.2rem;}
+footer .f-orn .l{flex:1;height:1px;background:var(--line);}
+footer .f-orn .d{width:5px;height:5px;background:var(--gold-dim);transform:rotate(45deg);}
+footer .f-links{display:flex;gap:1.7rem;justify-content:center;flex-wrap:wrap;margin-bottom:1.7rem;}
+footer a{font-family:var(--font-mono);font-size:0.74rem;letter-spacing:0.18em;color:var(--gold-dim);text-decoration:none;text-transform:uppercase;transition:color 0.2s;}
+footer a:hover{color:var(--gold-bright);}
+footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;color:var(--text-tertiary);}
+footer .updated{margin-top:0.9rem;font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.24em;color:var(--gold-dim);text-transform:uppercase;}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity 1.1s var(--ease-out),transform 1.1s var(--ease-out);}
+.reveal.in{opacity:1;transform:none;}
+@media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}html{scroll-behavior:auto;}}
+
+@media(max-width:520px){
+  .seqstrip .node{min-width:84px;padding:0.8rem 1rem;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="mark">鳴分岐</span>
+  <span class="links">
+    <a href="/Library/">畜学</a>
+    <a href="/nijusshiki/">廿式</a>
+    <a href="/shishiki/">示式</a>
+    <a href="/">畜物語</a>
+  </span>
+</div>
+
+<header class="hero">
+  <div class="hero-frame">
+    <span class="corner tl"></span><span class="corner tr"></span><span class="corner bl"></span><span class="corner br"></span>
+    <div class="label">Meibunki — The Naming Branch</div>
+    <h1>鳴分岐</h1>
+    <div class="ornament"><span class="h-line"></span><span class="diamond"></span><span class="h-line"></span></div>
+    <div class="sub">思→鳴の遷移に分岐を定める。<br>成立・思戻り・打切りの三経路。</div>
+    <div class="sub2">廿式の次に置く畜学第二書。<a href="/nijusshiki/">廿式</a>に従属し、<a href="/shishiki/">示式</a>の思と鳴の間に入る。</div>
+    <div class="updated-badge">更新日 2026-07-20</div>
+  </div>
+</header>
+
+<main>
+
+<!-- 冒頭定義 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">I · The Branch</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">思から鳴への<em>分岐</em></h2>
+    <div class="one-line"><span class="tag">In One Line</span>鳴分岐は──<strong>思→鳴の遷移に分岐を定める</strong>。位置・規則・分岐・効果・対応は不変。更新対象は事例のみ。</div>
+    <div class="definition">
+      <p>鳴分岐は<strong>固定構造</strong>である。位置・規則・分岐・効果・適用例・対応・構成式は不変。更新対象は<strong>事例のみ</strong>。昇格を経た注記でのみ規則に反映する。</p>
+      <p>廿式に<strong>従属</strong>する。廿式の語を再定義しない。<strong>消尽・打切り・前提化・探索型</strong>は本書の局所語である。</p>
+      <p>対象は<strong>五式が稼働する全ての衡の全周回</strong>。中央（思→鳴）のみを扱い、<strong>示以降は扱わない</strong>。</p>
+    </div>
+    <div class="seqstrip">
+      <div class="node"><div class="nk">思</div><div class="nt">未成形</div></div>
+      <span class="loop">⇄ 上限付き</span>
+      <div class="node here"><div class="nk">鳴</div><div class="nt">確定の成立</div></div>
+      <span class="ar">→</span>
+      <div class="node"><div class="nk">示</div><div class="nt">外部への指向</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 位置 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">II · Position</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">位置 — 廿式との対応</h2>
+    <p class="section-desc">鳴は<strong>確定の成立でのみ数える</strong>。不成立の試行は思の継続であり、五式の逆行でない。本分岐は<strong>周回内の反復</strong>であって、継でも赦でもない。</p>
+    <ul class="rule-list">
+      <li>鳴は<b>確定の成立でのみ数える</b>。不成立の試行は思の継続であり、五式の逆行でない。</li>
+      <li>本分岐は周回内の反復。<b>継でない</b>（差分を伴う次の認への遷移でない）。</li>
+      <li>本分岐は<b>赦でない</b>。赦は循の成立後、乱からの復帰。本分岐は許の確定前の反復。</li>
+      <li>器のみ＝<b>認（0 &lt; 1）</b>。本分岐は 0 &lt; 1 の内で働き、確定の成立で 1 へ向かう。</li>
+      <li>上限到達後、打切りの選択が行われない状態は<b>衡停止</b>に相当。構造実体は維持、外部入力で再開可。</li>
+      <li>幅を割る場合は<b>絶</b>に従う。同一周回での再開なし。</li>
+    </ul>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 規則 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">III · Rules — Fixed</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">規則（固定）</h2>
+    <p class="section-desc">六の規則。<strong>反復には上限を記す</strong>──上限なき反復は幅の未確定であり判定不能。</p>
+    <ol class="rule-list num">
+      <li>成立の判定は<b>適用先が判定可能な文</b>で定める。定められない場合は打切り事由（探索型へ）。</li>
+      <li>反復の<b>上限（回数または期限）を幅の内に記す</b>。幅の破れに先行して打切るため。上限なき反復は幅の未確定であり判定不能。</li>
+      <li>「認の全言語化」を判定に用いない。認は 0 &lt; 1 であり、未確定の列挙は不能。思変の矛盾は観測では循と判別できない。</li>
+      <li><b>応でのみ確定する値は反復で消尽しない</b>。前提化か探索型へ送る。判定：応を経ずに判定可能な文へ書けるか。</li>
+      <li>反復の回数・打切りの別は<b>差分に含める</b>。次周回の上限設定の素材となる。</li>
+      <li>解釈・比喩・感情語を用いない。</li>
+    </ol>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 分岐 -->
+<section class="note">
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">IV · Three Paths</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">分岐（三経路・判定必須）</h2>
+    <p class="section-desc">成立の判定を試行し、結果で分岐する。三経路は<strong>不変</strong>。</p>
+    <div class="paths">
+      <div class="path" style="--pc:var(--g-seiritsu)">
+        <div class="phead"><span class="pk">成立</span><span class="parrow">→ 示へ</span></div>
+        <p class="pd">確定 → <b>示へ</b>。初回成立の場合、追加費用は<b>判定一回分</b>。分岐は通過。</p>
+      </div>
+      <div class="path" style="--pc:var(--g-omodori)">
+        <div class="phead"><span class="pk">思戻り</span><span class="parrow">→ 思へ再試行</span></div>
+        <p class="pd">不成立、かつ試行中に<b>中央で確定可能な新規素材</b>が発生 → 素材を思へ加え再試行。外部依存の素材は思へ戻さず<b>前提化か探索型</b>へ。</p>
+      </div>
+      <div class="path" style="--pc:var(--g-uchikiri)">
+        <div class="phead"><span class="pk">打切り</span><span class="parrow">→ 二択</span></div>
+        <p class="pd">不成立かつ新規素材なし（<b>消尽</b>）、または<b>上限到達</b> → 二択。選択の担い手を事前に定める。</p>
+        <div class="fork">
+          <div class="f"><b>前提化</b>：不足の値を前提として幅に記し、破れの帰結（赦の経路か絶か）を付して成立させる。</div>
+          <div class="f"><b>探索型</b>：応を差分の収集と定めて成立させる。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 効果 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">V · Effect</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">効果（成立条件）</h2>
+    <p class="section-desc">反復が費用を下げるのは<strong>中央起因の差分</strong>に限る。外部依存の差分では逆転するため、規則4で除外し上限で打ち切る。</p>
+    <div class="cards">
+      <div class="card"><div class="k">中央起因</div><div class="def">（<b>示以降の往復費用</b>）＞（反復の追加費用）のとき費用が下がる</div></div>
+      <div class="card"><div class="k">外部依存</div><div class="def">反復を適用すると<b>逆転する</b>。規則4で除外し、上限で打ち切る</div></div>
+      <div class="card"><div class="k">到達点</div><div class="def">検出可能な<b>未言語化の消尽</b>であり、誤差零でない。応起因の差分は継で次の認へ渡る</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 適用例 -->
+<section class="note">
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">VI · Universality</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">適用例（普遍性の確認）</h2>
+    <p class="section-desc">中身は毎回異なる。<strong>分岐の三経路は不変</strong>。</p>
+    <div class="table-wrap">
+      <table class="applic">
+        <thead>
+          <tr><th>項</th><th>誕生日会</th><th>アプリ開発</th><th>旅行計画</th><th>調査</th></tr>
+        </thead>
+        <tbody>
+          <tr><th>成立判定</th><td>予算・日付・出席の条件が文になる</td><td>要件が受け入れテスト文になる</td><td>必須訪問地と移動上限が文になる</td><td>問いが比較可能な文になる</td></tr>
+          <tr><th>思戻りの例</th><td>聞き取りで新要望</td><td>打合せで新要件</td><td>同行者の新条件</td><td>下調べで新観点</td></tr>
+          <tr><th>外部依存の例</th><td>会場の空き→前提化</td><td>外部APIの仕様→前提化</td><td>運行→前提化</td><td>資料の入手可否→前提化</td></tr>
+          <tr><th>上限</th><td>招待発送日</td><td>仕様凍結日</td><td>予約期限</td><td>調査開始日</td></tr>
+          <tr><th>打切り後</th><td>仮会場を前提化</td><td>凍結時点の要件で成立</td><td>候補地を探索型に</td><td>問い立てを探索型に</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 示式との対応 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">VII · With Shishiki</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">示式との対応</h2>
+    <p class="section-desc">示式の工程<strong>0思と1鳴の間</strong>に本分岐が入る。示式の文面は変更しない。示式の中断（応段階、鳴へ戻す）と本分岐（示の前）は<strong>別系統</strong>。</p>
+    <ul class="corr">
+      <li><span class="a">成立判定</span><span class="eq">=</span><span class="b">示式1鳴の判定（許が判定可能な文で書け、定め手と優先順が定まる）</span></li>
+      <li><span class="a">前提化</span><span class="eq">=</span><span class="b">示式十項2への記載（前提と破れの帰結）</span></li>
+      <li><span class="a">探索型</span><span class="eq">=</span><span class="b">示式適用例の定め（成果物＝差分の収集）</span></li>
+      <li><span class="a">反復の記録</span><span class="eq">=</span><span class="b">示式5録で差分として記す</span></li>
+    </ul>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 自己適用 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">VIII · Self-Application</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">自己適用</h2>
+    <p class="section-desc">本書の作成は本分岐の反復を経る。成立判定＝<strong>廿式との無矛盾</strong>、かつ各規則が判定可能な文であること。</p>
+    <p class="slab">幅を割る改定（<b>廿式と矛盾する改定</b>）は絶であり、本書は同一構造で再開しない。</p>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 更新規則 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">IX · Update Rules</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">更新規則</h2>
+    <ul class="rule-list">
+      <li>位置・規則・分岐・効果・適用例・対応・構成式：<b>固定</b>。</li>
+      <li>事例：周回毎に追記。</li>
+      <li>昇格：同型の差分が<b>複数周回で再現</b>した場合のみ、規則の注記へ反映（継）。</li>
+    </ul>
+    <p class="slab">事例：<b>無し</b>。</p>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 構成式 -->
+<section class="note">
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">X · Composition</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">構成式</h2>
+    <div class="formula">
+      <code>鳴分岐 = 思 ⇄ 鳴（上限付き） → 示</code>
+      <code>成立 → 示 ｜ 中央の新規素材 → 思 ｜ 外部依存 → 前提化か探索型 ｜ 消尽・上限 → 前提化か探索型</code>
+      <code>鳴 = 確定の成立。不成立の試行 = 思の継続</code>
+    </div>
+  </div>
+</section>
+
+<div class="o-divider"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+
+<!-- 導線 -->
+<section>
+  <div class="inner reveal">
+    <div class="chapter"><span class="ch-num">XI · Lineage</span><span class="ch-rule"></span></div>
+    <h2 class="section-title">廿式・示式との関係</h2>
+    <div class="lineage">
+      <div class="l-label">Lineage — Kernel &amp; Procedure</div>
+      <p>鳴分岐は<b>廿式に従属</b>し、廿式の語を再定義しない。<br>設計書を作り回す<b>示式</b>の、思と鳴の間に入る分岐である。</p>
+      <div class="gos">
+        <a class="go" href="/nijusshiki/">廿式を読む</a>
+        <a class="go" href="/shishiki/">示式を読む</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="f-orn"><span class="l"></span><span class="d"></span><span class="l"></span></div>
+  <div class="f-links">
+    <a href="/Library/">畜学</a>
+    <a href="/nijusshiki/">廿式</a>
+    <a href="/shishiki/">示式</a>
+    <a href="/sekkeigaku/">設計学</a>
+    <a href="/">畜物語</a>
+  </div>
+  <div class="c">畜物語 ─ chikumo.jp</div>
+  <div class="updated">更新日 · Last Updated 2026-07-20</div>
+</footer>
+
+<script>
+"use strict";
+(function(){
+  var els=document.querySelectorAll('.reveal');
+  if(!('IntersectionObserver' in window)){ for(var i=0;i<els.length;i++) els[i].classList.add('in'); return; }
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+  },{threshold:0,rootMargin:'0px 0px -8% 0px'});
+  els.forEach(function(el){ io.observe(el); });
+})();
+</script>
+</body>
+</html>
