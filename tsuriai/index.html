@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<script>
+/* こっこ共通: ページを離れたら必ず音を止める（bfcache対策／全ゲーム共通の番人） */
+(function(){
+  var ctxs=[]; var OrigAC=window.AudioContext||window.webkitAudioContext;
+  if(OrigAC&&typeof Proxy!=='undefined'&&typeof Reflect!=='undefined'){
+    var P=new Proxy(OrigAC,{construct:function(T,a,nt){var c=Reflect.construct(T,a,nt===P?T:nt);try{ctxs.push(c);}catch(e){}return c;}});
+    try{window.AudioContext=P;}catch(e){} try{if(window.webkitAudioContext)window.webkitAudioContext=P;}catch(e){}
+  }
+  function kill(){for(var i=0;i<ctxs.length;i++){var c=ctxs[i];try{c.suspend();}catch(e){}try{c.close();}catch(e){}}ctxs=[];}
+  window.addEventListener('pagehide',kill);
+  window.addEventListener('pageshow',function(e){if(e.persisted)window.location.reload();});
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>コッコつりあい ─ ゆれをたやすな｜TSURIAI</title>
+<meta name="description" content="満月の夜、島は月から下がる一本の天秤に乗っている。左は親の記憶、右は子の記憶。こっこ自身が錘。走って揺れをたやさず、逆縁の傾けを押し返し、夜明けにふたつの光を月の道で結べ。水平で止めたら負け──揺れの持続が正義。約75秒で必ず終わる3D。">
+<meta name="author" content="畜物語">
+<meta name="robots" content="index, follow">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b1630">
+<link rel="canonical" href="https://chikumo.jp/tsuriai/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chikumo.jp/tsuriai/">
+<meta property="og:title" content="コッコつりあい ─ ゆれをたやすな">
+<meta property="og:description" content="走って天秤の揺れをたやすな。水平は死、揺れの持続が正義。夜明けにふたつの光を結ぶ、約75秒の3D。">
+<meta property="og:image" content="https://chikumo.jp/ogp.png">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0b1630;font-family:-apple-system,"Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+  #glc{position:fixed;inset:0;width:100%;height:100%;display:block}
+  #vig{position:fixed;inset:0;z-index:2;pointer-events:none;box-shadow:inset 0 0 min(30vw,220px) rgba(0,0,0,.62)}
+  .hud{position:fixed;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.7);pointer-events:none;z-index:5;font-weight:700}
+  #hudTL{top:calc(env(safe-area-inset-top,0) + 10px);left:12px;font-size:20px;line-height:1.35}
+  #hudTR{top:calc(env(safe-area-inset-top,0) + 10px);right:12px;text-align:right;font-size:16px;line-height:1.4}
+  #bandWrap{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0) + 12px);width:min(58vw,340px);z-index:5;pointer-events:none}
+  #bandBar{position:relative;height:12px;border-radius:7px;background:rgba(255,255,255,.13);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
+  #bandLo,#bandHi,#bandBrk{position:absolute;top:-1px;bottom:-1px;width:2px;background:rgba(255,255,255,.55);z-index:3}
+  #bandBrk{width:2px;background:#ff6b6b}
+  #bandSweet{position:absolute;top:0;bottom:0;background:rgba(120,230,150,.28);z-index:1}
+  #bandDanger{position:absolute;top:0;bottom:0;right:0;background:rgba(255,80,80,.22);z-index:1}
+  #bandFill{position:absolute;top:0;bottom:0;left:0;border-radius:7px;background:linear-gradient(90deg,#7fd0ff,#ffd66b);width:0%;z-index:2}
+  #bandTxt{text-align:center;color:#dfe9ff;font-size:11px;margin-top:3px;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+  #bandTilt{position:absolute;top:-3px;width:3px;height:18px;background:#fff;border-radius:2px;box-shadow:0 0 5px #fff}
+  .overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;padding:24px;background:radial-gradient(ellipse at 50% 30%,rgba(30,50,90,.72),rgba(6,12,28,.94))}
+  .overlay h1{font-size:min(9vw,42px);letter-spacing:.06em;margin-bottom:6px;text-shadow:0 2px 14px rgba(120,170,255,.6)}
+  .overlay p{font-size:min(4.4vw,17px);line-height:1.7;color:#cfe0ff;max-width:560px;margin-bottom:8px}
+  .overlay small{color:#8fa6d6;font-size:12px}
+  .btn{margin-top:20px;pointer-events:auto;cursor:pointer;border:none;border-radius:40px;padding:16px 40px;font-size:20px;font-weight:800;color:#0b1630;background:linear-gradient(180deg,#ffe9a8,#ffc861);box-shadow:0 6px 24px rgba(255,200,90,.4);font-family:inherit}
+  .btn:active{transform:translateY(2px)}
+  #hint{position:fixed;left:50%;bottom:14%;transform:translateX(-50%);z-index:8;color:#fff;font-size:min(6.5vw,28px);font-weight:800;text-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none;opacity:0;transition:opacity .4s}
+  #reload{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0) + 12px);z-index:9;width:46px;height:46px;border-radius:50%;background:rgba(20,34,64,.7);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;color:#dfe9ff}
+  #rankBox{max-height:150px;overflow-y:auto;margin-top:10px;font-size:13px;color:#bcd0f5;width:min(80vw,320px)}
+  #rankBox div{display:flex;justify-content:space-between;padding:2px 8px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .fade{opacity:0!important;transition:opacity 1.2s}
+  .hidden{display:none!important}
+  #moveHintL,#moveHintR{position:fixed;bottom:0;top:38%;width:34%;z-index:3;pointer-events:none;display:flex;align-items:center;justify-content:center;font-size:34px;color:rgba(255,255,255,.14);font-weight:900}
+  #moveHintL{left:0}#moveHintR{right:0}
+</style>
+</head>
+<body>
+<canvas id="glc"></canvas>
+<div id="vig"></div>
+
+<div id="moveHintL">◀</div><div id="moveHintR">▶</div>
+
+<div id="bandWrap" class="hud hidden" style="pointer-events:none">
+  <div id="bandBar"><div id="bandSweet"></div><div id="bandDanger"></div><div id="bandFill"></div><div id="bandLo"></div><div id="bandHi"></div><div id="bandBrk"></div><div id="bandTilt" style="left:50%"></div></div>
+  <div id="bandTxt">ゆれ幅 ─ みどりの帯で たやすな（下＝止まる／上＝振りすぎ）</div>
+</div>
+<div id="hudTL" class="hud hidden">❤️❤️❤️</div>
+<div id="hudTR" class="hud hidden">🌕 <span id="resTxt">0</span>/<span id="resWin">11</span><br>💴 <span id="coinTxt">0</span><br>⏱ <span id="timeTxt">75</span></div>
+<div id="hint"></div>
+
+<div id="title" class="overlay">
+  <h1>コッコつりあい</h1>
+  <p><b>ゆれを、たやすな。</b><br>満月の夜。島は月から下がる一本の天秤にのっている。<br>ひだりは親のひかり（金）、みぎは子のひかり（銀）。<br><b>こっこ自身が おもり。</b>走ってよった側がしずむ。</p>
+  <p><small>◀▶ で走る（画面の左半分/右半分をおす・キーは←→）。<br>水平で とまると ゆれが死ぬ。傾けすぎても切れる。<br>ゆれをたやさず、逆縁をしずめ、夜明けにふたつの光を結べ。</small></p>
+  <button class="btn" id="startBtn">はじめる</button>
+</div>
+
+<div id="result" class="overlay hidden">
+  <h1 id="rTitle"></h1>
+  <p id="rBody"></p>
+  <div id="rankBox"></div>
+  <button class="btn" id="againBtn">もういちど</button>
+  <p style="margin-top:14px"><a id="letterLink" href="/letter/" style="color:#9fd0ff">正論蒔宿へ手紙をおくる ✉️</a></p>
+</div>
+
+<div id="reload" title="強制更新">🔄</div>
+
+<script>
+"use strict";
+/* ============================================================
+   コッコつりあい ─ 中心動詞「つりあわせる」
+   3D WebGL1 / 1ファイル自己完結 / 判定と描画は同じ th を見る
+   ============================================================ */
+const TAU=Math.PI*2, DEG=Math.PI/180;
+const canvas=document.getElementById('glc');
+let gl=canvas.getContext('webgl',{antialias:true,alpha:false,premultipliedAlpha:false})||canvas.getContext('experimental-webgl');
+if(!gl){ document.getElementById('title').innerHTML='<h1>コッコつりあい</h1><p>この端末はWebGLに対応していません。別のブラウザでお試しください。</p>'; }
+
+/* ---------- 数値仕様（衡の器官・§3） ---------- */
+const T0=2.15;                 // 天秤の固有周期(s)
+const W0=TAU/T0;               // 固有角速度
+const ZETA=0.055;              // 減衰（弱め＝止めないと揺れが続く）
+const K_COCCO=3.15;            // こっこトルク係数
+const K_EN=1.5;                // 逆縁トルク係数
+// band：下端で止まると∿死、上端で振りすぎると絶傾。あいだ(AMP_HIGH↑)で共振
+const AMP_DEAD=0.06, AMP_LOW=0.15, AMP_HIGH=0.42, AMP_BREAK=0.62;
+const T_DEAD=3.0;              // ∿死の連続秒
+const T_BREAK=1.4;             // 絶傾（振りすぎ）の連続秒
+const TILT_MAX=0.8;           // 傾きHUDの目盛り最大(rad)
+const DUNK=0.30;              // 逆縁が沈んで月へ帰るしきい値（下げて掃除しやすく）
+const T_DUNK=0.75;
+const RES_WIN=11;              // 勝利に要する共振ピーク
+const ROUND=75;                // ラウンド長(s)
+const COCCO_SPEED=1.95;        // 最大移動速度(u/s)
+const COCCO_ACC=9.0, COCCO_FRIC=7.0; // 慣性（錘の重み）
+const WALL=2.6;               // 破れ際のやわらかいクッション（振り自体は止めない）
+const EDGE=0.60;              // クッションが効き始める傾き
+// 逆縁：序盤は猶予。接触は避けやすく、沈めやすく
+const EN_MAX=3;
+
+/* ---------- 行列（最小mat4） ---------- */
+function mIdent(){return new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);}
+function mPersp(fovy,asp,n,f){const t=1/Math.tan(fovy/2),o=new Float32Array(16);o[0]=t/asp;o[5]=t;o[10]=(f+n)/(n-f);o[11]=-1;o[14]=2*f*n/(n-f);return o;}
+function mMul(a,b){const o=new Float32Array(16);for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+j]*b[i*4+k];o[i*4+j]=s;}return o;}
+function mLookAt(e,c,up){const zx=e[0]-c[0],zy=e[1]-c[1],zz=e[2]-c[2];let zl=Math.hypot(zx,zy,zz);const z=[zx/zl,zy/zl,zz/zl];
+  let xx=up[1]*z[2]-up[2]*z[1],xy=up[2]*z[0]-up[0]*z[2],xz=up[0]*z[1]-up[1]*z[0];let xl=Math.hypot(xx,xy,xz)||1;const x=[xx/xl,xy/xl,xz/xl];
+  const y=[z[1]*x[2]-z[2]*x[1],z[2]*x[0]-z[0]*x[2],z[0]*x[1]-z[1]*x[0]];
+  return new Float32Array([x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0, -(x[0]*e[0]+x[1]*e[1]+x[2]*e[2]),-(y[0]*e[0]+y[1]*e[1]+y[2]*e[2]),-(z[0]*e[0]+z[1]*e[1]+z[2]*e[2]),1]);}
+function mTrans(x,y,z){const o=mIdent();o[12]=x;o[13]=y;o[14]=z;return o;}
+function mScale(x,y,z){const o=mIdent();o[0]=x;o[5]=y;o[10]=z;return o;}
+function mRotZ(a){const c=Math.cos(a),s=Math.sin(a),o=mIdent();o[0]=c;o[1]=s;o[4]=-s;o[5]=c;return o;}
+function mRotY(a){const c=Math.cos(a),s=Math.sin(a),o=mIdent();o[0]=c;o[2]=-s;o[8]=s;o[10]=c;return o;}
+
+/* ---------- シェーダ ---------- */
+const PRE='precision mediump float;';
+function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.warn(gl.getShaderInfoLog(s));} return s;}
+function prog(vs,fs){const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,vs));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)){console.warn(gl.getProgramInfoLog(p));} return p;}
+
+function mOrtho(l,r,b,t,n,f){const o=new Float32Array(16);o[0]=2/(r-l);o[5]=2/(t-b);o[10]=-2/(f-n);
+  o[12]=-(r+l)/(r-l);o[13]=-(t+b)/(t-b);o[14]=-(f+n)/(f-n);o[15]=1;return o;}
+
+/* 深度パック（shinshima の型・影マップ用） */
+const PACK='vec4 packD(float v){vec4 e=vec4(1.,255.,65025.,16581375.)*v;e=fract(e);e-=e.yzww*vec4(1./255.,1./255.,1./255.,0.);return e;}\n'
++'float unpackD(vec4 c){return dot(c,vec4(1.,1./255.,1./65025.,1./16581375.));}\n';
+/* 3×3 PCF 影サンプル（shinshima の型） */
+const SHADOWFN='uniform sampler2D uShTex;uniform float uShPx;uniform float uShOn;\n'
++PACK+'float shadowAt(vec4 lp,float ndl){\n'
++'  if(uShOn<0.5)return 1.0;\n'
++'  vec3 p=lp.xyz/lp.w*0.5+0.5;\n'
++'  if(p.x<0.0||p.x>1.0||p.y<0.0||p.y>1.0||p.z>1.0)return 1.0;\n'
++'  float bias=max(0.0025*(1.0-ndl),0.0009);float s=0.0;\n'
++'  for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){\n'
++'    float d=unpackD(texture2D(uShTex,p.xy+vec2(float(x),float(y))*uShPx));\n'
++'    s+=(p.z-bias<=d)?1.0:0.0;}\n'
++'  return mix(0.42,1.0,s/9.0);}\n';
+
+/* 深度パス */
+const depthP=prog('attribute vec3 aPos;uniform mat4 uLVP;void main(){gl_Position=uLVP*vec4(aPos,1.0);}',
+  PRE+PACK+'void main(){gl_FragColor=packD(gl_FragCoord.z);}');
+const dLoc={pos:gl.getAttribLocation(depthP,'aPos'),lvp:gl.getUniformLocation(depthP,'uLVP')};
+
+/* メッシュ（ランバート＋影＋月あかり） */
+const meshP=prog(
+ 'attribute vec3 aPos;attribute vec3 aNor;uniform mat4 uVP;uniform mat4 uModel;uniform mat4 uLVP;'+
+ 'varying vec3 vN;varying vec3 vW;varying vec4 vLp;'+
+ 'void main(){vec4 w=uModel*vec4(aPos,1.0);vW=w.xyz;vN=mat3(uModel)*aNor;vLp=uLVP*w;gl_Position=uVP*w;}',
+ PRE+'varying vec3 vN;varying vec3 vW;varying vec4 vLp;uniform vec3 uCol;uniform vec3 uLight;uniform float uAmb;uniform float uEmis;'+SHADOWFN+
+ 'void main(){vec3 n=normalize(vN);float ndl=max(dot(n,normalize(uLight)),0.0);float sh=shadowAt(vLp,ndl);'+
+ 'float l=uAmb+ndl*0.95*sh;vec3 moon=vec3(1.0,0.95,0.82);'+
+ 'vec3 c=uCol*l*moon+uCol*uEmis;gl_FragColor=vec4(c,1.0);}');
+const meshLoc={pos:gl.getAttribLocation(meshP,'aPos'),nor:gl.getAttribLocation(meshP,'aNor'),
+  vp:gl.getUniformLocation(meshP,'uVP'),model:gl.getUniformLocation(meshP,'uModel'),lvp:gl.getUniformLocation(meshP,'uLVP'),
+  col:gl.getUniformLocation(meshP,'uCol'),light:gl.getUniformLocation(meshP,'uLight'),amb:gl.getUniformLocation(meshP,'uAmb'),emis:gl.getUniformLocation(meshP,'uEmis'),
+  sh:gl.getUniformLocation(meshP,'uShTex'),shPx:gl.getUniformLocation(meshP,'uShPx'),shOn:gl.getUniformLocation(meshP,'uShOn')};
+
+/* 海（平面反射＋さざ波＋月の道スペキュラ＋影） */
+const seaP=prog(
+ 'attribute vec3 aPos;uniform mat4 uVP;uniform mat4 uLVP;varying vec3 vW;varying vec4 vClip;varying vec4 vLp;'+
+ 'void main(){vW=aPos;vLp=uLVP*vec4(aPos,1.0);vClip=uVP*vec4(aPos,1.0);gl_Position=vClip;}',
+ PRE+'varying vec3 vW;varying vec4 vClip;varying vec4 vLp;'+
+ 'uniform vec3 uCam;uniform vec3 uMoonDir;uniform vec3 uMoonPos;uniform float uT;uniform float uDawn;uniform float uRoad;uniform float uMirror;'+
+ 'uniform sampler2D uRefl;uniform float uReflOn;'+SHADOWFN+
+ 'void main(){\n'+
+ '  vec2 p=vW.xz;\n'+
+ '  float calm=1.0-uMirror*0.92;\n'+
+ '  float r1=sin(p.x*0.5+uT*1.1)+sin(p.y*0.43-uT*0.9);\n'+
+ '  float r2=sin(p.x*1.7-uT*1.7)*0.5+sin(p.y*1.3+uT*1.3)*0.5;\n'+
+ '  vec3 N=normalize(vec3((r1+r2)*0.05*calm, 1.0, (r1-r2)*0.05*calm));\n'+
+ '  vec3 V=normalize(uCam-vW);\n'+
+ '  float fres=0.04+0.96*pow(1.0-max(dot(N,V),0.0),5.0);\n'+
+ '  vec3 deep=mix(vec3(0.015,0.03,0.075),vec3(0.10,0.13,0.16),uDawn);\n'+
+ '  vec3 water=deep;\n'+
+ '  vec3 reflCol=mix(vec3(0.05,0.08,0.16),vec3(0.4,0.45,0.5),uDawn);\n'+
+ '  if(uReflOn>0.5){ vec2 uv=vClip.xy/vClip.w*0.5+0.5; uv+=N.xz*0.03; reflCol=texture2D(uRefl,clamp(uv,0.001,0.999)).rgb; }\n'+
+ '  vec3 col=mix(water,reflCol,clamp(fres*0.9+0.1,0.0,1.0));\n'+
+ '  float ca=0.0;{vec2 q=p*0.6;for(int k=0;k<3;k++){q+=vec2(sin(q.y*1.3+uT*0.8),cos(q.x*1.3-uT*0.8))*0.45;ca+=1.0-abs(sin(q.x)*cos(q.y));}ca=pow(ca/3.0,3.0);}\n'+
+ '  col+=vec3(0.35,0.72,0.82)*ca*0.14*(1.0-fres);\n'+
+ '  vec3 H=normalize(normalize(uMoonPos-vW)+V);\n'+
+ '  float spec=pow(max(dot(N,H),0.0),120.0);\n'+
+ '  float road=exp(-abs(p.x-(-3.0))*0.5)*clamp(1.0-p.y*0.02,0.2,1.0);\n'+
+ '  col+=vec3(1.0,0.92,0.72)*(spec*0.8+road*0.30*uRoad*(1.0+uMirror*2.5));\n'+
+ '  col=mix(col,reflCol*1.05,uMirror*0.5);\n'+
+ '  float ndl=max(dot(N,normalize(uMoonDir)),0.0);col*=mix(0.6,1.0,shadowAt(vLp,ndl));\n'+
+ '  gl_FragColor=vec4(col,1.0);}');
+const seaLoc={pos:gl.getAttribLocation(seaP,'aPos'),vp:gl.getUniformLocation(seaP,'uVP'),lvp:gl.getUniformLocation(seaP,'uLVP'),
+  cam:gl.getUniformLocation(seaP,'uCam'),moonDir:gl.getUniformLocation(seaP,'uMoonDir'),moonPos:gl.getUniformLocation(seaP,'uMoonPos'),
+  t:gl.getUniformLocation(seaP,'uT'),dawn:gl.getUniformLocation(seaP,'uDawn'),road:gl.getUniformLocation(seaP,'uRoad'),mirror:gl.getUniformLocation(seaP,'uMirror'),
+  refl:gl.getUniformLocation(seaP,'uRefl'),reflOn:gl.getUniformLocation(seaP,'uReflOn'),
+  sh:gl.getUniformLocation(seaP,'uShTex'),shPx:gl.getUniformLocation(seaP,'uShPx'),shOn:gl.getUniformLocation(seaP,'uShOn')};
+
+/* スカイ（グラデ全画面） */
+const skyP=prog('attribute vec2 aPos;varying vec2 vUv;void main(){vUv=aPos*0.5+0.5;gl_Position=vec4(aPos,0.999,1.0);}',
+  PRE+'varying vec2 vUv;uniform vec3 uTop;uniform vec3 uHor;void main(){float t=pow(clamp(vUv.y,0.0,1.0),0.8);gl_FragColor=vec4(mix(uHor,uTop,t),1.0);}');
+const skyLoc={pos:gl.getAttribLocation(skyP,'aPos'),top:gl.getUniformLocation(skyP,'uTop'),hor:gl.getUniformLocation(skyP,'uHor')};
+
+/* 夜光虫（点スプライト・加算） */
+const plkP=prog(
+ 'attribute vec3 aP;attribute float aSeed;uniform mat4 uVP;uniform float uT;uniform float uGlow;varying float vA;'+
+ 'void main(){float ph=aSeed*6.2831;vec3 w=aP;w.x+=sin(uT*0.5+ph)*0.6;w.z+=cos(uT*0.4+ph*1.3)*0.6;w.y+=sin(uT*1.5+ph)*0.05;'+
+ 'vec4 cp=uVP*vec4(w,1.0);gl_Position=cp;gl_PointSize=clamp(70.0/cp.w,1.0,8.0)*(0.6+0.4*sin(uT*3.0+ph));'+
+ 'vA=(0.35+0.5*max(sin(uT*2.0+ph),0.0))*(0.55+uGlow);}',
+ PRE+'varying float vA;void main(){vec2 d=gl_PointCoord-0.5;float r=length(d);if(r>0.5)discard;float a=smoothstep(0.5,0.0,r);gl_FragColor=vec4(vec3(0.45,0.9,1.0)*a*vA,1.0);}');
+const plkLoc={p:gl.getAttribLocation(plkP,'aP'),seed:gl.getAttribLocation(plkP,'aSeed'),vp:gl.getUniformLocation(plkP,'uVP'),t:gl.getUniformLocation(plkP,'uT'),glow:gl.getUniformLocation(plkP,'uGlow')};
+
+/* ブルーム（bright→blur→composite） */
+const VS_FS='attribute vec2 aPos;varying vec2 vUv;void main(){vUv=aPos*0.5+0.5;gl_Position=vec4(aPos,0.0,1.0);}';
+const brightP=prog(VS_FS,PRE+'varying vec2 vUv;uniform sampler2D uTex;uniform float uThr;'+
+ 'void main(){vec3 c=texture2D(uTex,vUv).rgb;float l=dot(c,vec3(0.299,0.587,0.114));float k=smoothstep(uThr,uThr+0.35,l);gl_FragColor=vec4(c*k,1.0);}');
+const brightLoc={pos:gl.getAttribLocation(brightP,'aPos'),tex:gl.getUniformLocation(brightP,'uTex'),thr:gl.getUniformLocation(brightP,'uThr')};
+const blurP=prog(VS_FS,PRE+'varying vec2 vUv;uniform sampler2D uTex;uniform vec2 uDir;'+
+ 'void main(){vec3 s=texture2D(uTex,vUv).rgb*0.227;'+
+ 's+=texture2D(uTex,vUv+uDir*1.384).rgb*0.316;s+=texture2D(uTex,vUv-uDir*1.384).rgb*0.316;'+
+ 's+=texture2D(uTex,vUv+uDir*3.230).rgb*0.070;s+=texture2D(uTex,vUv-uDir*3.230).rgb*0.070;'+
+ 'gl_FragColor=vec4(s,1.0);}');
+const blurLoc={pos:gl.getAttribLocation(blurP,'aPos'),tex:gl.getUniformLocation(blurP,'uTex'),dir:gl.getUniformLocation(blurP,'uDir')};
+const compP=prog(VS_FS,PRE+'varying vec2 vUv;uniform sampler2D uScene;uniform sampler2D uBloom;uniform float uStr;'+
+ 'void main(){vec3 c=texture2D(uScene,vUv).rgb+texture2D(uBloom,vUv).rgb*uStr;'+
+ 'c=c/(c+vec3(0.6))*1.6;c=pow(c,vec3(0.92));gl_FragColor=vec4(c,1.0);}');
+const compLoc={pos:gl.getAttribLocation(compP,'aPos'),scene:gl.getUniformLocation(compP,'uScene'),bloom:gl.getUniformLocation(compP,'uBloom'),str:gl.getUniformLocation(compP,'uStr')};
+
+/* スプライト（テクスチャ四角・加算/通常） */
+const sprP=prog(
+ 'attribute vec2 aPos;attribute vec2 aUV;uniform mat4 uMVP;varying vec2 vUV;'+
+ 'void main(){vUV=aUV;gl_Position=uMVP*vec4(aPos,0.0,1.0);}',
+ PRE+'varying vec2 vUV;uniform sampler2D uTex;uniform vec4 uTint;uniform float uAdd;'+
+ 'void main(){vec4 t=texture2D(uTex,vUV);gl_FragColor=vec4(t.rgb*uTint.rgb,t.a*uTint.a);if(uAdd>0.5)gl_FragColor.rgb*=t.a;}');
+const sprLoc={pos:gl.getAttribLocation(sprP,'aPos'),uv:gl.getAttribLocation(sprP,'aUV'),
+  mvp:gl.getUniformLocation(sprP,'uMVP'),tex:gl.getUniformLocation(sprP,'uTex'),tint:gl.getUniformLocation(sprP,'uTint'),add:gl.getUniformLocation(sprP,'uAdd')};
+
+/* ---------- ジオメトリ ---------- */
+function buf(data){const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STATIC_DRAW);return b;}
+function ebuf(data){const b=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,b);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(data),gl.STATIC_DRAW);return b;}
+function makeBox(sx,sy,sz){const x=sx/2,y=sy/2,z=sz/2;const v=[],n=[],idx=[];
+  const faces=[[[ -x,-y, z],[ x,-y, z],[ x, y, z],[-x, y, z],[0,0,1]],
+    [[ x,-y,-z],[-x,-y,-z],[-x, y,-z],[ x, y,-z],[0,0,-1]],
+    [[ x,-y, z],[ x,-y,-z],[ x, y,-z],[ x, y, z],[1,0,0]],
+    [[-x,-y,-z],[-x,-y, z],[-x, y, z],[-x, y,-z],[-1,0,0]],
+    [[-x, y, z],[ x, y, z],[ x, y,-z],[-x, y,-z],[0,1,0]],
+    [[-x,-y,-z],[ x,-y,-z],[ x,-y, z],[-x,-y, z],[0,-1,0]]];
+  let o=0;for(const f of faces){for(let i=0;i<4;i++){v.push(f[i][0],f[i][1],f[i][2]);n.push(f[4][0],f[4][1],f[4][2]);}idx.push(o,o+1,o+2,o,o+2,o+3);o+=4;}
+  return {vb:buf(interleave(v,n)),ib:ebuf(idx),count:idx.length};}
+function makeDisc(r,seg){const v=[],n=[],idx=[];v.push(0,0,0);n.push(0,1,0);
+  for(let i=0;i<=seg;i++){const a=i/seg*TAU;v.push(Math.cos(a)*r,0,Math.sin(a)*r);n.push(0,1,0);}
+  for(let i=1;i<=seg;i++)idx.push(0,i,i+1);
+  return {vb:buf(interleave(v,n)),ib:ebuf(idx),count:idx.length};}
+function interleave(v,n){const o=[];for(let i=0;i<v.length/3;i++){o.push(v[i*3],v[i*3+1],v[i*3+2],n[i*3],n[i*3+1],n[i*3+2]);}return o;}
+const geoBox=makeBox(1,1,1), geoBeam=makeBox(12,0.5,1.7), geoPost=makeBox(0.7,7,0.7), geoDisc=makeDisc(1.5,40);
+// 海のグリッド平面（xz・y=SEA_Y）: ripple は FS で
+const SEA_Y=-2.2, SEA_HALF=44;
+const seaVB=buf([-SEA_HALF,SEA_Y,-SEA_HALF, SEA_HALF,SEA_Y,-SEA_HALF, SEA_HALF,SEA_Y,SEA_HALF, -SEA_HALF,SEA_Y,SEA_HALF]);
+const seaIB=ebuf([0,1,2,0,2,3]);
+const fsQuadVB=buf([-1,-1, 1,-1, 1,1, -1,1]);
+const fsQuadIB=ebuf([0,1,2,0,2,3]);
+
+/* 影マップFBO */
+let SHADOW_SIZE=1024, shadowFBO=null,shadowTex=null,shadowRB=null,SHADOW_OK=false;
+function initShadow(size){ SHADOW_OK=false; try{ SHADOW_SIZE=size;
+  shadowTex=shadowTex||gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,shadowTex);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,size,size,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  shadowFBO=shadowFBO||gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,shadowFBO);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,shadowTex,0);
+  shadowRB=shadowRB||gl.createRenderbuffer();gl.bindRenderbuffer(gl.RENDERBUFFER,shadowRB);
+  gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,size,size);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,shadowRB);
+  SHADOW_OK=(gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+}catch(e){SHADOW_OK=false;} }
+/* 反射FBO（半解像度） */
+let reflFBO=null,reflTex=null,reflRB=null,REFL_OK=false,reflW=0,reflH=0;
+function initRefl(){ REFL_OK=false; try{
+  reflW=Math.max(2,(canvas.width/2)|0);reflH=Math.max(2,(canvas.height/2)|0);
+  reflTex=reflTex||gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,reflTex);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,reflW,reflH,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  reflFBO=reflFBO||gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,reflFBO);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,reflTex,0);
+  reflRB=reflRB||gl.createRenderbuffer();gl.bindRenderbuffer(gl.RENDERBUFFER,reflRB);
+  gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,reflW,reflH);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,reflRB);
+  REFL_OK=(gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+}catch(e){REFL_OK=false;} }
+initShadow(2048); if(!SHADOW_OK)initShadow(1024);
+
+/* シーンFBO＋ブルームFBO */
+let POST_OK=false, sceneFBO=null,sceneTex=null,sceneRB=null,sceneW=0,sceneH=0;
+let bloomFBO=[null,null],bloomTex=[null,null],bloomW=0,bloomH=0;
+function mkTexFBO(tex,fbo,w,h,rb){ gl.bindTexture(gl.TEXTURE_2D,tex);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,fbo);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tex,0);
+  if(rb){gl.bindRenderbuffer(gl.RENDERBUFFER,rb);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,w,h);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,rb);}
+  const ok=(gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE);gl.bindFramebuffer(gl.FRAMEBUFFER,null);return ok;}
+function initPost(){ POST_OK=false; try{ sceneW=canvas.width;sceneH=canvas.height; if(sceneW<2||sceneH<2)return;
+  sceneTex=sceneTex||gl.createTexture();sceneFBO=sceneFBO||gl.createFramebuffer();sceneRB=sceneRB||gl.createRenderbuffer();
+  if(!mkTexFBO(sceneTex,sceneFBO,sceneW,sceneH,sceneRB))return;
+  bloomW=Math.max(2,(sceneW/4)|0);bloomH=Math.max(2,(sceneH/4)|0);
+  for(let i=0;i<2;i++){bloomTex[i]=bloomTex[i]||gl.createTexture();bloomFBO[i]=bloomFBO[i]||gl.createFramebuffer();if(!mkTexFBO(bloomTex[i],bloomFBO[i],bloomW,bloomH,null))return;}
+  POST_OK=true;
+}catch(e){POST_OK=false;} }
+let BLOOM_ON=true, PLANKTON_ON=true;
+
+/* 夜光虫の点群 */
+const PLK_N=2000;
+const plk=(function(){const a=new Float32Array(PLK_N*4);for(let i=0;i<PLK_N;i++){
+  const r=Math.sqrt(Math.random())*22, an=Math.random()*TAU;
+  a[i*4]=Math.cos(an)*r; a[i*4+1]=SEA_Y+0.02+Math.random()*0.06; a[i*4+2]=Math.sin(an)*r-4; a[i*4+3]=Math.random();}
+  const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,a,gl.STATIC_DRAW);return b;})();
+function drawPlankton(vp,uT,glow){ if(!PLANKTON_ON)return; gl.useProgram(plkP);
+  gl.bindBuffer(gl.ARRAY_BUFFER,plk);
+  gl.enableVertexAttribArray(plkLoc.p);gl.vertexAttribPointer(plkLoc.p,3,gl.FLOAT,false,16,0);
+  gl.enableVertexAttribArray(plkLoc.seed);gl.vertexAttribPointer(plkLoc.seed,1,gl.FLOAT,false,16,12);
+  gl.uniformMatrix4fv(plkLoc.vp,false,vp);gl.uniform1f(plkLoc.t,uT);gl.uniform1f(plkLoc.glow,glow);
+  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);gl.depthMask(false);
+  gl.drawArrays(gl.POINTS,0,PLK_N);
+  gl.depthMask(true);gl.disable(gl.BLEND);
+  gl.disableVertexAttribArray(plkLoc.seed);}
+// 全画面ポスト描画ヘルパ
+function drawFSQuad(loc){ gl.bindBuffer(gl.ARRAY_BUFFER,fsQuadVB);
+  gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,fsQuadIB);gl.drawElements(gl.TRIANGLES,6,gl.UNSIGNED_SHORT,0);}
+
+/* 描画ヘルパ */
+function bindMeshAttribs(geo){gl.bindBuffer(gl.ARRAY_BUFFER,geo.vb);
+  gl.enableVertexAttribArray(meshLoc.pos);gl.vertexAttribPointer(meshLoc.pos,3,gl.FLOAT,false,24,0);
+  gl.enableVertexAttribArray(meshLoc.nor);gl.vertexAttribPointer(meshLoc.nor,3,gl.FLOAT,false,24,12);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,geo.ib);}
+function drawMesh(geo,model,vp,col,amb,emis){
+  gl.useProgram(meshP);bindMeshAttribs(geo);
+  gl.uniformMatrix4fv(meshLoc.vp,false,vp);gl.uniformMatrix4fv(meshLoc.model,false,model);gl.uniformMatrix4fv(meshLoc.lvp,false,LVP);
+  gl.uniform3fv(meshLoc.col,col);gl.uniform3fv(meshLoc.light,LIGHT);gl.uniform1f(meshLoc.amb,amb);gl.uniform1f(meshLoc.emis,emis||0);
+  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,shadowTex);gl.uniform1i(meshLoc.sh,1);
+  gl.uniform1f(meshLoc.shPx,1/SHADOW_SIZE);gl.uniform1f(meshLoc.shOn,(SHADOW_ON&&SHADOW_OK)?1:0);
+  gl.drawElements(gl.TRIANGLES,geo.count,gl.UNSIGNED_SHORT,0);
+}
+function drawDepth(geo,model){ gl.useProgram(depthP);
+  gl.bindBuffer(gl.ARRAY_BUFFER,geo.vb);gl.enableVertexAttribArray(dLoc.pos);gl.vertexAttribPointer(dLoc.pos,3,gl.FLOAT,false,24,0);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,geo.ib);
+  gl.uniformMatrix4fv(dLoc.lvp,false,mMul(LVP,model));gl.drawElements(gl.TRIANGLES,geo.count,gl.UNSIGNED_SHORT,0);}
+// unit quad centered XY (sprites)
+const quadVB=buf([-0.5,-0.5,0,1, 0.5,-0.5,1,1, 0.5,0.5,1,0, -0.5,0.5,0,0]);
+const quadIB=ebuf([0,1,2,0,2,3]);
+function drawSprite(model,vp,cell,tint,add){
+  gl.useProgram(sprP);gl.bindBuffer(gl.ARRAY_BUFFER,quadVB);
+  gl.enableVertexAttribArray(sprLoc.pos);gl.vertexAttribPointer(sprLoc.pos,2,gl.FLOAT,false,16,0);
+  gl.enableVertexAttribArray(sprLoc.uv);gl.vertexAttribPointer(sprLoc.uv,2,gl.FLOAT,false,16,8);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,quadIB);
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlasTex);gl.uniform1i(sprLoc.tex,0);
+  const uv=cellUV(cell);
+  gl.bindBuffer(gl.ARRAY_BUFFER,quadVB);
+  gl.bufferSubData(gl.ARRAY_BUFFER,0,new Float32Array([-0.5,-0.5,uv[0],uv[3], 0.5,-0.5,uv[2],uv[3], 0.5,0.5,uv[2],uv[1], -0.5,0.5,uv[0],uv[1]]));
+  gl.uniformMatrix4fv(sprLoc.mvp,false,mMul(vp,model));
+  gl.uniform4fv(sprLoc.tint,tint);gl.uniform1f(sprLoc.add,add?1:0);
+  gl.drawElements(gl.TRIANGLES,6,gl.UNSIGNED_SHORT,0);
+}
+// 反射用ミラー行列（y=SEA_Y で鏡映）
+const MIRROR=mMul(mTrans(0,2*SEA_Y,0),mScale(1,-1,1));
+
+/* ---------- アトラス（SVG焼き＋絵文字） ---------- */
+const cocco=new Image();let coccoReady=false;
+const AR=298/390, AN=4, ACS=128;
+const atlasCv=document.createElement('canvas');atlasCv.width=AN*ACS;atlasCv.height=AN*ACS;
+const atx=atlasCv.getContext('2d');
+const atlasTex=gl.createTexture();
+// cells: 0=cocco 1=black 2=glow 3=shadow 4=🍎 5=💧 6=✨ 7=❤️ 8=🌙 9=⭐
+const EMO={4:'🍎',5:'💧',6:'✨',7:'❤️',8:'🌙',9:'⭐'};
+function cellRC(c){return [(c%AN)*ACS,((c/AN)|0)*ACS];}
+function cellUV(c){const col=c%AN,row=(c/AN)|0,s=1/AN;return [col*s,row*s,(col+1)*s,(row+1)*s];}
+function buildAtlas(){
+  atx.clearRect(0,0,atlasCv.width,atlasCv.height);
+  function drawCocco(cell,tintFn){const r=cellRC(cell);atx.save();atx.translate(r[0]+ACS/2,r[1]+ACS/2);
+    const w=104*AR,h=104;if(coccoReady)atx.drawImage(cocco,-w/2,-h/2,w,h);if(tintFn)tintFn(r);atx.restore();}
+  drawCocco(0,null);
+  drawCocco(1,()=>{atx.globalCompositeOperation='source-atop';atx.fillStyle='rgba(18,8,36,0.9)';atx.fillRect(-64,-64,128,128);
+    atx.globalCompositeOperation='source-over';atx.fillStyle='#e08cff';atx.beginPath();atx.arc(-11,-17,4,0,TAU);atx.fill();atx.beginPath();atx.arc(13,-17,4,0,TAU);atx.fill();});
+  (function(){const r=cellRC(2);const g=atx.createRadialGradient(r[0]+64,r[1]+64,2,r[0]+64,r[1]+64,62);
+    g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.35,'rgba(255,244,200,.6)');g.addColorStop(1,'rgba(255,225,150,0)');
+    atx.fillStyle=g;atx.fillRect(r[0],r[1],128,128);})();
+  (function(){const r=cellRC(3);const g=atx.createRadialGradient(r[0]+64,r[1]+64,4,r[0]+64,r[1]+64,60);
+    g.addColorStop(0,'rgba(0,0,0,.5)');g.addColorStop(1,'rgba(0,0,0,0)');atx.fillStyle=g;atx.fillRect(r[0],r[1],128,128);})();
+  atx.textAlign='center';atx.textBaseline='middle';atx.font='92px serif';
+  for(const c in EMO){const r=cellRC(+c);atx.fillText(EMO[c],r[0]+64,r[1]+66);}
+  gl.bindTexture(gl.TEXTURE_2D,atlasTex);
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,true);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlasCv);
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+}
+cocco.onload=()=>{coccoReady=true;buildAtlas();};
+cocco.src='/chikumo.svg';
+buildAtlas();
+
+/* ---------- 世界の定数 ---------- */
+const BEAM_HALF=6;          // 天秤の腕の半分の長さ（world）
+const MOON_POS=[-5.5,9.2,-22];
+const LIGHT=(function(){const v=[0.34,0.8,0.42];const l=Math.hypot(...v);return [v[0]/l,v[1]/l,v[2]/l];})();
+let sky=0;                  // 0..1 夜→夜明け
+let EYE=[0,4.6,13.5];
+let LVP=mIdent();           // ライト視点の view-proj（影マップ）
+let SHADOW_ON=true, REFL_ON=true;
+// 影マップのライト行列（月方向から見下ろす正射・天秤域を覆う）
+(function buildLVP(){ const d=22; const lp=[LIGHT[0]*d,LIGHT[1]*d,LIGHT[2]*d];
+  LVP=mMul(mOrtho(-9,9,-9,9,1,48),mLookAt(lp,[0,0,0],[0,1,0])); })();
+
+/* ---------- 状態 ---------- */
+const S={phase:'title', th:0, w:0, amp:0, coccoU:0, coccoV:0, input:0, hearts:3, coins:0, res:0,
+  time:ROUND, deadT:0, breakT:0, invuln:0, enemies:[], fruits:[], sparks:[], memGold:0, memSilver:0,
+  mirror:0, camKick:0, won:false, endReason:''};
+let last=0, started=false;
+
+/* ---------- 音（WebAudio合成のみ） ---------- */
+let AC=null,master=null,pad=null,swingOsc=null,swingGain=null,swingFilt=null;
+let seaGain=null,seaFilt=null,verbIn=null,padPan=null,seaPan=null,shimmer=null;
+function makeNoise(){ const n=AC.sampleRate*2,buf=AC.createBuffer(1,n,AC.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<n;i++)d[i]=Math.random()*2-1; const s=AC.createBufferSource();s.buffer=buf;s.loop=true;return s; }
+function initAudio(){ if(AC)return; try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
+  master=AC.createGain();master.gain.value=0.0;master.connect(AC.destination);
+  // フィードバックディレイの簡易リバーブ send
+  verbIn=AC.createGain();verbIn.gain.value=0.5;
+  const dl=AC.createDelay(1.0);dl.delayTime.value=0.19;const fb=AC.createGain();fb.gain.value=0.42;
+  const vlp=AC.createBiquadFilter();vlp.type='lowpass';vlp.frequency.value=2600;const vwet=AC.createGain();vwet.gain.value=0.35;
+  verbIn.connect(dl);dl.connect(vlp);vlp.connect(fb);fb.connect(dl);vlp.connect(vwet);vwet.connect(master);
+  // 夜の環境パッド（わずかに揺れる・左右）
+  pad=AC.createGain();pad.gain.value=0.05;padPan=AC.createStereoPanner?AC.createStereoPanner():null;
+  if(padPan){pad.connect(padPan);padPan.connect(master);}else pad.connect(master);
+  [110,164.8,220,330].forEach((f,i)=>{const o=AC.createOscillator();o.type='sine';o.frequency.value=f;
+    const g=AC.createGain();g.gain.value=0.28;const lfo=AC.createOscillator();lfo.frequency.value=0.05+i*0.02;
+    const lg=AC.createGain();lg.gain.value=0.6;lfo.connect(lg);lg.connect(o.detune);lfo.start();
+    o.connect(g);g.connect(pad);o.start();});
+  // 高いきらめき（夜明けで開く）
+  shimmer=AC.createGain();shimmer.gain.value=0.0;shimmer.connect(verbIn);shimmer.connect(master);
+  [1568,2093,2637].forEach(f=>{const o=AC.createOscillator();o.type='sine';o.frequency.value=f;const g=AC.createGain();g.gain.value=0.02;o.connect(g);g.connect(shimmer);o.start();});
+  // 海のノイズ（潮騒・揺れに追従）
+  seaFilt=AC.createBiquadFilter();seaFilt.type='bandpass';seaFilt.frequency.value=500;seaFilt.Q.value=0.7;
+  seaGain=AC.createGain();seaGain.gain.value=0.04;seaPan=AC.createStereoPanner?AC.createStereoPanner():null;
+  const nz=makeNoise();nz.connect(seaFilt);seaFilt.connect(seaGain);
+  if(seaPan){seaGain.connect(seaPan);seaPan.connect(master);}else seaGain.connect(master);
+  nz.start();
+  // 揺れに追従する音（サイン＋倍音）
+  swingGain=AC.createGain();swingGain.gain.value=0.0;
+  swingFilt=AC.createBiquadFilter();swingFilt.type='lowpass';swingFilt.frequency.value=500;
+  swingOsc=AC.createOscillator();swingOsc.type='triangle';swingOsc.frequency.value=180;
+  swingOsc.connect(swingFilt);swingFilt.connect(swingGain);swingGain.connect(master);swingGain.connect(verbIn);swingOsc.start();
+  master.gain.linearRampToValueAtTime(0.55,AC.currentTime+1.2);
+}
+function beep(freq,dur,type,vol,when,verb){ if(!AC)return; const t=(when||AC.currentTime);
+  const o=AC.createOscillator();o.type=type||'sine';o.frequency.value=freq;const g=AC.createGain();
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol||0.2,t+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g);g.connect(master||AC.destination);if(verb&&verbIn)g.connect(verbIn);o.start(t);o.stop(t+dur+0.02);}
+const CHORD=[261.6,329.6,392,523.2,659.3,783.9]; // ドミソド♯…積み上がる
+function sfxRes(n){ const f=CHORD[Math.min(n,CHORD.length-1)];
+  beep(f,0.7,'sine',0.17,0,true); beep(f*1.002,0.7,'sine',0.09,0,true); // わずかにデチューン
+  beep(f*2,0.5,'triangle',0.05,0,true); }
+function sfxPick(){ beep(880,0.12,'triangle',0.13); beep(1320,0.1,'sine',0.05,AC&&AC.currentTime+0.02); }
+function sfxMelt(){ beep(300,0.5,'sine',0.11,0,true); beep(600,0.5,'sine',0.07,AC&&AC.currentTime+0.08,true); }
+function sfxHurt(){ beep(90,0.25,'sawtooth',0.2); if(navigator.vibrate)navigator.vibrate(60); }
+function sfxBless(){ // 夜明けの解決和音（低→高・きらめきを開く）
+  if(shimmer&&AC)shimmer.gain.linearRampToValueAtTime(0.5,AC.currentTime+2.4);
+  [130.8,196,261.6,329.6,392,523.2].forEach((f,i)=>beep(f,2.6,'sine',0.15,AC&&AC.currentTime+i*0.22,true)); }
+
+/* ---------- 入力 ---------- */
+function setInput(d){ S.input=d; }
+addEventListener('keydown',e=>{ if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A')setInput(-1);
+  else if(e.key==='ArrowRight'||e.key==='d'||e.key==='D')setInput(1); });
+addEventListener('keyup',e=>{ if(['ArrowLeft','ArrowRight','a','A','d','D'].includes(e.key))setInput(0); });
+let touchId=null;
+function ptr(x){ setInput(x<innerWidth/2?-1:1); }
+canvas.addEventListener('pointerdown',e=>{ if(S.phase!=='play')return; touchId=e.pointerId; ptr(e.clientX); },{passive:true});
+canvas.addEventListener('pointermove',e=>{ if(touchId===e.pointerId&&S.phase==='play')ptr(e.clientX); },{passive:true});
+function upEnd(e){ if(touchId===e.pointerId){touchId=null;setInput(0);} }
+canvas.addEventListener('pointerup',upEnd);canvas.addEventListener('pointercancel',upEnd);
+
+/* ---------- ゲーム進行 ---------- */
+function startGame(){
+  S.phase='play';S.th=0.03;S.w=0.5;S.amp=0.05;S.coccoU=0;S.coccoV=0;S.input=0;S.hearts=3;S.coins=0;S.res=0;
+  S.mirror=0;S.camKick=0;camAz=0;camEl=0;
+  S.time=ROUND;S.deadT=0;S.breakT=0;S.invuln=0;S.enemies=[];S.fruits=[];S.sparks=[];S.memGold=0;S.memSilver=0;S.won=false;S.endReason='';
+  sky=0;last=0;spawnT=9;tutStage=0;tutT=0;tutTotal=0;
+  document.getElementById('title').classList.add('hidden');
+  document.getElementById('result').classList.add('hidden');
+  document.getElementById('bandWrap').classList.remove('hidden');
+  document.getElementById('hudTL').classList.remove('hidden');
+  document.getElementById('hudTR').classList.remove('hidden');
+  initAudio(); if(AC&&AC.state==='suspended')AC.resume();
+}
+let hintT=0;
+function showHint(txt,dur){const h=document.getElementById('hint');h.textContent=txt;h.style.opacity='1';hintT=dur;}
+let spawnT=6;
+function spawnEnemy(){ if(S.enemies.length>=EN_MAX)return; const side=Math.random()<0.5?-1:1;
+  S.enemies.push({u:side*0.85,push:side,dunkT:0,age:0,alive:true}); }
+function addSpark(u,y,cell,col){ S.sparks.push({u,y,cell,col,life:0.9,vy:1.4}); }
+
+function endGame(won,reason){
+  S.phase='end';S.won=won;S.endReason=reason;
+  if(swingGain)swingGain.gain.linearRampToValueAtTime(0,AC.currentTime+0.4);
+  setTimeout(()=>{ if(won)sfxBless(); showResult(); }, won?1400:700);
+}
+function uToWorld(u){ // position along beam surface at param u∈[-1,1], on tilted beam
+  const x=u*BEAM_HALF, y=0.35 - x*Math.sin(S.th)*0 ; // height handled by rotation in draw; here give local
+  return x;
+}
+
+function update(dt){
+  if(S.phase!=='play'){ return; }
+  // ---- 入力→こっこ位置（慣性つき＝錘の重み） ----
+  S.coccoV += (S.input*COCCO_SPEED - S.coccoV*(S.input?0.0:1.0))*COCCO_ACC*dt;
+  S.coccoV -= S.coccoV*Math.min(1,COCCO_FRIC*dt*(S.input?0.15:1.0));
+  S.coccoV=Math.max(-COCCO_SPEED,Math.min(COCCO_SPEED,S.coccoV));
+  S.coccoU+=S.coccoV*dt;
+  if(S.coccoU>1){S.coccoU=1;S.coccoV*=-0.3;} if(S.coccoU<-1){S.coccoU=-1;S.coccoV*=-0.3;}
+  // ---- 逆縁トルク合計 ----
+  let enT=0;
+  spawnT-=dt; if(spawnT<=0){ spawnEnemy(); spawnT=6.5+Math.random()*4.0; }
+  for(const e of S.enemies){ if(!e.alive)continue;
+    e.age+=dt;
+    e.u += (e.push*0.9 - e.u)*Math.min(1,dt*0.7); // 端へじわり寄る
+    e.u=Math.max(-1,Math.min(1,e.u));
+    enT += K_EN*e.u*0.5*Math.min(1,e.age/0.6);
+    // 沈んで月へ帰る：自分の側が DUNK 以上に沈む(th が push と同符号で深い)
+    const dip = e.push>0 ? S.th : -S.th;
+    if(dip>DUNK){ e.dunkT+=dt; if(e.dunkT>=T_DUNK){ e.alive=false; S.coins+=30; addSpark(e.u,0.6,2,[1,.9,.5,1]); sfxMelt(); } }
+    else e.dunkT=Math.max(0,e.dunkT-dt*1.5);
+    // 接触（湧いて0.6秒は無害＝テレグラフ／半径やや小さめ）
+    if(e.age>0.6 && S.invuln<=0 && Math.abs(e.u-S.coccoU)<0.24){ S.hearts--; S.invuln=1.2; sfxHurt();
+      if(S.hearts<=0){ endGame(false,'heart'); } }
+  }
+  S.enemies=S.enemies.filter(e=>e.alive);
+  if(S.invuln>0)S.invuln-=dt;
+  // ---- 天秤の物理（単振り子＋駆動＋破れ際のクッション） ----
+  let torque = K_COCCO*S.coccoU + enT;
+  // 破れ際のやわらかいクッション（急に切れない手応え。振り自体は止めない）
+  if(Math.abs(S.th)>EDGE){ const over=Math.abs(S.th)-EDGE; torque -= Math.sign(S.th)*over*over*WALL; }
+  const a = -W0*W0*Math.sin(S.th) - 2*ZETA*W0*S.w + torque;
+  const prevW=S.w;
+  S.w += a*dt; S.th += S.w*dt;
+  // ---- 振幅の包絡 ----
+  const at=Math.abs(S.th);
+  if(at>S.amp)S.amp=at; else S.amp += (at-S.amp)*Math.min(1,dt*0.9);
+  // ---- 局所ピーク検出（w 符号反転）＝共振・実の湧き ----
+  if(prevW*S.w<0){ const peak=Math.abs(S.th); const side=S.th>0?1:-1;
+    if(peak>AMP_LOW){ // 沈んだ側(低い側=同符号の端)に実
+      S.fruits.push({u:side*0.9, life:3.2, cell: side>0?5:4}); if(S.fruits.length>6)S.fruits.shift(); }
+    if(peak>AMP_HIGH){ S.res++; sfxRes(S.res); if(navigator.vibrate)navigator.vibrate(30);
+      addSpark(0,1.2,6,[1,1,.8,1]); S.camKick=Math.min(1,S.camKick+0.5);
+      if(S.res>=RES_WIN){ endGame(true,'win'); } }
+  }
+  // ---- 実の回収 ----
+  for(const f of S.fruits){ f.life-=dt;
+    if(Math.abs(f.u-S.coccoU)<0.34 && f.life>0){ f.life=-1; S.coins+=(f.cell===6?40:10);
+      if(f.cell===4)S.memGold++; else if(f.cell===5)S.memSilver++;
+      sfxPick(); if(navigator.vibrate)navigator.vibrate(10); addSpark(f.u,0.7,f.cell,[1,1,1,1]); } }
+  S.fruits=S.fruits.filter(f=>f.life>0);
+  // ---- スパーク ----
+  for(const s of S.sparks){ s.life-=dt; s.y+=s.vy*dt; s.vy-=1.2*dt; }
+  S.sparks=S.sparks.filter(s=>s.life>0);
+  // ---- 負け判定：∿死（止まりすぎ）／絶傾（振りすぎ＝band上端超え・包絡で判定） ----
+  if(S.amp<AMP_DEAD){ S.deadT+=dt; if(S.deadT>=T_DEAD){ endGame(false,'flat'); } } else S.deadT=Math.max(0,S.deadT-dt*2);
+  if(S.amp>AMP_BREAK){ S.breakT+=dt; if(S.breakT>=T_BREAK){ endGame(false,'break'); } } else S.breakT=Math.max(0,S.breakT-dt*1.5);
+  // ---- 時間 ----
+  S.time-=dt; if(S.time<=0){ S.time=0; endGame(S.res>=RES_WIN,'time'); }
+  // ---- 音の追従 ----
+  if(swingGain&&AC){ const lo=Math.min(1,S.amp/AMP_HIGH);
+    swingGain.gain.value=0.02+0.12*lo;
+    swingFilt.frequency.value=300+900*lo+400*Math.abs(S.th)/0.5;
+    swingOsc.frequency.value=150+120*(S.th+0.5);
+    // 海のノイズ＝揺れの速さで満ち引きの「さーっ」／傾きで左右へ
+    if(seaGain)seaGain.gain.value=0.03+0.09*Math.min(1,Math.abs(S.w)*0.7);
+    if(seaFilt)seaFilt.frequency.value=380+900*Math.min(1,Math.abs(S.w)*0.6);
+    const pan=Math.max(-1,Math.min(1,S.th*1.6));
+    if(seaPan)seaPan.pan.value=pan; if(padPan)padPan.pan.value=pan*0.3; }
+  // ---- ヒント／チュートリアル ----
+  tutorial(dt);
+  if(hintT>0){ hintT-=dt; if(hintT<=0)document.getElementById('hint').style.opacity='0'; }
+  updateHUD();
+}
+
+function updateHUD(){
+  document.getElementById('hudTL').textContent='❤️'.repeat(Math.max(0,S.hearts))+'🖤'.repeat(Math.max(0,3-S.hearts));
+  document.getElementById('resTxt').textContent=S.res;
+  document.getElementById('resWin').textContent=RES_WIN;
+  document.getElementById('coinTxt').textContent=S.coins;
+  document.getElementById('timeTxt').textContent=Math.ceil(S.time);
+  document.getElementById('resTxt').parentElement.firstChild.textContent = S.res>=RES_WIN?'🌕 ':'🌑 ';
+  const MX=AMP_BREAK*1.12;
+  document.getElementById('bandFill').style.width=(Math.min(1,S.amp/MX)*100)+'%';
+  document.getElementById('bandLo').style.left=(AMP_LOW/MX*100)+'%';
+  document.getElementById('bandHi').style.left=(AMP_HIGH/MX*100)+'%';
+  document.getElementById('bandBrk').style.left=(AMP_BREAK/MX*100)+'%';
+  const sw=document.getElementById('bandSweet'); sw.style.left=(AMP_LOW/MX*100)+'%'; sw.style.width=((AMP_HIGH-AMP_LOW)/MX*100)+'%';
+  document.getElementById('bandDanger').style.width=((MX-AMP_BREAK)/MX*100)+'%';
+  const tp=50+ (S.th/TILT_MAX)*50; document.getElementById('bandTilt').style.left=Math.max(1,Math.min(99,tp))+'%';
+  const bf=document.getElementById('bandFill');
+  if(S.amp<AMP_DEAD||S.amp>AMP_BREAK)bf.style.background='#ff6b6b';
+  else if(S.amp>AMP_BREAK*0.86)bf.style.background='#ff9a3c';
+  else bf.style.background='linear-gradient(90deg,#7fd0ff,#8fe6a0,#ffd66b)';
+  // モバイル：押している側の矢印を光らせる
+  const hl=document.getElementById('moveHintL'),hr=document.getElementById('moveHintR');
+  hl.style.color=S.input<0?'rgba(255,255,255,.55)':'rgba(255,255,255,.13)';
+  hr.style.color=S.input>0?'rgba(255,255,255,.55)':'rgba(255,255,255,.13)';
+}
+/* ---------- 段階チュートリアル（最初だけ・体験で教える・時間フォールバック付き） ---------- */
+let tutStage=0,tutT=0,tutTotal=0;
+function tutorial(dt){
+  if(S.phase!=='play'||tutStage>=9)return; tutT+=dt; tutTotal+=dt;
+  if(tutTotal>18){ tutStage=9; hideHint(); return; }   // 保険：18秒で必ず終える
+  if(tutStage===0){ showHint('みぎへ はしってごらん →',99); if(S.coccoU>0.35||tutT>4.5){tutStage=1;tutT=0;} }
+  else if(tutStage===1){ showHint('← こんどは ぎゃくへも！',99); if(S.coccoU<-0.35||tutT>4.5){tutStage=2;tutT=0;} }
+  else if(tutStage===2){ showHint('その ゆれを たやすな',99); if(S.res>=1||tutT>4){tutStage=3;tutT=0;hideHint();} }
+  else if(tutStage===3){ if(S.enemies.length>0){showHint('くろいこっこは しずめて →',2.6);tutStage=4;tutT=0;} else if(tutT>6){tutStage=9;} }
+  else if(tutStage===4){ if(tutT>2.6){hideHint();tutStage=9;} }
+}
+function hideHint(){document.getElementById('hint').style.opacity='0';hintT=0;}
+
+/* ---------- 描画 ---------- */
+function resize(){ const dpr=Math.min(devicePixelRatio||1,2);
+  canvas.width=Math.floor(innerWidth*dpr);canvas.height=Math.floor(innerHeight*dpr);
+  canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px';
+  if(REFL_ON)initRefl(); initPost(); }
+addEventListener('resize',resize);resize();initRefl();initPost();
+
+function billboard(pos,w,h,mirror){ // upright billboard facing real camera（mirror=海面反射）
+  const ang=Math.atan2(EYE[0]-pos[0],EYE[2]-pos[2]);
+  let m=mMul(mMul(mTrans(pos[0],pos[1],pos[2]),mRotY(ang)),mScale(w,h,1));
+  return mirror?mMul(MIRROR,m):m;
+}
+// 天秤上の座標（u∈[-1,1]・傾きth に乗る）
+function cw(u){ return [u*BEAM_HALF*Math.cos(S.th), 0.85+u*BEAM_HALF*Math.sin(S.th)]; }
+// 雲（銀縁・ゆっくり流れる）
+const CLOUDS=[[-8,11,-24,7],[-2,12.5,-26,9],[4,10,-25,6],[9,12,-27,8],[-12,9,-22,5]];
+
+// 天秤・皿・柱（メッシュ）
+function meshModels(){ const A=[];
+  A.push(['post',mTrans(0,4.2,-0.2),[0.16,0.17,0.23],0.4,0.05]);
+  A.push(['beam',mMul(mTrans(0,0.6,0),mRotZ(S.th)),[0.6,0.55,0.46],0.5,0.05]);
+  for(const side of [-1,1]){ const ex=side*BEAM_HALF*Math.cos(S.th), ey=0.6+side*BEAM_HALF*Math.sin(S.th);
+    A.push(['string',mMul(mTrans(ex,ey-0.9,0),mScale(0.08,1.6,0.08)),[0.32,0.32,0.36],0.4,0]);
+    const pc=side<0?[1.0,0.82,0.42]:[0.76,0.82,0.94];
+    A.push(['disc',mTrans(ex,ey-1.75,0),pc,0.45,0.14+Math.max(0,side>0?S.th:-S.th)*0.5]);
+  } return A; }
+function geoOf(k){return k==='post'?geoPost:k==='beam'?geoBeam:k==='disc'?geoDisc:geoBox;}
+function drawMeshes(vp,mirror){ for(const m of meshModels()){ const mm=mirror?mMul(MIRROR,m[1]):m[1];
+  drawMesh(geoOf(m[0]),mm,vp,m[2],m[3],m[4]); } }
+
+function drawSprites(vp,mirror){
+  const dawn=sky;
+  gl.enable(gl.BLEND);gl.depthMask(false);
+  // 月（加算グロー＋ディスク）
+  gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
+  drawSprite(billboard(MOON_POS,11+(S.amp>AMP_HIGH?2:0),11,mirror),vp,2,[1,0.96,0.86,0.9],true);
+  drawSprite(billboard(MOON_POS,4.8,4.8,mirror),vp,8,[1,1,1,1],false);
+  // 雲（銀縁）
+  const tt=performance.now()*0.00004;
+  for(const c of CLOUDS){ const x=c[0]+Math.sin(tt+c[0])*2.0;
+    drawSprite(billboard([x,c[1],c[2]],c[3]*2.2,c[3]*1.1,mirror),vp,2,[0.8,0.86,1.0,0.16],true); }
+  // スパーク
+  for(const s of S.sparks){ const p=cw(s.u); drawSprite(billboard([p[0],p[1]+0.05+s.y,0.3],0.9,0.9,mirror),vp,s.cell,[s.col[0],s.col[1],s.col[2],Math.min(1,s.life)],s.cell===2||s.cell===6); }
+  // 皿に積む記憶（金＝親🍎❤️ / 銀＝子💧⭐）
+  gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  function panMemo(side,count,cells){ const ex=side*BEAM_HALF*Math.cos(S.th), ey=0.6+side*BEAM_HALF*Math.sin(S.th)-1.6;
+    const n=Math.min(count,8);
+    for(let i=0;i<n;i++){ const a=i*2.39+side; const rr=0.25+((i%3)*0.32);
+      const mx=ex+Math.cos(a)*rr, mz=Math.sin(a)*rr;
+      const my=ey+0.12+((i/3)|0)*0.16+Math.sin(performance.now()*0.003+i)*0.02;
+      drawSprite(billboard([mx,my,mz],0.55,0.55,mirror),vp,cells[i%cells.length],[1,1,1,0.96],false); } }
+  panMemo(-1,S.memGold,[4,7]);
+  panMemo(1,S.memSilver,[5,9]);
+  for(const f of S.fruits){ const p=cw(f.u); const bob=Math.sin(performance.now()*0.006+f.u*3)*0.06;
+    drawSprite(billboard([p[0],p[1]+0.25+bob,0.4],0.9,0.9,mirror),vp,f.cell,[1,1,1,Math.min(1,f.life)],false); }
+  for(const e of S.enemies){ const p=cw(e.u); const melt=(e.dunkT>0?1-e.dunkT/T_DUNK:1)*Math.min(1,e.age/0.6);
+    if(!mirror)drawSprite(mMul(mTrans(p[0],p[1]-0.85,0.1),mScale(1.1,0.5,1)),vp,3,[0,0,0,0.5*melt],false);
+    // 湧きたては赤く点滅（テレグラフ）
+    const warn=e.age<0.6?(0.4+0.6*Math.abs(Math.sin(e.age*22))):1;
+    drawSprite(billboard([p[0],p[1]+0.85,0.2],1.5*AR,1.5,mirror),vp,1,[1,0.5*warn,0.6*warn,melt],false); }
+  { const p=cw(S.coccoU);
+    if(!mirror)drawSprite(mMul(mTrans(p[0],p[1]-0.85,0.15),mScale(1.2,0.55,1)),vp,3,[0,0,0,0.55],false);
+    const bl=(S.invuln>0 && ((performance.now()*0.02|0)%2))?0.35:1;
+    drawSprite(billboard([p[0],p[1]+0.85,0.25],1.7*AR,1.7,mirror),vp,0,[1,1,1,bl],false); }
+  gl.depthMask(true);gl.disable(gl.BLEND);
+}
+function drawSky(top,hor){ gl.useProgram(skyP);gl.disable(gl.DEPTH_TEST);
+  gl.bindBuffer(gl.ARRAY_BUFFER,fsQuadVB);gl.enableVertexAttribArray(skyLoc.pos);gl.vertexAttribPointer(skyLoc.pos,2,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,fsQuadIB);
+  gl.uniform3fv(skyLoc.top,top);gl.uniform3fv(skyLoc.hor,hor);
+  gl.drawElements(gl.TRIANGLES,6,gl.UNSIGNED_SHORT,0);gl.enable(gl.DEPTH_TEST); }
+
+function render(){
+  const dawn=sky;
+  const asp=canvas.width/canvas.height;
+  const proj=mPersp(58*DEG,asp,0.1,200);
+  const view=mLookAt(EYE,CAM_CENTER,[Math.sin(CAM_ROLL),Math.cos(CAM_ROLL),0]);
+  const vp=mMul(proj,view);
+  const top=[0.02+dawn*0.5,0.05+dawn*0.35,0.14+dawn*0.28];
+  const hor=[0.06+dawn*0.7,0.09+dawn*0.4,0.20+dawn*0.25];
+  const uT=(performance.now()*0.001)%1000;
+  gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.clearDepth(1);
+
+  // ---- 1) 影パス ----
+  if(SHADOW_ON&&SHADOW_OK){ gl.bindFramebuffer(gl.FRAMEBUFFER,shadowFBO);gl.viewport(0,0,SHADOW_SIZE,SHADOW_SIZE);
+    gl.clearColor(1,1,1,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    for(const m of meshModels())drawDepth(geoOf(m[0]),m[1]); }
+
+  // ---- 2) 反射パス（海面より上を鏡映して描く） ----
+  if(REFL_ON&&REFL_OK){ gl.bindFramebuffer(gl.FRAMEBUFFER,reflFBO);gl.viewport(0,0,reflW,reflH);
+    gl.clearColor(top[0],top[1],top[2],1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    drawSky(top,hor); drawMeshes(vp,true); drawSprites(vp,true); }
+
+  // ---- 3) 本パス ----
+  const useBloom=POST_OK&&BLOOM_ON;
+  gl.bindFramebuffer(gl.FRAMEBUFFER,useBloom?sceneFBO:null);gl.viewport(0,0,canvas.width,canvas.height);
+  gl.clearColor(top[0],top[1],top[2],1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  drawSky(top,hor);
+  // 海
+  gl.useProgram(seaP);gl.bindBuffer(gl.ARRAY_BUFFER,seaVB);
+  gl.enableVertexAttribArray(seaLoc.pos);gl.vertexAttribPointer(seaLoc.pos,3,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,seaIB);
+  gl.uniformMatrix4fv(seaLoc.vp,false,vp);gl.uniformMatrix4fv(seaLoc.lvp,false,LVP);
+  gl.uniform3fv(seaLoc.cam,EYE);gl.uniform3fv(seaLoc.moonDir,LIGHT);gl.uniform3fv(seaLoc.moonPos,MOON_POS);
+  gl.uniform1f(seaLoc.t,uT);gl.uniform1f(seaLoc.dawn,dawn);gl.uniform1f(seaLoc.road,0.4+Math.min(1,S.res/RES_WIN)*0.8+dawn*0.6);gl.uniform1f(seaLoc.mirror,S.mirror);
+  gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,reflTex);gl.uniform1i(seaLoc.refl,2);gl.uniform1f(seaLoc.reflOn,(REFL_ON&&REFL_OK)?1:0);
+  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,shadowTex);gl.uniform1i(seaLoc.sh,1);
+  gl.uniform1f(seaLoc.shPx,1/SHADOW_SIZE);gl.uniform1f(seaLoc.shOn,(SHADOW_ON&&SHADOW_OK)?1:0);
+  gl.drawElements(gl.TRIANGLES,6,gl.UNSIGNED_SHORT,0);
+  // 夜光虫（航跡・共振で強まる）
+  drawPlankton(vp,uT,Math.min(1,S.amp/AMP_HIGH)*0.7+(S.phase==='end'&&S.won?0.6:0));
+  // メッシュ＋スプライト
+  drawMeshes(vp,false);
+  drawSprites(vp,false);
+
+  // ---- ブルーム合成 ----
+  if(useBloom){ gl.disable(gl.DEPTH_TEST);
+    gl.viewport(0,0,bloomW,bloomH);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,bloomFBO[0]);gl.useProgram(brightP);
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,sceneTex);gl.uniform1i(brightLoc.tex,0);gl.uniform1f(brightLoc.thr,0.62);drawFSQuad(brightLoc.pos);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,bloomFBO[1]);gl.useProgram(blurP);
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,bloomTex[0]);gl.uniform1i(blurLoc.tex,0);gl.uniform2f(blurLoc.dir,1/bloomW,0);drawFSQuad(blurLoc.pos);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,bloomFBO[0]);gl.useProgram(blurP);
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,bloomTex[1]);gl.uniform1i(blurLoc.tex,0);gl.uniform2f(blurLoc.dir,0,1/bloomH);drawFSQuad(blurLoc.pos);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.useProgram(compP);
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,sceneTex);gl.uniform1i(compLoc.scene,0);
+    gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,bloomTex[0]);gl.uniform1i(compLoc.bloom,1);
+    gl.uniform1f(compLoc.str,1.15);drawFSQuad(compLoc.pos);
+    gl.enable(gl.DEPTH_TEST);
+  }
+}
+
+/* ---------- 終端演出（夜明けの鏡の海） ---------- */
+function endTick(dt){
+  if(S.won){
+    sky=Math.min(1,sky+dt*0.45);           // 夜明けへ
+    S.mirror=Math.min(1,S.mirror+dt*0.5);  // 波が凪いで鏡になる
+    // 天秤が水平へ静かに整う（縁＝衡＋∿衡− が最後に一度だけ交わる）
+    S.th+=S.w*dt; S.w+= (-W0*W0*Math.sin(S.th) - 2*1.4*W0*S.w)*dt;
+    if(Math.abs(S.th)<0.02&&Math.abs(S.w)<0.05){S.th*=0.9;S.w*=0.9;}
+    // 夜光虫がふわっと湧く
+    if(Math.random()<dt*8){ const u=(Math.random()*2-1); addSpark(u,0.6+Math.random(),6,[0.6,0.9,1,1]); }
+    if(seaGain&&AC)seaGain.gain.value=0.04*(1-S.mirror); // 潮騒が凪ぐ
+  } else { sky=Math.min(1,sky+dt*0.25); }
+  for(const s of S.sparks){ s.life-=dt; s.y+=s.vy*dt; s.vy-=1.2*dt; } S.sparks=S.sparks.filter(s=>s.life>0);
+}
+
+/* ---------- カメラ（追従・バンク・共振キック・終端クレーン） ---------- */
+let camAz=0, camEl=0;
+function updateCamera(dt){
+  S.camKick=Math.max(0,S.camKick-dt*2.2);
+  const t=performance.now()*0.001;
+  // 基本：控えめな呼吸＋こっこ側へわずかに寄る＋傾きに軽いバンク
+  let tazi=Math.sin(t*0.22)*0.03 + S.coccoU*0.08;
+  let tele=0.0 + Math.sin(t*0.17)*0.012;
+  let dist=13.5 - S.camKick*0.7;             // 共振でぐっと寄る
+  let cy=1.2;
+  if(S.phase==='end'&&S.won){                // 夜明けのクレーン＋月の道へ回り込む
+    const e=Math.min(1,S.mirror);
+    tazi=-0.55*e + Math.sin(t*0.2)*0.03;      // 月の道（左）へ向く
+    tele=0.30*e; dist=13.5+e*3.0; cy=1.2+e*0.8;
+  }
+  camAz+=(tazi-camAz)*Math.min(1,dt*2.0);
+  camEl+=(tele-camEl)*Math.min(1,dt*2.0);
+  const cd=Math.cos(camEl)*dist;
+  EYE=[Math.sin(camAz)*cd, 4.6+Math.sin(camEl)*dist, Math.cos(camAz)*cd];
+  CAM_CENTER=[S.coccoU*BEAM_HALF*0.15, cy, 0];
+  CAM_ROLL=-S.th*0.18*(1-(S.phase==='end'&&S.won?S.mirror:0));
+}
+let CAM_CENTER=[0,1.2,0], CAM_ROLL=0;
+
+/* ---------- ループ ---------- */
+function frame(t){
+  if(!last)last=t; let dt=(t-last)/1000; last=t; if(dt>0.05)dt=0.05;
+  if(S.phase==='play'){ update(dt); }
+  else if(S.phase==='end'){ endTick(dt); }
+  updateCamera(dt);
+  render();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- リザルト ---------- */
+function scoreOf(){ return S.res*1000 + S.coins + Math.ceil(S.time)*20 + (S.won?S.hearts*200:0); }
+function showResult(){
+  document.getElementById('bandWrap').classList.add('hidden');
+  const rt=document.getElementById('rTitle'), rb=document.getElementById('rBody');
+  const sc=scoreOf();
+  if(S.won){ rt.textContent='よあけ 🌅'; rb.innerHTML='ふたつの光が、月の道でひとつに結ばれた。<br>共振 '+S.res+'／💴'+S.coins+'　<b>スコア '+sc+'</b>'; }
+  else { const msg={flat:'水平で とまって、ゆれが 死んだ（∿死）。',break:'かたむけすぎて、縁の糸が 切れた（絶傾）。',heart:'逆縁に つかまってしまった。',time:'夜明けが きてしまった。'}[S.endReason]||'';
+    rt.textContent='また あした'; rb.innerHTML=msg+'<br>共振 '+S.res+'／'+RES_WIN+'　💴'+S.coins+'　<b>スコア '+sc+'</b>'; }
+  document.getElementById('result').classList.remove('hidden');
+  submitScore(sc);
+}
+
+/* ---------- 世界ランキング（Firebase相乗り・rankings/tsuriai・失敗は静かに） ---------- */
+let fbReady=false,fbDb=null;
+(function loadFB(){ try{
+  var base='https://www.gstatic.com/firebasejs/9.23.0/';var files=['firebase-app-compat.js','firebase-database-compat.js'];var i=0;
+  (function next(){ if(i>=files.length){initFB();return;} var s=document.createElement('script');s.src=base+files[i++];s.onload=next;s.onerror=function(){};document.head.appendChild(s); })();
+}catch(e){} })();
+function initFB(){ try{ if(typeof firebase==='undefined'||!firebase.database)return;
+  if(!firebase.apps||!firebase.apps.length)firebase.initializeApp({
+    apiKey:"AIzaSyB",authDomain:"chikumonogatarikiroku.firebaseapp.com",
+    databaseURL:"https://chikumonogatarikiroku-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:"chikumonogatarikiroku",storageBucket:"chikumonogatarikiroku.firebasestorage.app"});
+  fbDb=firebase.database();fbReady=true;
+}catch(e){} }
+function submitScore(sc){ const box=document.getElementById('rankBox');box.innerHTML='<div><span>世界ランキング</span><span>…</span></div>';
+  if(!fbReady||!fbDb){ box.innerHTML='<div><span>（オフライン）</span><span>スコア '+sc+'</span></div>'; return; }
+  try{ const ref=fbDb.ref('rankings/tsuriai');
+    ref.push({s:sc,t:Date.now()}).catch(()=>{});
+    ref.orderByChild('s').limitToLast(10).once('value',snap=>{ const arr=[];snap.forEach(c=>{arr.push(c.val());});arr.sort((a,b)=>b.s-a.s);
+      box.innerHTML=arr.map((r,i)=>'<div><span>'+(i+1)+'位</span><span>'+r.s+'</span></div>').join('')||'<div><span>まだ記録なし</span><span></span></div>'; });
+  }catch(e){ box.innerHTML='<div><span>（記録に失敗）</span><span>スコア '+sc+'</span></div>'; }
+}
+
+/* ---------- ボタン ---------- */
+document.getElementById('startBtn').onclick=startGame;
+document.getElementById('againBtn').onclick=startGame;
+document.getElementById('reload').onclick=()=>location.reload();
+
+/* ---------- 検証フック（§14） ---------- */
+window.__tsuriai={
+  state:()=>({phase:S.phase,hearts:S.hearts,coins:S.coins,res:S.res,th:S.th,w:S.w,amp:S.amp,coccoU:S.coccoU,
+    time:S.time,deadT:S.deadT,breakT:S.breakT,enemies:S.enemies.length,fruits:S.fruits.length,score:scoreOf(),won:S.won,endReason:S.endReason}),
+  step:(dt,n)=>{ n=n||1; for(let i=0;i<n;i++)update(dt||0.016); },
+  move:(d)=>setInput(d),
+  setTilt:(v)=>{S.th=v;},
+  beam:()=>({th:S.th,w:S.w,amp:S.amp}),
+  listEnemies:()=>S.enemies.map(e=>({u:e.u,dunkT:e.dunkT})),
+  coins:(n)=>{S.coins+=n;},
+  start:startGame,
+  forceEnd:(won)=>endGame(!!won,won?'win':'time'),
+  gfx:()=>({reflOn:REFL_ON&&REFL_OK,shadowOn:SHADOW_ON&&SHADOW_OK,shadowSize:SHADOW_SIZE,reflW,reflH,
+    bloomOn:BLOOM_ON&&POST_OK,plankton:PLANKTON_ON?PLK_N:0,memGold:S.memGold,memSilver:S.memSilver}),
+  reflForce:(on)=>{REFL_ON=!!on;if(on)initRefl();},
+  shadowForce:(on)=>{SHADOW_ON=!!on;},
+  bloomForce:(on)=>{BLOOM_ON=!!on;if(on)initPost();},
+  planktonForce:(on)=>{PLANKTON_ON=!!on;},
+  consts:{AMP_DEAD,AMP_LOW,AMP_HIGH,AMP_BREAK,TILT_MAX,RES_WIN,ROUND,SEA_Y}
+};
+</script>
+</body>
+</html>
