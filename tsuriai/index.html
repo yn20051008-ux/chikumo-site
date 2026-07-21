@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<script>
+/* こっこ共通: ページを離れたら必ず音を止める（bfcache対策／全ゲーム共通の番人） */
+(function(){
+  var ctxs=[]; var OrigAC=window.AudioContext||window.webkitAudioContext;
+  if(OrigAC&&typeof Proxy!=='undefined'&&typeof Reflect!=='undefined'){
+    var P=new Proxy(OrigAC,{construct:function(T,a,nt){var c=Reflect.construct(T,a,nt===P?T:nt);try{ctxs.push(c);}catch(e){}return c;}});
+    try{window.AudioContext=P;}catch(e){} try{if(window.webkitAudioContext)window.webkitAudioContext=P;}catch(e){}
+  }
+  function kill(){for(var i=0;i<ctxs.length;i++){var c=ctxs[i];try{c.suspend();}catch(e){}try{c.close();}catch(e){}}ctxs=[];}
+  window.addEventListener('pagehide',kill);
+  window.addEventListener('pageshow',function(e){if(e.persisted)window.location.reload();});
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>コッコつりあい ─ ゆれをたやすな｜TSURIAI</title>
+<meta name="description" content="満月の夜、島は月から下がる一本の天秤に乗っている。左は親の記憶、右は子の記憶。こっこ自身が錘。走って揺れをたやさず、逆縁の傾けを押し返し、夜明けにふたつの光を月の道で結べ。水平で止めたら負け──揺れの持続が正義。約75秒で必ず終わる3D。">
+<meta name="author" content="畜物語">
+<meta name="robots" content="index, follow">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b1630">
+<link rel="canonical" href="https://chikumo.jp/tsuriai/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chikumo.jp/tsuriai/">
+<meta property="og:title" content="コッコつりあい ─ ゆれをたやすな">
+<meta property="og:description" content="走って天秤の揺れをたやすな。水平は死、揺れの持続が正義。夜明けにふたつの光を結ぶ、約75秒の3D。">
+<meta property="og:image" content="https://chikumo.jp/ogp.png">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0b1630;font-family:-apple-system,"Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+  #glc{position:fixed;inset:0;width:100%;height:100%;display:block}
+  .hud{position:fixed;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.7);pointer-events:none;z-index:5;font-weight:700}
+  #hudTL{top:calc(env(safe-area-inset-top,0) + 10px);left:12px;font-size:20px;line-height:1.35}
+  #hudTR{top:calc(env(safe-area-inset-top,0) + 10px);right:12px;text-align:right;font-size:16px;line-height:1.4}
+  #bandWrap{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0) + 12px);width:min(58vw,340px);z-index:5;pointer-events:none}
+  #bandBar{position:relative;height:12px;border-radius:7px;background:rgba(255,255,255,.13);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
+  #bandLo,#bandHi{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,255,255,.5)}
+  #bandFill{position:absolute;top:0;bottom:0;left:0;border-radius:7px;background:linear-gradient(90deg,#7fd0ff,#ffd66b);width:0%}
+  #bandTxt{text-align:center;color:#dfe9ff;font-size:11px;margin-top:3px;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+  #bandTilt{position:absolute;top:-3px;width:3px;height:18px;background:#fff;border-radius:2px;box-shadow:0 0 5px #fff}
+  .overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;padding:24px;background:radial-gradient(ellipse at 50% 30%,rgba(30,50,90,.72),rgba(6,12,28,.94))}
+  .overlay h1{font-size:min(9vw,42px);letter-spacing:.06em;margin-bottom:6px;text-shadow:0 2px 14px rgba(120,170,255,.6)}
+  .overlay p{font-size:min(4.4vw,17px);line-height:1.7;color:#cfe0ff;max-width:560px;margin-bottom:8px}
+  .overlay small{color:#8fa6d6;font-size:12px}
+  .btn{margin-top:20px;pointer-events:auto;cursor:pointer;border:none;border-radius:40px;padding:16px 40px;font-size:20px;font-weight:800;color:#0b1630;background:linear-gradient(180deg,#ffe9a8,#ffc861);box-shadow:0 6px 24px rgba(255,200,90,.4);font-family:inherit}
+  .btn:active{transform:translateY(2px)}
+  #hint{position:fixed;left:50%;bottom:14%;transform:translateX(-50%);z-index:8;color:#fff;font-size:min(6.5vw,28px);font-weight:800;text-shadow:0 2px 12px rgba(0,0,0,.8);pointer-events:none;opacity:0;transition:opacity .4s}
+  #reload{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0) + 12px);z-index:9;width:46px;height:46px;border-radius:50%;background:rgba(20,34,64,.7);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:22px;color:#dfe9ff}
+  #rankBox{max-height:150px;overflow-y:auto;margin-top:10px;font-size:13px;color:#bcd0f5;width:min(80vw,320px)}
+  #rankBox div{display:flex;justify-content:space-between;padding:2px 8px;border-bottom:1px solid rgba(255,255,255,.08)}
+  .fade{opacity:0!important;transition:opacity 1.2s}
+  .hidden{display:none!important}
+  #moveHintL,#moveHintR{position:fixed;bottom:0;top:38%;width:34%;z-index:3;pointer-events:none;display:flex;align-items:center;justify-content:center;font-size:34px;color:rgba(255,255,255,.14);font-weight:900}
+  #moveHintL{left:0}#moveHintR{right:0}
+</style>
+</head>
+<body>
+<canvas id="glc"></canvas>
+
+<div id="moveHintL">◀</div><div id="moveHintR">▶</div>
+
+<div id="bandWrap" class="hud hidden" style="pointer-events:none">
+  <div id="bandBar"><div id="bandFill"></div><div id="bandLo"></div><div id="bandHi"></div><div id="bandTilt" style="left:50%"></div></div>
+  <div id="bandTxt">ゆれ幅（band のなかで たやすな）</div>
+</div>
+<div id="hudTL" class="hud hidden">❤️❤️❤️</div>
+<div id="hudTR" class="hud hidden">🌕 <span id="resTxt">0</span>/12<br>💴 <span id="coinTxt">0</span><br>⏱ <span id="timeTxt">75</span></div>
+<div id="hint"></div>
+
+<div id="title" class="overlay">
+  <h1>コッコつりあい</h1>
+  <p><b>ゆれを、たやすな。</b><br>満月の夜。島は月から下がる一本の天秤にのっている。<br>ひだりは親のひかり（金）、みぎは子のひかり（銀）。<br><b>こっこ自身が おもり。</b>走ってよった側がしずむ。</p>
+  <p><small>◀▶ で走る（画面の左半分/右半分をおす・キーは←→）。<br>水平で とまると ゆれが死ぬ。傾けすぎても切れる。<br>ゆれをたやさず、逆縁をしずめ、夜明けにふたつの光を結べ。</small></p>
+  <button class="btn" id="startBtn">はじめる</button>
+</div>
+
+<div id="result" class="overlay hidden">
+  <h1 id="rTitle"></h1>
+  <p id="rBody"></p>
+  <div id="rankBox"></div>
+  <button class="btn" id="againBtn">もういちど</button>
+  <p style="margin-top:14px"><a id="letterLink" href="/letter/" style="color:#9fd0ff">正論蒔宿へ手紙をおくる ✉️</a></p>
+</div>
+
+<div id="reload" title="強制更新">🔄</div>
+
+<script>
+"use strict";
+/* ============================================================
+   コッコつりあい ─ 中心動詞「つりあわせる」
+   3D WebGL1 / 1ファイル自己完結 / 判定と描画は同じ th を見る
+   ============================================================ */
+const TAU=Math.PI*2, DEG=Math.PI/180;
+const canvas=document.getElementById('glc');
+let gl=canvas.getContext('webgl',{antialias:true,alpha:false,premultipliedAlpha:false})||canvas.getContext('experimental-webgl');
+if(!gl){ document.getElementById('title').innerHTML='<h1>コッコつりあい</h1><p>この端末はWebGLに対応していません。別のブラウザでお試しください。</p>'; }
+
+/* ---------- 数値仕様（衡の器官・§3） ---------- */
+const T0=2.15;                 // 天秤の固有周期(s)
+const W0=TAU/T0;               // 固有角速度
+const ZETA=0.055;              // 減衰（弱め＝止めないと揺れが続く）
+const K_COCCO=3.15;            // こっこトルク係数
+const K_EN=1.5;                // 逆縁トルク係数
+const TILT_BREAK=0.62;         // 絶傾のしきい値(rad ~35°)
+const T_BREAK=1.2;             // 絶傾の連続秒
+const AMP_DEAD=0.06, AMP_LOW=0.15, AMP_HIGH=0.42;
+const T_DEAD=3.0;              // ∿死の連続秒
+const DUNK=0.34;               // 逆縁が沈んで月へ帰るしきい値
+const T_DUNK=0.8;
+const RES_WIN=12;              // 勝利に要する共振ピーク
+const ROUND=75;                // ラウンド長(s)
+const COCCO_SPEED=1.9;         // 移動速度(u/s)
+const EN_MAX=4;
+
+/* ---------- 行列（最小mat4） ---------- */
+function mIdent(){return new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);}
+function mPersp(fovy,asp,n,f){const t=1/Math.tan(fovy/2),o=new Float32Array(16);o[0]=t/asp;o[5]=t;o[10]=(f+n)/(n-f);o[11]=-1;o[14]=2*f*n/(n-f);return o;}
+function mMul(a,b){const o=new Float32Array(16);for(let i=0;i<4;i++)for(let j=0;j<4;j++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+j]*b[i*4+k];o[i*4+j]=s;}return o;}
+function mLookAt(e,c,up){const zx=e[0]-c[0],zy=e[1]-c[1],zz=e[2]-c[2];let zl=Math.hypot(zx,zy,zz);const z=[zx/zl,zy/zl,zz/zl];
+  let xx=up[1]*z[2]-up[2]*z[1],xy=up[2]*z[0]-up[0]*z[2],xz=up[0]*z[1]-up[1]*z[0];let xl=Math.hypot(xx,xy,xz)||1;const x=[xx/xl,xy/xl,xz/xl];
+  const y=[z[1]*x[2]-z[2]*x[1],z[2]*x[0]-z[0]*x[2],z[0]*x[1]-z[1]*x[0]];
+  return new Float32Array([x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0, -(x[0]*e[0]+x[1]*e[1]+x[2]*e[2]),-(y[0]*e[0]+y[1]*e[1]+y[2]*e[2]),-(z[0]*e[0]+z[1]*e[1]+z[2]*e[2]),1]);}
+function mTrans(x,y,z){const o=mIdent();o[12]=x;o[13]=y;o[14]=z;return o;}
+function mScale(x,y,z){const o=mIdent();o[0]=x;o[5]=y;o[10]=z;return o;}
+function mRotZ(a){const c=Math.cos(a),s=Math.sin(a),o=mIdent();o[0]=c;o[1]=s;o[4]=-s;o[5]=c;return o;}
+function mRotY(a){const c=Math.cos(a),s=Math.sin(a),o=mIdent();o[0]=c;o[2]=-s;o[8]=s;o[10]=c;return o;}
+
+/* ---------- シェーダ ---------- */
+const PRE='precision mediump float;';
+function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS)){console.warn(gl.getShaderInfoLog(s));} return s;}
+function prog(vs,fs){const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,vs));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS)){console.warn(gl.getProgramInfoLog(p));} return p;}
+
+/* メッシュ（単色ランバート） */
+const meshP=prog(
+ 'attribute vec3 aPos;attribute vec3 aNor;uniform mat4 uMVP;uniform mat4 uModel;varying vec3 vN;varying vec3 vW;'+
+ 'void main(){vec4 w=uModel*vec4(aPos,1.0);vW=w.xyz;vN=mat3(uModel)*aNor;gl_Position=uMVP*vec4(aPos,1.0);}',
+ PRE+'varying vec3 vN;varying vec3 vW;uniform vec3 uCol;uniform vec3 uLight;uniform float uAmb;uniform float uEmis;'+
+ 'void main(){vec3 n=normalize(vN);float d=max(dot(n,normalize(uLight)),0.0);float l=uAmb+d*0.9;'+
+ 'vec3 c=uCol*l+uCol*uEmis;gl_FragColor=vec4(c,1.0);}');
+const meshLoc={pos:gl.getAttribLocation(meshP,'aPos'),nor:gl.getAttribLocation(meshP,'aNor'),
+  mvp:gl.getUniformLocation(meshP,'uMVP'),model:gl.getUniformLocation(meshP,'uModel'),
+  col:gl.getUniformLocation(meshP,'uCol'),light:gl.getUniformLocation(meshP,'uLight'),amb:gl.getUniformLocation(meshP,'uAmb'),emis:gl.getUniformLocation(meshP,'uEmis')};
+
+/* スプライト（テクスチャ四角・加算/通常） */
+const sprP=prog(
+ 'attribute vec2 aPos;attribute vec2 aUV;uniform mat4 uMVP;varying vec2 vUV;'+
+ 'void main(){vUV=aUV;gl_Position=uMVP*vec4(aPos,0.0,1.0);}',
+ PRE+'varying vec2 vUV;uniform sampler2D uTex;uniform vec4 uTint;uniform float uAdd;'+
+ 'void main(){vec4 t=texture2D(uTex,vUV);gl_FragColor=vec4(t.rgb*uTint.rgb,t.a*uTint.a);if(uAdd>0.5)gl_FragColor.rgb*=t.a;}');
+const sprLoc={pos:gl.getAttribLocation(sprP,'aPos'),uv:gl.getAttribLocation(sprP,'aUV'),
+  mvp:gl.getUniformLocation(sprP,'uMVP'),tex:gl.getUniformLocation(sprP,'uTex'),tint:gl.getUniformLocation(sprP,'uTint'),add:gl.getUniformLocation(sprP,'uAdd')};
+
+/* ---------- ジオメトリ ---------- */
+function buf(data){const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STATIC_DRAW);return b;}
+function ebuf(data){const b=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,b);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(data),gl.STATIC_DRAW);return b;}
+// box centered, dims sx,sy,sz
+function makeBox(sx,sy,sz){const x=sx/2,y=sy/2,z=sz/2;const v=[],n=[],idx=[];
+  const faces=[[[ -x,-y, z],[ x,-y, z],[ x, y, z],[-x, y, z],[0,0,1]],
+    [[ x,-y,-z],[-x,-y,-z],[-x, y,-z],[ x, y,-z],[0,0,-1]],
+    [[ x,-y, z],[ x,-y,-z],[ x, y,-z],[ x, y, z],[1,0,0]],
+    [[-x,-y,-z],[-x,-y, z],[-x, y, z],[-x, y,-z],[-1,0,0]],
+    [[-x, y, z],[ x, y, z],[ x, y,-z],[-x, y,-z],[0,1,0]],
+    [[-x,-y,-z],[ x,-y,-z],[ x,-y, z],[-x,-y, z],[0,-1,0]]];
+  let o=0;for(const f of faces){for(let i=0;i<4;i++){v.push(f[i][0],f[i][1],f[i][2]);n.push(f[4][0],f[4][1],f[4][2]);}idx.push(o,o+1,o+2,o,o+2,o+3);o+=4;}
+  return {vb:buf(interleave(v,n)),ib:ebuf(idx),count:idx.length};}
+// disc in XZ plane (flat), radius r
+function makeDisc(r,seg){const v=[],n=[],idx=[];v.push(0,0,0);n.push(0,1,0);
+  for(let i=0;i<=seg;i++){const a=i/seg*TAU;v.push(Math.cos(a)*r,0,Math.sin(a)*r);n.push(0,1,0);}
+  for(let i=1;i<=seg;i++)idx.push(0,i,i+1);
+  return {vb:buf(interleave(v,n)),ib:ebuf(idx),count:idx.length};}
+function interleave(v,n){const o=[];for(let i=0;i<v.length/3;i++){o.push(v[i*3],v[i*3+1],v[i*3+2],n[i*3],n[i*3+1],n[i*3+2]);}return o;}
+const geoBox=makeBox(1,1,1), geoBeam=makeBox(12,0.5,1.7), geoPost=makeBox(0.7,7,0.7), geoDisc=makeDisc(1.5,40), geoSea=makeBox(80,0.2,80);
+function drawMesh(geo,model,mvp,col,amb,emis){
+  gl.useProgram(meshP);gl.bindBuffer(gl.ARRAY_BUFFER,geo.vb);
+  gl.enableVertexAttribArray(meshLoc.pos);gl.vertexAttribPointer(meshLoc.pos,3,gl.FLOAT,false,24,0);
+  gl.enableVertexAttribArray(meshLoc.nor);gl.vertexAttribPointer(meshLoc.nor,3,gl.FLOAT,false,24,12);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,geo.ib);
+  gl.uniformMatrix4fv(meshLoc.mvp,false,mvp);gl.uniformMatrix4fv(meshLoc.model,false,model);
+  gl.uniform3fv(meshLoc.col,col);gl.uniform3fv(meshLoc.light,LIGHT);gl.uniform1f(meshLoc.amb,amb);gl.uniform1f(meshLoc.emis,emis||0);
+  gl.drawElements(gl.TRIANGLES,geo.count,gl.UNSIGNED_SHORT,0);
+}
+// unit quad centered XY
+const quadVB=buf([-0.5,-0.5,0,1, 0.5,-0.5,1,1, 0.5,0.5,1,0, -0.5,0.5,0,0]);
+const quadIB=ebuf([0,1,2,0,2,3]);
+function drawSprite(model,vp,cell,tint,add){
+  gl.useProgram(sprP);gl.bindBuffer(gl.ARRAY_BUFFER,quadVB);
+  gl.enableVertexAttribArray(sprLoc.pos);gl.vertexAttribPointer(sprLoc.pos,2,gl.FLOAT,false,16,0);
+  gl.enableVertexAttribArray(sprLoc.uv);gl.vertexAttribPointer(sprLoc.uv,2,gl.FLOAT,false,16,8);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,quadIB);
+  gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlasTex);gl.uniform1i(sprLoc.tex,0);
+  const uv=cellUV(cell);
+  // rebuild quad uv per cell via a small dynamic buffer
+  gl.bindBuffer(gl.ARRAY_BUFFER,quadVB);
+  gl.bufferSubData(gl.ARRAY_BUFFER,0,new Float32Array([-0.5,-0.5,uv[0],uv[3], 0.5,-0.5,uv[2],uv[3], 0.5,0.5,uv[2],uv[1], -0.5,0.5,uv[0],uv[1]]));
+  gl.uniformMatrix4fv(sprLoc.mvp,false,mMul(vp,model));
+  gl.uniform4fv(sprLoc.tint,tint);gl.uniform1f(sprLoc.add,add?1:0);
+  gl.drawElements(gl.TRIANGLES,6,gl.UNSIGNED_SHORT,0);
+}
+
+/* ---------- アトラス（SVG焼き＋絵文字） ---------- */
+const cocco=new Image();let coccoReady=false;
+const AR=298/390, AN=4, ACS=128;
+const atlasCv=document.createElement('canvas');atlasCv.width=AN*ACS;atlasCv.height=AN*ACS;
+const atx=atlasCv.getContext('2d');
+const atlasTex=gl.createTexture();
+// cells: 0=cocco 1=black 2=glow 3=shadow 4=🍎 5=💧 6=✨ 7=❤️ 8=🌙 9=⭐
+const EMO={4:'🍎',5:'💧',6:'✨',7:'❤️',8:'🌙',9:'⭐'};
+function cellRC(c){return [(c%AN)*ACS,((c/AN)|0)*ACS];}
+function cellUV(c){const col=c%AN,row=(c/AN)|0,s=1/AN;return [col*s,row*s,(col+1)*s,(row+1)*s];}
+function buildAtlas(){
+  atx.clearRect(0,0,atlasCv.width,atlasCv.height);
+  function drawCocco(cell,tintFn){const r=cellRC(cell);atx.save();atx.translate(r[0]+ACS/2,r[1]+ACS/2);
+    const w=104*AR,h=104;if(coccoReady)atx.drawImage(cocco,-w/2,-h/2,w,h);if(tintFn)tintFn(r);atx.restore();}
+  drawCocco(0,null);
+  drawCocco(1,()=>{atx.globalCompositeOperation='source-atop';atx.fillStyle='rgba(18,8,36,0.9)';atx.fillRect(-64,-64,128,128);
+    atx.globalCompositeOperation='source-over';atx.fillStyle='#e08cff';atx.beginPath();atx.arc(-11,-17,4,0,TAU);atx.fill();atx.beginPath();atx.arc(13,-17,4,0,TAU);atx.fill();});
+  (function(){const r=cellRC(2);const g=atx.createRadialGradient(r[0]+64,r[1]+64,2,r[0]+64,r[1]+64,62);
+    g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.35,'rgba(255,244,200,.6)');g.addColorStop(1,'rgba(255,225,150,0)');
+    atx.fillStyle=g;atx.fillRect(r[0],r[1],128,128);})();
+  (function(){const r=cellRC(3);const g=atx.createRadialGradient(r[0]+64,r[1]+64,4,r[0]+64,r[1]+64,60);
+    g.addColorStop(0,'rgba(0,0,0,.5)');g.addColorStop(1,'rgba(0,0,0,0)');atx.fillStyle=g;atx.fillRect(r[0],r[1],128,128);})();
+  atx.textAlign='center';atx.textBaseline='middle';atx.font='92px serif';
+  for(const c in EMO){const r=cellRC(+c);atx.fillText(EMO[c],r[0]+64,r[1]+66);}
+  gl.bindTexture(gl.TEXTURE_2D,atlasTex);
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,true);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,atlasCv);
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL,false);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+}
+cocco.onload=()=>{coccoReady=true;buildAtlas();};
+cocco.src='/chikumo.svg';
+buildAtlas();
+
+/* ---------- 世界の定数 ---------- */
+const BEAM_HALF=6;          // 天秤の腕の半分の長さ（world）
+const LIGHT=(function(){const v=[0.3,0.85,0.4];const l=Math.hypot(...v);return [v[0]/l,v[1]/l,v[2]/l];})();
+let sky=0;                  // 0..1 夜→夜明け
+
+/* ---------- 状態 ---------- */
+const S={phase:'title', th:0, w:0, amp:0, coccoU:0, input:0, hearts:3, coins:0, res:0,
+  time:ROUND, deadT:0, breakT:0, invuln:0, enemies:[], fruits:[], sparks:[], won:false, endReason:''};
+let last=0, started=false;
+
+/* ---------- 音（WebAudio合成のみ） ---------- */
+let AC=null,master=null,pad=null,swingOsc=null,swingGain=null,swingFilt=null,noiseNode=null;
+function initAudio(){ if(AC)return; try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
+  master=AC.createGain();master.gain.value=0.0;master.connect(AC.destination);
+  // 夜の環境パッド
+  pad=AC.createGain();pad.gain.value=0.06;pad.connect(master);
+  [110,164.8,220].forEach(f=>{const o=AC.createOscillator();o.type='sine';o.frequency.value=f;const g=AC.createGain();g.gain.value=0.33;o.connect(g);g.connect(pad);o.start();});
+  // 揺れに追従する音
+  swingGain=AC.createGain();swingGain.gain.value=0.0;
+  swingFilt=AC.createBiquadFilter();swingFilt.type='lowpass';swingFilt.frequency.value=500;
+  swingOsc=AC.createOscillator();swingOsc.type='triangle';swingOsc.frequency.value=180;
+  swingOsc.connect(swingFilt);swingFilt.connect(swingGain);swingGain.connect(master);swingOsc.start();
+  master.gain.linearRampToValueAtTime(0.5,AC.currentTime+1.2);
+}
+function beep(freq,dur,type,vol,when){ if(!AC)return; const t=(when||AC.currentTime);
+  const o=AC.createOscillator();o.type=type||'sine';o.frequency.value=freq;const g=AC.createGain();
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol||0.2,t+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g);g.connect(master||AC.destination);o.start(t);o.stop(t+dur+0.02);}
+const CHORD=[261.6,329.6,392,523.2,659.3]; // ドミソド♯…積み上がる
+function sfxRes(n){ beep(CHORD[Math.min(n,CHORD.length-1)],0.5,'sine',0.18); beep(CHORD[Math.min(n,CHORD.length-1)]*2,0.4,'triangle',0.06);}
+function sfxPick(){ beep(880,0.12,'triangle',0.14); }
+function sfxMelt(){ beep(300,0.5,'sine',0.12); beep(600,0.5,'sine',0.08,AC&&AC.currentTime+0.08); }
+function sfxHurt(){ beep(90,0.25,'sawtooth',0.2); if(navigator.vibrate)navigator.vibrate(60); }
+function sfxBless(){ [261.6,329.6,392,523.2].forEach((f,i)=>beep(f,1.6,'sine',0.16,AC&&AC.currentTime+i*0.18)); }
+
+/* ---------- 入力 ---------- */
+function setInput(d){ S.input=d; }
+addEventListener('keydown',e=>{ if(e.key==='ArrowLeft'||e.key==='a'||e.key==='A')setInput(-1);
+  else if(e.key==='ArrowRight'||e.key==='d'||e.key==='D')setInput(1); });
+addEventListener('keyup',e=>{ if(['ArrowLeft','ArrowRight','a','A','d','D'].includes(e.key))setInput(0); });
+let touchId=null;
+function ptr(x){ setInput(x<innerWidth/2?-1:1); }
+canvas.addEventListener('pointerdown',e=>{ if(S.phase!=='play')return; touchId=e.pointerId; ptr(e.clientX); },{passive:true});
+canvas.addEventListener('pointermove',e=>{ if(touchId===e.pointerId&&S.phase==='play')ptr(e.clientX); },{passive:true});
+function upEnd(e){ if(touchId===e.pointerId){touchId=null;setInput(0);} }
+canvas.addEventListener('pointerup',upEnd);canvas.addEventListener('pointercancel',upEnd);
+
+/* ---------- ゲーム進行 ---------- */
+function startGame(){
+  S.phase='play';S.th=0.03;S.w=0.5;S.amp=0.05;S.coccoU=0;S.input=0;S.hearts=3;S.coins=0;S.res=0;
+  S.time=ROUND;S.deadT=0;S.breakT=0;S.invuln=0;S.enemies=[];S.fruits=[];S.sparks=[];S.won=false;S.endReason='';
+  sky=0;last=0;spawnT=6;
+  document.getElementById('title').classList.add('hidden');
+  document.getElementById('result').classList.add('hidden');
+  document.getElementById('bandWrap').classList.remove('hidden');
+  document.getElementById('hudTL').classList.remove('hidden');
+  document.getElementById('hudTR').classList.remove('hidden');
+  initAudio(); if(AC&&AC.state==='suspended')AC.resume();
+  showHint('みぎへ はしってごらん →',3.4);
+}
+let hintT=0;
+function showHint(txt,dur){const h=document.getElementById('hint');h.textContent=txt;h.style.opacity='1';hintT=dur;}
+let spawnT=6;
+function spawnEnemy(){ if(S.enemies.length>=EN_MAX)return; const side=Math.random()<0.5?-1:1;
+  S.enemies.push({u:side*0.85,push:side,dunkT:0,alive:true}); }
+function addSpark(u,y,cell,col){ S.sparks.push({u,y,cell,col,life:0.9,vy:1.4}); }
+
+function endGame(won,reason){
+  S.phase='end';S.won=won;S.endReason=reason;
+  if(swingGain)swingGain.gain.linearRampToValueAtTime(0,AC.currentTime+0.4);
+  setTimeout(()=>{ if(won)sfxBless(); showResult(); }, won?1400:700);
+}
+function uToWorld(u){ // position along beam surface at param u∈[-1,1], on tilted beam
+  const x=u*BEAM_HALF, y=0.35 - x*Math.sin(S.th)*0 ; // height handled by rotation in draw; here give local
+  return x;
+}
+
+function update(dt){
+  if(S.phase!=='play'){ return; }
+  // ---- 入力→こっこ位置 ----
+  S.coccoU=Math.max(-1,Math.min(1,S.coccoU+S.input*COCCO_SPEED*dt));
+  // ---- 逆縁トルク合計 ----
+  let enT=0;
+  spawnT-=dt; if(spawnT<=0){ spawnEnemy(); spawnT=5.5+Math.random()*3; }
+  for(const e of S.enemies){ if(!e.alive)continue;
+    e.u += (e.push*0.9 - e.u)*Math.min(1,dt*0.7); // 端へじわり寄る
+    e.u=Math.max(-1,Math.min(1,e.u));
+    enT += K_EN*e.u*0.5;
+    // 沈んで月へ帰る：自分の側が DUNK 以上に沈む(th が push と同符号で深い)
+    const dip = e.push>0 ? S.th : -S.th;
+    if(dip>DUNK){ e.dunkT+=dt; if(e.dunkT>=T_DUNK){ e.alive=false; S.coins+=30; addSpark(e.u,0.6,2,[1,.9,.5,1]); sfxMelt(); } }
+    else e.dunkT=Math.max(0,e.dunkT-dt*1.5);
+    // 接触
+    if(S.invuln<=0 && Math.abs(e.u-S.coccoU)<0.26){ S.hearts--; S.invuln=1.2; sfxHurt();
+      if(S.hearts<=0){ endGame(false,'heart'); } }
+  }
+  S.enemies=S.enemies.filter(e=>e.alive);
+  if(S.invuln>0)S.invuln-=dt;
+  // ---- 天秤の物理（単振り子＋駆動） ----
+  const torque = K_COCCO*S.coccoU + enT;
+  const a = -W0*W0*Math.sin(S.th) - 2*ZETA*W0*S.w + torque;
+  const prevW=S.w;
+  S.w += a*dt; S.th += S.w*dt;
+  // ---- 振幅の包絡 ----
+  const at=Math.abs(S.th);
+  if(at>S.amp)S.amp=at; else S.amp += (at-S.amp)*Math.min(1,dt*0.9);
+  // ---- 局所ピーク検出（w 符号反転）＝共振・実の湧き ----
+  if(prevW*S.w<0){ const peak=Math.abs(S.th); const side=S.th>0?1:-1;
+    if(peak>AMP_LOW){ // 沈んだ側(低い側=同符号の端)に実
+      S.fruits.push({u:side*0.9, life:3.2, cell: side>0?5:4}); if(S.fruits.length>6)S.fruits.shift(); }
+    if(peak>AMP_HIGH){ S.res++; sfxRes(S.res); if(navigator.vibrate)navigator.vibrate(30);
+      addSpark(0,1.2,6,[1,1,.8,1]);
+      if(S.res>=RES_WIN){ endGame(true,'win'); } }
+  }
+  // ---- 実の回収 ----
+  for(const f of S.fruits){ f.life-=dt;
+    if(Math.abs(f.u-S.coccoU)<0.34 && f.life>0){ f.life=-1; S.coins+=(f.cell===6?40:10); sfxPick(); if(navigator.vibrate)navigator.vibrate(10); addSpark(f.u,0.7,f.cell,[1,1,1,1]); } }
+  S.fruits=S.fruits.filter(f=>f.life>0);
+  // ---- スパーク ----
+  for(const s of S.sparks){ s.life-=dt; s.y+=s.vy*dt; s.vy-=1.2*dt; }
+  S.sparks=S.sparks.filter(s=>s.life>0);
+  // ---- 負け判定：∿死 / 絶傾 ----
+  if(S.amp<AMP_DEAD){ S.deadT+=dt; if(S.deadT>=T_DEAD){ endGame(false,'flat'); } } else S.deadT=0;
+  if(at>TILT_BREAK){ S.breakT+=dt; if(S.breakT>=T_BREAK){ endGame(false,'break'); } } else S.breakT=Math.max(0,S.breakT-dt*1.5);
+  // ---- 時間 ----
+  S.time-=dt; if(S.time<=0){ S.time=0; endGame(S.res>=RES_WIN,'time'); }
+  // ---- 音の追従 ----
+  if(swingGain&&AC){ const lo=Math.min(1,S.amp/AMP_HIGH);
+    swingGain.gain.value=0.02+0.12*lo;
+    swingFilt.frequency.value=300+900*lo+400*Math.abs(S.th)/0.5;
+    swingOsc.frequency.value=150+120*(S.th+0.5); }
+  // ---- ヒント ----
+  if(hintT>0){ hintT-=dt; if(hintT<=0)document.getElementById('hint').style.opacity='0'; }
+  updateHUD();
+}
+
+function updateHUD(){
+  document.getElementById('hudTL').textContent='❤️'.repeat(Math.max(0,S.hearts))+'🖤'.repeat(Math.max(0,3-S.hearts));
+  document.getElementById('resTxt').textContent=S.res;
+  document.getElementById('coinTxt').textContent=S.coins;
+  document.getElementById('timeTxt').textContent=Math.ceil(S.time);
+  document.getElementById('resTxt').parentElement.firstChild.textContent = S.res>=RES_WIN?'🌕 ':'🌑 ';
+  const pct=Math.min(1,S.amp/(AMP_HIGH*1.15));
+  document.getElementById('bandFill').style.width=(pct*100)+'%';
+  document.getElementById('bandLo').style.left=(AMP_LOW/(AMP_HIGH*1.15)*100)+'%';
+  document.getElementById('bandHi').style.left=(AMP_HIGH/(AMP_HIGH*1.15)*100)+'%';
+  const tp=50+ (S.th/TILT_BREAK)*50; document.getElementById('bandTilt').style.left=Math.max(1,Math.min(99,tp))+'%';
+  const bf=document.getElementById('bandFill');
+  if(S.amp<AMP_DEAD)bf.style.background='#ff6b6b';
+  else if(Math.abs(S.th)>TILT_BREAK*0.85)bf.style.background='#ff9a3c';
+  else bf.style.background='linear-gradient(90deg,#7fd0ff,#ffd66b)';
+}
+
+/* ---------- 描画 ---------- */
+function resize(){ const dpr=Math.min(devicePixelRatio||1,2);
+  canvas.width=Math.floor(innerWidth*dpr);canvas.height=Math.floor(innerHeight*dpr);
+  canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px'; }
+addEventListener('resize',resize);resize();
+
+function billboard(pos,w,h,vp){ // upright billboard facing camera (rotate around Y)
+  const ang=Math.atan2(EYE[0]-pos[0],EYE[2]-pos[2]);
+  return mMul(mMul(mTrans(pos[0],pos[1],pos[2]),mRotY(ang)),mScale(w,h,1));
+}
+let EYE=[0,4.6,13.5];
+function render(){
+  const dawn=sky;
+  // 空の色（夜→夜明け）
+  const top=[0.03+dawn*0.5,0.06+dawn*0.35,0.16+dawn*0.25];
+  gl.viewport(0,0,canvas.width,canvas.height);
+  gl.clearColor(top[0],top[1],top[2],1);gl.clearDepth(1);
+  gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  const asp=canvas.width/canvas.height;
+  const proj=mPersp(58*DEG,asp,0.1,200);
+  const view=mLookAt(EYE,[0,1.4,0],[0,1,0]);
+  const vp=mMul(proj,view);
+
+  // 海（下の板・簡易反射トーン）
+  drawMesh(geoSea,mTrans(0,-6.2,0),vp,[0.02+dawn*0.12,0.05+dawn*0.12,0.12+dawn*0.14],0.25,0);
+  // 支柱（月から下がる柱）
+  drawMesh(geoPost,mTrans(0,4.2,-0.2),vp,[0.14,0.15,0.2],0.4,0.05);
+  // 天秤の腕（tilt）
+  const beamM=mMul(mRotZ(S.th),mIdent());
+  drawMesh(geoBeam,mMul(mTrans(0,0.6,0),mRotZ(S.th)),vp,[0.55,0.5,0.42],0.5,0.06);
+  // 皿（両端・金/銀）＋吊り
+  for(const side of [-1,1]){
+    const ex=side*BEAM_HALF*Math.cos(S.th), ey=0.6+side*BEAM_HALF*Math.sin(S.th);
+    // 吊り棒
+    drawMesh(geoBox,mMul(mTrans(ex,ey-0.9,0),mScale(0.08,1.6,0.08)),vp,[0.3,0.3,0.34],0.4,0);
+    // 皿
+    const pc = side<0 ? [1.0,0.82,0.42] : [0.75,0.8,0.92]; // 金(親)/銀(子)
+    drawMesh(geoDisc,mTrans(ex,ey-1.75,0),vp,pc,0.45,0.12+ (Math.max(0,side>0?-S.th:S.th))*0.4);
+  }
+
+  // ---- スプライト（加算・通常） ----
+  gl.enable(gl.BLEND);gl.depthMask(false);
+  // 月
+  gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
+  const moonPos=[ -5.5, 9.2, -22 ];
+  drawSprite(billboard(moonPos,10+ (S.amp>AMP_HIGH?1:0),10,vp),vp,2,[1,0.96,0.86,0.9],true);
+  drawSprite(billboard([moonPos[0],moonPos[1],moonPos[2]],4.6,4.6,vp),vp,8,[1,1,1,1],false);
+  // 月の道（海面の光の帯・共振で太る）
+  const road=0.3+Math.min(1,S.res/RES_WIN)*0.7+dawn*0.5;
+  drawSprite(mMul(mMul(mTrans(-3.2,-6.0,-4),mRotY(0)),mScale(2.4*road,16,1)),vp,2,[1,0.95,0.8,0.22*road],true);
+
+  // スパーク
+  for(const s of S.sparks){ const x=s.u*BEAM_HALF*Math.cos(S.th), y=0.9+s.u*BEAM_HALF*Math.sin(S.th)+s.y;
+    drawSprite(billboard([x,y,0.3],0.9,0.9,vp),vp,s.cell,[s.col[0],s.col[1],s.col[2],Math.min(1,s.life)],s.cell===2||s.cell===6); }
+
+  // 通常アルファ
+  gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  // 実
+  for(const f of S.fruits){ const x=f.u*BEAM_HALF*Math.cos(S.th), y=0.55+f.u*BEAM_HALF*Math.sin(S.th)+1.05;
+    const bob=Math.sin(performance.now()*0.006+f.u*3)*0.06;
+    drawSprite(billboard([x,y+bob,0.4],0.9,0.9,vp),vp,f.cell,[1,1,1,Math.min(1,f.life)],false); }
+  // 逆縁（影のこっこ）
+  for(const e of S.enemies){ const x=e.u*BEAM_HALF*Math.cos(S.th), y=0.85+e.u*BEAM_HALF*Math.sin(S.th)+0.95;
+    const melt=e.dunkT>0?1-e.dunkT/T_DUNK:1;
+    // 丸影
+    drawSprite(mMul(mMul(mTrans(x,0.9+e.u*BEAM_HALF*Math.sin(S.th),0.1),mRotY(0)),mScale(1.1,0.5,1)),vp,3,[0,0,0,0.5],false);
+    drawSprite(billboard([x,y,0.2],1.5*AR,1.5,vp),vp,1,[1,0.6,0.7,melt],false); }
+  // こっこ（点滅＝無敵中）
+  {
+    const x=S.coccoU*BEAM_HALF*Math.cos(S.th), y=0.85+S.coccoU*BEAM_HALF*Math.sin(S.th)+0.95;
+    drawSprite(mMul(mMul(mTrans(x,0.9+S.coccoU*BEAM_HALF*Math.sin(S.th),0.15),mRotY(0)),mScale(1.2,0.55,1)),vp,3,[0,0,0,0.55],false);
+    const bl=(S.invuln>0 && ((performance.now()*0.02|0)%2))?0.35:1;
+    drawSprite(billboard([x,y,0.25],1.7*AR,1.7,vp),vp,0,[1,1,1,bl],false);
+  }
+  gl.depthMask(true);gl.disable(gl.BLEND);
+}
+
+/* ---------- ループ ---------- */
+function frame(t){
+  if(!last)last=t; let dt=(t-last)/1000; last=t; if(dt>0.05)dt=0.05;
+  if(S.phase==='play'){ update(dt); }
+  if(S.phase==='end'){ sky=Math.min(1,sky+dt*0.5); }
+  if(coccoReady||true) render();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+/* ---------- リザルト ---------- */
+function scoreOf(){ return S.res*1000 + S.coins + Math.ceil(S.time)*20 + (S.won?S.hearts*200:0); }
+function showResult(){
+  document.getElementById('bandWrap').classList.add('hidden');
+  const rt=document.getElementById('rTitle'), rb=document.getElementById('rBody');
+  const sc=scoreOf();
+  if(S.won){ rt.textContent='よあけ 🌅'; rb.innerHTML='ふたつの光が、月の道でひとつに結ばれた。<br>共振 '+S.res+'／💴'+S.coins+'　<b>スコア '+sc+'</b>'; }
+  else { const msg={flat:'水平で とまって、ゆれが 死んだ（∿死）。',break:'かたむけすぎて、縁の糸が 切れた（絶傾）。',heart:'逆縁に つかまってしまった。',time:'夜明けが きてしまった。'}[S.endReason]||'';
+    rt.textContent='また あした'; rb.innerHTML=msg+'<br>共振 '+S.res+'／'+RES_WIN+'　💴'+S.coins+'　<b>スコア '+sc+'</b>'; }
+  document.getElementById('result').classList.remove('hidden');
+  submitScore(sc);
+}
+
+/* ---------- 世界ランキング（Firebase相乗り・rankings/tsuriai・失敗は静かに） ---------- */
+let fbReady=false,fbDb=null;
+(function loadFB(){ try{
+  var base='https://www.gstatic.com/firebasejs/9.23.0/';var files=['firebase-app-compat.js','firebase-database-compat.js'];var i=0;
+  (function next(){ if(i>=files.length){initFB();return;} var s=document.createElement('script');s.src=base+files[i++];s.onload=next;s.onerror=function(){};document.head.appendChild(s); })();
+}catch(e){} })();
+function initFB(){ try{ if(typeof firebase==='undefined'||!firebase.database)return;
+  if(!firebase.apps||!firebase.apps.length)firebase.initializeApp({
+    apiKey:"AIzaSyB",authDomain:"chikumonogatarikiroku.firebaseapp.com",
+    databaseURL:"https://chikumonogatarikiroku-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:"chikumonogatarikiroku",storageBucket:"chikumonogatarikiroku.firebasestorage.app"});
+  fbDb=firebase.database();fbReady=true;
+}catch(e){} }
+function submitScore(sc){ const box=document.getElementById('rankBox');box.innerHTML='<div><span>世界ランキング</span><span>…</span></div>';
+  if(!fbReady||!fbDb){ box.innerHTML='<div><span>（オフライン）</span><span>スコア '+sc+'</span></div>'; return; }
+  try{ const ref=fbDb.ref('rankings/tsuriai');
+    ref.push({s:sc,t:Date.now()}).catch(()=>{});
+    ref.orderByChild('s').limitToLast(10).once('value',snap=>{ const arr=[];snap.forEach(c=>{arr.push(c.val());});arr.sort((a,b)=>b.s-a.s);
+      box.innerHTML=arr.map((r,i)=>'<div><span>'+(i+1)+'位</span><span>'+r.s+'</span></div>').join('')||'<div><span>まだ記録なし</span><span></span></div>'; });
+  }catch(e){ box.innerHTML='<div><span>（記録に失敗）</span><span>スコア '+sc+'</span></div>'; }
+}
+
+/* ---------- ボタン ---------- */
+document.getElementById('startBtn').onclick=startGame;
+document.getElementById('againBtn').onclick=startGame;
+document.getElementById('reload').onclick=()=>location.reload();
+
+/* ---------- 検証フック（§14） ---------- */
+window.__tsuriai={
+  state:()=>({phase:S.phase,hearts:S.hearts,coins:S.coins,res:S.res,th:S.th,w:S.w,amp:S.amp,coccoU:S.coccoU,
+    time:S.time,deadT:S.deadT,breakT:S.breakT,enemies:S.enemies.length,fruits:S.fruits.length,score:scoreOf(),won:S.won,endReason:S.endReason}),
+  step:(dt,n)=>{ n=n||1; for(let i=0;i<n;i++)update(dt||0.016); },
+  move:(d)=>setInput(d),
+  setTilt:(v)=>{S.th=v;},
+  beam:()=>({th:S.th,w:S.w,amp:S.amp}),
+  listEnemies:()=>S.enemies.map(e=>({u:e.u,dunkT:e.dunkT})),
+  coins:(n)=>{S.coins+=n;},
+  start:startGame,
+  forceEnd:(won)=>endGame(!!won,won?'win':'time'),
+  consts:{TILT_BREAK,AMP_DEAD,AMP_LOW,AMP_HIGH,RES_WIN,ROUND}
+};
+</script>
+</body>
+</html>
