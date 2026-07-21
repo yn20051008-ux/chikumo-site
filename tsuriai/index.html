@@ -118,7 +118,9 @@ const DUNK=0.34;               // 逆縁が沈んで月へ帰るしきい値
 const T_DUNK=0.8;
 const RES_WIN=12;              // 勝利に要する共振ピーク
 const ROUND=75;                // ラウンド長(s)
-const COCCO_SPEED=1.9;         // 移動速度(u/s)
+const COCCO_SPEED=1.95;        // 最大移動速度(u/s)
+const COCCO_ACC=9.0, COCCO_FRIC=7.0; // 慣性（錘の重み）
+const WALL=9.0;                // 破れ際のクッション強さ
 const EN_MAX=4;
 
 /* ---------- 行列（最小mat4） ---------- */
@@ -183,13 +185,14 @@ const seaP=prog(
  'attribute vec3 aPos;uniform mat4 uVP;uniform mat4 uLVP;varying vec3 vW;varying vec4 vClip;varying vec4 vLp;'+
  'void main(){vW=aPos;vLp=uLVP*vec4(aPos,1.0);vClip=uVP*vec4(aPos,1.0);gl_Position=vClip;}',
  PRE+'varying vec3 vW;varying vec4 vClip;varying vec4 vLp;'+
- 'uniform vec3 uCam;uniform vec3 uMoonDir;uniform vec3 uMoonPos;uniform float uT;uniform float uDawn;uniform float uRoad;'+
+ 'uniform vec3 uCam;uniform vec3 uMoonDir;uniform vec3 uMoonPos;uniform float uT;uniform float uDawn;uniform float uRoad;uniform float uMirror;'+
  'uniform sampler2D uRefl;uniform float uReflOn;'+SHADOWFN+
  'void main(){\n'+
  '  vec2 p=vW.xz;\n'+
+ '  float calm=1.0-uMirror*0.92;\n'+
  '  float r1=sin(p.x*0.5+uT*1.1)+sin(p.y*0.43-uT*0.9);\n'+
  '  float r2=sin(p.x*1.7-uT*1.7)*0.5+sin(p.y*1.3+uT*1.3)*0.5;\n'+
- '  vec3 N=normalize(vec3((r1+r2)*0.05, 1.0, (r1-r2)*0.05));\n'+
+ '  vec3 N=normalize(vec3((r1+r2)*0.05*calm, 1.0, (r1-r2)*0.05*calm));\n'+
  '  vec3 V=normalize(uCam-vW);\n'+
  '  float fres=0.04+0.96*pow(1.0-max(dot(N,V),0.0),5.0);\n'+
  '  vec3 deep=mix(vec3(0.015,0.03,0.075),vec3(0.10,0.13,0.16),uDawn);\n'+
@@ -202,12 +205,13 @@ const seaP=prog(
  '  vec3 H=normalize(normalize(uMoonPos-vW)+V);\n'+
  '  float spec=pow(max(dot(N,H),0.0),120.0);\n'+
  '  float road=exp(-abs(p.x-(-3.0))*0.5)*clamp(1.0-p.y*0.02,0.2,1.0);\n'+
- '  col+=vec3(1.0,0.92,0.72)*(spec*0.8+road*0.30*uRoad);\n'+
+ '  col+=vec3(1.0,0.92,0.72)*(spec*0.8+road*0.30*uRoad*(1.0+uMirror*2.5));\n'+
+ '  col=mix(col,reflCol*1.05,uMirror*0.5);\n'+
  '  float ndl=max(dot(N,normalize(uMoonDir)),0.0);col*=mix(0.6,1.0,shadowAt(vLp,ndl));\n'+
  '  gl_FragColor=vec4(col,1.0);}');
 const seaLoc={pos:gl.getAttribLocation(seaP,'aPos'),vp:gl.getUniformLocation(seaP,'uVP'),lvp:gl.getUniformLocation(seaP,'uLVP'),
   cam:gl.getUniformLocation(seaP,'uCam'),moonDir:gl.getUniformLocation(seaP,'uMoonDir'),moonPos:gl.getUniformLocation(seaP,'uMoonPos'),
-  t:gl.getUniformLocation(seaP,'uT'),dawn:gl.getUniformLocation(seaP,'uDawn'),road:gl.getUniformLocation(seaP,'uRoad'),
+  t:gl.getUniformLocation(seaP,'uT'),dawn:gl.getUniformLocation(seaP,'uDawn'),road:gl.getUniformLocation(seaP,'uRoad'),mirror:gl.getUniformLocation(seaP,'uMirror'),
   refl:gl.getUniformLocation(seaP,'uRefl'),reflOn:gl.getUniformLocation(seaP,'uReflOn'),
   sh:gl.getUniformLocation(seaP,'uShTex'),shPx:gl.getUniformLocation(seaP,'uShPx'),shOn:gl.getUniformLocation(seaP,'uShOn')};
 
@@ -433,34 +437,60 @@ let SHADOW_ON=true, REFL_ON=true;
   LVP=mMul(mOrtho(-9,9,-9,9,1,48),mLookAt(lp,[0,0,0],[0,1,0])); })();
 
 /* ---------- 状態 ---------- */
-const S={phase:'title', th:0, w:0, amp:0, coccoU:0, input:0, hearts:3, coins:0, res:0,
-  time:ROUND, deadT:0, breakT:0, invuln:0, enemies:[], fruits:[], sparks:[], memGold:0, memSilver:0, won:false, endReason:''};
+const S={phase:'title', th:0, w:0, amp:0, coccoU:0, coccoV:0, input:0, hearts:3, coins:0, res:0,
+  time:ROUND, deadT:0, breakT:0, invuln:0, enemies:[], fruits:[], sparks:[], memGold:0, memSilver:0,
+  mirror:0, camKick:0, won:false, endReason:''};
 let last=0, started=false;
 
 /* ---------- 音（WebAudio合成のみ） ---------- */
-let AC=null,master=null,pad=null,swingOsc=null,swingGain=null,swingFilt=null,noiseNode=null;
+let AC=null,master=null,pad=null,swingOsc=null,swingGain=null,swingFilt=null;
+let seaGain=null,seaFilt=null,verbIn=null,padPan=null,seaPan=null,shimmer=null;
+function makeNoise(){ const n=AC.sampleRate*2,buf=AC.createBuffer(1,n,AC.sampleRate),d=buf.getChannelData(0);
+  for(let i=0;i<n;i++)d[i]=Math.random()*2-1; const s=AC.createBufferSource();s.buffer=buf;s.loop=true;return s; }
 function initAudio(){ if(AC)return; try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
   master=AC.createGain();master.gain.value=0.0;master.connect(AC.destination);
-  // 夜の環境パッド
-  pad=AC.createGain();pad.gain.value=0.06;pad.connect(master);
-  [110,164.8,220].forEach(f=>{const o=AC.createOscillator();o.type='sine';o.frequency.value=f;const g=AC.createGain();g.gain.value=0.33;o.connect(g);g.connect(pad);o.start();});
-  // 揺れに追従する音
+  // フィードバックディレイの簡易リバーブ send
+  verbIn=AC.createGain();verbIn.gain.value=0.5;
+  const dl=AC.createDelay(1.0);dl.delayTime.value=0.19;const fb=AC.createGain();fb.gain.value=0.42;
+  const vlp=AC.createBiquadFilter();vlp.type='lowpass';vlp.frequency.value=2600;const vwet=AC.createGain();vwet.gain.value=0.35;
+  verbIn.connect(dl);dl.connect(vlp);vlp.connect(fb);fb.connect(dl);vlp.connect(vwet);vwet.connect(master);
+  // 夜の環境パッド（わずかに揺れる・左右）
+  pad=AC.createGain();pad.gain.value=0.05;padPan=AC.createStereoPanner?AC.createStereoPanner():null;
+  if(padPan){pad.connect(padPan);padPan.connect(master);}else pad.connect(master);
+  [110,164.8,220,330].forEach((f,i)=>{const o=AC.createOscillator();o.type='sine';o.frequency.value=f;
+    const g=AC.createGain();g.gain.value=0.28;const lfo=AC.createOscillator();lfo.frequency.value=0.05+i*0.02;
+    const lg=AC.createGain();lg.gain.value=0.6;lfo.connect(lg);lg.connect(o.detune);lfo.start();
+    o.connect(g);g.connect(pad);o.start();});
+  // 高いきらめき（夜明けで開く）
+  shimmer=AC.createGain();shimmer.gain.value=0.0;shimmer.connect(verbIn);shimmer.connect(master);
+  [1568,2093,2637].forEach(f=>{const o=AC.createOscillator();o.type='sine';o.frequency.value=f;const g=AC.createGain();g.gain.value=0.02;o.connect(g);g.connect(shimmer);o.start();});
+  // 海のノイズ（潮騒・揺れに追従）
+  seaFilt=AC.createBiquadFilter();seaFilt.type='bandpass';seaFilt.frequency.value=500;seaFilt.Q.value=0.7;
+  seaGain=AC.createGain();seaGain.gain.value=0.04;seaPan=AC.createStereoPanner?AC.createStereoPanner():null;
+  const nz=makeNoise();nz.connect(seaFilt);seaFilt.connect(seaGain);
+  if(seaPan){seaGain.connect(seaPan);seaPan.connect(master);}else seaGain.connect(master);
+  nz.start();
+  // 揺れに追従する音（サイン＋倍音）
   swingGain=AC.createGain();swingGain.gain.value=0.0;
   swingFilt=AC.createBiquadFilter();swingFilt.type='lowpass';swingFilt.frequency.value=500;
   swingOsc=AC.createOscillator();swingOsc.type='triangle';swingOsc.frequency.value=180;
-  swingOsc.connect(swingFilt);swingFilt.connect(swingGain);swingGain.connect(master);swingOsc.start();
-  master.gain.linearRampToValueAtTime(0.5,AC.currentTime+1.2);
+  swingOsc.connect(swingFilt);swingFilt.connect(swingGain);swingGain.connect(master);swingGain.connect(verbIn);swingOsc.start();
+  master.gain.linearRampToValueAtTime(0.55,AC.currentTime+1.2);
 }
-function beep(freq,dur,type,vol,when){ if(!AC)return; const t=(when||AC.currentTime);
+function beep(freq,dur,type,vol,when,verb){ if(!AC)return; const t=(when||AC.currentTime);
   const o=AC.createOscillator();o.type=type||'sine';o.frequency.value=freq;const g=AC.createGain();
-  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol||0.2,t+0.01);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
-  o.connect(g);g.connect(master||AC.destination);o.start(t);o.stop(t+dur+0.02);}
-const CHORD=[261.6,329.6,392,523.2,659.3]; // ドミソド♯…積み上がる
-function sfxRes(n){ beep(CHORD[Math.min(n,CHORD.length-1)],0.5,'sine',0.18); beep(CHORD[Math.min(n,CHORD.length-1)]*2,0.4,'triangle',0.06);}
-function sfxPick(){ beep(880,0.12,'triangle',0.14); }
-function sfxMelt(){ beep(300,0.5,'sine',0.12); beep(600,0.5,'sine',0.08,AC&&AC.currentTime+0.08); }
+  g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol||0.2,t+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g);g.connect(master||AC.destination);if(verb&&verbIn)g.connect(verbIn);o.start(t);o.stop(t+dur+0.02);}
+const CHORD=[261.6,329.6,392,523.2,659.3,783.9]; // ドミソド♯…積み上がる
+function sfxRes(n){ const f=CHORD[Math.min(n,CHORD.length-1)];
+  beep(f,0.7,'sine',0.17,0,true); beep(f*1.002,0.7,'sine',0.09,0,true); // わずかにデチューン
+  beep(f*2,0.5,'triangle',0.05,0,true); }
+function sfxPick(){ beep(880,0.12,'triangle',0.13); beep(1320,0.1,'sine',0.05,AC&&AC.currentTime+0.02); }
+function sfxMelt(){ beep(300,0.5,'sine',0.11,0,true); beep(600,0.5,'sine',0.07,AC&&AC.currentTime+0.08,true); }
 function sfxHurt(){ beep(90,0.25,'sawtooth',0.2); if(navigator.vibrate)navigator.vibrate(60); }
-function sfxBless(){ [261.6,329.6,392,523.2].forEach((f,i)=>beep(f,1.6,'sine',0.16,AC&&AC.currentTime+i*0.18)); }
+function sfxBless(){ // 夜明けの解決和音（低→高・きらめきを開く）
+  if(shimmer&&AC)shimmer.gain.linearRampToValueAtTime(0.5,AC.currentTime+2.4);
+  [130.8,196,261.6,329.6,392,523.2].forEach((f,i)=>beep(f,2.6,'sine',0.15,AC&&AC.currentTime+i*0.22,true)); }
 
 /* ---------- 入力 ---------- */
 function setInput(d){ S.input=d; }
@@ -476,7 +506,8 @@ canvas.addEventListener('pointerup',upEnd);canvas.addEventListener('pointercance
 
 /* ---------- ゲーム進行 ---------- */
 function startGame(){
-  S.phase='play';S.th=0.03;S.w=0.5;S.amp=0.05;S.coccoU=0;S.input=0;S.hearts=3;S.coins=0;S.res=0;
+  S.phase='play';S.th=0.03;S.w=0.5;S.amp=0.05;S.coccoU=0;S.coccoV=0;S.input=0;S.hearts=3;S.coins=0;S.res=0;
+  S.mirror=0;S.camKick=0;camAz=0;camEl=0;
   S.time=ROUND;S.deadT=0;S.breakT=0;S.invuln=0;S.enemies=[];S.fruits=[];S.sparks=[];S.memGold=0;S.memSilver=0;S.won=false;S.endReason='';
   sky=0;last=0;spawnT=6;
   document.getElementById('title').classList.add('hidden');
@@ -506,8 +537,12 @@ function uToWorld(u){ // position along beam surface at param u∈[-1,1], on til
 
 function update(dt){
   if(S.phase!=='play'){ return; }
-  // ---- 入力→こっこ位置 ----
-  S.coccoU=Math.max(-1,Math.min(1,S.coccoU+S.input*COCCO_SPEED*dt));
+  // ---- 入力→こっこ位置（慣性つき＝錘の重み） ----
+  S.coccoV += (S.input*COCCO_SPEED - S.coccoV*(S.input?0.0:1.0))*COCCO_ACC*dt;
+  S.coccoV -= S.coccoV*Math.min(1,COCCO_FRIC*dt*(S.input?0.15:1.0));
+  S.coccoV=Math.max(-COCCO_SPEED,Math.min(COCCO_SPEED,S.coccoV));
+  S.coccoU+=S.coccoV*dt;
+  if(S.coccoU>1){S.coccoU=1;S.coccoV*=-0.3;} if(S.coccoU<-1){S.coccoU=-1;S.coccoV*=-0.3;}
   // ---- 逆縁トルク合計 ----
   let enT=0;
   spawnT-=dt; if(spawnT<=0){ spawnEnemy(); spawnT=5.5+Math.random()*3; }
@@ -525,8 +560,10 @@ function update(dt){
   }
   S.enemies=S.enemies.filter(e=>e.alive);
   if(S.invuln>0)S.invuln-=dt;
-  // ---- 天秤の物理（単振り子＋駆動） ----
-  const torque = K_COCCO*S.coccoU + enT;
+  // ---- 天秤の物理（単振り子＋駆動＋破れ際のクッション） ----
+  let torque = K_COCCO*S.coccoU + enT;
+  // 破れ際で反発する壁（急に切れない手応え・でも押し切れば絶傾）
+  const edge=0.50; if(Math.abs(S.th)>edge){ const over=Math.abs(S.th)-edge; torque -= Math.sign(S.th)*over*over*WALL; }
   const a = -W0*W0*Math.sin(S.th) - 2*ZETA*W0*S.w + torque;
   const prevW=S.w;
   S.w += a*dt; S.th += S.w*dt;
@@ -538,7 +575,7 @@ function update(dt){
     if(peak>AMP_LOW){ // 沈んだ側(低い側=同符号の端)に実
       S.fruits.push({u:side*0.9, life:3.2, cell: side>0?5:4}); if(S.fruits.length>6)S.fruits.shift(); }
     if(peak>AMP_HIGH){ S.res++; sfxRes(S.res); if(navigator.vibrate)navigator.vibrate(30);
-      addSpark(0,1.2,6,[1,1,.8,1]);
+      addSpark(0,1.2,6,[1,1,.8,1]); S.camKick=Math.min(1,S.camKick+0.5);
       if(S.res>=RES_WIN){ endGame(true,'win'); } }
   }
   // ---- 実の回収 ----
@@ -559,7 +596,12 @@ function update(dt){
   if(swingGain&&AC){ const lo=Math.min(1,S.amp/AMP_HIGH);
     swingGain.gain.value=0.02+0.12*lo;
     swingFilt.frequency.value=300+900*lo+400*Math.abs(S.th)/0.5;
-    swingOsc.frequency.value=150+120*(S.th+0.5); }
+    swingOsc.frequency.value=150+120*(S.th+0.5);
+    // 海のノイズ＝揺れの速さで満ち引きの「さーっ」／傾きで左右へ
+    if(seaGain)seaGain.gain.value=0.03+0.09*Math.min(1,Math.abs(S.w)*0.7);
+    if(seaFilt)seaFilt.frequency.value=380+900*Math.min(1,Math.abs(S.w)*0.6);
+    const pan=Math.max(-1,Math.min(1,S.th*1.6));
+    if(seaPan)seaPan.pan.value=pan; if(padPan)padPan.pan.value=pan*0.3; }
   // ---- ヒント ----
   if(hintT>0){ hintT-=dt; if(hintT<=0)document.getElementById('hint').style.opacity='0'; }
   updateHUD();
@@ -656,7 +698,7 @@ function render(){
   const dawn=sky;
   const asp=canvas.width/canvas.height;
   const proj=mPersp(58*DEG,asp,0.1,200);
-  const view=mLookAt(EYE,[0,1.2,0],[0,1,0]);
+  const view=mLookAt(EYE,CAM_CENTER,[Math.sin(CAM_ROLL),Math.cos(CAM_ROLL),0]);
   const vp=mMul(proj,view);
   const top=[0.02+dawn*0.5,0.05+dawn*0.35,0.14+dawn*0.28];
   const hor=[0.06+dawn*0.7,0.09+dawn*0.4,0.20+dawn*0.25];
@@ -684,7 +726,7 @@ function render(){
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,seaIB);
   gl.uniformMatrix4fv(seaLoc.vp,false,vp);gl.uniformMatrix4fv(seaLoc.lvp,false,LVP);
   gl.uniform3fv(seaLoc.cam,EYE);gl.uniform3fv(seaLoc.moonDir,LIGHT);gl.uniform3fv(seaLoc.moonPos,MOON_POS);
-  gl.uniform1f(seaLoc.t,uT);gl.uniform1f(seaLoc.dawn,dawn);gl.uniform1f(seaLoc.road,0.4+Math.min(1,S.res/RES_WIN)*0.8+dawn*0.6);
+  gl.uniform1f(seaLoc.t,uT);gl.uniform1f(seaLoc.dawn,dawn);gl.uniform1f(seaLoc.road,0.4+Math.min(1,S.res/RES_WIN)*0.8+dawn*0.6);gl.uniform1f(seaLoc.mirror,S.mirror);
   gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,reflTex);gl.uniform1i(seaLoc.refl,2);gl.uniform1f(seaLoc.reflOn,(REFL_ON&&REFL_OK)?1:0);
   gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,shadowTex);gl.uniform1i(seaLoc.sh,1);
   gl.uniform1f(seaLoc.shPx,1/SHADOW_SIZE);gl.uniform1f(seaLoc.shOn,(SHADOW_ON&&SHADOW_OK)?1:0);
@@ -712,12 +754,52 @@ function render(){
   }
 }
 
+/* ---------- 終端演出（夜明けの鏡の海） ---------- */
+function endTick(dt){
+  if(S.won){
+    sky=Math.min(1,sky+dt*0.45);           // 夜明けへ
+    S.mirror=Math.min(1,S.mirror+dt*0.5);  // 波が凪いで鏡になる
+    // 天秤が水平へ静かに整う（縁＝衡＋∿衡− が最後に一度だけ交わる）
+    S.th+=S.w*dt; S.w+= (-W0*W0*Math.sin(S.th) - 2*1.4*W0*S.w)*dt;
+    if(Math.abs(S.th)<0.02&&Math.abs(S.w)<0.05){S.th*=0.9;S.w*=0.9;}
+    // 夜光虫がふわっと湧く
+    if(Math.random()<dt*8){ const u=(Math.random()*2-1); addSpark(u,0.6+Math.random(),6,[0.6,0.9,1,1]); }
+    if(seaGain&&AC)seaGain.gain.value=0.04*(1-S.mirror); // 潮騒が凪ぐ
+  } else { sky=Math.min(1,sky+dt*0.25); }
+  for(const s of S.sparks){ s.life-=dt; s.y+=s.vy*dt; s.vy-=1.2*dt; } S.sparks=S.sparks.filter(s=>s.life>0);
+}
+
+/* ---------- カメラ（追従・バンク・共振キック・終端クレーン） ---------- */
+let camAz=0, camEl=0;
+function updateCamera(dt){
+  S.camKick=Math.max(0,S.camKick-dt*2.2);
+  const t=performance.now()*0.001;
+  // 基本：ゆるい呼吸＋こっこ側へわずかに寄る＋傾きにバンク
+  let tazi=Math.sin(t*0.25)*0.05 + S.coccoU*0.10;
+  let tele=0.0 + Math.sin(t*0.19)*0.02;
+  let dist=13.5 - S.camKick*0.7;             // 共振でぐっと寄る
+  let cy=1.2;
+  if(S.phase==='end'&&S.won){                // 夜明けのクレーン＋月の道へ回り込む
+    const e=Math.min(1,S.mirror);
+    tazi=-0.55*e + Math.sin(t*0.2)*0.03;      // 月の道（左）へ向く
+    tele=0.30*e; dist=13.5+e*3.0; cy=1.2+e*0.8;
+  }
+  camAz+=(tazi-camAz)*Math.min(1,dt*2.0);
+  camEl+=(tele-camEl)*Math.min(1,dt*2.0);
+  const cd=Math.cos(camEl)*dist;
+  EYE=[Math.sin(camAz)*cd, 4.6+Math.sin(camEl)*dist, Math.cos(camAz)*cd];
+  CAM_CENTER=[S.coccoU*BEAM_HALF*0.15, cy, 0];
+  CAM_ROLL=-S.th*0.28*(1-(S.phase==='end'&&S.won?S.mirror:0));
+}
+let CAM_CENTER=[0,1.2,0], CAM_ROLL=0;
+
 /* ---------- ループ ---------- */
 function frame(t){
   if(!last)last=t; let dt=(t-last)/1000; last=t; if(dt>0.05)dt=0.05;
   if(S.phase==='play'){ update(dt); }
-  if(S.phase==='end'){ sky=Math.min(1,sky+dt*0.5); }
-  if(coccoReady||true) render();
+  else if(S.phase==='end'){ endTick(dt); }
+  updateCamera(dt);
+  render();
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
