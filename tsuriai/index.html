@@ -76,7 +76,7 @@
   <div id="bandTxt">ゆれ幅 ─ みどりの帯で たやすな（下＝止まる／上＝振りすぎ）</div>
 </div>
 <div id="hudTL" class="hud hidden">❤️❤️❤️</div>
-<div id="hudTR" class="hud hidden">🌕 <span id="resTxt">0</span>/12<br>💴 <span id="coinTxt">0</span><br>⏱ <span id="timeTxt">75</span></div>
+<div id="hudTR" class="hud hidden">🌕 <span id="resTxt">0</span>/<span id="resWin">11</span><br>💴 <span id="coinTxt">0</span><br>⏱ <span id="timeTxt">75</span></div>
 <div id="hint"></div>
 
 <div id="title" class="overlay">
@@ -120,7 +120,7 @@ const T_BREAK=1.4;             // 絶傾（振りすぎ）の連続秒
 const TILT_MAX=0.8;           // 傾きHUDの目盛り最大(rad)
 const DUNK=0.30;              // 逆縁が沈んで月へ帰るしきい値（下げて掃除しやすく）
 const T_DUNK=0.75;
-const RES_WIN=12;              // 勝利に要する共振ピーク
+const RES_WIN=11;              // 勝利に要する共振ピーク
 const ROUND=75;                // ラウンド長(s)
 const COCCO_SPEED=1.95;        // 最大移動速度(u/s)
 const COCCO_ACC=9.0, COCCO_FRIC=7.0; // 慣性（錘の重み）
@@ -515,7 +515,7 @@ function startGame(){
   S.phase='play';S.th=0.03;S.w=0.5;S.amp=0.05;S.coccoU=0;S.coccoV=0;S.input=0;S.hearts=3;S.coins=0;S.res=0;
   S.mirror=0;S.camKick=0;camAz=0;camEl=0;
   S.time=ROUND;S.deadT=0;S.breakT=0;S.invuln=0;S.enemies=[];S.fruits=[];S.sparks=[];S.memGold=0;S.memSilver=0;S.won=false;S.endReason='';
-  sky=0;last=0;spawnT=8;tutStage=0;tutT=0;tutTotal=0;
+  sky=0;last=0;spawnT=9;tutStage=0;tutT=0;tutTotal=0;
   document.getElementById('title').classList.add('hidden');
   document.getElementById('result').classList.add('hidden');
   document.getElementById('bandWrap').classList.remove('hidden');
@@ -550,7 +550,7 @@ function update(dt){
   if(S.coccoU>1){S.coccoU=1;S.coccoV*=-0.3;} if(S.coccoU<-1){S.coccoU=-1;S.coccoV*=-0.3;}
   // ---- 逆縁トルク合計 ----
   let enT=0;
-  spawnT-=dt; if(spawnT<=0){ spawnEnemy(); spawnT=6.0+Math.random()*3.5; }
+  spawnT-=dt; if(spawnT<=0){ spawnEnemy(); spawnT=6.5+Math.random()*4.0; }
   for(const e of S.enemies){ if(!e.alive)continue;
     e.age+=dt;
     e.u += (e.push*0.9 - e.u)*Math.min(1,dt*0.7); // 端へじわり寄る
@@ -617,6 +617,7 @@ function update(dt){
 function updateHUD(){
   document.getElementById('hudTL').textContent='❤️'.repeat(Math.max(0,S.hearts))+'🖤'.repeat(Math.max(0,3-S.hearts));
   document.getElementById('resTxt').textContent=S.res;
+  document.getElementById('resWin').textContent=RES_WIN;
   document.getElementById('coinTxt').textContent=S.coins;
   document.getElementById('timeTxt').textContent=Math.ceil(S.time);
   document.getElementById('resTxt').parentElement.firstChild.textContent = S.res>=RES_WIN?'🌕 ':'🌑 ';
@@ -802,9 +803,9 @@ let camAz=0, camEl=0;
 function updateCamera(dt){
   S.camKick=Math.max(0,S.camKick-dt*2.2);
   const t=performance.now()*0.001;
-  // 基本：ゆるい呼吸＋こっこ側へわずかに寄る＋傾きにバンク
-  let tazi=Math.sin(t*0.25)*0.05 + S.coccoU*0.10;
-  let tele=0.0 + Math.sin(t*0.19)*0.02;
+  // 基本：控えめな呼吸＋こっこ側へわずかに寄る＋傾きに軽いバンク
+  let tazi=Math.sin(t*0.22)*0.03 + S.coccoU*0.08;
+  let tele=0.0 + Math.sin(t*0.17)*0.012;
   let dist=13.5 - S.camKick*0.7;             // 共振でぐっと寄る
   let cy=1.2;
   if(S.phase==='end'&&S.won){                // 夜明けのクレーン＋月の道へ回り込む
@@ -817,7 +818,7 @@ function updateCamera(dt){
   const cd=Math.cos(camEl)*dist;
   EYE=[Math.sin(camAz)*cd, 4.6+Math.sin(camEl)*dist, Math.cos(camAz)*cd];
   CAM_CENTER=[S.coccoU*BEAM_HALF*0.15, cy, 0];
-  CAM_ROLL=-S.th*0.28*(1-(S.phase==='end'&&S.won?S.mirror:0));
+  CAM_ROLL=-S.th*0.18*(1-(S.phase==='end'&&S.won?S.mirror:0));
 }
 let CAM_CENTER=[0,1.2,0], CAM_ROLL=0;
 
