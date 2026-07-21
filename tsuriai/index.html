@@ -36,6 +36,7 @@
   *{margin:0;padding:0;box-sizing:border-box}
   html,body{width:100%;height:100%;overflow:hidden;background:#0b1630;font-family:-apple-system,"Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
   #glc{position:fixed;inset:0;width:100%;height:100%;display:block}
+  #vig{position:fixed;inset:0;z-index:2;pointer-events:none;box-shadow:inset 0 0 min(30vw,220px) rgba(0,0,0,.62)}
   .hud{position:fixed;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.7);pointer-events:none;z-index:5;font-weight:700}
   #hudTL{top:calc(env(safe-area-inset-top,0) + 10px);left:12px;font-size:20px;line-height:1.35}
   #hudTR{top:calc(env(safe-area-inset-top,0) + 10px);right:12px;text-align:right;font-size:16px;line-height:1.4}
@@ -63,6 +64,7 @@
 </head>
 <body>
 <canvas id="glc"></canvas>
+<div id="vig"></div>
 
 <div id="moveHintL">◀</div><div id="moveHintR">▶</div>
 
@@ -139,16 +141,78 @@ function sh(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.co
 function prog(vs,fs){const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,vs));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));gl.linkProgram(p);
   if(!gl.getProgramParameter(p,gl.LINK_STATUS)){console.warn(gl.getProgramInfoLog(p));} return p;}
 
-/* メッシュ（単色ランバート） */
+function mOrtho(l,r,b,t,n,f){const o=new Float32Array(16);o[0]=2/(r-l);o[5]=2/(t-b);o[10]=-2/(f-n);
+  o[12]=-(r+l)/(r-l);o[13]=-(t+b)/(t-b);o[14]=-(f+n)/(f-n);o[15]=1;return o;}
+
+/* 深度パック（shinshima の型・影マップ用） */
+const PACK='vec4 packD(float v){vec4 e=vec4(1.,255.,65025.,16581375.)*v;e=fract(e);e-=e.yzww*vec4(1./255.,1./255.,1./255.,0.);return e;}\n'
++'float unpackD(vec4 c){return dot(c,vec4(1.,1./255.,1./65025.,1./16581375.));}\n';
+/* 3×3 PCF 影サンプル（shinshima の型） */
+const SHADOWFN='uniform sampler2D uShTex;uniform float uShPx;uniform float uShOn;\n'
++PACK+'float shadowAt(vec4 lp,float ndl){\n'
++'  if(uShOn<0.5)return 1.0;\n'
++'  vec3 p=lp.xyz/lp.w*0.5+0.5;\n'
++'  if(p.x<0.0||p.x>1.0||p.y<0.0||p.y>1.0||p.z>1.0)return 1.0;\n'
++'  float bias=max(0.0025*(1.0-ndl),0.0009);float s=0.0;\n'
++'  for(int y=-1;y<=1;y++)for(int x=-1;x<=1;x++){\n'
++'    float d=unpackD(texture2D(uShTex,p.xy+vec2(float(x),float(y))*uShPx));\n'
++'    s+=(p.z-bias<=d)?1.0:0.0;}\n'
++'  return mix(0.42,1.0,s/9.0);}\n';
+
+/* 深度パス */
+const depthP=prog('attribute vec3 aPos;uniform mat4 uLVP;void main(){gl_Position=uLVP*vec4(aPos,1.0);}',
+  PRE+PACK+'void main(){gl_FragColor=packD(gl_FragCoord.z);}');
+const dLoc={pos:gl.getAttribLocation(depthP,'aPos'),lvp:gl.getUniformLocation(depthP,'uLVP')};
+
+/* メッシュ（ランバート＋影＋月あかり） */
 const meshP=prog(
- 'attribute vec3 aPos;attribute vec3 aNor;uniform mat4 uMVP;uniform mat4 uModel;varying vec3 vN;varying vec3 vW;'+
- 'void main(){vec4 w=uModel*vec4(aPos,1.0);vW=w.xyz;vN=mat3(uModel)*aNor;gl_Position=uMVP*vec4(aPos,1.0);}',
- PRE+'varying vec3 vN;varying vec3 vW;uniform vec3 uCol;uniform vec3 uLight;uniform float uAmb;uniform float uEmis;'+
- 'void main(){vec3 n=normalize(vN);float d=max(dot(n,normalize(uLight)),0.0);float l=uAmb+d*0.9;'+
- 'vec3 c=uCol*l+uCol*uEmis;gl_FragColor=vec4(c,1.0);}');
+ 'attribute vec3 aPos;attribute vec3 aNor;uniform mat4 uVP;uniform mat4 uModel;uniform mat4 uLVP;'+
+ 'varying vec3 vN;varying vec3 vW;varying vec4 vLp;'+
+ 'void main(){vec4 w=uModel*vec4(aPos,1.0);vW=w.xyz;vN=mat3(uModel)*aNor;vLp=uLVP*w;gl_Position=uVP*w;}',
+ PRE+'varying vec3 vN;varying vec3 vW;varying vec4 vLp;uniform vec3 uCol;uniform vec3 uLight;uniform float uAmb;uniform float uEmis;'+SHADOWFN+
+ 'void main(){vec3 n=normalize(vN);float ndl=max(dot(n,normalize(uLight)),0.0);float sh=shadowAt(vLp,ndl);'+
+ 'float l=uAmb+ndl*0.95*sh;vec3 moon=vec3(1.0,0.95,0.82);'+
+ 'vec3 c=uCol*l*moon+uCol*uEmis;gl_FragColor=vec4(c,1.0);}');
 const meshLoc={pos:gl.getAttribLocation(meshP,'aPos'),nor:gl.getAttribLocation(meshP,'aNor'),
-  mvp:gl.getUniformLocation(meshP,'uMVP'),model:gl.getUniformLocation(meshP,'uModel'),
-  col:gl.getUniformLocation(meshP,'uCol'),light:gl.getUniformLocation(meshP,'uLight'),amb:gl.getUniformLocation(meshP,'uAmb'),emis:gl.getUniformLocation(meshP,'uEmis')};
+  vp:gl.getUniformLocation(meshP,'uVP'),model:gl.getUniformLocation(meshP,'uModel'),lvp:gl.getUniformLocation(meshP,'uLVP'),
+  col:gl.getUniformLocation(meshP,'uCol'),light:gl.getUniformLocation(meshP,'uLight'),amb:gl.getUniformLocation(meshP,'uAmb'),emis:gl.getUniformLocation(meshP,'uEmis'),
+  sh:gl.getUniformLocation(meshP,'uShTex'),shPx:gl.getUniformLocation(meshP,'uShPx'),shOn:gl.getUniformLocation(meshP,'uShOn')};
+
+/* 海（平面反射＋さざ波＋月の道スペキュラ＋影） */
+const seaP=prog(
+ 'attribute vec3 aPos;uniform mat4 uVP;uniform mat4 uLVP;varying vec3 vW;varying vec4 vClip;varying vec4 vLp;'+
+ 'void main(){vW=aPos;vLp=uLVP*vec4(aPos,1.0);vClip=uVP*vec4(aPos,1.0);gl_Position=vClip;}',
+ PRE+'varying vec3 vW;varying vec4 vClip;varying vec4 vLp;'+
+ 'uniform vec3 uCam;uniform vec3 uMoonDir;uniform vec3 uMoonPos;uniform float uT;uniform float uDawn;uniform float uRoad;'+
+ 'uniform sampler2D uRefl;uniform float uReflOn;'+SHADOWFN+
+ 'void main(){\n'+
+ '  vec2 p=vW.xz;\n'+
+ '  float r1=sin(p.x*0.5+uT*1.1)+sin(p.y*0.43-uT*0.9);\n'+
+ '  float r2=sin(p.x*1.7-uT*1.7)*0.5+sin(p.y*1.3+uT*1.3)*0.5;\n'+
+ '  vec3 N=normalize(vec3((r1+r2)*0.05, 1.0, (r1-r2)*0.05));\n'+
+ '  vec3 V=normalize(uCam-vW);\n'+
+ '  float fres=0.04+0.96*pow(1.0-max(dot(N,V),0.0),5.0);\n'+
+ '  vec3 deep=mix(vec3(0.015,0.03,0.075),vec3(0.10,0.13,0.16),uDawn);\n'+
+ '  vec3 water=deep;\n'+
+ '  vec3 reflCol=mix(vec3(0.05,0.08,0.16),vec3(0.4,0.45,0.5),uDawn);\n'+
+ '  if(uReflOn>0.5){ vec2 uv=vClip.xy/vClip.w*0.5+0.5; uv+=N.xz*0.03; reflCol=texture2D(uRefl,clamp(uv,0.001,0.999)).rgb; }\n'+
+ '  vec3 col=mix(water,reflCol,clamp(fres*0.9+0.1,0.0,1.0));\n'+
+ '  vec3 H=normalize(normalize(uMoonPos-vW)+V);\n'+
+ '  float spec=pow(max(dot(N,H),0.0),120.0);\n'+
+ '  float road=exp(-abs(p.x-(-3.0))*0.5)*clamp(1.0-p.y*0.02,0.2,1.0);\n'+
+ '  col+=vec3(1.0,0.92,0.72)*(spec*0.8+road*0.30*uRoad);\n'+
+ '  float ndl=max(dot(N,normalize(uMoonDir)),0.0);col*=mix(0.6,1.0,shadowAt(vLp,ndl));\n'+
+ '  gl_FragColor=vec4(col,1.0);}');
+const seaLoc={pos:gl.getAttribLocation(seaP,'aPos'),vp:gl.getUniformLocation(seaP,'uVP'),lvp:gl.getUniformLocation(seaP,'uLVP'),
+  cam:gl.getUniformLocation(seaP,'uCam'),moonDir:gl.getUniformLocation(seaP,'uMoonDir'),moonPos:gl.getUniformLocation(seaP,'uMoonPos'),
+  t:gl.getUniformLocation(seaP,'uT'),dawn:gl.getUniformLocation(seaP,'uDawn'),road:gl.getUniformLocation(seaP,'uRoad'),
+  refl:gl.getUniformLocation(seaP,'uRefl'),reflOn:gl.getUniformLocation(seaP,'uReflOn'),
+  sh:gl.getUniformLocation(seaP,'uShTex'),shPx:gl.getUniformLocation(seaP,'uShPx'),shOn:gl.getUniformLocation(seaP,'uShOn')};
+
+/* スカイ（グラデ全画面） */
+const skyP=prog('attribute vec2 aPos;varying vec2 vUv;void main(){vUv=aPos*0.5+0.5;gl_Position=vec4(aPos,0.999,1.0);}',
+  PRE+'varying vec2 vUv;uniform vec3 uTop;uniform vec3 uHor;void main(){float t=pow(clamp(vUv.y,0.0,1.0),0.8);gl_FragColor=vec4(mix(uHor,uTop,t),1.0);}');
+const skyLoc={pos:gl.getAttribLocation(skyP,'aPos'),top:gl.getUniformLocation(skyP,'uTop'),hor:gl.getUniformLocation(skyP,'uHor')};
 
 /* スプライト（テクスチャ四角・加算/通常） */
 const sprP=prog(
@@ -162,7 +226,6 @@ const sprLoc={pos:gl.getAttribLocation(sprP,'aPos'),uv:gl.getAttribLocation(sprP
 /* ---------- ジオメトリ ---------- */
 function buf(data){const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(data),gl.STATIC_DRAW);return b;}
 function ebuf(data){const b=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,b);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(data),gl.STATIC_DRAW);return b;}
-// box centered, dims sx,sy,sz
 function makeBox(sx,sy,sz){const x=sx/2,y=sy/2,z=sz/2;const v=[],n=[],idx=[];
   const faces=[[[ -x,-y, z],[ x,-y, z],[ x, y, z],[-x, y, z],[0,0,1]],
     [[ x,-y,-z],[-x,-y,-z],[-x, y,-z],[ x, y,-z],[0,0,-1]],
@@ -172,23 +235,70 @@ function makeBox(sx,sy,sz){const x=sx/2,y=sy/2,z=sz/2;const v=[],n=[],idx=[];
     [[-x,-y,-z],[ x,-y,-z],[ x,-y, z],[-x,-y, z],[0,-1,0]]];
   let o=0;for(const f of faces){for(let i=0;i<4;i++){v.push(f[i][0],f[i][1],f[i][2]);n.push(f[4][0],f[4][1],f[4][2]);}idx.push(o,o+1,o+2,o,o+2,o+3);o+=4;}
   return {vb:buf(interleave(v,n)),ib:ebuf(idx),count:idx.length};}
-// disc in XZ plane (flat), radius r
 function makeDisc(r,seg){const v=[],n=[],idx=[];v.push(0,0,0);n.push(0,1,0);
   for(let i=0;i<=seg;i++){const a=i/seg*TAU;v.push(Math.cos(a)*r,0,Math.sin(a)*r);n.push(0,1,0);}
   for(let i=1;i<=seg;i++)idx.push(0,i,i+1);
   return {vb:buf(interleave(v,n)),ib:ebuf(idx),count:idx.length};}
 function interleave(v,n){const o=[];for(let i=0;i<v.length/3;i++){o.push(v[i*3],v[i*3+1],v[i*3+2],n[i*3],n[i*3+1],n[i*3+2]);}return o;}
-const geoBox=makeBox(1,1,1), geoBeam=makeBox(12,0.5,1.7), geoPost=makeBox(0.7,7,0.7), geoDisc=makeDisc(1.5,40), geoSea=makeBox(80,0.2,80);
-function drawMesh(geo,model,mvp,col,amb,emis){
-  gl.useProgram(meshP);gl.bindBuffer(gl.ARRAY_BUFFER,geo.vb);
+const geoBox=makeBox(1,1,1), geoBeam=makeBox(12,0.5,1.7), geoPost=makeBox(0.7,7,0.7), geoDisc=makeDisc(1.5,40);
+// 海のグリッド平面（xz・y=SEA_Y）: ripple は FS で
+const SEA_Y=-2.2, SEA_HALF=44;
+const seaVB=buf([-SEA_HALF,SEA_Y,-SEA_HALF, SEA_HALF,SEA_Y,-SEA_HALF, SEA_HALF,SEA_Y,SEA_HALF, -SEA_HALF,SEA_Y,SEA_HALF]);
+const seaIB=ebuf([0,1,2,0,2,3]);
+const fsQuadVB=buf([-1,-1, 1,-1, 1,1, -1,1]);
+const fsQuadIB=ebuf([0,1,2,0,2,3]);
+
+/* 影マップFBO */
+let SHADOW_SIZE=1024, shadowFBO=null,shadowTex=null,shadowRB=null,SHADOW_OK=false;
+function initShadow(size){ SHADOW_OK=false; try{ SHADOW_SIZE=size;
+  shadowTex=shadowTex||gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,shadowTex);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,size,size,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  shadowFBO=shadowFBO||gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,shadowFBO);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,shadowTex,0);
+  shadowRB=shadowRB||gl.createRenderbuffer();gl.bindRenderbuffer(gl.RENDERBUFFER,shadowRB);
+  gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,size,size);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,shadowRB);
+  SHADOW_OK=(gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+}catch(e){SHADOW_OK=false;} }
+/* 反射FBO（半解像度） */
+let reflFBO=null,reflTex=null,reflRB=null,REFL_OK=false,reflW=0,reflH=0;
+function initRefl(){ REFL_OK=false; try{
+  reflW=Math.max(2,(canvas.width/2)|0);reflH=Math.max(2,(canvas.height/2)|0);
+  reflTex=reflTex||gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,reflTex);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,reflW,reflH,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  reflFBO=reflFBO||gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,reflFBO);
+  gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,reflTex,0);
+  reflRB=reflRB||gl.createRenderbuffer();gl.bindRenderbuffer(gl.RENDERBUFFER,reflRB);
+  gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,reflW,reflH);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,reflRB);
+  REFL_OK=(gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+}catch(e){REFL_OK=false;} }
+initShadow(2048); if(!SHADOW_OK)initShadow(1024);
+
+/* 描画ヘルパ */
+function bindMeshAttribs(geo){gl.bindBuffer(gl.ARRAY_BUFFER,geo.vb);
   gl.enableVertexAttribArray(meshLoc.pos);gl.vertexAttribPointer(meshLoc.pos,3,gl.FLOAT,false,24,0);
   gl.enableVertexAttribArray(meshLoc.nor);gl.vertexAttribPointer(meshLoc.nor,3,gl.FLOAT,false,24,12);
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,geo.ib);
-  gl.uniformMatrix4fv(meshLoc.mvp,false,mvp);gl.uniformMatrix4fv(meshLoc.model,false,model);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,geo.ib);}
+function drawMesh(geo,model,vp,col,amb,emis){
+  gl.useProgram(meshP);bindMeshAttribs(geo);
+  gl.uniformMatrix4fv(meshLoc.vp,false,vp);gl.uniformMatrix4fv(meshLoc.model,false,model);gl.uniformMatrix4fv(meshLoc.lvp,false,LVP);
   gl.uniform3fv(meshLoc.col,col);gl.uniform3fv(meshLoc.light,LIGHT);gl.uniform1f(meshLoc.amb,amb);gl.uniform1f(meshLoc.emis,emis||0);
+  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,shadowTex);gl.uniform1i(meshLoc.sh,1);
+  gl.uniform1f(meshLoc.shPx,1/SHADOW_SIZE);gl.uniform1f(meshLoc.shOn,(SHADOW_ON&&SHADOW_OK)?1:0);
   gl.drawElements(gl.TRIANGLES,geo.count,gl.UNSIGNED_SHORT,0);
 }
-// unit quad centered XY
+function drawDepth(geo,model){ gl.useProgram(depthP);
+  gl.bindBuffer(gl.ARRAY_BUFFER,geo.vb);gl.enableVertexAttribArray(dLoc.pos);gl.vertexAttribPointer(dLoc.pos,3,gl.FLOAT,false,24,0);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,geo.ib);
+  gl.uniformMatrix4fv(dLoc.lvp,false,mMul(LVP,model));gl.drawElements(gl.TRIANGLES,geo.count,gl.UNSIGNED_SHORT,0);}
+// unit quad centered XY (sprites)
 const quadVB=buf([-0.5,-0.5,0,1, 0.5,-0.5,1,1, 0.5,0.5,1,0, -0.5,0.5,0,0]);
 const quadIB=ebuf([0,1,2,0,2,3]);
 function drawSprite(model,vp,cell,tint,add){
@@ -198,13 +308,14 @@ function drawSprite(model,vp,cell,tint,add){
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,quadIB);
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,atlasTex);gl.uniform1i(sprLoc.tex,0);
   const uv=cellUV(cell);
-  // rebuild quad uv per cell via a small dynamic buffer
   gl.bindBuffer(gl.ARRAY_BUFFER,quadVB);
   gl.bufferSubData(gl.ARRAY_BUFFER,0,new Float32Array([-0.5,-0.5,uv[0],uv[3], 0.5,-0.5,uv[2],uv[3], 0.5,0.5,uv[2],uv[1], -0.5,0.5,uv[0],uv[1]]));
   gl.uniformMatrix4fv(sprLoc.mvp,false,mMul(vp,model));
   gl.uniform4fv(sprLoc.tint,tint);gl.uniform1f(sprLoc.add,add?1:0);
   gl.drawElements(gl.TRIANGLES,6,gl.UNSIGNED_SHORT,0);
 }
+// 反射用ミラー行列（y=SEA_Y で鏡映）
+const MIRROR=mMul(mTrans(0,2*SEA_Y,0),mScale(1,-1,1));
 
 /* ---------- アトラス（SVG焼き＋絵文字） ---------- */
 const cocco=new Image();let coccoReady=false;
@@ -245,8 +356,15 @@ buildAtlas();
 
 /* ---------- 世界の定数 ---------- */
 const BEAM_HALF=6;          // 天秤の腕の半分の長さ（world）
-const LIGHT=(function(){const v=[0.3,0.85,0.4];const l=Math.hypot(...v);return [v[0]/l,v[1]/l,v[2]/l];})();
+const MOON_POS=[-5.5,9.2,-22];
+const LIGHT=(function(){const v=[0.34,0.8,0.42];const l=Math.hypot(...v);return [v[0]/l,v[1]/l,v[2]/l];})();
 let sky=0;                  // 0..1 夜→夜明け
+let EYE=[0,4.6,13.5];
+let LVP=mIdent();           // ライト視点の view-proj（影マップ）
+let SHADOW_ON=true, REFL_ON=true;
+// 影マップのライト行列（月方向から見下ろす正射・天秤域を覆う）
+(function buildLVP(){ const d=22; const lp=[LIGHT[0]*d,LIGHT[1]*d,LIGHT[2]*d];
+  LVP=mMul(mOrtho(-9,9,-9,9,1,48),mLookAt(lp,[0,0,0],[0,1,0])); })();
 
 /* ---------- 状態 ---------- */
 const S={phase:'title', th:0, w:0, amp:0, coccoU:0, input:0, hearts:3, coins:0, res:0,
@@ -399,79 +517,104 @@ function updateHUD(){
 /* ---------- 描画 ---------- */
 function resize(){ const dpr=Math.min(devicePixelRatio||1,2);
   canvas.width=Math.floor(innerWidth*dpr);canvas.height=Math.floor(innerHeight*dpr);
-  canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px'; }
-addEventListener('resize',resize);resize();
+  canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px';
+  if(REFL_ON)initRefl(); }
+addEventListener('resize',resize);resize();initRefl();
 
-function billboard(pos,w,h,vp){ // upright billboard facing camera (rotate around Y)
+function billboard(pos,w,h,mirror){ // upright billboard facing real camera（mirror=海面反射）
   const ang=Math.atan2(EYE[0]-pos[0],EYE[2]-pos[2]);
-  return mMul(mMul(mTrans(pos[0],pos[1],pos[2]),mRotY(ang)),mScale(w,h,1));
+  let m=mMul(mMul(mTrans(pos[0],pos[1],pos[2]),mRotY(ang)),mScale(w,h,1));
+  return mirror?mMul(MIRROR,m):m;
 }
-let EYE=[0,4.6,13.5];
-function render(){
+// 天秤上の座標（u∈[-1,1]・傾きth に乗る）
+function cw(u){ return [u*BEAM_HALF*Math.cos(S.th), 0.85+u*BEAM_HALF*Math.sin(S.th)]; }
+// 雲（銀縁・ゆっくり流れる）
+const CLOUDS=[[-8,11,-24,7],[-2,12.5,-26,9],[4,10,-25,6],[9,12,-27,8],[-12,9,-22,5]];
+
+// 天秤・皿・柱（メッシュ）
+function meshModels(){ const A=[];
+  A.push(['post',mTrans(0,4.2,-0.2),[0.16,0.17,0.23],0.4,0.05]);
+  A.push(['beam',mMul(mTrans(0,0.6,0),mRotZ(S.th)),[0.6,0.55,0.46],0.5,0.05]);
+  for(const side of [-1,1]){ const ex=side*BEAM_HALF*Math.cos(S.th), ey=0.6+side*BEAM_HALF*Math.sin(S.th);
+    A.push(['string',mMul(mTrans(ex,ey-0.9,0),mScale(0.08,1.6,0.08)),[0.32,0.32,0.36],0.4,0]);
+    const pc=side<0?[1.0,0.82,0.42]:[0.76,0.82,0.94];
+    A.push(['disc',mTrans(ex,ey-1.75,0),pc,0.45,0.14+Math.max(0,side>0?S.th:-S.th)*0.5]);
+  } return A; }
+function geoOf(k){return k==='post'?geoPost:k==='beam'?geoBeam:k==='disc'?geoDisc:geoBox;}
+function drawMeshes(vp,mirror){ for(const m of meshModels()){ const mm=mirror?mMul(MIRROR,m[1]):m[1];
+  drawMesh(geoOf(m[0]),mm,vp,m[2],m[3],m[4]); } }
+
+function drawSprites(vp,mirror){
   const dawn=sky;
-  // 空の色（夜→夜明け）
-  const top=[0.03+dawn*0.5,0.06+dawn*0.35,0.16+dawn*0.25];
-  gl.viewport(0,0,canvas.width,canvas.height);
-  gl.clearColor(top[0],top[1],top[2],1);gl.clearDepth(1);
-  gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
-  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
-  const asp=canvas.width/canvas.height;
-  const proj=mPersp(58*DEG,asp,0.1,200);
-  const view=mLookAt(EYE,[0,1.4,0],[0,1,0]);
-  const vp=mMul(proj,view);
-
-  // 海（下の板・簡易反射トーン）
-  drawMesh(geoSea,mTrans(0,-6.2,0),vp,[0.02+dawn*0.12,0.05+dawn*0.12,0.12+dawn*0.14],0.25,0);
-  // 支柱（月から下がる柱）
-  drawMesh(geoPost,mTrans(0,4.2,-0.2),vp,[0.14,0.15,0.2],0.4,0.05);
-  // 天秤の腕（tilt）
-  const beamM=mMul(mRotZ(S.th),mIdent());
-  drawMesh(geoBeam,mMul(mTrans(0,0.6,0),mRotZ(S.th)),vp,[0.55,0.5,0.42],0.5,0.06);
-  // 皿（両端・金/銀）＋吊り
-  for(const side of [-1,1]){
-    const ex=side*BEAM_HALF*Math.cos(S.th), ey=0.6+side*BEAM_HALF*Math.sin(S.th);
-    // 吊り棒
-    drawMesh(geoBox,mMul(mTrans(ex,ey-0.9,0),mScale(0.08,1.6,0.08)),vp,[0.3,0.3,0.34],0.4,0);
-    // 皿
-    const pc = side<0 ? [1.0,0.82,0.42] : [0.75,0.8,0.92]; // 金(親)/銀(子)
-    drawMesh(geoDisc,mTrans(ex,ey-1.75,0),vp,pc,0.45,0.12+ (Math.max(0,side>0?-S.th:S.th))*0.4);
-  }
-
-  // ---- スプライト（加算・通常） ----
   gl.enable(gl.BLEND);gl.depthMask(false);
-  // 月
+  // 月（加算グロー＋ディスク）
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE);
-  const moonPos=[ -5.5, 9.2, -22 ];
-  drawSprite(billboard(moonPos,10+ (S.amp>AMP_HIGH?1:0),10,vp),vp,2,[1,0.96,0.86,0.9],true);
-  drawSprite(billboard([moonPos[0],moonPos[1],moonPos[2]],4.6,4.6,vp),vp,8,[1,1,1,1],false);
-  // 月の道（海面の光の帯・共振で太る）
-  const road=0.3+Math.min(1,S.res/RES_WIN)*0.7+dawn*0.5;
-  drawSprite(mMul(mMul(mTrans(-3.2,-6.0,-4),mRotY(0)),mScale(2.4*road,16,1)),vp,2,[1,0.95,0.8,0.22*road],true);
-
+  drawSprite(billboard(MOON_POS,11+(S.amp>AMP_HIGH?2:0),11,mirror),vp,2,[1,0.96,0.86,0.9],true);
+  drawSprite(billboard(MOON_POS,4.8,4.8,mirror),vp,8,[1,1,1,1],false);
+  // 雲（銀縁）
+  const tt=performance.now()*0.00004;
+  for(const c of CLOUDS){ const x=c[0]+Math.sin(tt+c[0])*2.0;
+    drawSprite(billboard([x,c[1],c[2]],c[3]*2.2,c[3]*1.1,mirror),vp,2,[0.8,0.86,1.0,0.16],true); }
   // スパーク
-  for(const s of S.sparks){ const x=s.u*BEAM_HALF*Math.cos(S.th), y=0.9+s.u*BEAM_HALF*Math.sin(S.th)+s.y;
-    drawSprite(billboard([x,y,0.3],0.9,0.9,vp),vp,s.cell,[s.col[0],s.col[1],s.col[2],Math.min(1,s.life)],s.cell===2||s.cell===6); }
-
+  for(const s of S.sparks){ const p=cw(s.u); drawSprite(billboard([p[0],p[1]+0.05+s.y,0.3],0.9,0.9,mirror),vp,s.cell,[s.col[0],s.col[1],s.col[2],Math.min(1,s.life)],s.cell===2||s.cell===6); }
   // 通常アルファ
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
-  // 実
-  for(const f of S.fruits){ const x=f.u*BEAM_HALF*Math.cos(S.th), y=0.55+f.u*BEAM_HALF*Math.sin(S.th)+1.05;
-    const bob=Math.sin(performance.now()*0.006+f.u*3)*0.06;
-    drawSprite(billboard([x,y+bob,0.4],0.9,0.9,vp),vp,f.cell,[1,1,1,Math.min(1,f.life)],false); }
-  // 逆縁（影のこっこ）
-  for(const e of S.enemies){ const x=e.u*BEAM_HALF*Math.cos(S.th), y=0.85+e.u*BEAM_HALF*Math.sin(S.th)+0.95;
-    const melt=e.dunkT>0?1-e.dunkT/T_DUNK:1;
-    // 丸影
-    drawSprite(mMul(mMul(mTrans(x,0.9+e.u*BEAM_HALF*Math.sin(S.th),0.1),mRotY(0)),mScale(1.1,0.5,1)),vp,3,[0,0,0,0.5],false);
-    drawSprite(billboard([x,y,0.2],1.5*AR,1.5,vp),vp,1,[1,0.6,0.7,melt],false); }
-  // こっこ（点滅＝無敵中）
-  {
-    const x=S.coccoU*BEAM_HALF*Math.cos(S.th), y=0.85+S.coccoU*BEAM_HALF*Math.sin(S.th)+0.95;
-    drawSprite(mMul(mMul(mTrans(x,0.9+S.coccoU*BEAM_HALF*Math.sin(S.th),0.15),mRotY(0)),mScale(1.2,0.55,1)),vp,3,[0,0,0,0.55],false);
+  for(const f of S.fruits){ const p=cw(f.u); const bob=Math.sin(performance.now()*0.006+f.u*3)*0.06;
+    drawSprite(billboard([p[0],p[1]+0.25+bob,0.4],0.9,0.9,mirror),vp,f.cell,[1,1,1,Math.min(1,f.life)],false); }
+  for(const e of S.enemies){ const p=cw(e.u); const melt=e.dunkT>0?1-e.dunkT/T_DUNK:1;
+    if(!mirror)drawSprite(mMul(mTrans(p[0],p[1]-0.85,0.1),mScale(1.1,0.5,1)),vp,3,[0,0,0,0.5],false);
+    drawSprite(billboard([p[0],p[1]+0.85,0.2],1.5*AR,1.5,mirror),vp,1,[1,0.6,0.7,melt],false); }
+  { const p=cw(S.coccoU);
+    if(!mirror)drawSprite(mMul(mTrans(p[0],p[1]-0.85,0.15),mScale(1.2,0.55,1)),vp,3,[0,0,0,0.55],false);
     const bl=(S.invuln>0 && ((performance.now()*0.02|0)%2))?0.35:1;
-    drawSprite(billboard([x,y,0.25],1.7*AR,1.7,vp),vp,0,[1,1,1,bl],false);
-  }
+    drawSprite(billboard([p[0],p[1]+0.85,0.25],1.7*AR,1.7,mirror),vp,0,[1,1,1,bl],false); }
   gl.depthMask(true);gl.disable(gl.BLEND);
+}
+function drawSky(top,hor){ gl.useProgram(skyP);gl.disable(gl.DEPTH_TEST);
+  gl.bindBuffer(gl.ARRAY_BUFFER,fsQuadVB);gl.enableVertexAttribArray(skyLoc.pos);gl.vertexAttribPointer(skyLoc.pos,2,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,fsQuadIB);
+  gl.uniform3fv(skyLoc.top,top);gl.uniform3fv(skyLoc.hor,hor);
+  gl.drawElements(gl.TRIANGLES,6,gl.UNSIGNED_SHORT,0);gl.enable(gl.DEPTH_TEST); }
+
+function render(){
+  const dawn=sky;
+  const asp=canvas.width/canvas.height;
+  const proj=mPersp(58*DEG,asp,0.1,200);
+  const view=mLookAt(EYE,[0,1.2,0],[0,1,0]);
+  const vp=mMul(proj,view);
+  const top=[0.02+dawn*0.5,0.05+dawn*0.35,0.14+dawn*0.28];
+  const hor=[0.06+dawn*0.7,0.09+dawn*0.4,0.20+dawn*0.25];
+  const uT=(performance.now()*0.001)%1000;
+  gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.clearDepth(1);
+
+  // ---- 1) 影パス ----
+  if(SHADOW_ON&&SHADOW_OK){ gl.bindFramebuffer(gl.FRAMEBUFFER,shadowFBO);gl.viewport(0,0,SHADOW_SIZE,SHADOW_SIZE);
+    gl.clearColor(1,1,1,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    for(const m of meshModels())drawDepth(geoOf(m[0]),m[1]); }
+
+  // ---- 2) 反射パス（海面より上を鏡映して描く） ----
+  if(REFL_ON&&REFL_OK){ gl.bindFramebuffer(gl.FRAMEBUFFER,reflFBO);gl.viewport(0,0,reflW,reflH);
+    gl.clearColor(top[0],top[1],top[2],1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    drawSky(top,hor); drawMeshes(vp,true); drawSprites(vp,true); }
+
+  // ---- 3) 本パス ----
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);
+  gl.clearColor(top[0],top[1],top[2],1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  drawSky(top,hor);
+  // 海
+  gl.useProgram(seaP);gl.bindBuffer(gl.ARRAY_BUFFER,seaVB);
+  gl.enableVertexAttribArray(seaLoc.pos);gl.vertexAttribPointer(seaLoc.pos,3,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,seaIB);
+  gl.uniformMatrix4fv(seaLoc.vp,false,vp);gl.uniformMatrix4fv(seaLoc.lvp,false,LVP);
+  gl.uniform3fv(seaLoc.cam,EYE);gl.uniform3fv(seaLoc.moonDir,LIGHT);gl.uniform3fv(seaLoc.moonPos,MOON_POS);
+  gl.uniform1f(seaLoc.t,uT);gl.uniform1f(seaLoc.dawn,dawn);gl.uniform1f(seaLoc.road,0.4+Math.min(1,S.res/RES_WIN)*0.8+dawn*0.6);
+  gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,reflTex);gl.uniform1i(seaLoc.refl,2);gl.uniform1f(seaLoc.reflOn,(REFL_ON&&REFL_OK)?1:0);
+  gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,shadowTex);gl.uniform1i(seaLoc.sh,1);
+  gl.uniform1f(seaLoc.shPx,1/SHADOW_SIZE);gl.uniform1f(seaLoc.shOn,(SHADOW_ON&&SHADOW_OK)?1:0);
+  gl.drawElements(gl.TRIANGLES,6,gl.UNSIGNED_SHORT,0);
+  // メッシュ＋スプライト
+  drawMeshes(vp,false);
+  drawSprites(vp,false);
 }
 
 /* ---------- ループ ---------- */
@@ -536,7 +679,10 @@ window.__tsuriai={
   coins:(n)=>{S.coins+=n;},
   start:startGame,
   forceEnd:(won)=>endGame(!!won,won?'win':'time'),
-  consts:{TILT_BREAK,AMP_DEAD,AMP_LOW,AMP_HIGH,RES_WIN,ROUND}
+  gfx:()=>({reflOn:REFL_ON&&REFL_OK,shadowOn:SHADOW_ON&&SHADOW_OK,shadowSize:SHADOW_SIZE,reflW,reflH}),
+  reflForce:(on)=>{REFL_ON=!!on;if(on)initRefl();},
+  shadowForce:(on)=>{SHADOW_ON=!!on;},
+  consts:{TILT_BREAK,AMP_DEAD,AMP_LOW,AMP_HIGH,RES_WIN,ROUND,SEA_Y}
 };
 </script>
 </body>
