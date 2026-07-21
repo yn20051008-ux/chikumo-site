@@ -42,8 +42,11 @@
   #hudTR{top:calc(env(safe-area-inset-top,0) + 10px);right:12px;text-align:right;font-size:16px;line-height:1.4}
   #bandWrap{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0) + 12px);width:min(58vw,340px);z-index:5;pointer-events:none}
   #bandBar{position:relative;height:12px;border-radius:7px;background:rgba(255,255,255,.13);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
-  #bandLo,#bandHi{position:absolute;top:0;bottom:0;width:2px;background:rgba(255,255,255,.5)}
-  #bandFill{position:absolute;top:0;bottom:0;left:0;border-radius:7px;background:linear-gradient(90deg,#7fd0ff,#ffd66b);width:0%}
+  #bandLo,#bandHi,#bandBrk{position:absolute;top:-1px;bottom:-1px;width:2px;background:rgba(255,255,255,.55);z-index:3}
+  #bandBrk{width:2px;background:#ff6b6b}
+  #bandSweet{position:absolute;top:0;bottom:0;background:rgba(120,230,150,.28);z-index:1}
+  #bandDanger{position:absolute;top:0;bottom:0;right:0;background:rgba(255,80,80,.22);z-index:1}
+  #bandFill{position:absolute;top:0;bottom:0;left:0;border-radius:7px;background:linear-gradient(90deg,#7fd0ff,#ffd66b);width:0%;z-index:2}
   #bandTxt{text-align:center;color:#dfe9ff;font-size:11px;margin-top:3px;text-shadow:0 1px 3px rgba(0,0,0,.7)}
   #bandTilt{position:absolute;top:-3px;width:3px;height:18px;background:#fff;border-radius:2px;box-shadow:0 0 5px #fff}
   .overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;padding:24px;background:radial-gradient(ellipse at 50% 30%,rgba(30,50,90,.72),rgba(6,12,28,.94))}
@@ -69,8 +72,8 @@
 <div id="moveHintL">◀</div><div id="moveHintR">▶</div>
 
 <div id="bandWrap" class="hud hidden" style="pointer-events:none">
-  <div id="bandBar"><div id="bandFill"></div><div id="bandLo"></div><div id="bandHi"></div><div id="bandTilt" style="left:50%"></div></div>
-  <div id="bandTxt">ゆれ幅（band のなかで たやすな）</div>
+  <div id="bandBar"><div id="bandSweet"></div><div id="bandDanger"></div><div id="bandFill"></div><div id="bandLo"></div><div id="bandHi"></div><div id="bandBrk"></div><div id="bandTilt" style="left:50%"></div></div>
+  <div id="bandTxt">ゆれ幅 ─ みどりの帯で たやすな（下＝止まる／上＝振りすぎ）</div>
 </div>
 <div id="hudTL" class="hud hidden">❤️❤️❤️</div>
 <div id="hudTR" class="hud hidden">🌕 <span id="resTxt">0</span>/12<br>💴 <span id="coinTxt">0</span><br>⏱ <span id="timeTxt">75</span></div>
@@ -110,18 +113,21 @@ const W0=TAU/T0;               // 固有角速度
 const ZETA=0.055;              // 減衰（弱め＝止めないと揺れが続く）
 const K_COCCO=3.15;            // こっこトルク係数
 const K_EN=1.5;                // 逆縁トルク係数
-const TILT_BREAK=0.62;         // 絶傾のしきい値(rad ~35°)
-const T_BREAK=1.2;             // 絶傾の連続秒
-const AMP_DEAD=0.06, AMP_LOW=0.15, AMP_HIGH=0.42;
+// band：下端で止まると∿死、上端で振りすぎると絶傾。あいだ(AMP_HIGH↑)で共振
+const AMP_DEAD=0.06, AMP_LOW=0.15, AMP_HIGH=0.42, AMP_BREAK=0.62;
 const T_DEAD=3.0;              // ∿死の連続秒
-const DUNK=0.34;               // 逆縁が沈んで月へ帰るしきい値
-const T_DUNK=0.8;
+const T_BREAK=1.4;             // 絶傾（振りすぎ）の連続秒
+const TILT_MAX=0.8;           // 傾きHUDの目盛り最大(rad)
+const DUNK=0.30;              // 逆縁が沈んで月へ帰るしきい値（下げて掃除しやすく）
+const T_DUNK=0.75;
 const RES_WIN=12;              // 勝利に要する共振ピーク
 const ROUND=75;                // ラウンド長(s)
 const COCCO_SPEED=1.95;        // 最大移動速度(u/s)
 const COCCO_ACC=9.0, COCCO_FRIC=7.0; // 慣性（錘の重み）
-const WALL=9.0;                // 破れ際のクッション強さ
-const EN_MAX=4;
+const WALL=2.6;               // 破れ際のやわらかいクッション（振り自体は止めない）
+const EDGE=0.60;              // クッションが効き始める傾き
+// 逆縁：序盤は猶予。接触は避けやすく、沈めやすく
+const EN_MAX=3;
 
 /* ---------- 行列（最小mat4） ---------- */
 function mIdent(){return new Float32Array([1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1]);}
@@ -509,20 +515,19 @@ function startGame(){
   S.phase='play';S.th=0.03;S.w=0.5;S.amp=0.05;S.coccoU=0;S.coccoV=0;S.input=0;S.hearts=3;S.coins=0;S.res=0;
   S.mirror=0;S.camKick=0;camAz=0;camEl=0;
   S.time=ROUND;S.deadT=0;S.breakT=0;S.invuln=0;S.enemies=[];S.fruits=[];S.sparks=[];S.memGold=0;S.memSilver=0;S.won=false;S.endReason='';
-  sky=0;last=0;spawnT=6;
+  sky=0;last=0;spawnT=8;tutStage=0;tutT=0;tutTotal=0;
   document.getElementById('title').classList.add('hidden');
   document.getElementById('result').classList.add('hidden');
   document.getElementById('bandWrap').classList.remove('hidden');
   document.getElementById('hudTL').classList.remove('hidden');
   document.getElementById('hudTR').classList.remove('hidden');
   initAudio(); if(AC&&AC.state==='suspended')AC.resume();
-  showHint('みぎへ はしってごらん →',3.4);
 }
 let hintT=0;
 function showHint(txt,dur){const h=document.getElementById('hint');h.textContent=txt;h.style.opacity='1';hintT=dur;}
 let spawnT=6;
 function spawnEnemy(){ if(S.enemies.length>=EN_MAX)return; const side=Math.random()<0.5?-1:1;
-  S.enemies.push({u:side*0.85,push:side,dunkT:0,alive:true}); }
+  S.enemies.push({u:side*0.85,push:side,dunkT:0,age:0,alive:true}); }
 function addSpark(u,y,cell,col){ S.sparks.push({u,y,cell,col,life:0.9,vy:1.4}); }
 
 function endGame(won,reason){
@@ -545,25 +550,26 @@ function update(dt){
   if(S.coccoU>1){S.coccoU=1;S.coccoV*=-0.3;} if(S.coccoU<-1){S.coccoU=-1;S.coccoV*=-0.3;}
   // ---- 逆縁トルク合計 ----
   let enT=0;
-  spawnT-=dt; if(spawnT<=0){ spawnEnemy(); spawnT=5.5+Math.random()*3; }
+  spawnT-=dt; if(spawnT<=0){ spawnEnemy(); spawnT=6.0+Math.random()*3.5; }
   for(const e of S.enemies){ if(!e.alive)continue;
+    e.age+=dt;
     e.u += (e.push*0.9 - e.u)*Math.min(1,dt*0.7); // 端へじわり寄る
     e.u=Math.max(-1,Math.min(1,e.u));
-    enT += K_EN*e.u*0.5;
+    enT += K_EN*e.u*0.5*Math.min(1,e.age/0.6);
     // 沈んで月へ帰る：自分の側が DUNK 以上に沈む(th が push と同符号で深い)
     const dip = e.push>0 ? S.th : -S.th;
     if(dip>DUNK){ e.dunkT+=dt; if(e.dunkT>=T_DUNK){ e.alive=false; S.coins+=30; addSpark(e.u,0.6,2,[1,.9,.5,1]); sfxMelt(); } }
     else e.dunkT=Math.max(0,e.dunkT-dt*1.5);
-    // 接触
-    if(S.invuln<=0 && Math.abs(e.u-S.coccoU)<0.26){ S.hearts--; S.invuln=1.2; sfxHurt();
+    // 接触（湧いて0.6秒は無害＝テレグラフ／半径やや小さめ）
+    if(e.age>0.6 && S.invuln<=0 && Math.abs(e.u-S.coccoU)<0.24){ S.hearts--; S.invuln=1.2; sfxHurt();
       if(S.hearts<=0){ endGame(false,'heart'); } }
   }
   S.enemies=S.enemies.filter(e=>e.alive);
   if(S.invuln>0)S.invuln-=dt;
   // ---- 天秤の物理（単振り子＋駆動＋破れ際のクッション） ----
   let torque = K_COCCO*S.coccoU + enT;
-  // 破れ際で反発する壁（急に切れない手応え・でも押し切れば絶傾）
-  const edge=0.50; if(Math.abs(S.th)>edge){ const over=Math.abs(S.th)-edge; torque -= Math.sign(S.th)*over*over*WALL; }
+  // 破れ際のやわらかいクッション（急に切れない手応え。振り自体は止めない）
+  if(Math.abs(S.th)>EDGE){ const over=Math.abs(S.th)-EDGE; torque -= Math.sign(S.th)*over*over*WALL; }
   const a = -W0*W0*Math.sin(S.th) - 2*ZETA*W0*S.w + torque;
   const prevW=S.w;
   S.w += a*dt; S.th += S.w*dt;
@@ -587,9 +593,9 @@ function update(dt){
   // ---- スパーク ----
   for(const s of S.sparks){ s.life-=dt; s.y+=s.vy*dt; s.vy-=1.2*dt; }
   S.sparks=S.sparks.filter(s=>s.life>0);
-  // ---- 負け判定：∿死 / 絶傾 ----
-  if(S.amp<AMP_DEAD){ S.deadT+=dt; if(S.deadT>=T_DEAD){ endGame(false,'flat'); } } else S.deadT=0;
-  if(at>TILT_BREAK){ S.breakT+=dt; if(S.breakT>=T_BREAK){ endGame(false,'break'); } } else S.breakT=Math.max(0,S.breakT-dt*1.5);
+  // ---- 負け判定：∿死（止まりすぎ）／絶傾（振りすぎ＝band上端超え・包絡で判定） ----
+  if(S.amp<AMP_DEAD){ S.deadT+=dt; if(S.deadT>=T_DEAD){ endGame(false,'flat'); } } else S.deadT=Math.max(0,S.deadT-dt*2);
+  if(S.amp>AMP_BREAK){ S.breakT+=dt; if(S.breakT>=T_BREAK){ endGame(false,'break'); } } else S.breakT=Math.max(0,S.breakT-dt*1.5);
   // ---- 時間 ----
   S.time-=dt; if(S.time<=0){ S.time=0; endGame(S.res>=RES_WIN,'time'); }
   // ---- 音の追従 ----
@@ -602,7 +608,8 @@ function update(dt){
     if(seaFilt)seaFilt.frequency.value=380+900*Math.min(1,Math.abs(S.w)*0.6);
     const pan=Math.max(-1,Math.min(1,S.th*1.6));
     if(seaPan)seaPan.pan.value=pan; if(padPan)padPan.pan.value=pan*0.3; }
-  // ---- ヒント ----
+  // ---- ヒント／チュートリアル ----
+  tutorial(dt);
   if(hintT>0){ hintT-=dt; if(hintT<=0)document.getElementById('hint').style.opacity='0'; }
   updateHUD();
 }
@@ -613,16 +620,35 @@ function updateHUD(){
   document.getElementById('coinTxt').textContent=S.coins;
   document.getElementById('timeTxt').textContent=Math.ceil(S.time);
   document.getElementById('resTxt').parentElement.firstChild.textContent = S.res>=RES_WIN?'🌕 ':'🌑 ';
-  const pct=Math.min(1,S.amp/(AMP_HIGH*1.15));
-  document.getElementById('bandFill').style.width=(pct*100)+'%';
-  document.getElementById('bandLo').style.left=(AMP_LOW/(AMP_HIGH*1.15)*100)+'%';
-  document.getElementById('bandHi').style.left=(AMP_HIGH/(AMP_HIGH*1.15)*100)+'%';
-  const tp=50+ (S.th/TILT_BREAK)*50; document.getElementById('bandTilt').style.left=Math.max(1,Math.min(99,tp))+'%';
+  const MX=AMP_BREAK*1.12;
+  document.getElementById('bandFill').style.width=(Math.min(1,S.amp/MX)*100)+'%';
+  document.getElementById('bandLo').style.left=(AMP_LOW/MX*100)+'%';
+  document.getElementById('bandHi').style.left=(AMP_HIGH/MX*100)+'%';
+  document.getElementById('bandBrk').style.left=(AMP_BREAK/MX*100)+'%';
+  const sw=document.getElementById('bandSweet'); sw.style.left=(AMP_LOW/MX*100)+'%'; sw.style.width=((AMP_HIGH-AMP_LOW)/MX*100)+'%';
+  document.getElementById('bandDanger').style.width=((MX-AMP_BREAK)/MX*100)+'%';
+  const tp=50+ (S.th/TILT_MAX)*50; document.getElementById('bandTilt').style.left=Math.max(1,Math.min(99,tp))+'%';
   const bf=document.getElementById('bandFill');
-  if(S.amp<AMP_DEAD)bf.style.background='#ff6b6b';
-  else if(Math.abs(S.th)>TILT_BREAK*0.85)bf.style.background='#ff9a3c';
-  else bf.style.background='linear-gradient(90deg,#7fd0ff,#ffd66b)';
+  if(S.amp<AMP_DEAD||S.amp>AMP_BREAK)bf.style.background='#ff6b6b';
+  else if(S.amp>AMP_BREAK*0.86)bf.style.background='#ff9a3c';
+  else bf.style.background='linear-gradient(90deg,#7fd0ff,#8fe6a0,#ffd66b)';
+  // モバイル：押している側の矢印を光らせる
+  const hl=document.getElementById('moveHintL'),hr=document.getElementById('moveHintR');
+  hl.style.color=S.input<0?'rgba(255,255,255,.55)':'rgba(255,255,255,.13)';
+  hr.style.color=S.input>0?'rgba(255,255,255,.55)':'rgba(255,255,255,.13)';
 }
+/* ---------- 段階チュートリアル（最初だけ・体験で教える・時間フォールバック付き） ---------- */
+let tutStage=0,tutT=0,tutTotal=0;
+function tutorial(dt){
+  if(S.phase!=='play'||tutStage>=9)return; tutT+=dt; tutTotal+=dt;
+  if(tutTotal>18){ tutStage=9; hideHint(); return; }   // 保険：18秒で必ず終える
+  if(tutStage===0){ showHint('みぎへ はしってごらん →',99); if(S.coccoU>0.35||tutT>4.5){tutStage=1;tutT=0;} }
+  else if(tutStage===1){ showHint('← こんどは ぎゃくへも！',99); if(S.coccoU<-0.35||tutT>4.5){tutStage=2;tutT=0;} }
+  else if(tutStage===2){ showHint('その ゆれを たやすな',99); if(S.res>=1||tutT>4){tutStage=3;tutT=0;hideHint();} }
+  else if(tutStage===3){ if(S.enemies.length>0){showHint('くろいこっこは しずめて →',2.6);tutStage=4;tutT=0;} else if(tutT>6){tutStage=9;} }
+  else if(tutStage===4){ if(tutT>2.6){hideHint();tutStage=9;} }
+}
+function hideHint(){document.getElementById('hint').style.opacity='0';hintT=0;}
 
 /* ---------- 描画 ---------- */
 function resize(){ const dpr=Math.min(devicePixelRatio||1,2);
@@ -679,9 +705,11 @@ function drawSprites(vp,mirror){
   panMemo(1,S.memSilver,[5,9]);
   for(const f of S.fruits){ const p=cw(f.u); const bob=Math.sin(performance.now()*0.006+f.u*3)*0.06;
     drawSprite(billboard([p[0],p[1]+0.25+bob,0.4],0.9,0.9,mirror),vp,f.cell,[1,1,1,Math.min(1,f.life)],false); }
-  for(const e of S.enemies){ const p=cw(e.u); const melt=e.dunkT>0?1-e.dunkT/T_DUNK:1;
-    if(!mirror)drawSprite(mMul(mTrans(p[0],p[1]-0.85,0.1),mScale(1.1,0.5,1)),vp,3,[0,0,0,0.5],false);
-    drawSprite(billboard([p[0],p[1]+0.85,0.2],1.5*AR,1.5,mirror),vp,1,[1,0.6,0.7,melt],false); }
+  for(const e of S.enemies){ const p=cw(e.u); const melt=(e.dunkT>0?1-e.dunkT/T_DUNK:1)*Math.min(1,e.age/0.6);
+    if(!mirror)drawSprite(mMul(mTrans(p[0],p[1]-0.85,0.1),mScale(1.1,0.5,1)),vp,3,[0,0,0,0.5*melt],false);
+    // 湧きたては赤く点滅（テレグラフ）
+    const warn=e.age<0.6?(0.4+0.6*Math.abs(Math.sin(e.age*22))):1;
+    drawSprite(billboard([p[0],p[1]+0.85,0.2],1.5*AR,1.5,mirror),vp,1,[1,0.5*warn,0.6*warn,melt],false); }
   { const p=cw(S.coccoU);
     if(!mirror)drawSprite(mMul(mTrans(p[0],p[1]-0.85,0.15),mScale(1.2,0.55,1)),vp,3,[0,0,0,0.55],false);
     const bl=(S.invuln>0 && ((performance.now()*0.02|0)%2))?0.35:1;
@@ -862,7 +890,7 @@ window.__tsuriai={
   shadowForce:(on)=>{SHADOW_ON=!!on;},
   bloomForce:(on)=>{BLOOM_ON=!!on;if(on)initPost();},
   planktonForce:(on)=>{PLANKTON_ON=!!on;},
-  consts:{TILT_BREAK,AMP_DEAD,AMP_LOW,AMP_HIGH,RES_WIN,ROUND,SEA_Y}
+  consts:{AMP_DEAD,AMP_LOW,AMP_HIGH,AMP_BREAK,TILT_MAX,RES_WIN,ROUND,SEA_Y}
 };
 </script>
 </body>
