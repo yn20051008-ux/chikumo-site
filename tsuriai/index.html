@@ -197,6 +197,8 @@ const seaP=prog(
  '  vec3 reflCol=mix(vec3(0.05,0.08,0.16),vec3(0.4,0.45,0.5),uDawn);\n'+
  '  if(uReflOn>0.5){ vec2 uv=vClip.xy/vClip.w*0.5+0.5; uv+=N.xz*0.03; reflCol=texture2D(uRefl,clamp(uv,0.001,0.999)).rgb; }\n'+
  '  vec3 col=mix(water,reflCol,clamp(fres*0.9+0.1,0.0,1.0));\n'+
+ '  float ca=0.0;{vec2 q=p*0.6;for(int k=0;k<3;k++){q+=vec2(sin(q.y*1.3+uT*0.8),cos(q.x*1.3-uT*0.8))*0.45;ca+=1.0-abs(sin(q.x)*cos(q.y));}ca=pow(ca/3.0,3.0);}\n'+
+ '  col+=vec3(0.35,0.72,0.82)*ca*0.14*(1.0-fres);\n'+
  '  vec3 H=normalize(normalize(uMoonPos-vW)+V);\n'+
  '  float spec=pow(max(dot(N,H),0.0),120.0);\n'+
  '  float road=exp(-abs(p.x-(-3.0))*0.5)*clamp(1.0-p.y*0.02,0.2,1.0);\n'+
@@ -213,6 +215,31 @@ const seaLoc={pos:gl.getAttribLocation(seaP,'aPos'),vp:gl.getUniformLocation(sea
 const skyP=prog('attribute vec2 aPos;varying vec2 vUv;void main(){vUv=aPos*0.5+0.5;gl_Position=vec4(aPos,0.999,1.0);}',
   PRE+'varying vec2 vUv;uniform vec3 uTop;uniform vec3 uHor;void main(){float t=pow(clamp(vUv.y,0.0,1.0),0.8);gl_FragColor=vec4(mix(uHor,uTop,t),1.0);}');
 const skyLoc={pos:gl.getAttribLocation(skyP,'aPos'),top:gl.getUniformLocation(skyP,'uTop'),hor:gl.getUniformLocation(skyP,'uHor')};
+
+/* 夜光虫（点スプライト・加算） */
+const plkP=prog(
+ 'attribute vec3 aP;attribute float aSeed;uniform mat4 uVP;uniform float uT;uniform float uGlow;varying float vA;'+
+ 'void main(){float ph=aSeed*6.2831;vec3 w=aP;w.x+=sin(uT*0.5+ph)*0.6;w.z+=cos(uT*0.4+ph*1.3)*0.6;w.y+=sin(uT*1.5+ph)*0.05;'+
+ 'vec4 cp=uVP*vec4(w,1.0);gl_Position=cp;gl_PointSize=clamp(70.0/cp.w,1.0,8.0)*(0.6+0.4*sin(uT*3.0+ph));'+
+ 'vA=(0.35+0.5*max(sin(uT*2.0+ph),0.0))*(0.55+uGlow);}',
+ PRE+'varying float vA;void main(){vec2 d=gl_PointCoord-0.5;float r=length(d);if(r>0.5)discard;float a=smoothstep(0.5,0.0,r);gl_FragColor=vec4(vec3(0.45,0.9,1.0)*a*vA,1.0);}');
+const plkLoc={p:gl.getAttribLocation(plkP,'aP'),seed:gl.getAttribLocation(plkP,'aSeed'),vp:gl.getUniformLocation(plkP,'uVP'),t:gl.getUniformLocation(plkP,'uT'),glow:gl.getUniformLocation(plkP,'uGlow')};
+
+/* ブルーム（bright→blur→composite） */
+const VS_FS='attribute vec2 aPos;varying vec2 vUv;void main(){vUv=aPos*0.5+0.5;gl_Position=vec4(aPos,0.0,1.0);}';
+const brightP=prog(VS_FS,PRE+'varying vec2 vUv;uniform sampler2D uTex;uniform float uThr;'+
+ 'void main(){vec3 c=texture2D(uTex,vUv).rgb;float l=dot(c,vec3(0.299,0.587,0.114));float k=smoothstep(uThr,uThr+0.35,l);gl_FragColor=vec4(c*k,1.0);}');
+const brightLoc={pos:gl.getAttribLocation(brightP,'aPos'),tex:gl.getUniformLocation(brightP,'uTex'),thr:gl.getUniformLocation(brightP,'uThr')};
+const blurP=prog(VS_FS,PRE+'varying vec2 vUv;uniform sampler2D uTex;uniform vec2 uDir;'+
+ 'void main(){vec3 s=texture2D(uTex,vUv).rgb*0.227;'+
+ 's+=texture2D(uTex,vUv+uDir*1.384).rgb*0.316;s+=texture2D(uTex,vUv-uDir*1.384).rgb*0.316;'+
+ 's+=texture2D(uTex,vUv+uDir*3.230).rgb*0.070;s+=texture2D(uTex,vUv-uDir*3.230).rgb*0.070;'+
+ 'gl_FragColor=vec4(s,1.0);}');
+const blurLoc={pos:gl.getAttribLocation(blurP,'aPos'),tex:gl.getUniformLocation(blurP,'uTex'),dir:gl.getUniformLocation(blurP,'uDir')};
+const compP=prog(VS_FS,PRE+'varying vec2 vUv;uniform sampler2D uScene;uniform sampler2D uBloom;uniform float uStr;'+
+ 'void main(){vec3 c=texture2D(uScene,vUv).rgb+texture2D(uBloom,vUv).rgb*uStr;'+
+ 'c=c/(c+vec3(0.6))*1.6;c=pow(c,vec3(0.92));gl_FragColor=vec4(c,1.0);}');
+const compLoc={pos:gl.getAttribLocation(compP,'aPos'),scene:gl.getUniformLocation(compP,'uScene'),bloom:gl.getUniformLocation(compP,'uBloom'),str:gl.getUniformLocation(compP,'uStr')};
 
 /* スプライト（テクスチャ四角・加算/通常） */
 const sprP=prog(
@@ -280,6 +307,45 @@ function initRefl(){ REFL_OK=false; try{
   gl.bindFramebuffer(gl.FRAMEBUFFER,null);
 }catch(e){REFL_OK=false;} }
 initShadow(2048); if(!SHADOW_OK)initShadow(1024);
+
+/* シーンFBO＋ブルームFBO */
+let POST_OK=false, sceneFBO=null,sceneTex=null,sceneRB=null,sceneW=0,sceneH=0;
+let bloomFBO=[null,null],bloomTex=[null,null],bloomW=0,bloomH=0;
+function mkTexFBO(tex,fbo,w,h,rb){ gl.bindTexture(gl.TEXTURE_2D,tex);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,fbo);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tex,0);
+  if(rb){gl.bindRenderbuffer(gl.RENDERBUFFER,rb);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,w,h);gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,rb);}
+  const ok=(gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE);gl.bindFramebuffer(gl.FRAMEBUFFER,null);return ok;}
+function initPost(){ POST_OK=false; try{ sceneW=canvas.width;sceneH=canvas.height; if(sceneW<2||sceneH<2)return;
+  sceneTex=sceneTex||gl.createTexture();sceneFBO=sceneFBO||gl.createFramebuffer();sceneRB=sceneRB||gl.createRenderbuffer();
+  if(!mkTexFBO(sceneTex,sceneFBO,sceneW,sceneH,sceneRB))return;
+  bloomW=Math.max(2,(sceneW/4)|0);bloomH=Math.max(2,(sceneH/4)|0);
+  for(let i=0;i<2;i++){bloomTex[i]=bloomTex[i]||gl.createTexture();bloomFBO[i]=bloomFBO[i]||gl.createFramebuffer();if(!mkTexFBO(bloomTex[i],bloomFBO[i],bloomW,bloomH,null))return;}
+  POST_OK=true;
+}catch(e){POST_OK=false;} }
+let BLOOM_ON=true, PLANKTON_ON=true;
+
+/* 夜光虫の点群 */
+const PLK_N=2000;
+const plk=(function(){const a=new Float32Array(PLK_N*4);for(let i=0;i<PLK_N;i++){
+  const r=Math.sqrt(Math.random())*22, an=Math.random()*TAU;
+  a[i*4]=Math.cos(an)*r; a[i*4+1]=SEA_Y+0.02+Math.random()*0.06; a[i*4+2]=Math.sin(an)*r-4; a[i*4+3]=Math.random();}
+  const b=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,b);gl.bufferData(gl.ARRAY_BUFFER,a,gl.STATIC_DRAW);return b;})();
+function drawPlankton(vp,uT,glow){ if(!PLANKTON_ON)return; gl.useProgram(plkP);
+  gl.bindBuffer(gl.ARRAY_BUFFER,plk);
+  gl.enableVertexAttribArray(plkLoc.p);gl.vertexAttribPointer(plkLoc.p,3,gl.FLOAT,false,16,0);
+  gl.enableVertexAttribArray(plkLoc.seed);gl.vertexAttribPointer(plkLoc.seed,1,gl.FLOAT,false,16,12);
+  gl.uniformMatrix4fv(plkLoc.vp,false,vp);gl.uniform1f(plkLoc.t,uT);gl.uniform1f(plkLoc.glow,glow);
+  gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE);gl.depthMask(false);
+  gl.drawArrays(gl.POINTS,0,PLK_N);
+  gl.depthMask(true);gl.disable(gl.BLEND);
+  gl.disableVertexAttribArray(plkLoc.seed);}
+// 全画面ポスト描画ヘルパ
+function drawFSQuad(loc){ gl.bindBuffer(gl.ARRAY_BUFFER,fsQuadVB);
+  gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,fsQuadIB);gl.drawElements(gl.TRIANGLES,6,gl.UNSIGNED_SHORT,0);}
 
 /* 描画ヘルパ */
 function bindMeshAttribs(geo){gl.bindBuffer(gl.ARRAY_BUFFER,geo.vb);
@@ -368,7 +434,7 @@ let SHADOW_ON=true, REFL_ON=true;
 
 /* ---------- 状態 ---------- */
 const S={phase:'title', th:0, w:0, amp:0, coccoU:0, input:0, hearts:3, coins:0, res:0,
-  time:ROUND, deadT:0, breakT:0, invuln:0, enemies:[], fruits:[], sparks:[], won:false, endReason:''};
+  time:ROUND, deadT:0, breakT:0, invuln:0, enemies:[], fruits:[], sparks:[], memGold:0, memSilver:0, won:false, endReason:''};
 let last=0, started=false;
 
 /* ---------- 音（WebAudio合成のみ） ---------- */
@@ -411,7 +477,7 @@ canvas.addEventListener('pointerup',upEnd);canvas.addEventListener('pointercance
 /* ---------- ゲーム進行 ---------- */
 function startGame(){
   S.phase='play';S.th=0.03;S.w=0.5;S.amp=0.05;S.coccoU=0;S.input=0;S.hearts=3;S.coins=0;S.res=0;
-  S.time=ROUND;S.deadT=0;S.breakT=0;S.invuln=0;S.enemies=[];S.fruits=[];S.sparks=[];S.won=false;S.endReason='';
+  S.time=ROUND;S.deadT=0;S.breakT=0;S.invuln=0;S.enemies=[];S.fruits=[];S.sparks=[];S.memGold=0;S.memSilver=0;S.won=false;S.endReason='';
   sky=0;last=0;spawnT=6;
   document.getElementById('title').classList.add('hidden');
   document.getElementById('result').classList.add('hidden');
@@ -477,7 +543,9 @@ function update(dt){
   }
   // ---- 実の回収 ----
   for(const f of S.fruits){ f.life-=dt;
-    if(Math.abs(f.u-S.coccoU)<0.34 && f.life>0){ f.life=-1; S.coins+=(f.cell===6?40:10); sfxPick(); if(navigator.vibrate)navigator.vibrate(10); addSpark(f.u,0.7,f.cell,[1,1,1,1]); } }
+    if(Math.abs(f.u-S.coccoU)<0.34 && f.life>0){ f.life=-1; S.coins+=(f.cell===6?40:10);
+      if(f.cell===4)S.memGold++; else if(f.cell===5)S.memSilver++;
+      sfxPick(); if(navigator.vibrate)navigator.vibrate(10); addSpark(f.u,0.7,f.cell,[1,1,1,1]); } }
   S.fruits=S.fruits.filter(f=>f.life>0);
   // ---- スパーク ----
   for(const s of S.sparks){ s.life-=dt; s.y+=s.vy*dt; s.vy-=1.2*dt; }
@@ -518,8 +586,8 @@ function updateHUD(){
 function resize(){ const dpr=Math.min(devicePixelRatio||1,2);
   canvas.width=Math.floor(innerWidth*dpr);canvas.height=Math.floor(innerHeight*dpr);
   canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px';
-  if(REFL_ON)initRefl(); }
-addEventListener('resize',resize);resize();initRefl();
+  if(REFL_ON)initRefl(); initPost(); }
+addEventListener('resize',resize);resize();initRefl();initPost();
 
 function billboard(pos,w,h,mirror){ // upright billboard facing real camera（mirror=海面反射）
   const ang=Math.atan2(EYE[0]-pos[0],EYE[2]-pos[2]);
@@ -557,8 +625,16 @@ function drawSprites(vp,mirror){
     drawSprite(billboard([x,c[1],c[2]],c[3]*2.2,c[3]*1.1,mirror),vp,2,[0.8,0.86,1.0,0.16],true); }
   // スパーク
   for(const s of S.sparks){ const p=cw(s.u); drawSprite(billboard([p[0],p[1]+0.05+s.y,0.3],0.9,0.9,mirror),vp,s.cell,[s.col[0],s.col[1],s.col[2],Math.min(1,s.life)],s.cell===2||s.cell===6); }
-  // 通常アルファ
+  // 皿に積む記憶（金＝親🍎❤️ / 銀＝子💧⭐）
   gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);
+  function panMemo(side,count,cells){ const ex=side*BEAM_HALF*Math.cos(S.th), ey=0.6+side*BEAM_HALF*Math.sin(S.th)-1.6;
+    const n=Math.min(count,8);
+    for(let i=0;i<n;i++){ const a=i*2.39+side; const rr=0.25+((i%3)*0.32);
+      const mx=ex+Math.cos(a)*rr, mz=Math.sin(a)*rr;
+      const my=ey+0.12+((i/3)|0)*0.16+Math.sin(performance.now()*0.003+i)*0.02;
+      drawSprite(billboard([mx,my,mz],0.55,0.55,mirror),vp,cells[i%cells.length],[1,1,1,0.96],false); } }
+  panMemo(-1,S.memGold,[4,7]);
+  panMemo(1,S.memSilver,[5,9]);
   for(const f of S.fruits){ const p=cw(f.u); const bob=Math.sin(performance.now()*0.006+f.u*3)*0.06;
     drawSprite(billboard([p[0],p[1]+0.25+bob,0.4],0.9,0.9,mirror),vp,f.cell,[1,1,1,Math.min(1,f.life)],false); }
   for(const e of S.enemies){ const p=cw(e.u); const melt=e.dunkT>0?1-e.dunkT/T_DUNK:1;
@@ -598,7 +674,8 @@ function render(){
     drawSky(top,hor); drawMeshes(vp,true); drawSprites(vp,true); }
 
   // ---- 3) 本パス ----
-  gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);
+  const useBloom=POST_OK&&BLOOM_ON;
+  gl.bindFramebuffer(gl.FRAMEBUFFER,useBloom?sceneFBO:null);gl.viewport(0,0,canvas.width,canvas.height);
   gl.clearColor(top[0],top[1],top[2],1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
   drawSky(top,hor);
   // 海
@@ -612,9 +689,27 @@ function render(){
   gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,shadowTex);gl.uniform1i(seaLoc.sh,1);
   gl.uniform1f(seaLoc.shPx,1/SHADOW_SIZE);gl.uniform1f(seaLoc.shOn,(SHADOW_ON&&SHADOW_OK)?1:0);
   gl.drawElements(gl.TRIANGLES,6,gl.UNSIGNED_SHORT,0);
+  // 夜光虫（航跡・共振で強まる）
+  drawPlankton(vp,uT,Math.min(1,S.amp/AMP_HIGH)*0.7+(S.phase==='end'&&S.won?0.6:0));
   // メッシュ＋スプライト
   drawMeshes(vp,false);
   drawSprites(vp,false);
+
+  // ---- ブルーム合成 ----
+  if(useBloom){ gl.disable(gl.DEPTH_TEST);
+    gl.viewport(0,0,bloomW,bloomH);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,bloomFBO[0]);gl.useProgram(brightP);
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,sceneTex);gl.uniform1i(brightLoc.tex,0);gl.uniform1f(brightLoc.thr,0.62);drawFSQuad(brightLoc.pos);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,bloomFBO[1]);gl.useProgram(blurP);
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,bloomTex[0]);gl.uniform1i(blurLoc.tex,0);gl.uniform2f(blurLoc.dir,1/bloomW,0);drawFSQuad(blurLoc.pos);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,bloomFBO[0]);gl.useProgram(blurP);
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,bloomTex[1]);gl.uniform1i(blurLoc.tex,0);gl.uniform2f(blurLoc.dir,0,1/bloomH);drawFSQuad(blurLoc.pos);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,canvas.width,canvas.height);gl.useProgram(compP);
+    gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,sceneTex);gl.uniform1i(compLoc.scene,0);
+    gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,bloomTex[0]);gl.uniform1i(compLoc.bloom,1);
+    gl.uniform1f(compLoc.str,1.15);drawFSQuad(compLoc.pos);
+    gl.enable(gl.DEPTH_TEST);
+  }
 }
 
 /* ---------- ループ ---------- */
@@ -679,9 +774,12 @@ window.__tsuriai={
   coins:(n)=>{S.coins+=n;},
   start:startGame,
   forceEnd:(won)=>endGame(!!won,won?'win':'time'),
-  gfx:()=>({reflOn:REFL_ON&&REFL_OK,shadowOn:SHADOW_ON&&SHADOW_OK,shadowSize:SHADOW_SIZE,reflW,reflH}),
+  gfx:()=>({reflOn:REFL_ON&&REFL_OK,shadowOn:SHADOW_ON&&SHADOW_OK,shadowSize:SHADOW_SIZE,reflW,reflH,
+    bloomOn:BLOOM_ON&&POST_OK,plankton:PLANKTON_ON?PLK_N:0,memGold:S.memGold,memSilver:S.memSilver}),
   reflForce:(on)=>{REFL_ON=!!on;if(on)initRefl();},
   shadowForce:(on)=>{SHADOW_ON=!!on;},
+  bloomForce:(on)=>{BLOOM_ON=!!on;if(on)initPost();},
+  planktonForce:(on)=>{PLANKTON_ON=!!on;},
   consts:{TILT_BREAK,AMP_DEAD,AMP_LOW,AMP_HIGH,RES_WIN,ROUND,SEA_Y}
 };
 </script>
