@@ -15,7 +15,7 @@
 | 第1話 | `story/01/index.html` |
 | 第2話 | `story/02/index.html` |
 | はじまり | `hajimari/index.html` |
-| 十四式 | `jusshiki/index.html` |
+| 廿式 | `nijusshiki/index.html` |
 | 観測ログ | `observer-log/index.html` |
 | PWA設定 | `manifest.json` |
 | サイトマップ | `sitemap.xml` |
