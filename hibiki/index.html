@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<script>
+/* こっこ共通: ページを離れたら必ず音を止める（bfcache対策／全ゲーム共通の番人） */
+(function(){
+  var ctxs=[]; var OrigAC=window.AudioContext||window.webkitAudioContext;
+  if(OrigAC&&typeof Proxy!=='undefined'&&typeof Reflect!=='undefined'){
+    var P=new Proxy(OrigAC,{construct:function(T,a,nt){var c=Reflect.construct(T,a,nt===P?T:nt);try{ctxs.push(c);}catch(e){}return c;}});
+    try{window.AudioContext=P;}catch(e){} try{if(window.webkitAudioContext)window.webkitAudioContext=P;}catch(e){}
+  }
+  function kill(){for(var i=0;i<ctxs.length;i++){var c=ctxs[i];try{c.suspend();}catch(e){}try{c.close();}catch(e){}}ctxs=[];}
+  window.addEventListener('pagehide',kill);
+  window.addEventListener('pageshow',function(e){if(e.persisted)window.location.reload();});
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>コッコひびき ─ ∿をたやすな｜HIBIKI</title>
+<meta name="description" content="親と子、ふたつのこっこを結ぶ一本の光の糸。そこを行き来する こだま玉 を、寄ってくるたび受けて、糸の ∿（ゆらぎ）を絶やすな。糸を噛み切ろうとする逆縁（ブラックこっこ）は、叩くのではなく共鳴で押し返す。約60秒で必ず、静寂の余韻に着地する。">
+<meta name="author" content="畜物語">
+<meta name="robots" content="index, follow">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0a1226">
+<link rel="canonical" href="https://chikumo.jp/hibiki/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://chikumo.jp/hibiki/">
+<meta property="og:title" content="コッコひびき ─ ∿をたやすな">
+<meta property="og:description" content="親と子を結ぶ光の糸の ∿ を、受け合いで絶やすな。逆縁は叩かず共鳴で押し返す。約60秒で静寂へ着地する。">
+<meta property="og:image" content="https://chikumo.jp/ogp.png">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{width:100%;height:100%;overflow:hidden;background:#0a1226;font-family:-apple-system,"Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:none}
+  #c{position:fixed;inset:0;width:100%;height:100%;display:block}
+  #vig{position:fixed;inset:0;z-index:2;pointer-events:none;box-shadow:inset 0 0 min(32vw,240px) rgba(0,0,0,.6)}
+  .hud{position:fixed;color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.75);pointer-events:none;z-index:5;font-weight:800}
+  #hudTL{top:calc(env(safe-area-inset-top,0) + 10px);left:14px;font-size:15px;line-height:1.5;color:#cfe0ff}
+  #hudTR{top:calc(env(safe-area-inset-top,0) + 10px);right:14px;text-align:right;font-size:26px;line-height:1.2}
+  #resWrap{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0) + 12px);width:min(60vw,360px);z-index:5;pointer-events:none}
+  #resBar{position:relative;height:12px;border-radius:7px;background:rgba(255,255,255,.12);overflow:hidden;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+  #resFill{position:absolute;top:0;bottom:0;left:0;width:0%;border-radius:7px;background:linear-gradient(90deg,#7fd0ff,#b6a3ff,#ffd66b)}
+  #resTxt{text-align:center;color:#dfe9ff;font-size:11px;margin-top:3px;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+  .tapHint{position:fixed;bottom:0;top:44%;width:40%;z-index:3;pointer-events:none;display:flex;align-items:flex-start;justify-content:center;font-size:min(9vw,40px);color:rgba(255,255,255,.10);font-weight:900}
+  #tapL{left:0}#tapR{right:0}
+  .overlay{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#fff;padding:24px;background:radial-gradient(ellipse at 50% 32%,rgba(34,44,86,.72),rgba(5,9,22,.95))}
+  .overlay h1{font-size:min(9.4vw,44px);letter-spacing:.08em;margin-bottom:8px;text-shadow:0 2px 16px rgba(150,180,255,.65)}
+  .overlay p{font-size:min(4.4vw,17px);line-height:1.75;color:#d3e0ff;max-width:560px;margin-bottom:8px}
+  .overlay small{color:#93a6d6;font-size:12px;line-height:1.7}
+  .btn{margin-top:22px;pointer-events:auto;cursor:pointer;border:none;border-radius:40px;padding:16px 42px;font-size:20px;font-weight:800;color:#0b1226;background:linear-gradient(180deg,#ffe9a8,#ffc861);box-shadow:0 6px 26px rgba(255,200,90,.42);font-family:inherit}
+  .btn:active{transform:translateY(2px)}
+  #rankBox{max-height:150px;overflow-y:auto;margin-top:12px;font-size:13px;color:#bcd0f5;width:min(80vw,320px)}
+  #rankBox div{display:flex;justify-content:space-between;padding:2px 10px;border-bottom:1px solid rgba(255,255,255,.08)}
+  #reloadBtn{position:fixed;right:12px;bottom:calc(env(safe-area-inset-bottom,0) + 12px);z-index:30;width:48px;height:48px;border-radius:50%;background:rgba(18,30,60,.72);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:5px}
+  #reloadBtn img{width:100%;height:100%;display:block}
+  .hidden{display:none!important}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="vig"></div>
+
+<div id="tapL" class="tapHint hud hidden">親<br>◀</div>
+<div id="tapR" class="tapHint hud hidden">子<br>▶</div>
+
+<div id="resWrap" class="hidden">
+  <div id="resBar"><div id="resFill"></div></div>
+  <div id="resTxt">ひびき ─ ∿を たやすな</div>
+</div>
+<div id="hudTL" class="hud hidden">つないだ ✦ <span id="comboTxt">0</span></div>
+<div id="hudTR" class="hud hidden"><span id="timeTxt">60</span></div>
+
+<div id="title" class="overlay">
+  <h1>コッコひびき</h1>
+  <p><b>∿（ひびき）を、たやすな。</b><br>親と子、ふたつのこっこを結ぶ 一本の光の糸。<br>そこを こだま玉 が行き来する。<br>玉が こっこに寄ったら、その側をおして<b>受けよ</b>。</p>
+  <p><small>左半分＝親のうけ／右半分＝子のうけ（キーは ← →）。<br>受けるほど 糸のゆらぎ＝ひびきが 濃くなる。<br>糸を噛み切りにくる逆縁は、<b>叩くな</b>──受け合いの共鳴で押し返せ。<br>約60秒で 必ず 静けさに着地する。</small></p>
+  <button class="btn" id="startBtn">はじめる</button>
+</div>
+
+<div id="result" class="overlay hidden">
+  <h1 id="rTitle"></h1>
+  <p id="rBody"></p>
+  <div id="rankBox"></div>
+  <button class="btn" id="againBtn">もういちど</button>
+  <p style="margin-top:14px"><a href="/" style="color:#9fd0ff">島へ もどる 🏝️</a></p>
+</div>
+
+<button type="button" id="reloadBtn" aria-label="さいしんに更新（強制リロード）" title="さいしんに更新">
+  <img src="/chikumo.svg" alt="">
+</button>
+
+<script>
+"use strict";
+/* ============================================================
+   コッコひびき（響／HIBIKI）
+   中心動詞「うけあう」。縁＝衡＋∿衡− を一本の光の糸として画面化し、
+   その ∿（ゆらぎ）を受け合いで絶やさぬ遊び。
+   1ファイル自己完結 / Canvas2D / WebAudio合成のみ / 約60秒で必ず終わる。
+   設計書：docs/要件定義-コッコひびき.md
+   ============================================================ */
+const TAU=Math.PI*2;
+const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+let W=0,H=0,DPR=1;
+function resize(){ DPR=Math.min(2,window.devicePixelRatio||1); W=window.innerWidth; H=window.innerHeight;
+  cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR); cv.style.width=W+'px'; cv.style.height=H+'px';
+  ctx.setTransform(DPR,0,0,DPR,0,0); }
+window.addEventListener('resize',resize); resize();
+
+/* ---------- こっこ公式SVG（畜学の掟：顔は手描きせず必ず公式を呼ぶ） ---------- */
+const cocco=new Image(); let coccoReady=false, coccoDark=null;
+cocco.onload=()=>{ coccoReady=true; buildDark(); };
+cocco.src='/chikumo.svg';
+function buildDark(){ // 逆縁＝ブラックこっこ（同じ姿を影に染めた自分の影）
+  try{ const s=256, oc=document.createElement('canvas'); oc.width=s; oc.height=s; const o=oc.getContext('2d');
+    o.drawImage(cocco,0,0,s,s);
+    o.globalCompositeOperation='source-atop';
+    o.fillStyle='rgba(28,10,44,0.92)'; o.fillRect(0,0,s,s);
+    o.globalCompositeOperation='source-over';
+    coccoDark=oc;
+  }catch(e){ coccoDark=null; } }
+
+/* ---------- 数値仕様（この木の器官） ---------- */
+const ROUND=60;                 // ラウンド長(s)。60は畜学の幅（廿式でない）
+const CATCH_Z0=0.155, CATCH_Z1=0.095; // 受け窓（uの端からの幅）。序盤→終盤で狭まる
+const A_DECAY=0.07;             // ∿の自然減衰（絶やすと消える＝弐相「たやすな」）
+const GAIN_BASE=0.13, GAIN_Q=0.20;   // 受け成立での振幅増（品質で上乗せ）
+const MISS_MUL=0.70;            // 外し時の振幅減衰
+const SPD0=0.62, SPD1=1.08;     // こだま玉の速度(u/s) 序盤→終盤
+const EN_GRIP=3;                // 逆縁を押し返すのに要する清受け回数
+const EN_DRAIN=0.09;            // 逆縁が居る間の∿ドレイン/s
+
+/* ---------- 状態 ---------- */
+const S={ phase:'title', t:0, elapsed:0, u:0.0, dir:1, A:0.0, combo:0, best:0,
+  score:0, approach:null, enemy:null, enTimer:9.0, endT:0, flashL:0, flashR:0,
+  camKick:0, sparks:[], repelFx:0, endGlow:0 };
+let last=0, started=false;
+
+/* ---------- レイアウト ---------- */
+function layout(){ const y=H*0.52; const xL=Math.max(58,W*0.15), xR=W-Math.max(58,W*0.15);
+  return {y, xL, xR, birdR:Math.min(46,Math.max(30,W*0.07))}; }
+
+/* ---------- 音（WebAudio合成のみ） ---------- */
+let AC=null,master=null,pad=null,verbIn=null;
+function initAudio(){ if(AC)return; try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
+  master=AC.createGain(); master.gain.value=0.0; master.connect(AC.destination);
+  // 簡易リバーブ（フィードバックディレイ）
+  verbIn=AC.createGain(); verbIn.gain.value=0.45;
+  const dl=AC.createDelay(1.0); dl.delayTime.value=0.21; const fb=AC.createGain(); fb.gain.value=0.4;
+  const vlp=AC.createBiquadFilter(); vlp.type='lowpass'; vlp.frequency.value=2600; const vw=AC.createGain(); vw.gain.value=0.34;
+  verbIn.connect(dl); dl.connect(vlp); vlp.connect(fb); fb.connect(dl); vlp.connect(vw); vw.connect(master);
+  // 夜の環境パッド（親＝低／子＝高 のふたつの衡が並ぶ）
+  pad=AC.createGain(); pad.gain.value=0.055; pad.connect(master);
+  [98,146.8,196,293.7].forEach((f,i)=>{ const o=AC.createOscillator(); o.type='sine'; o.frequency.value=f;
+    const g=AC.createGain(); g.gain.value=0.27; const lfo=AC.createOscillator(); lfo.frequency.value=0.05+i*0.017;
+    const lg=AC.createGain(); lg.gain.value=0.7; lfo.connect(lg); lg.connect(o.detune); lfo.start();
+    o.connect(g); g.connect(pad); o.start(); });
+  master.gain.linearRampToValueAtTime(0.55, AC.currentTime+1.1);
+}
+function tone(freq,dur,type,vol,when,verb){ if(!AC)return; const t=(when||AC.currentTime);
+  const o=AC.createOscillator(); o.type=type||'sine'; o.frequency.value=freq;
+  const g=AC.createGain(); g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(vol||0.2,t+0.012); g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+  o.connect(g); g.connect(master||AC.destination); if(verb&&verbIn)g.connect(verbIn); o.start(t); o.stop(t+dur+0.03); }
+// ペンタトニック（つなぐほど高く開く＝ひびきが濃くなる）
+const SCALE=[0,2,4,7,9,12,14,16,19,21,24,26,28];
+function noteHz(step){ return 261.63*Math.pow(2,step/12); }
+function chime(side,q){ const idx=Math.min(SCALE.length-1, S.combo); const base=SCALE[idx];
+  const off=side==='L'?-12:0; const t=AC?AC.currentTime:0;
+  tone(noteHz(base+off), 0.5+0.6*q, 'sine', 0.16+0.12*q, t, true);
+  tone(noteHz(base+off+7), 0.4, 'triangle', 0.06+0.05*q, t+0.01, true);
+  if(q>0.7) tone(noteHz(base+off+12), 0.6, 'sine', 0.06, t+0.02, true);
+}
+function dissonant(){ const t=AC?AC.currentTime:0;
+  tone(150,0.16,'sawtooth',0.09,t,false); tone(159,0.16,'sawtooth',0.08,t,false); }
+function enterTone(){ const t=AC?AC.currentTime:0; tone(70,0.9,'sawtooth',0.10,t,true); tone(104,0.9,'triangle',0.05,t,true); }
+function repelTone(){ if(!AC)return; const t=AC.currentTime; const o=AC.createOscillator(); o.type='triangle';
+  const g=AC.createGain(); g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.16,t+0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+0.7); o.frequency.setValueAtTime(220,t);
+  o.frequency.exponentialRampToValueAtTime(1320,t+0.5); o.connect(g); g.connect(master); if(verbIn)g.connect(verbIn);
+  o.start(t); o.stop(t+0.75); }
+function finalChord(){ if(!AC)return; const t=AC.currentTime;
+  [0,4,7,12].forEach((n,i)=>tone(noteHz(n),3.2,'sine',0.16,t+i*0.06,true));
+  // 終幕：音は やがて静けさへ引く（参・終を售る＝祝としての無音）
+  master.gain.cancelScheduledValues(t); master.gain.setValueAtTime(master.gain.value,t);
+  master.gain.linearRampToValueAtTime(0.42,t+1.4); master.gain.linearRampToValueAtTime(0.0,t+3.4);
+}
+
+/* ---------- 入力（左右のタップ＝親/子の受け・多点対応） ---------- */
+function tapSide(side){ if(S.phase!=='play')return;
+  if(side==='L')S.flashL=1; else S.flashR=1;
+  const ap=S.approach;
+  if(ap && ap.side===side && !ap.done){
+    // 品質＝端（こっこ）にどれだけ近い u で受けたか
+    const endU=side==='L'?0:1; const cz=curCatchZone();
+    const q=Math.max(0, 1-Math.abs(S.u-endU)/cz);
+    ap.done=true; onCatch(side,q);
+  }
+  // 窓の外／逆側は罰しない（相手を敵にしない＝六相の精神。空振りは軽く流す）
+}
+function pointToSide(x){ return x < W*0.5 ? 'L' : 'R'; }
+cv.addEventListener('pointerdown',e=>{ e.preventDefault(); tapSide(pointToSide(e.clientX)); },{passive:false});
+window.addEventListener('keydown',e=>{ if(e.repeat)return;
+  if(e.key==='ArrowLeft'||e.key==='a'||e.key==='f')tapSide('L');
+  else if(e.key==='ArrowRight'||e.key==='l'||e.key==='j')tapSide('R'); });
+
+function curCatchZone(){ const p=Math.min(1,S.elapsed/ROUND); return CATCH_Z0+(CATCH_Z1-CATCH_Z0)*p; }
+function curSpeed(){ const p=Math.min(1,S.elapsed/ROUND); return SPD0+(SPD1-SPD0)*p; }
+
+/* ---------- 受け／外し／逆縁 ---------- */
+function onCatch(side,q){ S.combo++; if(S.combo>S.best)S.best=S.combo;
+  const gain=(GAIN_BASE+GAIN_Q*q)*(S.enemy?0.65:1);
+  S.A=Math.min(1, S.A+gain*(1.1-0.55*S.A));
+  S.camKick=Math.min(1,S.camKick+0.25+0.3*q);
+  const endU=side==='L'?0:1, L=layout(); const bx=side==='L'?L.xL:L.xR;
+  spawnSparks(bx, L.y, side==='L'?'#ffd98a':'#bfe0ff', 8+Math.round(q*10));
+  chime(side,q);
+  if(S.enemy){ S.enemy.grip-=1; if(S.enemy.grip<=0)repelEnemy(); }
+  document.getElementById('comboTxt').textContent=S.combo;
+}
+function onMiss(){ S.combo=0; S.A*=MISS_MUL; dissonant(); S.camKick=Math.min(1,S.camKick+0.18);
+  document.getElementById('comboTxt').textContent=0; }
+function spawnEnemy(){ S.enemy={ grip:EN_GRIP, life:0, x:0.5, wob:Math.random()*TAU }; enterTone(); S.camKick=1; }
+function repelEnemy(){ const L=layout(); spawnSparks((L.xL+L.xR)/2, L.y, '#c9b4ff', 26);
+  S.enemy=null; S.repelFx=1; repelTone(); S.camKick=1;
+  // 次の逆縁までの間合いは 終盤ほど短い
+  const p=Math.min(1,S.elapsed/ROUND); S.enTimer=(10-4*p)+Math.random()*3; }
+function spawnSparks(x,y,col,n){ for(let i=0;i<n;i++){ const a=Math.random()*TAU, sp=40+Math.random()*160;
+  S.sparks.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-30,life:0,ttl:0.5+Math.random()*0.5,col}); } }
+
+/* ---------- 更新 ---------- */
+function update(dt){
+  if(S.phase==='play'){
+    S.elapsed+=dt; S.t+=dt;
+    // タイマー
+    const remain=Math.max(0,ROUND-S.elapsed);
+    document.getElementById('timeTxt').textContent=Math.ceil(remain);
+    // こだま玉の往復
+    const spd=curSpeed(); S.u+=S.dir*spd*dt;
+    const cz=curCatchZone();
+    // 受け窓の開閉（進行方向の端でのみ開く）
+    if(S.dir>0 && S.u>=1-cz && (!S.approach||S.approach.side!=='R')) S.approach={side:'R',done:false};
+    if(S.dir<0 && S.u<=cz  && (!S.approach||S.approach.side!=='L')) S.approach={side:'L',done:false};
+    // 折り返し＝受け判定の締め
+    if(S.u>=1){ S.u=1; S.dir=-1; if(S.approach&&S.approach.side==='R'&&!S.approach.done)onMiss(); S.approach=null; }
+    if(S.u<=0){ S.u=0; S.dir=1; if(S.approach&&S.approach.side==='L'&&!S.approach.done)onMiss(); S.approach=null; }
+    // ∿の自然減衰＋逆縁ドレイン
+    S.A=Math.max(0, S.A-A_DECAY*dt);
+    if(S.enemy){ S.enemy.life+=dt; S.enemy.wob+=dt*2.2; S.A=Math.max(0,S.A-EN_DRAIN*dt); }
+    else { S.enTimer-=dt; if(S.enTimer<=0 && S.elapsed>6 && remain>7) spawnEnemy(); }
+    // スコア＝ひびき（振幅）の持続量の積分
+    S.score+=S.A*dt*100;
+    // メータ・演出減衰
+    S.camKick=Math.max(0,S.camKick-dt*2.2); S.flashL=Math.max(0,S.flashL-dt*3); S.flashR=Math.max(0,S.flashR-dt*3);
+    S.repelFx=Math.max(0,S.repelFx-dt*1.4);
+    document.getElementById('resFill').style.width=Math.round(S.A*100)+'%';
+    if(remain<=0) endGame();
+  } else if(S.phase==='end'){
+    S.endT+=dt; S.endGlow=Math.min(1,S.endGlow+dt*0.7);
+    S.camKick=Math.max(0,S.camKick-dt*2.2); S.repelFx=Math.max(0,S.repelFx-dt*1.4);
+    if(S.endT>2.6 && !S.resultShown) showResult();
+  }
+  // 火花
+  for(let i=S.sparks.length-1;i>=0;i--){ const p=S.sparks[i]; p.life+=dt; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=260*dt;
+    if(p.life>=p.ttl)S.sparks.splice(i,1); }
+}
+
+/* ---------- 描画 ---------- */
+function threadY(x,L,phase){ // 一次モード近似＋こだま玉の隆起
+  const t=(x-L.xL)/(L.xR-L.xL); if(t<0||t>1)return L.y;
+  const env=Math.sin(Math.PI*t); // 端で0・中央で最大の弦
+  const stand=Math.sin(Math.PI*t*1)*Math.sin(phase); // 揺れ
+  // こだま玉に追従する隆起
+  const d=t-S.u; const bump=Math.exp(-(d*d)/0.006)*(S.dir>0?-1:1);
+  const amp=S.A*(L.y*0.16)+ (S.phase==='end'?0:0);
+  const enemyBite=S.enemy?(Math.exp(-((t-0.5)*(t-0.5))/0.004)*(0.5+0.5*Math.sin(S.enemy.wob))):0;
+  let dy=(stand*0.6+bump*0.9)*amp*(1-enemyBite*0.9);
+  if(S.phase==='end'){ dy=env*Math.sin(S.endT*1.4+ x*0.002)*(L.y*0.05)*(1-S.endGlow*0.4); }
+  return L.y+dy;
+}
+function drawCoccoAt(img,x,y,r,flip){ ctx.save(); ctx.translate(x,y); if(flip)ctx.scale(-1,1);
+  ctx.drawImage(img,-r,-r,r*2,r*2); ctx.restore(); }
+function drawFallbackBird(x,y,r,col){ ctx.save(); ctx.fillStyle=col; ctx.beginPath(); ctx.arc(x,y,r*0.8,0,TAU); ctx.fill(); ctx.restore(); }
+
+function render(){
+  const L=layout();
+  // 背景（夜→ひびきで ほのかに暖まる）
+  const warm=Math.min(1,S.A*0.9+ (S.phase==='end'?S.endGlow:0));
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0, mix('#0a1226','#241a3a',warm*0.5));
+  g.addColorStop(0.55, mix('#0c1430','#3a2c56',warm*0.45));
+  g.addColorStop(1, mix('#060a18','#14213f',warm*0.4));
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  // カメラの微振動
+  const k=S.camKick; ctx.save(); ctx.translate((Math.random()-0.5)*k*6,(Math.random()-0.5)*k*6);
+
+  // 星（静かな夜）
+  ctx.globalAlpha=0.5; ctx.fillStyle='#dfe8ff';
+  for(let i=0;i<40;i++){ const sx=(i*97.3%W), sy=(i*53.7%(H*0.5)); const s=(i%3)?1:1.6; ctx.fillRect(sx,sy,s,s); }
+  ctx.globalAlpha=1;
+
+  // 光の糸（縁＝衡＋∿衡−）
+  const steps=Math.max(48,Math.round((L.xR-L.xL)/6)); const phase=S.t*3.2;
+  const threadCol=mix('#4d6cff','#ffdf8f',warm);
+  // グロー下地
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  for(let pass=0;pass<2;pass++){
+    ctx.beginPath();
+    for(let i=0;i<=steps;i++){ const x=L.xL+(L.xR-L.xL)*i/steps; const y=threadY(x,L,phase);
+      if(i===0)ctx.moveTo(x,y); else ctx.lineTo(x,y); }
+    if(pass===0){ ctx.strokeStyle=threadCol; ctx.globalAlpha=0.22+0.5*S.A; ctx.lineWidth=14+18*S.A; ctx.shadowBlur=30+40*S.A; ctx.shadowColor=threadCol; ctx.stroke(); }
+    else { ctx.strokeStyle=mix('#bcd2ff','#fff3cf',warm); ctx.globalAlpha=0.9; ctx.lineWidth=2.4+2*S.A; ctx.shadowBlur=0; ctx.stroke(); }
+  }
+  ctx.globalAlpha=1; ctx.shadowBlur=0;
+
+  // 逆縁（ブラックこっこ＝自分の影）：糸の中央で ∿ を噛み切ろうとする
+  if(S.enemy){ const ex=(L.xL+L.xR)/2 + Math.sin(S.enemy.wob)*8; const ey=threadY(ex,L,phase);
+    const er=L.birdR*0.92;
+    ctx.save(); ctx.globalAlpha=0.85;
+    // 影のオーラ
+    const eg=ctx.createRadialGradient(ex,ey,0,ex,ey,er*1.8); eg.addColorStop(0,'rgba(120,60,180,0.5)'); eg.addColorStop(1,'rgba(120,60,180,0)');
+    ctx.fillStyle=eg; ctx.beginPath(); ctx.arc(ex,ey,er*1.8,0,TAU); ctx.fill();
+    if(coccoDark)drawCoccoAt(coccoDark,ex,ey,er,false); else drawFallbackBird(ex,ey,er,'#2a1140');
+    // グリップの残り（噛みつきの牙＝押し返す残り回数）
+    ctx.globalAlpha=0.9; ctx.fillStyle='#e7d4ff'; ctx.font='700 13px sans-serif'; ctx.textAlign='center';
+    ctx.fillText('✕'.repeat(Math.max(0,S.enemy.grip)), ex, ey-er-8);
+    ctx.restore();
+  }
+
+  // こだま玉
+  const ox=L.xL+(L.xR-L.xL)*S.u, oy=threadY(ox,L,phase);
+  const orbR=9+7*S.A;
+  const og=ctx.createRadialGradient(ox,oy,0,ox,oy,orbR*3);
+  const orbMid='rgba('+Math.round(180+75*warm)+','+Math.round(210+15*warm)+','+Math.round(255-105*warm)+',0.9)';
+  og.addColorStop(0,'rgba(255,255,255,0.95)'); og.addColorStop(0.4, orbMid); og.addColorStop(1,'rgba(180,210,255,0)');
+  ctx.fillStyle=og; ctx.beginPath(); ctx.arc(ox,oy,orbR*3,0,TAU); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(ox,oy,orbR,0,TAU); ctx.fill();
+
+  // 受け窓の合図（端が近づくと こっこが光る）
+  const cz=curCatchZone();
+  const glowL=(S.dir<0 && S.u<=cz)?(1-S.u/cz):0;
+  const glowR=(S.dir>0 && S.u>=1-cz)?(1-(1-S.u)/cz):0;
+
+  // 親こっこ（左・金＝衡＋）／子こっこ（右・銀＝衡−）
+  drawBird(L.xL,threadY(L.xL,L,phase),L.birdR,'#ffd98a',Math.max(glowL,S.flashL),false);
+  drawBird(L.xR,threadY(L.xR,L,phase),L.birdR,'#bfe0ff',Math.max(glowR,S.flashR),true);
+
+  // 火花
+  for(const p of S.sparks){ const a=1-p.life/p.ttl; ctx.globalAlpha=a; ctx.fillStyle=p.col;
+    ctx.beginPath(); ctx.arc(p.x,p.y,2.4*a+0.6,0,TAU); ctx.fill(); }
+  ctx.globalAlpha=1;
+
+  // 押し返しの閃光
+  if(S.repelFx>0){ ctx.globalAlpha=S.repelFx*0.5; ctx.fillStyle='#e9dcff'; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1; }
+
+  // 終幕：ふたつの光が結ばれる（参・終を售る＝祝の余韻）
+  if(S.phase==='end' && S.endGlow>0.05){ const cx=(L.xL+L.xR)/2, cyt=L.y;
+    ctx.globalAlpha=S.endGlow*0.9; const hg=ctx.createRadialGradient(cx,cyt,0,cx,cyt,L.birdR*3);
+    hg.addColorStop(0,'rgba(255,240,200,0.9)'); hg.addColorStop(1,'rgba(255,200,150,0)');
+    ctx.fillStyle=hg; ctx.beginPath(); ctx.arc(cx,cyt,L.birdR*3,0,TAU); ctx.fill(); ctx.globalAlpha=1;
+  }
+  ctx.restore();
+}
+function drawBird(x,y,r,auraCol,glow,flip){
+  if(glow>0){ ctx.globalAlpha=Math.min(1,glow); const ag=ctx.createRadialGradient(x,y,0,x,y,r*2.1);
+    ag.addColorStop(0,auraCol); ag.addColorStop(1,'rgba(255,255,255,0)'); ctx.fillStyle=ag;
+    ctx.beginPath(); ctx.arc(x,y,r*2.1,0,TAU); ctx.fill(); ctx.globalAlpha=1; }
+  // 常時のうすい光輪
+  ctx.globalAlpha=0.35; const ag2=ctx.createRadialGradient(x,y,0,x,y,r*1.5);
+  ag2.addColorStop(0,auraCol); ag2.addColorStop(1,'rgba(255,255,255,0)'); ctx.fillStyle=ag2;
+  ctx.beginPath(); ctx.arc(x,y,r*1.5,0,TAU); ctx.fill(); ctx.globalAlpha=1;
+  if(coccoReady)drawCoccoAt(cocco,x,y,r,flip); else drawFallbackBird(x,y,r,auraCol);
+}
+function mix(a,b,t){ t=Math.max(0,Math.min(1,t)); const ca=hex(a),cb=hex(b);
+  return 'rgb('+Math.round(ca[0]+(cb[0]-ca[0])*t)+','+Math.round(ca[1]+(cb[1]-ca[1])*t)+','+Math.round(ca[2]+(cb[2]-ca[2])*t)+')'; }
+function hex(h){ if(h[0]==='#')h=h.slice(1); return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; }
+
+/* ---------- ループ ---------- */
+function loop(now){ if(!last)last=now; let dt=(now-last)/1000; last=now; if(dt>0.05)dt=0.05;
+  if(started){ update(dt); render(); } requestAnimationFrame(loop); }
+requestAnimationFrame(loop);
+
+/* ---------- 進行 ---------- */
+function startGame(){ initAudio();
+  Object.assign(S,{ phase:'play', t:0, elapsed:0, u:0.0, dir:1, A:0.28, combo:0, best:0, score:0,
+    approach:null, enemy:null, enTimer:9.0, endT:0, flashL:0, flashR:0, camKick:0, sparks:[], repelFx:0, endGlow:0 });
+  S.resultShown=false; started=true;
+  document.getElementById('title').classList.add('hidden');
+  document.getElementById('result').classList.add('hidden');
+  ['resWrap','hudTL','hudTR','tapL','tapR'].forEach(id=>document.getElementById(id).classList.remove('hidden'));
+  document.getElementById('comboTxt').textContent='0';
+  document.getElementById('timeTxt').textContent=ROUND;
+}
+function endGame(){ if(S.phase!=='play')return; S.phase='end'; S.endT=0; S.endGlow=0; S.approach=null; S.enemy=null;
+  finalChord();
+  ['tapL','tapR'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+}
+function showResult(){ S.resultShown=true; started=true; // 描画は続ける（余韻の糸）
+  const sc=Math.round(S.score);
+  document.getElementById('rTitle').textContent='ひびきは、とどいた';
+  document.getElementById('rBody').innerHTML='ふたつの光が、しずかに結ばれた。<br>ひびき <b style="font-size:1.4em;color:#ffd98a">'+sc+'</b><br><small style="color:#9fb2dd">いちばん長く つないだ ✦ '+S.best+'</small>';
+  ['resWrap','hudTL','hudTR'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  document.getElementById('result').classList.remove('hidden');
+  submitScore(sc);
+}
+
+/* ---------- 世界ランキング（Firebase相乗り・rankings/hibiki・失敗は静かに） ---------- */
+let fbReady=false,fbDb=null;
+(function loadFB(){ try{
+  var base='https://www.gstatic.com/firebasejs/9.23.0/'; var files=['firebase-app-compat.js','firebase-database-compat.js']; var i=0;
+  (function next(){ if(i>=files.length){initFB();return;} var s=document.createElement('script'); s.src=base+files[i++]; s.onload=next; s.onerror=function(){}; document.head.appendChild(s); })();
+}catch(e){} })();
+function initFB(){ try{ if(typeof firebase==='undefined'||!firebase.database)return;
+  if(!firebase.apps||!firebase.apps.length)firebase.initializeApp({
+    apiKey:"AIzaSyB",authDomain:"chikumonogatarikiroku.firebaseapp.com",
+    databaseURL:"https://chikumonogatarikiroku-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId:"chikumonogatarikiroku",storageBucket:"chikumonogatarikiroku.firebasestorage.app"});
+  fbDb=firebase.database(); fbReady=true;
+}catch(e){} }
+function submitScore(sc){ const box=document.getElementById('rankBox'); box.innerHTML='<div><span>世界ランキング</span><span>…</span></div>';
+  if(!fbReady||!fbDb){ box.innerHTML='<div><span>（オフライン）</span><span>ひびき '+sc+'</span></div>'; return; }
+  try{ const ref=fbDb.ref('rankings/hibiki');
+    ref.push({s:sc,t:Date.now()}).catch(()=>{});
+    ref.orderByChild('s').limitToLast(10).once('value',snap=>{ const arr=[]; snap.forEach(c=>{arr.push(c.val());}); arr.sort((a,b)=>b.s-a.s);
+      box.innerHTML=arr.map((r,i)=>'<div><span>'+(i+1)+'位</span><span>'+r.s+'</span></div>').join('')||'<div><span>まだ記録なし</span><span></span></div>'; });
+  }catch(e){ box.innerHTML='<div><span>（記録に失敗）</span><span>ひびき '+sc+'</span></div>'; }
+}
+
+/* ---------- ボタン ---------- */
+document.getElementById('startBtn').onclick=startGame;
+document.getElementById('againBtn').onclick=startGame;
+document.getElementById('reloadBtn').onclick=async function(){ try{
+  if('serviceWorker' in navigator){ const rs=await navigator.serviceWorker.getRegistrations(); for(const r of rs)await r.unregister(); }
+  if(window.caches){ const ks=await caches.keys(); await Promise.all(ks.map(k=>caches.delete(k))); }
+}catch(e){} location.replace(location.pathname+'?v='+Date.now()); };
+
+/* ---------- 検証フック ---------- */
+window.__hibiki={
+  state:()=>({phase:S.phase,elapsed:S.elapsed,u:S.u,dir:S.dir,A:S.A,combo:S.combo,best:S.best,score:Math.round(S.score),enemy:S.enemy?S.enemy.grip:null}),
+  step:(dt,n)=>{ n=n||1; for(let i=0;i<n;i++)update(dt||0.016); },
+  tap:tapSide, start:startGame, end:endGame,
+  spawnEnemy:spawnEnemy,
+  consts:{ROUND,CATCH_Z0,CATCH_Z1,A_DECAY,EN_GRIP}
+};
+</script>
+</body>
+</html>
