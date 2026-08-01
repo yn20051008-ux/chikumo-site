@@ -160,7 +160,7 @@ footer .c{font-family:var(--font-mono);font-size:0.66rem;letter-spacing:0.2em;co
   <div class="inner reveal">
     <div class="section-label">Volume II — WebGL Catalog</div>
     <h2 class="section-title">巻二 ─ WebGL実装カタログ（7作品の実測）</h2>
-    <p class="section-desc">WebGLを使うのは <code>mori</code>・<code>shima2</code>・<code>shinshima</code>・<code>galaxy</code>・<code>pulse</code>・<code>rom</code>・<code>splat3d</code> の7作のみ。いずれも外部ライブラリを使わず、<code>createShader→compileShader→createProgram→linkProgram</code> を自前ヘルパーで書く共通スタイル。</p>
+    <p class="section-desc"><b>現存作</b>でWebGLを使うのは <code>mori</code>・<code>mebuki</code>・<code>shiosai2</code>・<code>tsuriai</code> の4作。いずれも外部ライブラリを使わず、<code>createShader→compileShader→createProgram→linkProgram</code> を自前ヘルパーで書く共通スタイル。<br>※このカタログには終了した木（<code>shima2</code>・<code>shinshima</code>・<code>galaxy</code>・<code>pulse</code>・<code>rom</code>・<code>splat3d</code>）の実装記録も含む。<b>技法は木が枯れても残るので消さない</b>──splat3dの <code>uPaint</code> は shiosai2 の「濡れ砂の記憶」へ、<code>beam()</code> は mebuki の🔫レーザーへ移植されて今も動いている。ただし「現存するのは何作か」の一文は削除のたびに古びるため、<b>ゲームを削除したらここを必ず点検し直すこと</b>（肥料学 二十六章 教訓五）。</p>
     <div class="recs">
       <div class="rec"><span class="tag">フル3D・最も複雑</span><h3>一・島ぐらし（/mori/）</h3>
         <p>シェーダ12種：depth/meshDepth（影）・terrain・water・mesh・grass・sky・sprite・noise・bright/blur/post（ブルーム）。シャドウマップ・fbmノイズ地形・水面フレネル・大気フォグ・ACES風トーンマップ・GPUハイトマップ生成を実装。</p>
