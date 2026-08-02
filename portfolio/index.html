@@ -369,8 +369,17 @@ body.cinema .bar{height:8.5vh;}
 }
 /* RESULT が一言のカードは、本文でなく「結論」として大きく置く */
 .vf-grid.solo .vf-blk p{font-size:clamp(14.5px,4vw,19px);line-height:1.95;}
-/* 検証済スタンプに文字が潜り込まないよう、下に帯をあける */
-@media(max-width:759px){ .vf-grid.solo{padding-bottom:clamp(56px,14vw,76px);} }
+/* カードに貼ってあった付箋 */
+.vf-note{position:relative;display:inline-block;margin-top:20px;padding:9px 16px;
+  background:#e5e1d3;color:#39372f;font-size:12.5px;font-weight:700;letter-spacing:.04em;line-height:1.6;
+  border-left:3px solid rgba(214,59,47,.65);box-shadow:0 3px 11px rgba(0,0,0,.16);
+  transform:rotate(-1.4deg);}
+/* 検証済スタンプに文字が潜り込まないよう、スマホでは下に帯をあける */
+@media(max-width:759px){
+  .vf{padding-bottom:clamp(74px,19vw,100px);}
+  /* 付箋はスタンプの手前で折り返す（スタンプは右下に固定されているため） */
+  .vf-note{margin-bottom:12px;max-width:calc(100% - 104px);}
+}
 .vf-blk h4{font-family:var(--mono);font-size:10px;letter-spacing:.26em;color:#8a857b;margin-bottom:7px;
   padding-bottom:5px;border-bottom:1px solid rgba(0,0,0,.16);}
 .vf-blk p{font-size:13.5px;line-height:2.05;color:#33322e;}
@@ -688,6 +697,7 @@ var PROFILE = {
    1件ぶんの型（コピーして下に足すだけ）:
    { icon:"🚃", myth:"〇〇は必要。", act:"〇〇してみた。",
      result:"何が起きたか（＝カードのRESULT）",
+     note:"付箋に書いた一言（受講・受賞など。無ければ省略可）",
      finding:"だから何が言えるか（無ければ "" でよい。その行ごと消えます）",
      period:"20XX.XX / X日間（無ければ ""）", tags:["行動"] }
    ※ myth（＝世間の当たり前）には自動で赤い取り消し線が引かれます。
@@ -735,6 +745,55 @@ var VERIFICATIONS = [
     myth   : "海外の友達は海外でしかできない。",
     act    : "話しかけてみた。",
     result : "言語よりも、好奇心が世界を広げてくれた。",
+    finding: "",
+    period : "",
+    tags   : []
+  },
+  {
+    icon   : "🍴",
+    myth   : "個人店ではマーケティングはできない。",
+    act    : "やってみた。",
+    result : "マーケティングは、会議室じゃなく、ホールにあった。",
+    finding: "",
+    period : "",
+    tags   : []
+  },
+  {
+    icon   : "📖",
+    myth   : "社会人が9割。",
+    act    : "飛び込んでみた。",
+    result : "年齢じゃなく、本気度が学びを決めてくれた。",
+    note   : "宣伝会議 コピーライター養成講座 受講",
+    finding: "",
+    period : "",
+    tags   : []
+  },
+  {
+    icon   : "👑",
+    myth   : "博報堂のワークショップは参加するだけで十分。",
+    act    : "一位を目指してみた！",
+    result : "グループ優勝。「訪れるより、語れる旅へ。」を提案。",
+    note   : "WINNER",
+    finding: "",
+    period : "",
+    tags   : []
+  },
+  {
+    icon   : "🏆",
+    myth   : "未経験ではコンペで勝てない。",
+    act    : "出してみた。",
+    result : "一次選考通過。挑戦してみて、世界が広がった。",
+    note   : "AD COMPETITION ─ 一次通過",
+    finding: "",
+    period : "",
+    tags   : []
+  },
+  {
+    icon   : "💡",
+    myth   : "広告は、社会人になってから。",
+    act    : "待ってみなかった。",
+    result : "今、できることを、今、全力で。未来はその先にある。",
+    note   : "To be Continued…",
     finding: "",
     period : "",
     tags   : []
@@ -1208,6 +1267,7 @@ function renderVerifications(){
     if (grid.children.length < 2) grid.classList.add("solo");   // RESULT だけなら1段組に
 
     var nodes = [no,myth,act,grid];
+    if (v.note) nodes.push(el("p","vf-note", v.note));           // カードに貼ってあった付箋
     // 期間もタグも無いカードで、空の帯だけが残らないようにする
     var meta = el("div","vf-meta");
     if (v.period) meta.appendChild(el("span",null,v.period));
