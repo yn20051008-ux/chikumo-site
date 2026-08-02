@@ -488,15 +488,25 @@ footer a{color:inherit;}
 /* =========================================================================
    3. 配慮（動きを減らす / 印刷）
    ========================================================================= */
+/* 動きを減らす設定のとき：ふだんは演出を止める。
+   ただし「▶ 予告編」を自分で押したときだけは、本人が望んだ動きなので通す。
+   （その間だけ html に .motion-ok が付き、下の抑制が外れる）
+   ※ ボタン自体は常に出す。隠すと「壊れている」ようにしか見えないため。 */
 @media (prefers-reduced-motion: reduce){
-  html{scroll-behavior:auto;}
-  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
+  html:not(.motion-ok){scroll-behavior:auto;}
+  html:not(.motion-ok) *,
+  html:not(.motion-ok) *::before,
+  html:not(.motion-ok) *::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
     transition-duration:.01ms!important;}
-  .rv{opacity:1;transform:none;}
-  .gate-title .ch,.gate-sub,.gate-actions{opacity:1;}
-  /* 予告編の演出は丸ごと出さない。観られないので再生ボタンも出さない */
-  #grain,#shard,#cards,#slam,#replayBtn{display:none;}
-  body.cinema .bar{height:0;}
+  html:not(.motion-ok) .rv{opacity:1;transform:none;}
+  html:not(.motion-ok) .gate-title .ch,
+  html:not(.motion-ok) .gate-sub,
+  html:not(.motion-ok) .gate-actions{opacity:1;}
+  html:not(.motion-ok) #grain,
+  html:not(.motion-ok) #shard,
+  html:not(.motion-ok) #cards,
+  html:not(.motion-ok) #slam{display:none;}
+  html:not(.motion-ok) body.cinema .bar{height:0;}
 }
 @media print{
   #gate,#nav,#lamp,.room-bg,.room-grid,.mote,.scroll-hint,.filters,.case-more{display:none!important;}
@@ -1126,7 +1136,15 @@ function playBreak(){
     $("#lamp").classList.add("flick");
   });
   at(end + 400, function(){ document.body.classList.remove("cinema"); });  // 黒帯が開く
-  at(end + 760, function(){ gate.style.display = "none"; });
+  at(end + 760, function(){ gate.style.display = "none"; endMotionOverride(); });
+}
+
+/* 動きを減らす設定でも、自分で「▶ 予告編」を押したときだけは演出を通す。
+   ふだん出る動きと、本人が観たいと言った動きは別ものなので分けて扱う。 */
+var motionOK = false;
+function endMotionOverride(){
+  motionOK = false;
+  document.documentElement.classList.remove("motion-ok");
 }
 
 /* 入室（instant=true で予告編をとばす） */
@@ -1137,7 +1155,8 @@ function enterLab(instant){
   document.body.classList.remove("locked");
   labEl.removeAttribute("aria-hidden");
 
-  if (instant || reduceMotion){
+  if (instant) endMotionOverride();
+  if (instant || (reduceMotion && !motionOK)){
     stopAudio();
     document.body.classList.remove("cinema");
     flashEl.classList.remove("on"); blackoutEl.classList.remove("on"); slamEl.classList.remove("on");
@@ -1197,9 +1216,9 @@ function replayTrailer(){
   buildWall();
 
   entered = false;
-  // 設定は読み込み後に変わりうるので、その場で読み直す（CSS側の判定とずらさない）
-  var rm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  if (rm){ enterLab(true); return; }
+  // 自分で押した以上は、動きを減らす設定でも観たいはずなので通す
+  motionOK = true;
+  document.documentElement.classList.add("motion-ok");
   playIntro();
 }
 $("#replayBtn").addEventListener("click", replayTrailer);
