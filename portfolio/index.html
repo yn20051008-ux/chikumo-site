@@ -53,18 +53,43 @@ a{color:inherit;}
 ::selection{background:var(--red);color:#fff;}
 
 /* =========================================================================
-   1. 壁（オープニング）
+   1. 壁（オープニング＝予告編）
+   レイヤーの重なり: stage(1) < dust(5) < cards(6) < shard(7) < gate-inner(8)
+                     < blackout(9) < flash(10) < slam(11) < grain(12) < skip(14)
    ========================================================================= */
-#gate{position:fixed;inset:0;z-index:100;overflow:hidden;background:#101013;}
-#gate.shake{animation:shake .5s cubic-bezier(.36,.07,.19,.97) both;}
-@keyframes shake{
-  10%,90%{transform:translate3d(-2px,1px,0);}
-  20%,80%{transform:translate3d(5px,-3px,0);}
-  30%,50%,70%{transform:translate3d(-9px,4px,0);}
-  40%,60%{transform:translate3d(9px,-4px,0);}
+#gate{position:fixed;inset:0;z-index:100;overflow:hidden;background:#000;
+  transition:opacity .5s ease;}
+/* カメラの揺れ（小＝ひび / 大＝爆発） */
+#gate.shake-s{animation:shakeS .55s cubic-bezier(.36,.07,.19,.97) both;}
+#gate.shake-l{animation:shakeL 1s cubic-bezier(.36,.07,.19,.97) both;}
+@keyframes shakeS{
+  10%,90%{transform:translate3d(-2px,1px,0);}20%,80%{transform:translate3d(4px,-2px,0);}
+  30%,50%,70%{transform:translate3d(-6px,3px,0);}40%,60%{transform:translate3d(6px,-3px,0);}
 }
-#wall{position:absolute;inset:-6%;display:flex;flex-direction:column;justify-content:center;
-  perspective:900px;perspective-origin:50% 45%;}
+@keyframes shakeL{
+  5%{transform:translate3d(-16px,9px,0) rotate(-.5deg);}
+  15%{transform:translate3d(19px,-12px,0) rotate(.6deg);}
+  27%{transform:translate3d(-14px,-8px,0) rotate(-.4deg);}
+  40%{transform:translate3d(11px,10px,0) rotate(.3deg);}
+  55%{transform:translate3d(-7px,-5px,0);}
+  70%{transform:translate3d(5px,3px,0);}
+  85%{transform:translate3d(-2px,-1px,0);}
+  100%{transform:none;}
+}
+/* カメラの寄り（push-in）。--z を差し替えて寄っていく */
+#stage{position:absolute;inset:0;z-index:1;overflow:hidden;
+  transform:scale(var(--z,1));transition:transform 1.4s cubic-bezier(.33,0,.25,1);will-change:transform;}
+#stage.q{transition:transform .45s cubic-bezier(.5,0,.85,.6);}   /* 一気に寄る */
+
+#wall{position:absolute;inset:-8%;display:flex;flex-direction:column;justify-content:center;
+  perspective:900px;perspective-origin:50% 45%;opacity:0;transition:opacity 1.2s ease;}
+#wall.show{opacity:1;}
+#wall.tremble .brick{animation:tremble .09s linear infinite;}
+@keyframes tremble{
+  0%{transform:translate3d(0,0,0);}25%{transform:translate3d(1.5px,-1px,0);}
+  50%{transform:translate3d(-1px,1.5px,0);}75%{transform:translate3d(1px,1px,0);}
+  100%{transform:translate3d(0,0,0);}
+}
 .brow{display:flex;flex:none;}
 .brick{flex:none;position:relative;background:#5f5f66;
   box-shadow:inset 0 0 0 1px rgba(0,0,0,.34), inset 0 2px 0 rgba(255,255,255,.07), inset 0 -3px 6px rgba(0,0,0,.28);
@@ -74,36 +99,107 @@ a{color:inherit;}
     radial-gradient(1px 1px at 68% 18%,rgba(0,0,0,.3),transparent),
     radial-gradient(1.5px 1.5px at 44% 74%,rgba(0,0,0,.26),transparent),
     radial-gradient(1px 1px at 84% 62%,rgba(255,255,255,.1),transparent);}
+/* 破片は「見せる」ことが仕事なので、飛ばしきらずに画面内で粘らせる */
 #wall.broken .brick{
-  transition:transform 1.15s cubic-bezier(.22,.61,.36,1), opacity .95s ease-out;
+  transition:transform 1.9s cubic-bezier(.25,.62,.35,1), opacity 1.7s ease-in;
   transform:translate3d(var(--dx),var(--dy),var(--dz)) rotate3d(var(--rx),var(--ry),1,var(--rot));
   opacity:0;
 }
-/* ひび */
+/* ひび（p1＝走る / p2＝広がる の二段） */
 #crack{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;}
-#crack.on{opacity:1;}
-#crack path{fill:none;stroke:#111;stroke-width:2.4;stroke-linecap:round;
-  stroke-dasharray:1400;stroke-dashoffset:1400;filter:drop-shadow(0 1px 0 rgba(255,255,255,.22));}
-#crack.on path{animation:draw .42s ease-out forwards;}
+#crack.p1,#crack.p2{opacity:1;}
+/* viewBox を引き伸ばして使うので、線だけは太らせない */
+#crack path{fill:none;stroke:#08080a;stroke-width:3;stroke-linecap:round;vector-effect:non-scaling-stroke;
+  stroke-dasharray:1400;stroke-dashoffset:1400;filter:drop-shadow(0 1px 0 rgba(255,255,255,.3));}
+#crack.p1 path[data-p="1"]{animation:draw .22s ease-out forwards;}
+#crack.p2 path{animation:draw .3s ease-out forwards;}
 @keyframes draw{to{stroke-dashoffset:0;}}
-#dust{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+/* 壁が消えたあとにひびだけ宙に残らないよう、爆発と一緒に引く */
+#crack.gone{opacity:0;transition:opacity .3s ease;}
 
-.gate-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:clamp(16px,3vh,30px);padding:8vh 22px;text-align:center;
-  background:radial-gradient(56% 42% at 50% 44%,rgba(0,0,0,.84) 0%,rgba(0,0,0,.6) 58%,rgba(0,0,0,.4) 100%);
-  transition:opacity .35s ease, transform .5s ease;}
-#gate.go .gate-inner{opacity:0;transform:scale(1.06);pointer-events:none;}
+/* 手前をスローで横切る大破片 */
+#shard{position:absolute;left:50%;top:50%;z-index:7;width:36vmin;height:20vmin;
+  margin:-10vmin 0 0 -18vmin;opacity:0;pointer-events:none;
+  /* 壁から欠けた塊に見えるよう、目地の線ごと持っていく */
+  background-image:
+    linear-gradient(152deg,rgba(255,255,255,.16),transparent 34%),
+    repeating-linear-gradient(0deg,transparent 0 44%,rgba(0,0,0,.5) 44% 47%,transparent 47% 100%),
+    repeating-linear-gradient(90deg,transparent 0 29%,rgba(0,0,0,.45) 29% 31%,transparent 31% 100%),
+    linear-gradient(152deg,#75757f 0%,#33333b 38%,#121216 100%);
+  clip-path:polygon(2% 24%,26% 3%,61% 0%,89% 13%,100% 45%,83% 86%,50% 100%,17% 91%,5% 58%);}
+#shard.fly{animation:shardFly 1.05s cubic-bezier(.34,.06,.42,1) forwards;}
+@keyframes shardFly{
+  0%{opacity:0;transform:translate3d(-18vw,-10vh,0) rotate(-12deg) scale(.8);filter:blur(0);}
+  10%{opacity:1;}
+  100%{opacity:0;transform:translate3d(46vw,30vh,0) rotate(64deg) scale(4.2);filter:blur(10px);}
+}
+
+/* 周辺減光。文字が消えたあとも壁の陰影を保つため、独立した層にして残す */
+#vig{position:absolute;inset:0;z-index:4;pointer-events:none;
+  background:radial-gradient(56% 42% at 50% 44%,rgba(0,0,0,.84) 0%,rgba(0,0,0,.6) 58%,rgba(0,0,0,.4) 100%);}
+
+#dust{position:absolute;inset:0;z-index:5;width:100%;height:100%;pointer-events:none;}
+
+/* 煽りテロップ（クラスを外すと transition ごと消える＝ハードカットになる） */
+#cards{position:absolute;inset:0;z-index:6;display:flex;align-items:center;justify-content:center;
+  padding:0 26px;pointer-events:none;}
+.card{position:absolute;opacity:0;transform:scale(1.07);text-align:center;color:#fff;
+  font-family:var(--mincho);font-weight:600;line-height:1.75;
+  font-size:clamp(19px,5.4vw,42px);letter-spacing:.14em;text-indent:.14em;
+  text-shadow:0 2px 26px rgba(0,0,0,.95);}
+.card.on{opacity:1;transform:scale(1);transition:opacity .45s ease, transform 3.4s linear;}
+
+/* ビートカット用の黒 / 衝撃の白 */
+#blackout{position:absolute;inset:0;z-index:9;background:#000;opacity:0;pointer-events:none;}
+#blackout.on{opacity:1;}
+#blackout.fade{opacity:0;transition:opacity .55s ease;}
+/* 白は素早く抜く（長く残ると、肝心の破壊が見えなくなる） */
+#flash{position:absolute;inset:0;z-index:10;background:#fff;opacity:0;pointer-events:none;
+  transition:opacity .13s ease-out;}
+#flash.on{opacity:1;transition:opacity .045s linear;}
+
+/* タイトルスラム（予告編の締め） */
+#slam{position:absolute;inset:0;z-index:11;display:flex;align-items:center;justify-content:center;
+  flex-wrap:wrap;gap:0 .06em;padding:0 26px;opacity:0;pointer-events:none;}
+#slam.on{opacity:1;}
+#slam b{font-family:var(--mincho);font-weight:600;color:#fff;letter-spacing:.08em;
+  font-size:clamp(24px,7.6vw,66px);opacity:0;transform:scale(1.55);filter:blur(9px);
+  text-shadow:0 4px 40px rgba(0,0,0,.9);}
+#slam b.hit{animation:slamIn .32s cubic-bezier(.14,.9,.24,1) forwards;}
+@keyframes slamIn{to{opacity:1;transform:scale(1);filter:blur(0);}}
+
+/* フィルムグレイン */
+#grain{position:absolute;inset:-70px;z-index:12;pointer-events:none;opacity:.07;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain .55s steps(5) infinite;}
+@keyframes grain{
+  0%{transform:translate(0,0);}20%{transform:translate(-16px,8px);}40%{transform:translate(10px,-13px);}
+  60%{transform:translate(-8px,-10px);}80%{transform:translate(14px,7px);}100%{transform:translate(0,0);}
+}
+
+/* レターボックス（シネスコの黒帯）。本編に入るとき開く */
+.bar{position:fixed;left:0;right:0;height:0;z-index:115;background:#000;pointer-events:none;
+  transition:height .95s cubic-bezier(.22,.7,.2,1);}
+.bar.top{top:0;}
+.bar.bottom{bottom:0;}
+body.cinema .bar{height:8.5vh;}
+
+.gate-inner{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:clamp(16px,3vh,30px);padding:8vh 22px;text-align:center;opacity:0;
+  transition:opacity .9s ease, transform .5s ease;}
+.gate-inner.on{opacity:1;}
+#gate.go .gate-inner{opacity:0;transform:scale(1.08);pointer-events:none;transition:opacity .3s ease, transform .5s ease;}
 .gate-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.42em;color:#b9b5ab;text-indent:.42em;}
 .gate-title{font-family:var(--mincho);font-weight:600;color:#fff;line-height:1.35;
   font-size:clamp(30px,8.4vw,74px);letter-spacing:.1em;text-indent:.1em;
   text-shadow:0 2px 30px rgba(0,0,0,.9);}
-.gate-title .ch{display:inline-block;opacity:0;transform:translateY(.5em);
-  animation:rise .9s cubic-bezier(.2,.8,.2,1) forwards;}
+.gate-title .ch{display:inline-block;opacity:0;transform:translateY(.5em);}
+.gate-inner.on .gate-title .ch{animation:rise .9s cubic-bezier(.2,.8,.2,1) forwards;}
 @keyframes rise{to{opacity:1;transform:none;}}
-.gate-sub{max-width:30em;font-size:clamp(12.5px,3.4vw,15px);color:#cdc9c0;line-height:2.1;
-  opacity:0;animation:rise .9s ease 1.5s forwards;}
-.gate-actions{display:flex;flex-direction:column;align-items:center;gap:14px;
-  opacity:0;animation:rise .9s ease 2s forwards;}
+.gate-sub{max-width:30em;font-size:clamp(12.5px,3.4vw,15px);color:#cdc9c0;line-height:2.1;opacity:0;}
+.gate-inner.on .gate-sub{animation:rise .9s ease .7s forwards;}
+.gate-actions{display:flex;flex-direction:column;align-items:center;gap:14px;opacity:0;}
+.gate-inner.on .gate-actions{animation:rise .9s ease .95s forwards;}
 
 /* 壁を壊すボタン */
 #breakBtn{position:relative;cursor:pointer;border:0;padding:0;background:transparent;font:inherit;}
@@ -117,9 +213,21 @@ a{color:inherit;}
 #breakBtn:hover .cap,#breakBtn:focus-visible .cap{transform:translateY(-2px);box-shadow:0 14px 40px rgba(214,59,47,.6), inset 0 0 0 1px rgba(255,255,255,.34);}
 #breakBtn:active .cap{transform:translateY(1px) scale(.98);}
 #breakBtn[disabled]{pointer-events:none;}
-#skipBtn{background:none;border:0;cursor:pointer;font:inherit;color:#9e9a92;font-size:12px;letter-spacing:.14em;
-  padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.18);}
-#skipBtn:hover{color:#fff;}
+/* 音声トグル（既定は音なし。押した人にだけ鳴る） */
+#sndBtn{display:inline-flex;align-items:center;gap:9px;cursor:pointer;font:inherit;font-size:12px;
+  letter-spacing:.12em;color:#cfcbc3;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.22);
+  border-radius:999px;padding:9px 18px;transition:all .2s ease;}
+#sndBtn:hover,#sndBtn:focus-visible{background:rgba(255,255,255,.13);border-color:rgba(255,255,255,.5);color:#fff;}
+#sndBtn[aria-pressed="true"]{background:rgba(214,59,47,.2);border-color:rgba(214,59,47,.75);color:#ffd9d5;}
+#sndBtn .ico{font-size:14px;line-height:1;}
+
+/* 予告編をとばす（最初から最後まで出しっぱなし） */
+#skipBtn{position:absolute;right:calc(14px + env(safe-area-inset-right));z-index:14;
+  bottom:calc(10.5vh + env(safe-area-inset-bottom));
+  background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2);border-radius:999px;cursor:pointer;
+  font:inherit;color:#b6b2aa;font-size:11.5px;letter-spacing:.12em;padding:9px 16px;
+  -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);transition:all .2s ease;}
+#skipBtn:hover,#skipBtn:focus-visible{color:#fff;border-color:rgba(255,255,255,.55);background:rgba(0,0,0,.62);}
 
 /* =========================================================================
    2. 研究室（本編）
@@ -341,6 +449,9 @@ footer a{color:inherit;}
     transition-duration:.01ms!important;}
   .rv{opacity:1;transform:none;}
   .gate-title .ch,.gate-sub,.gate-actions{opacity:1;}
+  /* 予告編の演出は丸ごと出さない */
+  #grain,#shard,#cards,#slam{display:none;}
+  body.cinema .bar{height:0;}
 }
 @media print{
   #gate,#nav,#lamp,.room-bg,.room-grid,.mote,.scroll-hint,.filters,.case-more{display:none!important;}
@@ -361,26 +472,43 @@ footer a{color:inherit;}
 </head>
 <body class="locked">
 
-<!-- ===== 壁 ===== -->
+<!-- ===== 壁（予告編） ===== -->
 <div id="gate">
-  <div id="wall"></div>
-  <svg id="crack" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-    <path d="M50 50 L38 30 L41 14 L30 0"/><path d="M50 50 L66 34 L64 16 L74 2"/>
-    <path d="M50 50 L30 56 L12 50 L0 58"/><path d="M50 50 L72 60 L88 56 L100 64"/>
-    <path d="M50 50 L46 72 L54 88 L46 100"/><path d="M38 30 L22 26"/><path d="M66 34 L84 28"/>
-    <path d="M46 72 L28 80"/><path d="M54 88 L70 92"/>
-  </svg>
+  <div id="stage">
+    <div id="wall"></div>
+    <svg id="crack" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <path data-p="1" d="M50 50 L38 30 L41 14 L30 0"/><path data-p="1" d="M50 50 L66 34 L64 16 L74 2"/>
+      <path data-p="1" d="M50 50 L46 72 L54 88 L46 100"/>
+      <path d="M50 50 L30 56 L12 50 L0 58"/><path d="M50 50 L72 60 L88 56 L100 64"/>
+      <path d="M38 30 L22 26"/><path d="M66 34 L84 28"/>
+      <path d="M46 72 L28 80"/><path d="M54 88 L70 92"/>
+    </svg>
+  </div>
+  <div id="vig" aria-hidden="true"></div>
+  <div id="shard" aria-hidden="true"></div>
   <canvas id="dust" aria-hidden="true"></canvas>
+  <div id="cards" aria-hidden="true"></div>
+
   <div class="gate-inner">
     <p class="gate-eyebrow">PORTFOLIO</p>
     <h1 class="gate-title" id="gateTitle">当たり前を疑え。</h1>
-    <p class="gate-sub">「そういうものだから」の内側は、たいてい誰も確かめていない。<br>この壁の向こうは、私が実際に確かめてきた記録です。</p>
+    <p class="gate-sub" id="gateSub"></p>
     <div class="gate-actions">
       <button id="breakBtn" type="button"><span class="cap">壁を壊す</span></button>
-      <button id="skipBtn" type="button">演出をとばして見る →</button>
+      <button id="sndBtn" type="button" aria-pressed="false">
+        <span class="ico">🔇</span><span class="lbl">音を出して観る</span>
+      </button>
     </div>
   </div>
+
+  <div id="blackout" aria-hidden="true"></div>
+  <div id="flash" aria-hidden="true"></div>
+  <div id="slam" aria-hidden="true"></div>
+  <div id="grain" aria-hidden="true"></div>
+  <button id="skipBtn" type="button">予告編をとばす ▶︎</button>
 </div>
+<div class="bar top" aria-hidden="true"></div>
+<div class="bar bottom" aria-hidden="true"></div>
 
 <!-- ===== 天井灯 ===== -->
 <div id="lamp" aria-hidden="true"></div>
@@ -476,7 +604,25 @@ footer a{color:inherit;}
    ========================================================================================= */
 
 /* ---------------------------------------------------------------------------------------
-   [1] あなたのこと
+   [1] 予告編（オープニングの演出）
+   cards  … 壁が現れる前に、1枚ずつハードカットで出る煽りテロップ。増やしても減らしてもOK
+   title  … 壁の上に一文字ずつ立ち上がる、この予告編の主題
+   sub    … その下の小さな一文
+   slam   … 壁が砕けた直後に叩きつける締めの言葉（1語ずつ順番に出ます）
+   --------------------------------------------------------------------------------------- */
+var TRAILER = {
+  cards : [
+    "誰もが、そう言った。",
+    "「そういうものだから」。",
+    "だが、確かめた人は、いなかった。"
+  ],
+  title : "当たり前を疑え。",
+  sub   : "この壁の向こうは、私が実際に確かめてきた記録です。",
+  slam  : ["この先は、", "全部、", "確かめた。"]
+};
+
+/* ---------------------------------------------------------------------------------------
+   [2] あなたのこと
    〇〇 の部分を書き換えてください。空文字 "" にすると、その行は自動で消えます。
    --------------------------------------------------------------------------------------- */
 var PROFILE = {
@@ -508,7 +654,7 @@ var PROFILE = {
 };
 
 /* ---------------------------------------------------------------------------------------
-   [2] 検証記録 ── ③の「一枚で見せるページ」たち
+   [3] 検証記録 ── ③の「一枚で見せるページ」たち
    1件ぶんの型（コピーして下に足すだけ）:
    { myth:"〇〇は必要。", act:"〇日間、〇〇してみた。", period:"20XX.XX / X日間",
      result:"何が起きたか", finding:"だから何が言えるか", tags:["行動","検証"] }
@@ -542,7 +688,7 @@ var VERIFICATIONS = [
 ];
 
 /* ---------------------------------------------------------------------------------------
-   [3] CASE FILE ── ④のポートフォリオ。ここに足していけば、いくらでも増やせます。
+   [4] CASE FILE ── ④のポートフォリオ。ここに足していけば、いくらでも増やせます。
    1件ぶんの型（コピーして配列の先頭に足すと、新しい順に並びます）:
    {
      cat:"AD",                        // カテゴリ。フィルタのボタンは自動で作られます
@@ -633,29 +779,117 @@ function buildWall(){
       var x = c*bw + (r%2 ? -bw/2 : 0) + bw/2, y = r*bh + bh/2;
       var vx = x - cx, vy = y - cy;
       var d  = Math.sqrt(vx*vx + vy*vy) || 1;
-      var pw = 1.15 + Math.random()*1.1;
-      b.style.setProperty("--dx",  (vx/d * (240 + Math.random()*520) * pw).toFixed(0) + "px");
-      b.style.setProperty("--dy",  (vy/d * (240 + Math.random()*520) * pw - 60).toFixed(0) + "px");
-      b.style.setProperty("--dz",  (120 + Math.random()*460).toFixed(0) + "px");
+      // 飛距離は控えめに。遠くへ飛ばすほど一瞬で画面外に消え、瓦礫が見えなくなる
+      var pw = 1 + Math.random()*0.5;
+      b.style.setProperty("--dx",  (vx/d * (90 + Math.random()*220) * pw).toFixed(0) + "px");
+      b.style.setProperty("--dy",  (vy/d * (90 + Math.random()*220) * pw - 40).toFixed(0) + "px");
+      b.style.setProperty("--dz",  (50 + Math.random()*230).toFixed(0) + "px");
       b.style.setProperty("--rot", ((Math.random()*2-1) * 150).toFixed(0) + "deg");
       b.style.setProperty("--rx",  Math.random().toFixed(2));
       b.style.setProperty("--ry",  Math.random().toFixed(2));
-      b.style.transitionDelay = ((d/maxD) * 0.26 + Math.random()*0.06).toFixed(3) + "s";
+      // 中心から外へ順に崩れる。ただし遅らせすぎると崩れ始める前に画が切り替わる
+      b.style.transitionDelay = ((d/maxD) * 0.14 + Math.random()*0.04).toFixed(3) + "s";
       row.appendChild(b);
     }
     wallEl.appendChild(row);
   }
 }
 
-/* タイトルを一文字ずつ立ち上げる */
-(function typeTitle(){
-  var t = $("#gateTitle"), s = t.textContent; t.textContent = "";
+/* -------------------------------------------------- 予告編の下ごしらえ -------------------------------------------------- */
+function buildTrailer(){
+  // 主題を一文字ずつ立ち上げる
+  var t = $("#gateTitle"), s = TRAILER.title || "";
+  t.textContent = "";
   for (var i = 0; i < s.length; i++){
     var sp = el("span","ch",s[i]);
-    sp.style.animationDelay = (0.35 + i*0.11) + "s";
+    sp.style.animationDelay = (0.1 + i*0.1) + "s";
     t.appendChild(sp);
   }
-})();
+  $("#gateSub").textContent = TRAILER.sub || "";
+
+  // 煽りテロップ
+  var cbox = $("#cards");
+  (TRAILER.cards || []).forEach(function(txt){ cbox.appendChild(el("p","card",txt)); });
+
+  // 締めの言葉
+  var sbox = $("#slam");
+  (TRAILER.slam || []).forEach(function(w){ sbox.appendChild(el("b",null,w)); });
+}
+
+/* -------------------------------------------------- 音（既定は鳴らさない） -------------------------------------------------- */
+var AC = null, sndOn = false;
+function audioReady(){
+  if (!sndOn) return null;
+  if (!AC){
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    try { AC = new Ctx(); } catch(e){ return null; }
+  }
+  if (AC.state === "suspended") { try { AC.resume(); } catch(e){} }
+  return AC;
+}
+function noiseBuf(sec){
+  var n = Math.floor(AC.sampleRate * sec), b = AC.createBuffer(1, n, AC.sampleRate), d = b.getChannelData(0);
+  for (var i = 0; i < n; i++) d[i] = (Math.random()*2 - 1) * (1 - i/n);
+  return b;
+}
+/* kind: hit（衝撃） / riser（せり上がり） / boom（爆発＋低音のブラーム） */
+function sfx(kind, vol){
+  var ac = audioReady(); if (!ac) return;
+  var t = ac.currentTime, v = Math.max(0.001, (vol == null ? 1 : vol) * 0.5);
+
+  if (kind === "hit" || kind === "boom"){
+    var long = (kind === "boom");
+    var src = ac.createBufferSource(); src.buffer = noiseBuf(long ? 1.7 : 0.4);
+    var lp = ac.createBiquadFilter(); lp.type = "lowpass";
+    lp.frequency.setValueAtTime(long ? 1100 : 2000, t);
+    lp.frequency.exponentialRampToValueAtTime(long ? 90 : 200, t + (long ? 1.2 : 0.32));
+    var g = ac.createGain(); g.gain.setValueAtTime(v * (long ? 1 : 0.6), t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + (long ? 1.7 : 0.4));
+    src.connect(lp); lp.connect(g); g.connect(ac.destination);
+    src.start(t); src.stop(t + (long ? 1.7 : 0.4));
+
+    // 腹に来る低音
+    var o = ac.createOscillator(); o.type = "sine";
+    o.frequency.setValueAtTime(long ? 95 : 180, t);
+    o.frequency.exponentialRampToValueAtTime(long ? 28 : 45, t + (long ? 1.1 : 0.28));
+    var og = ac.createGain(); og.gain.setValueAtTime(v * (long ? 1.15 : 0.7), t);
+    og.gain.exponentialRampToValueAtTime(0.0001, t + (long ? 1.35 : 0.3));
+    o.connect(og); og.connect(ac.destination);
+    o.start(t); o.stop(t + (long ? 1.4 : 0.32));
+
+    // 予告編らしい金管の層（爆発のときだけ）
+    if (long){
+      [55, 55.7, 82.5].forEach(function(fr){
+        var so = ac.createOscillator(); so.type = "sawtooth"; so.frequency.value = fr;
+        var sl = ac.createBiquadFilter(); sl.type = "lowpass";
+        sl.frequency.setValueAtTime(340, t); sl.frequency.exponentialRampToValueAtTime(90, t + 1.4);
+        var sg = ac.createGain(); sg.gain.setValueAtTime(0.0001, t);
+        sg.gain.exponentialRampToValueAtTime(v * 0.34, t + 0.12);
+        sg.gain.exponentialRampToValueAtTime(0.0001, t + 1.5);
+        so.connect(sl); sl.connect(sg); sg.connect(ac.destination);
+        so.start(t); so.stop(t + 1.55);
+      });
+    }
+  }
+
+  if (kind === "riser"){
+    var rs = ac.createBufferSource(); rs.buffer = noiseBuf(0.75);
+    var bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.Q.value = 6;
+    bp.frequency.setValueAtTime(300, t); bp.frequency.exponentialRampToValueAtTime(4400, t + 0.62);
+    var rg = ac.createGain(); rg.gain.setValueAtTime(0.0001, t);
+    rg.gain.exponentialRampToValueAtTime(v * 0.5, t + 0.5);
+    rg.gain.exponentialRampToValueAtTime(0.0001, t + 0.72);
+    rs.connect(bp); bp.connect(rg); rg.connect(ac.destination);
+    rs.start(t); rs.stop(t + 0.75);
+  }
+}
+function stopAudio(){ if (AC){ try { AC.close(); } catch(e){} AC = null; } }
+
+/* -------------------------------------------------- 時間割 -------------------------------------------------- */
+var timers = [];
+function at(ms, fn){ timers.push(setTimeout(fn, ms)); }
+function clearTimeline(){ timers.forEach(clearTimeout); timers = []; }
 
 /* -------------------------------------------------- 粉じん -------------------------------------------------- */
 var dustCv = $("#dust"), dustCtx = dustCv.getContext("2d"), particles = [], dustRaf = 0;
@@ -665,13 +899,13 @@ function sizeDust(){
   dustCtx.setTransform(dpr,0,0,dpr,0,0);
 }
 function burstDust(){
-  var cx = window.innerWidth/2, cy = window.innerHeight/2;
-  var n = window.innerWidth < 640 ? 90 : 170;
+  var W = window.innerWidth, H = window.innerHeight, cx = W/2, cy = H/2;
+  var n = W < 640 ? 170 : 340;
   for (var i = 0; i < n; i++){
-    var a = Math.random()*Math.PI*2, sp = 2 + Math.random()*13;
-    particles.push({ x:cx+(Math.random()-.5)*160, y:cy+(Math.random()-.5)*160,
-      vx:Math.cos(a)*sp, vy:Math.sin(a)*sp - 2,
-      r:1 + Math.random()*4.5, life:1, decay:0.006 + Math.random()*0.012 });
+    var a = Math.random()*Math.PI*2, sp = 3 + Math.random()*22;
+    particles.push({ x:cx + (Math.random()-.5)*W*0.45, y:cy + (Math.random()-.5)*H*0.45,
+      vx:Math.cos(a)*sp, vy:Math.sin(a)*sp - 3,
+      r:1.5 + Math.random()*9, life:1, decay:0.004 + Math.random()*0.009 });
   }
   if (!dustRaf) dustRaf = requestAnimationFrame(stepDust);
 }
@@ -683,42 +917,130 @@ function stepDust(){
     if (p.life <= 0) continue;
     p.x += p.vx; p.y += p.vy; p.vy += 0.14; p.vx *= 0.985; p.vy *= 0.985;
     p.life -= p.decay; alive++;
-    dustCtx.fillStyle = "rgba(196,192,186," + Math.max(0,p.life*0.55).toFixed(3) + ")";
+    dustCtx.fillStyle = "rgba(208,203,194," + Math.max(0,p.life*0.6).toFixed(3) + ")";
     dustCtx.beginPath(); dustCtx.arc(p.x, p.y, p.r, 0, Math.PI*2); dustCtx.fill();
   }
   if (alive > 0){ dustRaf = requestAnimationFrame(stepDust); }
   else { particles = []; dustRaf = 0; dustCtx.clearRect(0,0,window.innerWidth,window.innerHeight); }
 }
 
-/* -------------------------------------------------- 入室 -------------------------------------------------- */
-var gate = $("#gate"), entered = false;
+/* -------------------------------------------------- 予告編の進行 -------------------------------------------------- */
+var gate = $("#gate"), stage = $("#stage"), crack = $("#crack"), shard = $("#shard"),
+    blackoutEl = $("#blackout"), flashEl = $("#flash"), slamEl = $("#slam"),
+    labEl = $("#lab"), entered = false;
+
+function zoom(z, quick){                    // カメラを寄せる
+  if (quick) stage.classList.add("q"); else stage.classList.remove("q");
+  stage.style.setProperty("--z", z);
+}
+function flash(ms){                         // 白の衝撃
+  flashEl.classList.add("on");
+  at(ms, function(){ flashEl.classList.remove("on"); });
+}
+function cut(ms){                           // ビートカット（黒を一瞬挟む）
+  blackoutEl.classList.add("on");
+  at(ms, function(){ blackoutEl.classList.remove("on"); });
+}
+
+/* パート1 ── 煽りテロップ → 壁の登場 */
+function playIntro(){
+  document.body.classList.add("cinema");
+  var t = 300;
+  Array.prototype.forEach.call(document.querySelectorAll("#cards .card"), function(c){
+    at(t,        function(){ c.classList.add("on"); });
+    at(t + 1000, function(){ c.classList.remove("on"); });  // transition ごと外れる＝ハードカット
+    t += 1250;
+  });
+  at(t,       function(){ wallEl.classList.add("show"); zoom(1.05); });
+  at(t + 560, function(){ $(".gate-inner").classList.add("on"); });
+}
+
+/* パート2 ── 破壊 → 締めの言葉 → 本編 */
+function playBreak(){
+  $("#breakBtn").disabled = true;
+  gate.classList.add("go");
+  flash(70); sfx("hit", 1);
+
+  at(90,  function(){ crack.classList.add("p1"); gate.classList.add("shake-s"); zoom(1.1); });
+  at(380, function(){ cut(90); sfx("hit", .65); });
+  at(480, function(){ crack.classList.add("p2"); zoom(1.17, true); });
+  at(700, function(){ cut(70); });
+  at(790, function(){                                   // スローモー：大破片が手前を横切る
+    gate.classList.remove("shake-s");
+    wallEl.classList.add("tremble");
+    shard.classList.add("fly");
+    sfx("riser", .9);
+  });
+  // 震えを止めて一拍おいてから崩す（アニメーションを外した状態を確定させるため）
+  at(1350, function(){ wallEl.classList.remove("tremble"); });
+  at(1410, function(){                                  // 轟音
+    wallEl.classList.add("broken");
+    crack.classList.add("gone");
+    burstDust(); flash(120);
+    gate.classList.add("shake-l");
+    zoom(1.14, true);
+    sfx("boom", 1);
+  });
+  // 崩れる画をたっぷり見せてから白へ抜く
+  at(2750, function(){ flashEl.classList.add("on"); }); // ホワイトアウト
+  at(2910, function(){                                  // 白 → 黒へ切り替えて締めの言葉
+    flashEl.classList.remove("on");
+    blackoutEl.classList.add("on");
+    slamEl.classList.add("on");
+  });
+  var words = slamEl.querySelectorAll("b");
+  Array.prototype.forEach.call(words, function(w, i){
+    at(2980 + i*230, function(){ w.classList.add("hit"); sfx("hit", .4); });
+  });
+
+  var end = 2980 + words.length * 230 + 420;
+  at(end, function(){                                   // 本編へディゾルブ
+    slamEl.classList.remove("on");
+    gate.style.opacity = "0";
+    labEl.classList.add("on");
+    $("#lamp").classList.add("flick");
+  });
+  at(end + 400, function(){ document.body.classList.remove("cinema"); });  // 黒帯が開く
+  at(end + 760, function(){ gate.style.display = "none"; });
+}
+
+/* 入室（instant=true で予告編をとばす） */
 function enterLab(instant){
   if (entered) return; entered = true;
+  clearTimeline();
   try { sessionStorage.setItem("seenGate","1"); } catch(e){}
   document.body.classList.remove("locked");
-  var lab = $("#lab");
-  lab.removeAttribute("aria-hidden");
+  labEl.removeAttribute("aria-hidden");
 
   if (instant || reduceMotion){
+    stopAudio();
+    document.body.classList.remove("cinema");
+    flashEl.classList.remove("on"); blackoutEl.classList.remove("on"); slamEl.classList.remove("on");
     gate.style.display = "none";
-    lab.classList.add("on");
+    labEl.classList.add("on");
     revealAll();
     return;
   }
-  $("#breakBtn").disabled = true;
-  $("#crack").classList.add("on");
-  gate.classList.add("shake");
-  setTimeout(function(){
-    gate.classList.add("go");
-    wallEl.classList.add("broken");
-    burstDust();
-    $("#lamp").classList.add("flick");
-  }, 300);
-  setTimeout(function(){ lab.classList.add("on"); }, 620);
-  setTimeout(function(){ gate.style.display = "none"; }, 2100);
+  playBreak();
 }
 $("#breakBtn").addEventListener("click", function(){ enterLab(false); });
 $("#skipBtn").addEventListener("click", function(){ enterLab(true); });
+
+/* 音のオン・オフ（既定はオフ。押した人にだけ鳴る） */
+var sndBtn = $("#sndBtn");
+try { sndOn = sessionStorage.getItem("snd") === "1"; } catch(e){}
+function paintSnd(){
+  sndBtn.setAttribute("aria-pressed", sndOn ? "true" : "false");
+  $(".ico", sndBtn).textContent = sndOn ? "🔊" : "🔇";
+  $(".lbl", sndBtn).textContent = sndOn ? "音あり（押すと消音）" : "音を出して観る";
+}
+paintSnd();
+sndBtn.addEventListener("click", function(){
+  sndOn = !sndOn;
+  try { sessionStorage.setItem("snd", sndOn ? "1" : "0"); } catch(e){}
+  paintSnd();
+  if (sndOn) sfx("hit", .3);      // 鳴ることをその場で確かめてもらう
+});
 
 /* -------------------------------------------------- 描画 -------------------------------------------------- */
 function renderProfile(){
@@ -955,17 +1277,19 @@ function makeMotes(){
 /* -------------------------------------------------- 起動 -------------------------------------------------- */
 sizeDust();
 buildWall();
+buildTrailer();
 renderProfile();
 renderVerifications();
 renderCases();
 makeMotes();
 watchReveal();
 
-// 一度入室していれば / 直リンクで来たときは、壁を出さずに本編から
+// 一度観ていれば / 直リンクで来たときは、予告編を出さずに本編から
 var skip = false;
 try { skip = sessionStorage.getItem("seenGate") === "1"; } catch(e){}
 if (location.hash && location.hash.length > 1) skip = true;
-if (skip) enterLab(true);
+if (skip || reduceMotion) enterLab(true);
+else playIntro();
 
 var rz;
 window.addEventListener("resize", function(){
