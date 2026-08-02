@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<title>当たり前を疑え。 ─ PORTFOLIO</title>
+<meta name="description" content="「当たり前」を疑い、実際に検証してきた記録と、広告・コンペ・ワークショップのCASE FILE。">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0d0d10">
+<meta name="format-detection" content="telephone=no">
+
+<!-- ★試作中は検索避け。公開して検索にも載せたくなったら、次の1行を消してください -->
+<meta name="robots" content="noindex, nofollow">
+
+<!-- 画像や動画を後から足せるように、外部の https 画像と YouTube/Vimeo の埋め込みだけ許可しています -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; frame-src https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; connect-src 'none'; base-uri 'self'; form-action 'none'; object-src 'none';">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="当たり前を疑え。 ─ PORTFOLIO">
+<meta property="og:description" content="「当たり前」を疑い、実際に検証してきた記録と、広告・コンペ・ワークショップのCASE FILE。">
+<meta property="og:locale" content="ja_JP">
+
+<link rel="icon" href="/favicon.ico" sizes="any">
+
+<style>
+/* =========================================================================
+   0. 土台
+   ========================================================================= */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0d0d10;          /* 研究室の闇 */
+  --bg2:#15151b;
+  --paper:#f3f0e7;       /* 資料の紙 */
+  --paper-d:#e3dfd2;
+  --ink:#16161a;         /* 紙に落ちる墨 */
+  --fg:#eceae4;          /* 闇の上の文字 */
+  --sub:#8f8c85;         /* 補助文字 */
+  --red:#d63b2f;         /* 検証済スタンプの朱 */
+  --line:rgba(255,255,255,.10);
+  --gothic:"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic Medium","Yu Gothic","Meiryo",sans-serif;
+  --mincho:"Hiragino Mincho ProN","Yu Mincho","YuMincho","Noto Serif JP",serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Roboto Mono",monospace;
+}
+html{scroll-behavior:smooth;}
+body{
+  font-family:var(--gothic);background:var(--bg);color:var(--fg);
+  -webkit-font-smoothing:antialiased;line-height:1.8;overflow-x:hidden;
+}
+body.locked{overflow:hidden;height:100%;}
+img{max-width:100%;display:block;}
+a{color:inherit;}
+::selection{background:var(--red);color:#fff;}
+
+/* =========================================================================
+   1. 壁（オープニング）
+   ========================================================================= */
+#gate{position:fixed;inset:0;z-index:100;overflow:hidden;background:#101013;}
+#gate.shake{animation:shake .5s cubic-bezier(.36,.07,.19,.97) both;}
+@keyframes shake{
+  10%,90%{transform:translate3d(-2px,1px,0);}
+  20%,80%{transform:translate3d(5px,-3px,0);}
+  30%,50%,70%{transform:translate3d(-9px,4px,0);}
+  40%,60%{transform:translate3d(9px,-4px,0);}
+}
+#wall{position:absolute;inset:-6%;display:flex;flex-direction:column;justify-content:center;
+  perspective:900px;perspective-origin:50% 45%;}
+.brow{display:flex;flex:none;}
+.brick{flex:none;position:relative;background:#5f5f66;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.34), inset 0 2px 0 rgba(255,255,255,.07), inset 0 -3px 6px rgba(0,0,0,.28);
+  will-change:transform,opacity;}
+.brick::after{content:"";position:absolute;inset:0;opacity:.5;
+  background-image:radial-gradient(1px 1px at 22% 34%,rgba(255,255,255,.16),transparent),
+    radial-gradient(1px 1px at 68% 18%,rgba(0,0,0,.3),transparent),
+    radial-gradient(1.5px 1.5px at 44% 74%,rgba(0,0,0,.26),transparent),
+    radial-gradient(1px 1px at 84% 62%,rgba(255,255,255,.1),transparent);}
+#wall.broken .brick{
+  transition:transform 1.15s cubic-bezier(.22,.61,.36,1), opacity .95s ease-out;
+  transform:translate3d(var(--dx),var(--dy),var(--dz)) rotate3d(var(--rx),var(--ry),1,var(--rot));
+  opacity:0;
+}
+/* ひび */
+#crack{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;opacity:0;}
+#crack.on{opacity:1;}
+#crack path{fill:none;stroke:#111;stroke-width:2.4;stroke-linecap:round;
+  stroke-dasharray:1400;stroke-dashoffset:1400;filter:drop-shadow(0 1px 0 rgba(255,255,255,.22));}
+#crack.on path{animation:draw .42s ease-out forwards;}
+@keyframes draw{to{stroke-dashoffset:0;}}
+#dust{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+
+.gate-inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:clamp(16px,3vh,30px);padding:8vh 22px;text-align:center;
+  background:radial-gradient(56% 42% at 50% 44%,rgba(0,0,0,.84) 0%,rgba(0,0,0,.6) 58%,rgba(0,0,0,.4) 100%);
+  transition:opacity .35s ease, transform .5s ease;}
+#gate.go .gate-inner{opacity:0;transform:scale(1.06);pointer-events:none;}
+.gate-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.42em;color:#b9b5ab;text-indent:.42em;}
+.gate-title{font-family:var(--mincho);font-weight:600;color:#fff;line-height:1.35;
+  font-size:clamp(30px,8.4vw,74px);letter-spacing:.1em;text-indent:.1em;
+  text-shadow:0 2px 30px rgba(0,0,0,.9);}
+.gate-title .ch{display:inline-block;opacity:0;transform:translateY(.5em);
+  animation:rise .9s cubic-bezier(.2,.8,.2,1) forwards;}
+@keyframes rise{to{opacity:1;transform:none;}}
+.gate-sub{max-width:30em;font-size:clamp(12.5px,3.4vw,15px);color:#cdc9c0;line-height:2.1;
+  opacity:0;animation:rise .9s ease 1.5s forwards;}
+.gate-actions{display:flex;flex-direction:column;align-items:center;gap:14px;
+  opacity:0;animation:rise .9s ease 2s forwards;}
+
+/* 壁を壊すボタン */
+#breakBtn{position:relative;cursor:pointer;border:0;padding:0;background:transparent;font:inherit;}
+#breakBtn .cap{display:block;padding:17px 42px;background:var(--red);color:#fff;
+  font-size:clamp(15px,4vw,18px);font-weight:800;letter-spacing:.22em;text-indent:.22em;
+  border-radius:2px;box-shadow:0 10px 34px rgba(214,59,47,.42), inset 0 0 0 1px rgba(255,255,255,.22);
+  transition:transform .16s ease, box-shadow .2s ease;}
+#breakBtn::before{content:"";position:absolute;inset:-9px;border:1px solid rgba(214,59,47,.55);border-radius:4px;
+  animation:pulse 2.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.75;}50%{transform:scale(1.045);opacity:.28;}}
+#breakBtn:hover .cap,#breakBtn:focus-visible .cap{transform:translateY(-2px);box-shadow:0 14px 40px rgba(214,59,47,.6), inset 0 0 0 1px rgba(255,255,255,.34);}
+#breakBtn:active .cap{transform:translateY(1px) scale(.98);}
+#breakBtn[disabled]{pointer-events:none;}
+#skipBtn{background:none;border:0;cursor:pointer;font:inherit;color:#9e9a92;font-size:12px;letter-spacing:.14em;
+  padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.18);}
+#skipBtn:hover{color:#fff;}
+
+/* =========================================================================
+   2. 研究室（本編）
+   ========================================================================= */
+#lab{opacity:0;transform:scale(1.035);filter:blur(7px);pointer-events:none;
+  transition:opacity 1.1s ease, transform 1.3s cubic-bezier(.2,.8,.2,1), filter 1.1s ease;}
+#lab.on{opacity:1;transform:none;filter:none;pointer-events:auto;}
+/* 天井灯がつく瞬間 */
+#lamp{position:fixed;inset:0;z-index:90;pointer-events:none;opacity:0;
+  background:radial-gradient(45% 38% at 50% 8%,rgba(255,244,214,.9),rgba(255,240,200,.16) 45%,transparent 70%);}
+#lamp.flick{animation:flick 1.5s ease-out forwards;}
+@keyframes flick{
+  0%{opacity:0;}6%{opacity:.95;}11%{opacity:.05;}17%{opacity:.85;}22%{opacity:.1;}
+  30%{opacity:.75;}55%{opacity:.32;}100%{opacity:0;}
+}
+
+/* 部屋の空気：方眼 + 机の灯り + 舞う埃 */
+.room-bg{position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(80% 55% at 12% -6%,rgba(255,226,170,.10),transparent 60%),
+    radial-gradient(70% 60% at 92% 108%,rgba(120,150,255,.07),transparent 60%),
+    linear-gradient(180deg,#0d0d10,#131318 60%,#0b0b0e);}
+.room-grid{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;
+  background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+  background-size:44px 44px;
+  -webkit-mask-image:radial-gradient(circle at 50% 30%,#000,transparent 78%);
+  mask-image:radial-gradient(circle at 50% 30%,#000,transparent 78%);}
+.mote{position:fixed;z-index:-1;width:3px;height:3px;border-radius:50%;background:rgba(255,236,200,.5);
+  pointer-events:none;filter:blur(.4px);animation:float linear infinite;}
+@keyframes float{
+  0%{transform:translate3d(0,10vh,0);opacity:0;}
+  10%{opacity:.7;}90%{opacity:.5;}
+  100%{transform:translate3d(18px,-96vh,0);opacity:0;}
+}
+
+/* ナビ */
+#nav{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:6px;
+  padding:10px max(16px,4vw);backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px);
+  background:rgba(10,10,13,.72);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none;}
+#nav::-webkit-scrollbar{display:none;}
+#nav .brand{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:#fff;margin-right:auto;
+  white-space:nowrap;padding-right:14px;}
+#nav .brand b{color:var(--red);}
+#nav a{font-size:12px;color:var(--sub);text-decoration:none;white-space:nowrap;padding:7px 10px;border-radius:3px;
+  transition:color .2s,background .2s;}
+#nav a:hover,#nav a:focus-visible{color:#fff;background:rgba(255,255,255,.07);}
+@media(max-width:430px){
+  #nav{padding-left:12px;padding-right:12px;}
+  #nav .brand{font-size:10px;letter-spacing:.1em;padding-right:6px;}
+  #nav a{font-size:11px;padding:7px 6px;}
+}
+
+.wrap{width:min(1080px,100%);margin:0 auto;padding:0 max(18px,4.4vw);}
+
+/* 見出しの型 ── 左右の余白は .wrap のものを消さないよう、上下だけを指定する */
+.sec{padding-top:clamp(64px,11vh,120px);padding-bottom:clamp(64px,11vh,120px);}
+.sec-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:clamp(26px,5vw,46px);
+  padding-bottom:14px;border-bottom:1px solid var(--line);}
+.sec-no{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--red);flex:none;}
+.sec-ttl{font-size:clamp(20px,5.2vw,30px);font-weight:800;letter-spacing:.06em;min-width:0;}
+.sec-en{font-family:var(--mono);font-size:11px;letter-spacing:.26em;color:var(--sub);margin-left:auto;}
+@media(max-width:680px){ .sec-en{margin-left:0;flex:0 0 100%;} }
+
+/* 出現アニメ */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .8s ease, transform .8s cubic-bezier(.2,.8,.2,1);}
+.rv.in{opacity:1;transform:none;}
+
+/* --- 入室 --- */
+#hero{min-height:88vh;display:flex;flex-direction:column;justify-content:center;position:relative;}
+.door{font-family:var(--mono);font-size:11px;letter-spacing:.34em;color:var(--sub);margin-bottom:22px;}
+.hero-name{font-size:clamp(34px,10vw,86px);font-weight:900;letter-spacing:.02em;line-height:1.12;}
+.hero-name .en{display:block;font-family:var(--mono);font-size:clamp(11px,2.6vw,14px);font-weight:400;
+  letter-spacing:.34em;color:var(--sub);margin-bottom:12px;}
+.hero-role{margin-top:20px;font-family:var(--mincho);font-size:clamp(17px,4.6vw,30px);letter-spacing:.08em;
+  color:#fff;border-left:3px solid var(--red);padding-left:16px;}
+.hero-lead{margin-top:26px;max-width:34em;font-size:clamp(13px,3.4vw,15px);color:#c6c2ba;line-height:2.15;}
+.scroll-hint{position:absolute;left:max(18px,4.4vw);bottom:26px;font-family:var(--mono);font-size:10px;
+  letter-spacing:.3em;color:var(--sub);display:flex;align-items:center;gap:10px;}
+.scroll-hint i{display:block;width:36px;height:1px;background:var(--sub);animation:slide 2s ease-in-out infinite;}
+@keyframes slide{0%,100%{transform:scaleX(.3);transform-origin:left;}50%{transform:scaleX(1);transform-origin:left;}}
+
+/* --- 人物 --- */
+.about{display:grid;grid-template-columns:1fr;gap:clamp(24px,4vw,40px);}
+@media(min-width:820px){.about{grid-template-columns:1.25fr .85fr;}}
+.about p{font-size:clamp(13px,3.3vw,15px);color:#c6c2ba;line-height:2.2;margin-bottom:1.3em;}
+.about p b{color:#fff;font-weight:700;border-bottom:1px solid rgba(214,59,47,.6);}
+.spec{background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:4px;padding:6px 18px 14px;}
+.spec dl{display:flex;flex-wrap:wrap;padding:12px 0;border-bottom:1px dashed rgba(255,255,255,.12);}
+.spec dl:last-child{border-bottom:0;}
+.spec dt{flex:0 0 6.5em;font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;color:var(--sub);padding-top:3px;}
+.spec dd{flex:1;min-width:9em;font-size:13.5px;color:#e7e4de;}
+.counts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:20px;}
+.count{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:4px;padding:14px 8px;text-align:center;}
+.count b{display:block;font-family:var(--mono);font-size:clamp(22px,6vw,32px);color:var(--red);line-height:1.2;}
+.count span{font-size:10px;letter-spacing:.16em;color:var(--sub);}
+
+/* --- 検証記録（一枚一枚） --- */
+.vf{position:relative;background:var(--paper);color:var(--ink);border-radius:3px;margin-bottom:clamp(22px,4vw,34px);
+  padding:clamp(24px,5.4vw,48px);box-shadow:0 22px 60px rgba(0,0,0,.55);overflow:hidden;}
+.vf::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:linear-gradient(rgba(0,0,0,.05) 1px,transparent 1px);background-size:100% 30px;}
+.vf::after{content:"";position:absolute;right:-58px;top:-58px;width:150px;height:150px;
+  background:var(--paper-d);transform:rotate(45deg);box-shadow:-3px 3px 8px rgba(0,0,0,.14);}
+.vf-no{position:relative;font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--red);}
+.vf-myth{position:relative;margin-top:12px;font-family:var(--mincho);font-weight:600;
+  font-size:clamp(21px,6vw,42px);line-height:1.45;letter-spacing:.03em;}
+.vf-myth s{text-decoration:none;background-image:linear-gradient(var(--red),var(--red));
+  background-repeat:no-repeat;background-position:0 62%;background-size:0 3px;
+  transition:background-size .7s ease .25s;}
+.vf.in .vf-myth s{background-size:100% 3px;}
+.vf-act{position:relative;margin-top:14px;display:inline-block;font-size:clamp(14px,4vw,20px);font-weight:800;
+  letter-spacing:.04em;}
+.vf-act::before{content:"↓ ";color:var(--red);}
+.vf-grid{position:relative;margin-top:26px;display:grid;grid-template-columns:1fr;gap:20px;}
+@media(min-width:760px){.vf-grid{grid-template-columns:1fr 1fr;gap:30px;}}
+.vf-blk h4{font-family:var(--mono);font-size:10px;letter-spacing:.26em;color:#8a857b;margin-bottom:7px;
+  padding-bottom:5px;border-bottom:1px solid rgba(0,0,0,.16);}
+.vf-blk p{font-size:13.5px;line-height:2.05;color:#33322e;}
+.vf-meta{position:relative;margin-top:24px;padding-top:14px;border-top:1px solid rgba(0,0,0,.14);
+  display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;font-family:var(--mono);font-size:10.5px;
+  letter-spacing:.1em;color:#8a857b;}
+.vf-tag{background:rgba(0,0,0,.07);border-radius:2px;padding:3px 9px;color:#55524b;letter-spacing:.06em;}
+.stamp{position:absolute;right:clamp(14px,4vw,34px);bottom:clamp(14px,4vw,30px);width:clamp(70px,17vw,104px);
+  height:clamp(70px,17vw,104px);border:3px double var(--red);border-radius:50%;color:var(--red);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  font-weight:900;letter-spacing:.1em;opacity:.82;transform:rotate(-13deg) scale(.6);
+  transition:transform .5s cubic-bezier(.2,1.5,.4,1) .5s, opacity .4s ease .5s;}
+.vf .stamp{opacity:0;}
+.vf.in .stamp{opacity:.82;transform:rotate(-13deg) scale(1);}
+.stamp b{font-size:clamp(13px,3.4vw,17px);}
+.stamp span{font-family:var(--mono);font-size:8px;letter-spacing:.14em;}
+
+/* --- CASE FILE --- */
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:26px;}
+.filters button{cursor:pointer;font:inherit;font-size:11.5px;letter-spacing:.14em;color:var(--sub);
+  background:transparent;border:1px solid var(--line);border-radius:2px;padding:8px 15px;
+  transition:all .2s ease;}
+.filters button:hover{color:#fff;border-color:rgba(255,255,255,.34);}
+.filters button[aria-pressed="true"]{background:var(--red);border-color:var(--red);color:#fff;font-weight:700;}
+.cases{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:clamp(14px,2.4vw,22px);}
+.case{position:relative;text-align:left;cursor:pointer;font:inherit;color:inherit;padding:0;
+  background:rgba(255,255,255,.035);border:1px solid var(--line);border-radius:4px;overflow:hidden;
+  transition:transform .3s cubic-bezier(.2,.8,.2,1), border-color .3s, box-shadow .3s;}
+.case:hover,.case:focus-visible{transform:translateY(-5px);border-color:rgba(214,59,47,.6);
+  box-shadow:0 18px 40px rgba(0,0,0,.5);}
+.case-thumb{position:relative;aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(140deg,#22222b,#101015);overflow:hidden;}
+.case-thumb img{width:100%;height:100%;object-fit:cover;}
+.case-thumb .emo{font-size:clamp(38px,9vw,54px);filter:drop-shadow(0 6px 16px rgba(0,0,0,.5));}
+.case-thumb::after{content:"";position:absolute;inset:0;
+  background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.03) 0 2px,transparent 2px 7px);}
+.case-cat{position:absolute;left:0;top:0;z-index:2;font-family:var(--mono);font-size:9.5px;letter-spacing:.2em;
+  background:var(--red);color:#fff;padding:5px 10px;}
+.case-body{padding:15px 16px 18px;}
+.case-year{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--sub);}
+.case-ttl{margin-top:7px;font-size:15px;font-weight:800;line-height:1.6;}
+.case-sum{margin-top:8px;font-size:12.5px;color:#a9a59d;line-height:1.85;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.case-more{margin-top:12px;font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--red);}
+.case[hidden]{display:none;}
+.cases-empty{color:var(--sub);font-size:13px;padding:30px 0;}
+.add-note{margin-top:26px;font-size:11.5px;color:var(--sub);font-family:var(--mono);letter-spacing:.06em;}
+
+/* --- モーダル --- */
+#modal{position:fixed;inset:0;z-index:120;display:none;}
+#modal.open{display:block;}
+#modal .veil{position:absolute;inset:0;background:rgba(4,4,6,.86);backdrop-filter:blur(5px);
+  -webkit-backdrop-filter:blur(5px);animation:fade .3s ease;}
+@keyframes fade{from{opacity:0;}to{opacity:1;}}
+#modal .sheet{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:clamp(14px,5vh,54px) max(14px,4vw);}
+#modal .card{position:relative;width:min(760px,100%);margin:0 auto;background:var(--paper);color:var(--ink);
+  border-radius:3px;box-shadow:0 30px 80px rgba(0,0,0,.7);animation:pop .35s cubic-bezier(.2,.9,.3,1);overflow:hidden;}
+@keyframes pop{from{opacity:0;transform:translateY(22px) scale(.985);}to{opacity:1;transform:none;}}
+#modal .close{position:sticky;top:0;float:right;z-index:3;margin:8px 8px 0 0;cursor:pointer;font:inherit;
+  width:40px;height:40px;border:0;border-radius:50%;background:rgba(0,0,0,.08);color:var(--ink);font-size:19px;}
+#modal .close:hover{background:var(--red);color:#fff;}
+.m-in{padding:clamp(24px,5vw,46px);}
+.m-cat{display:inline-block;font-family:var(--mono);font-size:10px;letter-spacing:.2em;background:var(--red);
+  color:#fff;padding:4px 10px;}
+.m-ttl{margin-top:16px;font-size:clamp(20px,5.4vw,32px);font-weight:900;line-height:1.5;letter-spacing:.02em;}
+.m-year{margin-top:8px;font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:#8a857b;}
+.m-hero{margin:22px 0;background:#e6e2d6;border-radius:2px;overflow:hidden;}
+.m-hero img{width:100%;}
+.m-embed{position:relative;margin:22px 0;padding-top:56.25%;background:#000;border-radius:2px;overflow:hidden;}
+.m-embed iframe{position:absolute;inset:0;width:100%;height:100%;border:0;}
+.m-body p{margin-top:1.2em;font-size:13.5px;line-height:2.15;color:#33322e;}
+.m-facts{margin-top:26px;border-top:1px solid rgba(0,0,0,.16);}
+.m-facts dl{display:flex;flex-wrap:wrap;gap:4px 12px;padding:11px 0;border-bottom:1px dashed rgba(0,0,0,.16);}
+.m-facts dt{flex:0 0 6em;font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:#8a857b;padding-top:3px;}
+.m-facts dd{flex:1;min-width:10em;font-size:13px;}
+.m-links{margin-top:26px;display:flex;flex-wrap:wrap;gap:10px;}
+.m-links a{display:inline-flex;align-items:center;gap:8px;background:var(--ink);color:var(--paper);
+  text-decoration:none;font-size:12.5px;font-weight:700;letter-spacing:.08em;padding:12px 20px;border-radius:2px;
+  transition:background .2s,transform .2s;}
+.m-links a:hover{background:var(--red);transform:translateY(-2px);}
+.m-links .off{background:transparent;color:#9c978d;border:1px dashed rgba(0,0,0,.28);cursor:default;}
+.m-links .off:hover{background:transparent;transform:none;}
+
+/* --- 連絡 --- */
+#contact .box{border:1px solid var(--line);border-radius:4px;padding:clamp(28px,6vw,52px);text-align:center;
+  background:rgba(255,255,255,.03);}
+#contact .q{font-family:var(--mincho);font-size:clamp(18px,5vw,30px);letter-spacing:.06em;line-height:1.6;}
+#contact .a{margin-top:14px;font-size:13px;color:#b8b4ac;line-height:2;}
+.links{margin-top:26px;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+.links a{text-decoration:none;font-size:12.5px;letter-spacing:.1em;padding:12px 22px;border-radius:2px;
+  background:var(--red);color:#fff;font-weight:700;transition:transform .2s,box-shadow .2s;}
+.links a.ghost{background:transparent;border:1px solid var(--line);color:var(--fg);font-weight:400;}
+.links a:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.45);}
+footer{padding:40px 0 60px;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:#55524d;}
+footer a{color:inherit;}
+
+/* =========================================================================
+   3. 配慮（動きを減らす / 印刷）
+   ========================================================================= */
+@media (prefers-reduced-motion: reduce){
+  html{scroll-behavior:auto;}
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;
+    transition-duration:.01ms!important;}
+  .rv{opacity:1;transform:none;}
+  .gate-title .ch,.gate-sub,.gate-actions{opacity:1;}
+}
+@media print{
+  #gate,#nav,#lamp,.room-bg,.room-grid,.mote,.scroll-hint,.filters,.case-more{display:none!important;}
+  body{background:#fff;color:#000;}
+  #lab{opacity:1!important;filter:none!important;transform:none!important;}
+  .rv{opacity:1!important;transform:none!important;}
+  .sec{padding:18px 0;break-inside:avoid;}
+  .vf,.case{box-shadow:none;border:1px solid #ccc;break-inside:avoid;}
+  .hero-lead,.about p,.case-sum{color:#222;}
+}
+</style>
+<noscript><style>
+  #gate{display:none;}
+  #lab{opacity:1;filter:none;transform:none;pointer-events:auto;}
+  .rv{opacity:1;transform:none;}
+  .nojs{display:block!important;}
+</style></noscript>
+</head>
+<body class="locked">
+
+<!-- ===== 壁 ===== -->
+<div id="gate">
+  <div id="wall"></div>
+  <svg id="crack" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M50 50 L38 30 L41 14 L30 0"/><path d="M50 50 L66 34 L64 16 L74 2"/>
+    <path d="M50 50 L30 56 L12 50 L0 58"/><path d="M50 50 L72 60 L88 56 L100 64"/>
+    <path d="M50 50 L46 72 L54 88 L46 100"/><path d="M38 30 L22 26"/><path d="M66 34 L84 28"/>
+    <path d="M46 72 L28 80"/><path d="M54 88 L70 92"/>
+  </svg>
+  <canvas id="dust" aria-hidden="true"></canvas>
+  <div class="gate-inner">
+    <p class="gate-eyebrow">PORTFOLIO</p>
+    <h1 class="gate-title" id="gateTitle">当たり前を疑え。</h1>
+    <p class="gate-sub">「そういうものだから」の内側は、たいてい誰も確かめていない。<br>この壁の向こうは、私が実際に確かめてきた記録です。</p>
+    <div class="gate-actions">
+      <button id="breakBtn" type="button"><span class="cap">壁を壊す</span></button>
+      <button id="skipBtn" type="button">演出をとばして見る →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 天井灯 ===== -->
+<div id="lamp" aria-hidden="true"></div>
+
+<!-- ===== 研究室 ===== -->
+<div id="lab">
+  <div class="room-bg" aria-hidden="true"></div>
+  <div class="room-grid" aria-hidden="true"></div>
+
+  <nav id="nav">
+    <span class="brand">当たり前を疑え<b>。</b></span>
+    <a href="#about">人物</a>
+    <a href="#verify">検証記録</a>
+    <a href="#cases">CASE FILE</a>
+    <a href="#contact">連絡</a>
+  </nav>
+
+  <p class="nojs wrap" style="display:none;padding-top:40px;font-size:14px;line-height:2;color:#e9c98a;">
+    このページは JavaScript を使って本文を表示します。ブラウザの JavaScript を有効にしてから、もう一度開いてください。
+  </p>
+
+  <!-- 入室 -->
+  <section id="hero" class="wrap">
+    <p class="door rv">検証室 &nbsp;/&nbsp; LABORATORY &nbsp;── 入室しました</p>
+    <h2 class="hero-name rv"><span class="en" id="nameEn"></span><span id="nameJa"></span></h2>
+    <p class="hero-role rv" id="heroRole"></p>
+    <p class="hero-lead rv" id="heroLead"></p>
+    <div class="scroll-hint" aria-hidden="true"><i></i>SCROLL</div>
+  </section>
+
+  <!-- 人物 -->
+  <section id="about" class="sec wrap">
+    <div class="sec-head rv">
+      <span class="sec-no">01</span><h3 class="sec-ttl">人物紹介ではなく、検証者の記録</h3>
+      <span class="sec-en">WHO</span>
+    </div>
+    <div class="about">
+      <div class="rv" id="aboutText"></div>
+      <div class="rv">
+        <div class="spec" id="spec"></div>
+        <div class="counts" id="counts"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 検証記録 -->
+  <section id="verify" class="sec wrap">
+    <div class="sec-head rv">
+      <span class="sec-no">02</span><h3 class="sec-ttl">当たり前を、検証してきた。</h3>
+      <span class="sec-en">VERIFICATION LOG</span>
+    </div>
+    <div id="verifyList"></div>
+  </section>
+
+  <!-- CASE FILE -->
+  <section id="cases" class="sec wrap">
+    <div class="sec-head rv">
+      <span class="sec-no">03</span><h3 class="sec-ttl">CASE FILE</h3>
+      <span class="sec-en">WORKS &amp; AWARDS</span>
+    </div>
+    <div class="filters rv" id="filters" role="group" aria-label="カテゴリで絞り込む"></div>
+    <div class="cases" id="caseList"></div>
+    <p class="add-note rv" id="addNote"></p>
+  </section>
+
+  <!-- 連絡 -->
+  <section id="contact" class="sec wrap">
+    <div class="box rv">
+      <p class="q">次は、何を疑いましょうか。</p>
+      <p class="a" id="contactLead"></p>
+      <div class="links" id="contactLinks"></div>
+    </div>
+  </section>
+
+  <footer>
+    <p id="footText"></p>
+  </footer>
+</div>
+
+<!-- ===== CASE 詳細 ===== -->
+<div id="modal" role="dialog" aria-modal="true" aria-labelledby="mTtl" aria-hidden="true">
+  <div class="veil" data-close></div>
+  <div class="sheet" data-close>
+    <div class="card" id="mCard"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* =========================================================================================
+   ★★★ ここから下の DATA だけ書き換えれば、サイトの中身は全部入れ替わります ★★★
+   HTML/CSSには触らなくて大丈夫です。追加は「配列に1つオブジェクトを足すだけ」。
+   ========================================================================================= */
+
+/* ---------------------------------------------------------------------------------------
+   [1] あなたのこと
+   〇〇 の部分を書き換えてください。空文字 "" にすると、その行は自動で消えます。
+   --------------------------------------------------------------------------------------- */
+var PROFILE = {
+  nameJa : "あなたの名前",                     // 氏名
+  nameEn : "YOUR NAME",                      // ローマ字（不要なら "" に）
+  role   : "当たり前を、検証してきた人。",      // 肩書きの代わりの一行
+  lead   : "肩書きで自分を説明できたことが、まだ一度もありません。かわりに、これまで「当たり前」とされていたことを一つずつ疑って、実際に確かめてきました。その記録が、たぶん一番正確な自己紹介です。",
+  about  : [
+    "「そういうものだから」と言われた瞬間に、手が動きます。<b>疑うところまでは誰でもできる。確かめた人だけが、次の話ができる</b>と思っているからです。",
+    "だから私のやり方はいつも同じです。①誰も確かめていない前提を見つける ②いちばん小さい形で実際に試す ③結果を、都合の悪いところまで含めて記録に残す。この三つだけ。",
+    "広告も企画も同じでした。〇〇のコンペも、〇〇のワークショップも、はじまりは全部「これ、本当にそうなの？」という一行のメモです。"
+  ],
+  spec   : [                                  // 左＝項目名、右＝内容
+    ["所属",   "〇〇大学 〇〇学部 〇〇学科 (20〇〇年〇月卒業見込)"],
+    ["拠点",   "〇〇県〇〇市"],
+    ["専攻",   "〇〇"],
+    ["関心",   "広告 / 企画 / コピー / 体験設計"],
+    ["道具",   "Illustrator, Photoshop, Premiere Pro, 〇〇"]
+  ],
+  contact: {
+    lead: "インターン・面談・お仕事のご相談、「これ検証してみてほしい」でも構いません。どこからでもどうぞ。",
+    links: [                                  // url を書けばボタンが有効になります。"" のままなら「準備中」表示
+      { label:"メールを送る",     url:"mailto:your@example.com" },
+      { label:"X (Twitter)",     url:"", ghost:true },
+      { label:"Instagram",       url:"", ghost:true },
+      { label:"note",            url:"", ghost:true }
+    ]
+  }
+};
+
+/* ---------------------------------------------------------------------------------------
+   [2] 検証記録 ── ③の「一枚で見せるページ」たち
+   1件ぶんの型（コピーして下に足すだけ）:
+   { myth:"〇〇は必要。", act:"〇日間、〇〇してみた。", period:"20XX.XX / X日間",
+     result:"何が起きたか", finding:"だから何が言えるか", tags:["行動","検証"] }
+   ※ myth（＝世間の当たり前）には自動で赤い取り消し線が引かれます。
+   --------------------------------------------------------------------------------------- */
+var VERIFICATIONS = [
+  {
+    myth   : "スーツケースは必要。",
+    act    : "手ぶらで〇日間、旅に出てみた。",
+    period : "20〇〇.〇〇 / 〇日間 / 〇〇",
+    result : "結論から言うと、〇日間ぜんぶ足りました。荷物が無い日の移動は、あるときの体感で半分以下。到着してから現地で買ったのは〇点だけで、そのうち帰りに持ち帰ったのは〇点でした。「念のため」で詰めていたものは、ほぼ一度も開いていなかった。",
+    finding: "私たちが運んでいたのは荷物ではなく、不安のほうでした。準備とは物を増やすことではなく、無くても平気な状態を先につくること。以来、企画でも「これは念のため入れているだけでは？」を最初に潰すようにしています。",
+    tags   : ["旅","持たない","行動"]
+  },
+  {
+    myth   : "社会人が9割の場に、学生は行っても意味がない。",
+    act    : "参加者の9割が社会人の場に、飛び込んでみた。",
+    period : "20〇〇.〇〇 / 〇回参加 / 〇〇",
+    result : "名刺を持っていないのは私だけでした。けれど「学生から見てどう見えますか」と聞かれる回数が、想像の〇倍あった。〇回目には〇〇を任せてもらえて、そこから〇〇につながりました。",
+    finding: "場違いだと思っていたのは自分だけで、実際には「その場にいない属性」がいちばん価値になる。以来、迷ったときは、自分がいちばん場違いなほうを選ぶようにしています。",
+    tags   : ["越境","対話","行動"]
+  },
+  {
+    myth   : "広告は、うまい人が作るもの。",
+    act    : "未経験のまま〇〇コンペに出してみた。",
+    period : "20〇〇.〇〇 / 応募〇本",
+    result : "〇本出して、通ったのは〇本。落ちた〇本を並べて見返したら、落ちた側は全部「うまく見せようとしたもの」でした。通ったのは、下手でも自分が本当に引っかかった一点から書いたものだけ。",
+    finding: "技術の差より、疑いの深さの差でした。うまさは後から足せるけれど、引っかかりは他人から借りられない。",
+    tags   : ["広告","コンペ","制作"]
+  }
+];
+
+/* ---------------------------------------------------------------------------------------
+   [3] CASE FILE ── ④のポートフォリオ。ここに足していけば、いくらでも増やせます。
+   1件ぶんの型（コピーして配列の先頭に足すと、新しい順に並びます）:
+   {
+     cat:"AD",                        // カテゴリ。フィルタのボタンは自動で作られます
+     title:"作品タイトル",
+     year:"2026",
+     emoji:"📺",                       // 画像を入れるまでの仮サムネ
+     image:"",                        // 例 "img/case01.jpg" や https:// の画像URL（入れると emoji より優先）
+     embed:"",                        // 例 "https://www.youtube.com/embed/xxxx"（動画があれば）
+     summary:"一覧に出る2行の要約",
+     body:["本文の段落1","本文の段落2"],
+     facts:[["役割","企画・コピー"],["結果","一次審査通過"]],
+     links:[{label:"作品を見る", url:"https://..."}]
+   }
+   --------------------------------------------------------------------------------------- */
+var CASES = [
+  {
+    cat:"AD", title:"〇〇 広告作品「〇〇〇〇」", year:"20〇〇", emoji:"📺", image:"", embed:"",
+    summary:"「〇〇は〇〇であるべき」という前提を疑うところから作った、〇〇向けの広告作品。",
+    body:[
+      "はじまりは、街頭で〇〇を見たときの違和感でした。誰も口にしないけれど、みんな薄々おかしいと思っている ── その一点だけを、まっすぐコピーにしています。",
+      "制作では〇〇を担当。〇〇の制約があったため、〇〇という方法で解決しました。結果として〇〇という反応が得られています。"
+    ],
+    facts:[["役割","企画・コピー・〇〇"],["媒体","〇〇"],["期間","20〇〇.〇〇 - 〇〇"],["結果","〇〇"]],
+    links:[{label:"作品を見る", url:""}]
+  },
+  {
+    cat:"COMPETITION", title:"〇〇アワード 20〇〇 応募作品", year:"20〇〇", emoji:"🏆", image:"", embed:"",
+    summary:"課題は「〇〇」。全応募〇〇点中〇〇に選出。前提をひっくり返す一本で挑んだ記録。",
+    body:[
+      "課題文を読んだとき、全員が同じ方向に走るのが見えたので、逆を走ることにしました。〇〇という切り口です。",
+      "〇〇の審査員から「〇〇」という講評をいただきました。同時に〇〇という課題も明確になり、次の CASE につながっています。"
+    ],
+    facts:[["役割","企画・アートディレクション"],["主催","〇〇"],["結果","〇次審査通過 / 〇〇賞"]],
+    links:[{label:"応募作品を見る", url:""},{label:"主催サイト", url:""}]
+  },
+  {
+    cat:"WORKSHOP", title:"〇〇ワークショップ 企画・運営", year:"20〇〇", emoji:"🧪", image:"", embed:"",
+    summary:"参加者〇〇名。「当たり前を1つ持ち寄って、その場で検証する」ワークショップを設計・進行。",
+    body:[
+      "〇〇を対象に、〇〇分のプログラムを設計しました。参加者それぞれが「自分が疑ったことのない当たり前」を1つ持ってきて、その場で最小の検証をしてみる、という構成です。",
+      "運営では〇〇を担当。当日は〇〇というトラブルがありましたが、〇〇で対応しました。終了後アンケートでは〇〇%が「明日やってみたいことができた」と回答。"
+    ],
+    facts:[["役割","企画・進行・運営"],["場所","〇〇"],["規模","参加者 〇〇名"],["期間","20〇〇.〇〇"]],
+    links:[{label:"開催レポート", url:""}]
+  },
+  {
+    cat:"OTHER", title:"〇〇（個人プロジェクト）", year:"20〇〇", emoji:"🔍", image:"", embed:"",
+    summary:"誰にも頼まれていないのに続けている、〇〇の記録。",
+    body:["〇〇について、〇〇年〇月から個人で続けています。現在〇〇件。","続けてわかったのは〇〇でした。"],
+    facts:[["役割","全部"],["継続","20〇〇.〇〇 -"]],
+    links:[{label:"見に行く", url:""}]
+  }
+];
+
+/* ★ カテゴリの表示名（CASES の cat に対応）。新しい cat を作ったらここに足すと日本語で出ます */
+var CAT_LABEL = { ALL:"すべて", AD:"広告", COMPETITION:"コンペ", WORKSHOP:"ワークショップ", OTHER:"その他" };
+
+/* =========================================================================================
+   ★★★ 書き換えるのはここまで。以下は仕組みなので、触らなくて大丈夫です ★★★
+   ========================================================================================= */
+
+var reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var $  = function(s,r){ return (r||document).querySelector(s); };
+var el = function(tag,cls,txt){ var n=document.createElement(tag); if(cls)n.className=cls; if(txt!=null)n.textContent=txt; return n; };
+var esc = function(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); };
+
+/* -------------------------------------------------- 壁を組む -------------------------------------------------- */
+var wallEl = $("#wall");
+function buildWall(){
+  wallEl.innerHTML = "";
+  var w = window.innerWidth * 1.12, h = window.innerHeight * 1.12;
+  var bw = Math.max(78, Math.min(150, Math.round(w / 9)));   // ブロック幅
+  var bh = Math.round(bw * 0.56);                            // ブロック高
+  var cols = Math.ceil(w / bw) + 2, rows = Math.ceil(h / bh) + 1;
+  var cx = w / 2, cy = h / 2;
+  var maxD = Math.sqrt(cx*cx + cy*cy);
+  for (var r = 0; r < rows; r++){
+    var row = el("div","brow");
+    if (r % 2) row.style.marginLeft = (-bw/2) + "px";
+    for (var c = 0; c < cols; c++){
+      var b = el("div","brick");
+      b.style.width = bw + "px"; b.style.height = bh + "px";
+      // 石ごとの明るさのゆらぎ
+      var lum = 43 + Math.random()*14;
+      b.style.background = "hsl(" + (228 + Math.random()*10) + "deg 4% " + lum.toFixed(1) + "%)";
+      // 飛び散る向き（中心から外へ）
+      var x = c*bw + (r%2 ? -bw/2 : 0) + bw/2, y = r*bh + bh/2;
+      var vx = x - cx, vy = y - cy;
+      var d  = Math.sqrt(vx*vx + vy*vy) || 1;
+      var pw = 1.15 + Math.random()*1.1;
+      b.style.setProperty("--dx",  (vx/d * (240 + Math.random()*520) * pw).toFixed(0) + "px");
+      b.style.setProperty("--dy",  (vy/d * (240 + Math.random()*520) * pw - 60).toFixed(0) + "px");
+      b.style.setProperty("--dz",  (120 + Math.random()*460).toFixed(0) + "px");
+      b.style.setProperty("--rot", ((Math.random()*2-1) * 150).toFixed(0) + "deg");
+      b.style.setProperty("--rx",  Math.random().toFixed(2));
+      b.style.setProperty("--ry",  Math.random().toFixed(2));
+      b.style.transitionDelay = ((d/maxD) * 0.26 + Math.random()*0.06).toFixed(3) + "s";
+      row.appendChild(b);
+    }
+    wallEl.appendChild(row);
+  }
+}
+
+/* タイトルを一文字ずつ立ち上げる */
+(function typeTitle(){
+  var t = $("#gateTitle"), s = t.textContent; t.textContent = "";
+  for (var i = 0; i < s.length; i++){
+    var sp = el("span","ch",s[i]);
+    sp.style.animationDelay = (0.35 + i*0.11) + "s";
+    t.appendChild(sp);
+  }
+})();
+
+/* -------------------------------------------------- 粉じん -------------------------------------------------- */
+var dustCv = $("#dust"), dustCtx = dustCv.getContext("2d"), particles = [], dustRaf = 0;
+function sizeDust(){
+  var dpr = Math.min(window.devicePixelRatio || 1, 2);
+  dustCv.width = window.innerWidth * dpr; dustCv.height = window.innerHeight * dpr;
+  dustCtx.setTransform(dpr,0,0,dpr,0,0);
+}
+function burstDust(){
+  var cx = window.innerWidth/2, cy = window.innerHeight/2;
+  var n = window.innerWidth < 640 ? 90 : 170;
+  for (var i = 0; i < n; i++){
+    var a = Math.random()*Math.PI*2, sp = 2 + Math.random()*13;
+    particles.push({ x:cx+(Math.random()-.5)*160, y:cy+(Math.random()-.5)*160,
+      vx:Math.cos(a)*sp, vy:Math.sin(a)*sp - 2,
+      r:1 + Math.random()*4.5, life:1, decay:0.006 + Math.random()*0.012 });
+  }
+  if (!dustRaf) dustRaf = requestAnimationFrame(stepDust);
+}
+function stepDust(){
+  dustCtx.clearRect(0,0,window.innerWidth,window.innerHeight);
+  var alive = 0;
+  for (var i = 0; i < particles.length; i++){
+    var p = particles[i];
+    if (p.life <= 0) continue;
+    p.x += p.vx; p.y += p.vy; p.vy += 0.14; p.vx *= 0.985; p.vy *= 0.985;
+    p.life -= p.decay; alive++;
+    dustCtx.fillStyle = "rgba(196,192,186," + Math.max(0,p.life*0.55).toFixed(3) + ")";
+    dustCtx.beginPath(); dustCtx.arc(p.x, p.y, p.r, 0, Math.PI*2); dustCtx.fill();
+  }
+  if (alive > 0){ dustRaf = requestAnimationFrame(stepDust); }
+  else { particles = []; dustRaf = 0; dustCtx.clearRect(0,0,window.innerWidth,window.innerHeight); }
+}
+
+/* -------------------------------------------------- 入室 -------------------------------------------------- */
+var gate = $("#gate"), entered = false;
+function enterLab(instant){
+  if (entered) return; entered = true;
+  try { sessionStorage.setItem("seenGate","1"); } catch(e){}
+  document.body.classList.remove("locked");
+  var lab = $("#lab");
+  lab.removeAttribute("aria-hidden");
+
+  if (instant || reduceMotion){
+    gate.style.display = "none";
+    lab.classList.add("on");
+    revealAll();
+    return;
+  }
+  $("#breakBtn").disabled = true;
+  $("#crack").classList.add("on");
+  gate.classList.add("shake");
+  setTimeout(function(){
+    gate.classList.add("go");
+    wallEl.classList.add("broken");
+    burstDust();
+    $("#lamp").classList.add("flick");
+  }, 300);
+  setTimeout(function(){ lab.classList.add("on"); }, 620);
+  setTimeout(function(){ gate.style.display = "none"; }, 2100);
+}
+$("#breakBtn").addEventListener("click", function(){ enterLab(false); });
+$("#skipBtn").addEventListener("click", function(){ enterLab(true); });
+
+/* -------------------------------------------------- 描画 -------------------------------------------------- */
+function renderProfile(){
+  $("#nameEn").textContent = PROFILE.nameEn || "";
+  $("#nameJa").textContent = PROFILE.nameJa || "";
+  $("#heroRole").textContent = PROFILE.role || "";
+  $("#heroLead").textContent = PROFILE.lead || "";
+
+  var at = $("#aboutText");
+  (PROFILE.about || []).forEach(function(p){
+    var n = document.createElement("p"); n.innerHTML = p; at.appendChild(n);
+  });
+
+  var sp = $("#spec");
+  (PROFILE.spec || []).forEach(function(row){
+    if (!row[1]) return;
+    var dl = el("dl"); dl.appendChild(el("dt",null,row[0])); dl.appendChild(el("dd",null,row[1]));
+    sp.appendChild(dl);
+  });
+
+  // 件数は自動集計（データを足すと勝手に増えます）
+  var years = {};
+  CASES.forEach(function(c){ if (c.year) years[c.year] = 1; });
+  [[VERIFICATIONS.length,"検証した当たり前"],[CASES.length,"CASE FILE"],[Object.keys(years).length,"活動年数"]]
+  .forEach(function(x){
+    var d = el("div","count"); var b = el("b","",""); b.dataset.to = x[0]; b.textContent = "0";
+    d.appendChild(b); d.appendChild(el("span",null,x[1])); $("#counts").appendChild(d);
+  });
+
+  $("#contactLead").textContent = (PROFILE.contact && PROFILE.contact.lead) || "";
+  var cl = $("#contactLinks");
+  ((PROFILE.contact && PROFILE.contact.links) || []).forEach(function(l){
+    if (!l.url) return;                       // URL未記入のものは出しません
+    var a = el("a", l.ghost ? "ghost" : null, l.label);
+    a.href = l.url;
+    if (l.url.indexOf("mailto:") !== 0){ a.target = "_blank"; a.rel = "noopener noreferrer"; }
+    cl.appendChild(a);
+  });
+  $("#footText").textContent = "© " + new Date().getFullYear() + " " + (PROFILE.nameJa || "") + " ─ 当たり前を疑え。";
+}
+
+function renderVerifications(){
+  var wrap = $("#verifyList");
+  VERIFICATIONS.forEach(function(v, i){
+    var a = el("article","vf rv");
+    var no = el("p","vf-no","VERIFICATION " + String(i+1).padStart(2,"0"));
+    var myth = el("h4","vf-myth"); myth.innerHTML = "「<s>" + esc(v.myth) + "</s>」";
+    var act  = el("p","vf-act", v.act);
+    var grid = el("div","vf-grid");
+    [["RESULT ─ 何が起きたか", v.result],["FINDING ─ だから何が言えるか", v.finding]].forEach(function(b){
+      if (!b[1]) return;
+      var blk = el("div","vf-blk"); blk.appendChild(el("h4",null,b[0]));
+      blk.appendChild(el("p",null,b[1])); grid.appendChild(blk);
+    });
+    var meta = el("div","vf-meta");
+    if (v.period) meta.appendChild(el("span",null,v.period));
+    (v.tags||[]).forEach(function(t){ meta.appendChild(el("span","vf-tag","#"+t)); });
+    var stamp = el("div","stamp"); stamp.appendChild(el("b",null,"検証済"));
+    stamp.appendChild(el("span",null,"VERIFIED"));
+    [no,myth,act,grid,meta,stamp].forEach(function(n){ a.appendChild(n); });
+    wrap.appendChild(a);
+  });
+}
+
+var currentCat = "ALL";
+function renderCases(){
+  var cats = ["ALL"];
+  CASES.forEach(function(c){ if (cats.indexOf(c.cat) < 0) cats.push(c.cat); });
+  var fbox = $("#filters");
+  cats.forEach(function(cat){
+    var b = el("button", null, (CAT_LABEL[cat] || cat) + (cat === "ALL" ? "" : ""));
+    b.type = "button"; b.dataset.cat = cat;
+    b.setAttribute("aria-pressed", cat === "ALL" ? "true" : "false");
+    b.addEventListener("click", function(){
+      currentCat = cat;
+      Array.prototype.forEach.call(fbox.children, function(x){
+        x.setAttribute("aria-pressed", x.dataset.cat === cat ? "true" : "false");
+      });
+      applyFilter();
+    });
+    fbox.appendChild(b);
+  });
+
+  var list = $("#caseList");
+  CASES.forEach(function(c, i){
+    var btn = el("button","case rv"); btn.type = "button"; btn.dataset.cat = c.cat; btn.dataset.i = i;
+    var th = el("div","case-thumb");
+    th.appendChild(el("span","case-cat", CAT_LABEL[c.cat] || c.cat));
+    if (c.image){ var im = new Image(); im.src = c.image; im.alt = c.title; im.loading = "lazy"; th.appendChild(im); }
+    else { th.appendChild(el("span","emo", c.emoji || "📄")); }
+    var bd = el("div","case-body");
+    bd.appendChild(el("p","case-year", c.year || ""));
+    bd.appendChild(el("h4","case-ttl", c.title));
+    if (c.summary) bd.appendChild(el("p","case-sum", c.summary));
+    bd.appendChild(el("p","case-more","OPEN FILE →"));
+    btn.appendChild(th); btn.appendChild(bd);
+    btn.addEventListener("click", function(){ openCase(i); });
+    list.appendChild(btn);
+  });
+  $("#addNote").textContent = "// CASE は " + CASES.length + " 件。追加は index.html の CASES 配列に1つ足すだけです。";
+}
+function applyFilter(){
+  var shown = 0;
+  Array.prototype.forEach.call($("#caseList").children, function(n){
+    if (!n.dataset.cat) return;
+    var ok = (currentCat === "ALL" || n.dataset.cat === currentCat);
+    n.hidden = !ok; if (ok) shown++;
+  });
+  var empty = $(".cases-empty");
+  if (!shown && !empty){ $("#caseList").appendChild(el("p","cases-empty","このカテゴリの CASE はまだありません。")); }
+  else if (shown && empty){ empty.remove(); }
+}
+
+/* -------------------------------------------------- CASE 詳細 -------------------------------------------------- */
+var modal = $("#modal"), lastFocus = null;
+function openCase(i){
+  var c = CASES[i]; if (!c) return;
+  lastFocus = document.activeElement;
+  var card = $("#mCard"); card.innerHTML = "";
+
+  var close = el("button","close","✕"); close.type = "button";
+  close.setAttribute("aria-label","閉じる");
+  close.addEventListener("click", closeCase);
+  card.appendChild(close);
+
+  var inner = el("div","m-in");
+  inner.appendChild(el("span","m-cat", CAT_LABEL[c.cat] || c.cat));
+  var h = el("h3","m-ttl", c.title); h.id = "mTtl"; inner.appendChild(h);
+  if (c.year) inner.appendChild(el("p","m-year", c.year));
+
+  if (c.embed){
+    var em = el("div","m-embed");
+    var f = document.createElement("iframe");
+    f.src = c.embed; f.loading = "lazy"; f.allowFullscreen = true;
+    f.setAttribute("allow","accelerometer; clipboard-write; encrypted-media; picture-in-picture");
+    f.title = c.title; em.appendChild(f); inner.appendChild(em);
+  } else if (c.image){
+    var hv = el("div","m-hero"); var im = new Image(); im.src = c.image; im.alt = c.title;
+    hv.appendChild(im); inner.appendChild(hv);
+  }
+
+  var body = el("div","m-body");
+  (c.body || []).forEach(function(p){ body.appendChild(el("p",null,p)); });
+  inner.appendChild(body);
+
+  if (c.facts && c.facts.length){
+    var fx = el("div","m-facts");
+    c.facts.forEach(function(row){
+      if (!row[1]) return;
+      var dl = el("dl"); dl.appendChild(el("dt",null,row[0])); dl.appendChild(el("dd",null,row[1]));
+      fx.appendChild(dl);
+    });
+    inner.appendChild(fx);
+  }
+
+  if (c.links && c.links.length){
+    var lk = el("div","m-links");
+    c.links.forEach(function(l){
+      if (l.url){
+        var a = el("a",null,l.label + " ↗");
+        a.href = l.url; a.target = "_blank"; a.rel = "noopener noreferrer";
+        lk.appendChild(a);
+      } else {
+        lk.appendChild(el("span","off", l.label + "（準備中）"));
+      }
+    });
+    inner.appendChild(lk);
+  }
+  card.appendChild(inner);
+
+  modal.classList.add("open");
+  modal.setAttribute("aria-hidden","false");
+  document.body.classList.add("locked");
+  close.focus();
+}
+function closeCase(){
+  modal.classList.remove("open");
+  modal.setAttribute("aria-hidden","true");
+  document.body.classList.remove("locked");
+  if (lastFocus && lastFocus.focus) lastFocus.focus();
+}
+modal.addEventListener("click", function(e){ if (e.target.hasAttribute("data-close")) closeCase(); });
+document.addEventListener("keydown", function(e){ if (e.key === "Escape" && modal.classList.contains("open")) closeCase(); });
+
+/* -------------------------------------------------- スクロール出現 & 数え上げ -------------------------------------------------- */
+var io = null;
+function watchReveal(){
+  if (!("IntersectionObserver" in window) || reduceMotion){ revealAll(); return; }
+  io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if (!en.isIntersecting) return;
+      en.target.classList.add("in");
+      if (en.target.id === "counts") countUp();
+      io.unobserve(en.target);
+    });
+  }, { rootMargin:"0px 0px -12% 0px", threshold:0.08 });
+  Array.prototype.forEach.call(document.querySelectorAll(".rv"), function(n){ io.observe(n); });
+  io.observe($("#counts"));
+}
+function revealAll(){
+  Array.prototype.forEach.call(document.querySelectorAll(".rv"), function(n){ n.classList.add("in"); });
+  countUp();
+}
+var counted = false;
+function countUp(){
+  if (counted) return; counted = true;
+  Array.prototype.forEach.call(document.querySelectorAll(".count b"), function(b){
+    var to = parseInt(b.dataset.to, 10) || 0;
+    if (reduceMotion){ b.textContent = to; return; }
+    var t0 = performance.now(), dur = 900;
+    (function tick(now){
+      var p = Math.min(1, (now - t0) / dur);
+      b.textContent = Math.round(to * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(tick);
+    })(t0);
+  });
+}
+
+/* -------------------------------------------------- 舞う埃 -------------------------------------------------- */
+function makeMotes(){
+  if (reduceMotion) return;
+  var n = window.innerWidth < 640 ? 9 : 16;
+  for (var i = 0; i < n; i++){
+    var m = el("div","mote");
+    m.style.left = (Math.random()*100).toFixed(2) + "%";
+    m.style.bottom = "-10px";
+    m.style.animationDuration = (16 + Math.random()*22).toFixed(1) + "s";
+    m.style.animationDelay = (-Math.random()*30).toFixed(1) + "s";
+    m.style.opacity = (0.25 + Math.random()*0.5).toFixed(2);
+    document.body.appendChild(m);
+  }
+}
+
+/* -------------------------------------------------- 起動 -------------------------------------------------- */
+sizeDust();
+buildWall();
+renderProfile();
+renderVerifications();
+renderCases();
+makeMotes();
+watchReveal();
+
+// 一度入室していれば / 直リンクで来たときは、壁を出さずに本編から
+var skip = false;
+try { skip = sessionStorage.getItem("seenGate") === "1"; } catch(e){}
+if (location.hash && location.hash.length > 1) skip = true;
+if (skip) enterLab(true);
+
+var rz;
+window.addEventListener("resize", function(){
+  clearTimeout(rz);
+  rz = setTimeout(function(){ sizeDust(); if (!entered) buildWall(); }, 200);
+});
+</script>
+</body>
+</html>
