@@ -4,7 +4,7 @@
    ・静的資産 = cache-first（あれば即返す。無ければ取得して保存）
    ・外部資産(Firebase/Googleフォント) もキャッシュ対象に含める（opaqueも保存）
    ・メッセージ PRECACHE_ALL で全ゲームを一括ダウンロード（オフライン保存ボタン用） */
-const CACHE = 'chikumonogatari-v174';
+const CACHE = 'chikumonogatari-v175';
 const SHELL = [
   './',
   './index.html',
@@ -65,7 +65,11 @@ self.addEventListener('fetch', (event) => {
   if (isHTML(req)) {
     event.respondWith(
       caches.match(req).then((cached) => {
-        const net = fetch(req).then((res) => {
+        // 裏の更新は cache:'reload' で、ブラウザのHTTPキャッシュを介さず必ずサーバーへ問い合わせる。
+        // 素の fetch(req) だと、GitHub Pages の max-age がまだ生きている間は
+        // ブラウザ内の古い複製がそのまま返り、それを再保存してしまう
+        // （＝更新したのにいつまでも古い画面が出る原因）。
+        const net = fetch(new Request(req.url, { cache: 'reload' })).then((res) => {
           if (cacheable(res)) {
             const clone = res.clone();
             caches.open(CACHE).then((c) => c.put(req, clone));

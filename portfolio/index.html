@@ -269,9 +269,14 @@ body.cinema .bar{height:8.5vh;}
   padding:10px max(16px,4vw);backdrop-filter:blur(11px);-webkit-backdrop-filter:blur(11px);
   background:rgba(10,10,13,.72);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none;}
 #nav::-webkit-scrollbar{display:none;}
-#nav .brand{font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:#fff;margin-right:auto;
-  white-space:nowrap;padding-right:14px;}
+/* 題字は「最新に取り直す」ボタンを兼ねる */
+#nav .brand{flex:none;font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:#fff;margin-right:auto;
+  white-space:nowrap;padding:6px 14px 6px 0;background:none;border:0;cursor:pointer;
+  transition:opacity .2s ease;}
 #nav .brand b{color:var(--red);}
+#nav .brand:hover,#nav .brand:focus-visible{opacity:.68;}
+#nav .brand:active{opacity:.45;}
+#nav .brand.busy{opacity:.5;pointer-events:none;}
 #nav a{font-size:12px;color:var(--sub);text-decoration:none;white-space:nowrap;padding:7px 10px;border-radius:3px;
   transition:color .2s,background .2s;}
 #nav a:hover,#nav a:focus-visible{color:#fff;background:rgba(255,255,255,.07);}
@@ -292,8 +297,12 @@ body.cinema .bar{height:8.5vh;}
   #replayBtn .lbl{display:none;}
   #replayBtn span[aria-hidden]{font-size:11px;}
 }
-/* 極小画面では、項目を全部見せることを優先して銘だけ下げる */
-@media(max-width:364px){ #nav .brand{display:none;} }
+/* 極小画面では題字を出す幅が無いので、更新ボタンとしての ↻ だけ残す */
+@media(max-width:364px){
+  #nav .brand .full{display:none;}
+  #nav .brand{padding-right:6px;}
+  #nav .brand::before{content:"↻";font-size:14px;letter-spacing:0;}
+}
 @media print{ #replayBtn{display:none!important;} }
 
 .wrap{width:min(1080px,100%);margin:0 auto;padding:0 max(18px,4.4vw);}
@@ -555,7 +564,10 @@ footer a{color:inherit;}
   <div class="room-grid" aria-hidden="true"></div>
 
   <nav id="nav">
-    <span class="brand">当たり前を疑え<b>。</b></span>
+    <button class="brand" id="brandBtn" type="button" aria-label="最新の状態に更新する"
+            title="押すと保存された古いページを捨てて、最新を取り直します">
+      <span class="full">当たり前を疑え<b>。</b></span>
+    </button>
     <a href="#about">人物</a>
     <a href="#verify">検証記録</a>
     <a href="#cases">CASE FILE</a>
@@ -1452,7 +1464,53 @@ function makeMotes(){
   }
 }
 
+/* -------------------------------------------------- 更新まわり -------------------------------------------------- */
+/* このページは直リンクで開かれることが多い。トップを経由しないと
+   サービスワーカーの更新確認が走らないので、ここで明示的に促す。
+   （新規登録はしない。すでに登録がある人の更新だけを早める） */
+if ("serviceWorker" in navigator){
+  navigator.serviceWorker.getRegistration()
+    .then(function(r){ if (r) return r.update(); })
+    .catch(function(){});
+}
+
+/* ヘッダーの題字＝強制更新ボタン。
+   端末に残る古い複製は「保存済みキャッシュ」「ブラウザのHTTPキャッシュ」の二段があるので、
+   ①保存済みを全部捨てる ②サービスワーカーを更新する ③一度も使っていないURLで開き直す
+   の三手で確実に飛び越える。 */
+var brandBtn = $("#brandBtn");
+brandBtn.addEventListener("click", function(){
+  if (brandBtn.classList.contains("busy")) return;
+  brandBtn.classList.add("busy");
+  var full = $(".full", brandBtn);
+  if (full) full.textContent = "更新中…";
+
+  var jobs = [];
+  if (window.caches && caches.keys){
+    jobs.push(caches.keys().then(function(keys){
+      return Promise.all(keys.map(function(k){ return caches.delete(k); }));
+    }).catch(function(){}));
+  }
+  if ("serviceWorker" in navigator){
+    jobs.push(navigator.serviceWorker.getRegistration().then(function(r){
+      return r ? r.update() : null;
+    }).catch(function(){}));
+  }
+
+  // 後片づけが詰まっても必ず開き直せるよう、3秒で打ち切る
+  var went = false;
+  function go(){
+    if (went) return; went = true;
+    var u = new URL(location.href);
+    u.searchParams.set("v", Date.now().toString(36));   // 毎回ちがうURL＝どの層にも複製が無い
+    location.replace(u.toString());
+  }
+  setTimeout(go, 3000);
+  Promise.all(jobs).then(go, go);
+});
+
 /* -------------------------------------------------- 起動 -------------------------------------------------- */
+
 sizeDust();
 buildWall();
 buildTrailer();
