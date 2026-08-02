@@ -330,11 +330,13 @@ body.cinema .bar{height:8.5vh;}
   padding:clamp(24px,5.4vw,48px);box-shadow:0 22px 60px rgba(0,0,0,.55);overflow:hidden;}
 .vf::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
   background-image:linear-gradient(rgba(0,0,0,.05) 1px,transparent 1px);background-size:100% 30px;}
-.vf::after{content:"";position:absolute;right:-58px;top:-58px;width:150px;height:150px;
+.vf::after{content:"";position:absolute;right:-58px;top:-58px;width:150px;height:150px;z-index:0;
   background:var(--paper-d);transform:rotate(45deg);box-shadow:-3px 3px 8px rgba(0,0,0,.14);}
+/* 折り返した角の装飾が、見出しの上に乗らないようにする */
+.vf > *{z-index:1;}
 .vf-no{position:relative;font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--red);}
 .vf-myth{position:relative;margin-top:12px;font-family:var(--mincho);font-weight:600;
-  font-size:clamp(21px,6vw,42px);line-height:1.45;letter-spacing:.03em;}
+  font-size:clamp(21px,6vw,42px);line-height:1.45;letter-spacing:.03em;word-break:auto-phrase;}
 .vf-myth s{text-decoration:none;background-image:linear-gradient(var(--red),var(--red));
   background-repeat:no-repeat;background-position:0 62%;background-size:0 3px;
   transition:background-size .7s ease .25s;}
@@ -342,8 +344,18 @@ body.cinema .bar{height:8.5vh;}
 .vf-act{position:relative;margin-top:14px;display:inline-block;font-size:clamp(14px,4vw,20px);font-weight:800;
   letter-spacing:.04em;}
 .vf-act::before{content:"↓ ";color:var(--red);}
+.vf-ic{display:inline-block;margin-right:.28em;font-size:.82em;vertical-align:.04em;
+  font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif;}
 .vf-grid{position:relative;margin-top:26px;display:grid;grid-template-columns:1fr;gap:20px;}
-@media(min-width:760px){.vf-grid{grid-template-columns:1fr 1fr;gap:30px;}}
+@media(min-width:760px){
+  .vf-grid{grid-template-columns:1fr 1fr;gap:30px;}
+  .vf-grid.solo{grid-template-columns:1fr;}          /* RESULT だけのカードは1段組 */
+  .vf-grid.solo .vf-blk{max-width:34em;}             /* ただし行が長くなりすぎないように */
+}
+/* RESULT が一言のカードは、本文でなく「結論」として大きく置く */
+.vf-grid.solo .vf-blk p{font-size:clamp(14.5px,4vw,19px);line-height:1.95;}
+/* 検証済スタンプに文字が潜り込まないよう、下に帯をあける */
+@media(max-width:759px){ .vf-grid.solo{padding-bottom:clamp(56px,14vw,76px);} }
 .vf-blk h4{font-family:var(--mono);font-size:10px;letter-spacing:.26em;color:#8a857b;margin-bottom:7px;
   padding-bottom:5px;border-bottom:1px solid rgba(0,0,0,.16);}
 .vf-blk p{font-size:13.5px;line-height:2.05;color:#33322e;}
@@ -656,34 +668,58 @@ var PROFILE = {
 /* ---------------------------------------------------------------------------------------
    [3] 検証記録 ── ③の「一枚で見せるページ」たち
    1件ぶんの型（コピーして下に足すだけ）:
-   { myth:"〇〇は必要。", act:"〇日間、〇〇してみた。", period:"20XX.XX / X日間",
-     result:"何が起きたか", finding:"だから何が言えるか", tags:["行動","検証"] }
+   { icon:"🚃", myth:"〇〇は必要。", act:"〇〇してみた。",
+     result:"何が起きたか（＝カードのRESULT）",
+     finding:"だから何が言えるか（無ければ "" でよい。その行ごと消えます）",
+     period:"20XX.XX / X日間（無ければ ""）", tags:["行動"] }
    ※ myth（＝世間の当たり前）には自動で赤い取り消し線が引かれます。
+   ※ icon は絵文字ひとつ。国旗でも道具でも可。無ければ "" で消えます。
    --------------------------------------------------------------------------------------- */
 var VERIFICATIONS = [
   {
+    icon   : "🇲🇽",
     myth   : "スーツケースは必要。",
-    act    : "手ぶらで〇日間、旅に出てみた。",
-    period : "20〇〇.〇〇 / 〇日間 / 〇〇",
-    result : "結論から言うと、〇日間ぜんぶ足りました。荷物が無い日の移動は、あるときの体感で半分以下。到着してから現地で買ったのは〇点だけで、そのうち帰りに持ち帰ったのは〇点でした。「念のため」で詰めていたものは、ほぼ一度も開いていなかった。",
-    finding: "私たちが運んでいたのは荷物ではなく、不安のほうでした。準備とは物を増やすことではなく、無くても平気な状態を先につくること。以来、企画でも「これは念のため入れているだけでは？」を最初に潰すようにしています。",
-    tags   : ["旅","持たない","行動"]
+    act    : "検証してみた。",
+    result : "必要だったのは、大きなスーツケースじゃなく、一歩踏み出す勇気だった。",
+    finding: "",
+    period : "",
+    tags   : []
   },
   {
-    myth   : "社会人が9割の場に、学生は行っても意味がない。",
-    act    : "参加者の9割が社会人の場に、飛び込んでみた。",
-    period : "20〇〇.〇〇 / 〇回参加 / 〇〇",
-    result : "名刺を持っていないのは私だけでした。けれど「学生から見てどう見えますか」と聞かれる回数が、想像の〇倍あった。〇回目には〇〇を任せてもらえて、そこから〇〇につながりました。",
-    finding: "場違いだと思っていたのは自分だけで、実際には「その場にいない属性」がいちばん価値になる。以来、迷ったときは、自分がいちばん場違いなほうを選ぶようにしています。",
-    tags   : ["越境","対話","行動"]
+    icon   : "🇰🇷",
+    myth   : "翻訳機は必要。",
+    act    : "検証してみた。",
+    result : "通じたのは、韓国語じゃなく、話したい気持ちだった。",
+    finding: "",
+    period : "",
+    tags   : []
   },
   {
-    myth   : "広告は、うまい人が作るもの。",
-    act    : "未経験のまま〇〇コンペに出してみた。",
-    period : "20〇〇.〇〇 / 応募〇本",
-    result : "〇本出して、通ったのは〇本。落ちた〇本を並べて見返したら、落ちた側は全部「うまく見せようとしたもの」でした。通ったのは、下手でも自分が本当に引っかかった一点から書いたものだけ。",
-    finding: "技術の差より、疑いの深さの差でした。うまさは後から足せるけれど、引っかかりは他人から借りられない。",
-    tags   : ["広告","コンペ","制作"]
+    icon   : "🚃",
+    myth   : "山手線は乗るもの。",
+    act    : "歩いてみた。",
+    result : "一番近かったのは駅じゃない。人だった。",
+    finding: "",
+    period : "",
+    tags   : []
+  },
+  {
+    icon   : "🏋️",
+    myth   : "マッチョしか通えない。",
+    act    : "入会してみた。",
+    result : "筋肉より大切なのは、継続する理由だった。",
+    finding: "",
+    period : "",
+    tags   : []
+  },
+  {
+    icon   : "💬",
+    myth   : "海外の友達は海外でしかできない。",
+    act    : "話しかけてみた。",
+    result : "言語よりも、好奇心が世界を広げてくれた。",
+    finding: "",
+    period : "",
+    tags   : []
   }
 ];
 
@@ -1087,20 +1123,31 @@ function renderVerifications(){
   VERIFICATIONS.forEach(function(v, i){
     var a = el("article","vf rv");
     var no = el("p","vf-no","VERIFICATION " + String(i+1).padStart(2,"0"));
-    var myth = el("h4","vf-myth"); myth.innerHTML = "「<s>" + esc(v.myth) + "</s>」";
+    var myth = el("h4","vf-myth");
+    myth.innerHTML = (v.icon ? '<span class="vf-ic">' + esc(v.icon) + '</span>' : "")
+                   + "「<s>" + esc(v.myth) + "</s>」";
     var act  = el("p","vf-act", v.act);
+
     var grid = el("div","vf-grid");
     [["RESULT ─ 何が起きたか", v.result],["FINDING ─ だから何が言えるか", v.finding]].forEach(function(b){
       if (!b[1]) return;
       var blk = el("div","vf-blk"); blk.appendChild(el("h4",null,b[0]));
       blk.appendChild(el("p",null,b[1])); grid.appendChild(blk);
     });
+    if (grid.children.length < 2) grid.classList.add("solo");   // RESULT だけなら1段組に
+
+    var nodes = [no,myth,act,grid];
+    // 期間もタグも無いカードで、空の帯だけが残らないようにする
     var meta = el("div","vf-meta");
     if (v.period) meta.appendChild(el("span",null,v.period));
     (v.tags||[]).forEach(function(t){ meta.appendChild(el("span","vf-tag","#"+t)); });
+    if (meta.children.length) nodes.push(meta);
+
     var stamp = el("div","stamp"); stamp.appendChild(el("b",null,"検証済"));
     stamp.appendChild(el("span",null,"VERIFIED"));
-    [no,myth,act,grid,meta,stamp].forEach(function(n){ a.appendChild(n); });
+    nodes.push(stamp);
+
+    nodes.forEach(function(n){ a.appendChild(n); });
     wrap.appendChild(a);
   });
 }
