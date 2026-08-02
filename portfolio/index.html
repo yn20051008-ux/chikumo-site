@@ -275,11 +275,26 @@ body.cinema .bar{height:8.5vh;}
 #nav a{font-size:12px;color:var(--sub);text-decoration:none;white-space:nowrap;padding:7px 10px;border-radius:3px;
   transition:color .2s,background .2s;}
 #nav a:hover,#nav a:focus-visible{color:#fff;background:rgba(255,255,255,.07);}
-@media(max-width:430px){
-  #nav{padding-left:12px;padding-right:12px;}
-  #nav .brand{font-size:10px;letter-spacing:.1em;padding-right:6px;}
-  #nav a{font-size:11px;padding:7px 6px;}
+/* 予告編をもう一度観るボタン */
+#replayBtn{flex:none;display:inline-flex;align-items:center;gap:6px;margin-left:8px;cursor:pointer;
+  font:inherit;font-size:11.5px;letter-spacing:.1em;white-space:nowrap;color:#ffd9d5;
+  background:rgba(214,59,47,.16);border:1px solid rgba(214,59,47,.55);border-radius:999px;padding:7px 14px;
+  transition:background .2s ease, border-color .2s ease, color .2s ease, transform .15s ease;}
+#replayBtn span[aria-hidden]{font-size:9px;line-height:1;}
+#replayBtn:hover,#replayBtn:focus-visible{background:var(--red);border-color:var(--red);color:#fff;}
+#replayBtn:active{transform:scale(.96);}
+@media(max-width:540px){
+  #nav{padding-left:10px;padding-right:10px;}
+  #nav .brand{font-size:10px;letter-spacing:.06em;padding-right:4px;}
+  #nav a{font-size:11px;padding:7px 5px;}
+  /* 幅が足りないので、再生ボタンは▶だけにする（読み上げは aria-label が担う） */
+  #replayBtn{font-size:11px;padding:7px 11px;margin-left:5px;gap:0;}
+  #replayBtn .lbl{display:none;}
+  #replayBtn span[aria-hidden]{font-size:11px;}
 }
+/* 極小画面では、項目を全部見せることを優先して銘だけ下げる */
+@media(max-width:364px){ #nav .brand{display:none;} }
+@media print{ #replayBtn{display:none!important;} }
 
 .wrap{width:min(1080px,100%);margin:0 auto;padding:0 max(18px,4.4vw);}
 
@@ -461,8 +476,8 @@ footer a{color:inherit;}
     transition-duration:.01ms!important;}
   .rv{opacity:1;transform:none;}
   .gate-title .ch,.gate-sub,.gate-actions{opacity:1;}
-  /* 予告編の演出は丸ごと出さない */
-  #grain,#shard,#cards,#slam{display:none;}
+  /* 予告編の演出は丸ごと出さない。観られないので再生ボタンも出さない */
+  #grain,#shard,#cards,#slam,#replayBtn{display:none;}
   body.cinema .bar{height:0;}
 }
 @media print{
@@ -536,6 +551,9 @@ footer a{color:inherit;}
     <a href="#verify">検証記録</a>
     <a href="#cases">CASE FILE</a>
     <a href="#contact">連絡</a>
+    <button id="replayBtn" type="button" aria-label="予告編をもう一度観る">
+      <span aria-hidden="true">▶</span><span class="lbl">予告編</span>
+    </button>
   </nav>
 
   <p class="nojs wrap" style="display:none;padding-top:40px;font-size:14px;line-height:2;color:#e9c98a;">
@@ -1061,6 +1079,59 @@ function enterLab(instant){
 }
 $("#breakBtn").addEventListener("click", function(){ enterLab(false); });
 $("#skipBtn").addEventListener("click", function(){ enterLab(true); });
+
+/* もう一度、はじめから ── 演出で付けた印をすべて剥がして巻き戻す */
+function replayTrailer(){
+  if (modal.classList.contains("open")) closeCase();
+  clearTimeline();
+
+  // 本編を隠して先頭へ
+  labEl.classList.remove("on");
+  labEl.setAttribute("aria-hidden","true");
+  // scroll-behavior:smooth のままだと先頭へ戻る途中で overflow を止めてしまうので、一時的に切る
+  var sb = document.documentElement.style.scrollBehavior;
+  document.documentElement.style.scrollBehavior = "auto";
+  window.scrollTo(0, 0);
+  document.documentElement.style.scrollBehavior = sb;
+  document.body.classList.add("locked");
+
+  // 幕（gate）を戻す
+  gate.classList.remove("go","shake-s","shake-l");
+  gate.style.display = "";
+  gate.style.opacity = "";
+
+  // カメラ
+  stage.classList.remove("q");
+  stage.style.removeProperty("--z");
+
+  // 各層
+  crack.classList.remove("p1","p2","gone");
+  shard.classList.remove("fly");
+  blackoutEl.classList.remove("on");
+  flashEl.classList.remove("on");
+  slamEl.classList.remove("on");
+  Array.prototype.forEach.call(slamEl.querySelectorAll("b"), function(w){ w.classList.remove("hit"); });
+  Array.prototype.forEach.call(document.querySelectorAll("#cards .card"), function(c){ c.classList.remove("on"); });
+  $(".gate-inner").classList.remove("on");
+  $("#lamp").classList.remove("flick");
+  $("#breakBtn").disabled = false;
+
+  // 粉じんを片づける
+  if (dustRaf){ cancelAnimationFrame(dustRaf); dustRaf = 0; }
+  particles = [];
+  dustCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+  // 壁は組み直す（崩れ方も毎回変わる）
+  wallEl.classList.remove("show","broken","tremble");
+  buildWall();
+
+  entered = false;
+  // 設定は読み込み後に変わりうるので、その場で読み直す（CSS側の判定とずらさない）
+  var rm = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (rm){ enterLab(true); return; }
+  playIntro();
+}
+$("#replayBtn").addEventListener("click", replayTrailer);
 
 /* 音のオン・オフ（既定はオフ。押した人にだけ鳴る） */
 var sndBtn = $("#sndBtn");
