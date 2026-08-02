@@ -23,7 +23,7 @@
 <main>
   <header class="topline">
     <div><p class="eyebrow">FX Indicator Test</p><h1 class="title">USD / JPY<br>Indicator Lab</h1><p class="subtitle">短期・長期の移動平均期間を動かして、同じ価格データの見え方がどう変わるかを試す小さな実験ページです。</p></div>
-    <div class="sample">サンプル価格・ライブではありません</div>
+    <div class="sample" id="marketStatus">サンプル価格・ライブではありません</div>
   </header>
   <div class="grid">
     <section class="card chart-card" aria-labelledby="chartTitle">
@@ -39,7 +39,7 @@
         <div class="control"><div class="control-row"><label for="longMA">長期移動平均</label><output id="longOut" class="pill long-pill">30</output></div><input id="longMA" class="long-range" type="range" min="15" max="60" value="30" aria-label="長期移動平均の期間"><div class="scale"><span>15</span><span>60 periods</span></div></div>
       </section>
       <section class="card rsi-card" aria-labelledby="rsiTitle"><div id="rsiTitle" class="section-label">RSI · 14 periods</div><div class="rsi-value" id="rsiValue">—</div><div class="rsi-band"><span id="rsiMarker" class="rsi-marker"></span></div><div class="rsi-labels"><span>0</span><span>30</span><span>70</span><span>100</span></div></section>
-      <section class="card note"><strong>このページについて</strong>表示値は説明用に生成した固定サンプルです。市場データへの接続、売買判断、投資助言を目的としていません。</section>
+      <section class="card note"><strong>このページについて</strong><span id="dataNote">表示値は説明用に生成した固定サンプルです。</span> 売買判断や投資助言を目的としていません。</section>
     </aside>
   </div>
   <footer class="footer"><span>Indicators are descriptive, not predictive.</span><a href="/">chikumo.jp に戻る</a></footer>
@@ -47,6 +47,9 @@
 <script>
 "use strict";
 (function(){
+  /* A deployed server-side proxy URL is required before enabling live data.
+     Never put a provider API key in this file. See fx-indicator-api/README.md. */
+  var LIVE_DATA_ENDPOINT="";
   var prices=[];
   for(var i=0;i<120;i++){var trend=i*.018;var wave=Math.sin(i*.21)*.62+Math.sin(i*.057+1.8)*1.05;var pulse=Math.sin(i*.73)*.13;prices.push(147.2+trend+wave+pulse);}
   var canvas=document.getElementById("chart"),ctx=canvas.getContext("2d"),shortInput=document.getElementById("shortMA"),longInput=document.getElementById("longMA");
@@ -62,7 +65,15 @@
     line(prices,"#d9e1ee",1.35);line(short,"#57d7ff",2);line(long,"#ffbc5c",2);
     var latest=prices[prices.length-1],change=latest-prices[prices.length-2],rv=rsi(14);document.getElementById("latestPrice").textContent=latest.toFixed(3);var ce=document.getElementById("priceChange");ce.textContent=(change>=0?"+":"")+change.toFixed(3)+"  (sample)";ce.style.color=change>=0?"var(--green)":"var(--red)";document.getElementById("rsiValue").textContent=rv.toFixed(1);document.getElementById("rsiMarker").style.left=rv+"%";document.getElementById("shortOut").textContent=sw;document.getElementById("longOut").textContent=lw;
   }
-  shortInput.addEventListener("input",draw);longInput.addEventListener("input",draw);window.addEventListener("resize",draw,{passive:true});draw();
+  function tryLiveData(){
+    if(!LIVE_DATA_ENDPOINT)return;
+    fetch(LIVE_DATA_ENDPOINT,{headers:{Accept:"application/json"}}).then(function(res){if(!res.ok)throw new Error("FX proxy "+res.status);return res.json();}).then(function(data){
+      if(!data||data.symbol!=="USD/JPY"||!Array.isArray(data.prices)||data.prices.length<60)throw new Error("Invalid FX payload");
+      var next=data.prices.map(function(point){return Number(point.close);});if(next.some(function(value){return !Number.isFinite(value)||value<=0;}))throw new Error("Invalid FX prices");
+      prices=next.slice(-120);document.getElementById("marketStatus").textContent="1分足の市場データ · "+data.provider;document.getElementById("dataNote").textContent="表示値は市場データ提供元の1分足終値です。最終更新 "+new Date(data.fetchedAt).toLocaleString("ja-JP")+"。リアルタイム取引価格そのものではありません。";draw();
+    }).catch(function(){document.getElementById("marketStatus").textContent="サンプル価格 · 市場データを取得できません";});
+  }
+  shortInput.addEventListener("input",draw);longInput.addEventListener("input",draw);window.addEventListener("resize",draw,{passive:true});draw();tryLiveData();
 }());
 </script>
 </body>
