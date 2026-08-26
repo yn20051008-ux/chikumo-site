@@ -3,168 +3,176 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>タトての使い方 ─ タトて 本棚</title>
-<meta name="description" content="友達の名前を押すと「外へ行こう」の合図が届くアプリ「タトて」でできること。タトる・返す・今の状態・タトメーカー・KYO・タトログ・タトークン・タトワ・今日は停止・Apple Watch。">
+<title>タトての使い方</title>
+<meta name="description" content="タトてでできること。押すと届く、通知から返す、今の状態、KYO、タトログ、タトークン、タトワ、Apple Watch。">
 <meta name="color-scheme" content="light dark">
-<meta property="og:title" content="タトての使い方 ─ タトて 本棚">
-<meta property="og:description" content="友達の名前を押すと「外へ行こう」の合図が届くアプリ「タトて」でできること。タトる・返す・今の状態・タトメーカー・KYO・タトログ・タトークン・タトワ・今日は停止・Apple Watch。">
-<meta property="og:type" content="article">
+<meta property="og:title" content="タトての使い方">
+<meta property="og:description" content="タトてでできること。押すと届く、通知から返す、今の状態、KYO、タトログ、タトークン、タトワ、Apple Watch。">
 <link rel="canonical" href="https://chikumo.jp/Library/tatote/tsukaikata/">
 <link rel="icon" type="image/svg+xml" href="/chikumo.svg">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700;800&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 :root{
-  --paper:#f4ece0; --paper-2:#efe5d6; --ink:#3c332a; --ink-soft:#6f6456;
-  --rule:rgba(60,51,42,0.16); --gold:#a8863f; --pink:#d94f8a;
-  --serif:'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho',serif;
-  --mono:'IBM Plex Mono',monospace;
+  /* Shared/AppTheme.swift の実値 */
+  --bg:#FFF9FC; --surface:#FFFFFF;
+  --pink:#EC5C9E; --soft-pink:#FBE2EE;
+  --lavender:#C894E8; --soft-lavender:#F2E5FA;
+  --ink:#251F2C; --ink-2:#77717D;
+  --sep:#F0E7ED; --green:#67D878;
+  --r-card:26px; --r-btn:22px; --gap:14px; --pad:18px;
+  --sans:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
+  --round:ui-rounded,-apple-system,"Hiragino Sans",sans-serif;
 }
 html,body{min-height:100%;}
-body{font-family:var(--serif);color:var(--ink);line-height:1.95;
-  background:radial-gradient(ellipse 90% 50% at 20% 0%,rgba(255,252,244,0.9),transparent 60%),
-             linear-gradient(180deg,var(--paper) 0%,var(--paper-2) 100%);}
-.wrap{max-width:44rem;margin:0 auto;padding:clamp(1.8rem,5vw,3.6rem) 1.3rem 5rem;}
-a.back{display:inline-block;font-family:var(--mono);font-size:0.7rem;letter-spacing:0.18em;
-  color:var(--ink-soft);text-decoration:none;border-bottom:1px solid var(--rule);padding-bottom:2px;margin-bottom:2.4rem;}
-a.back:hover{color:var(--ink);}
-header{margin-bottom:2.6rem;}
-h1{font-size:clamp(2rem,7vw,3rem);font-weight:800;letter-spacing:0.1em;}
-header .en{font-family:var(--mono);font-size:0.66rem;letter-spacing:0.34em;color:var(--ink-soft);
-  text-transform:uppercase;margin-top:0.7rem;}
-header p.lead{margin-top:1.1rem;font-size:0.95rem;color:var(--ink-soft);}
-h2{font-size:1.18rem;font-weight:800;letter-spacing:0.08em;margin:2.6rem 0 0.9rem;
-  padding-bottom:0.4rem;border-bottom:1px solid var(--rule);}
-h3{font-size:1rem;font-weight:700;margin:1.6rem 0 0.4rem;color:var(--ink);}
-p{margin:0.7rem 0;font-size:0.95rem;}
-ul{margin:0.6rem 0 0.6rem 1.2rem;}
-li{margin:0.35rem 0;font-size:0.95rem;}
-strong{font-weight:800;}
-.em{color:var(--pink);font-weight:800;}
-table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.88rem;}
-th,td{text-align:left;padding:0.6rem 0.7rem;border-bottom:1px solid var(--rule);vertical-align:top;}
-th{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.14em;color:var(--ink-soft);
-  text-transform:uppercase;font-weight:400;}
-td.n{font-family:var(--mono);white-space:nowrap;font-weight:600;}
-.note{margin-top:2.6rem;padding:1rem 1.1rem;border-left:3px solid var(--gold);
-  background:rgba(255,255,255,0.4);font-size:0.86rem;color:var(--ink-soft);}
-footer{margin-top:4rem;padding-top:1.4rem;border-top:1px solid var(--rule);
-  font-family:var(--mono);font-size:0.68rem;letter-spacing:0.12em;color:var(--ink-soft);}
-footer a{color:var(--ink-soft);}
+body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.75;
+  -webkit-font-smoothing:antialiased;}
+.wrap{max-width:30rem;margin:0 auto;padding:calc(var(--pad) * 1.6) var(--pad) 4rem;}
+
+a.back{display:inline-flex;align-items:center;justify-content:center;
+  width:44px;height:44px;border-radius:50%;background:var(--surface);
+  box-shadow:0 6px 14px rgba(236,92,158,0.08);text-decoration:none;
+  color:var(--ink);font-size:20px;margin-bottom:1.4rem;}
+
+header{margin-bottom:1.6rem;}
+h1{font-size:2.1rem;font-weight:800;letter-spacing:0.04em;display:flex;align-items:center;gap:0.4rem;}
+h1 .heart{color:var(--pink);font-size:1.5rem;}
+header p{margin-top:0.2rem;font-size:0.88rem;color:var(--ink-2);}
+
+.card{background:var(--surface);border-radius:var(--r-card);padding:var(--pad);
+  box-shadow:0 6px 14px rgba(236,92,158,0.08);margin-bottom:var(--gap);}
+.card h2{font-size:0.82rem;font-weight:700;color:var(--ink-2);margin-bottom:0.9rem;letter-spacing:0.04em;}
+
+/* 本＝アプリの絵文字の丸 */
+.books{display:grid;grid-template-columns:repeat(3,1fr);gap:0.9rem 0.6rem;}
+.book{display:flex;flex-direction:column;align-items:center;gap:0.45rem;
+  text-decoration:none;color:inherit;}
+.disc{width:74px;height:74px;border-radius:50%;background:var(--surface);
+  display:flex;align-items:center;justify-content:center;font-size:32px;
+  border:1px solid var(--sep);position:relative;transition:transform .16s ease;}
+.book:hover .disc,.book:focus-visible .disc{transform:scale(1.06);}
+.book.open .disc{border:3px solid transparent;
+  background:linear-gradient(var(--surface),var(--surface)) padding-box,
+             linear-gradient(135deg,var(--lavender),var(--pink)) border-box;}
+.book.shut{cursor:default;}
+.book.shut .disc{background:#F6F3F5;border-color:var(--sep);filter:grayscale(1);opacity:0.55;}
+.book.shut .name{color:var(--ink-2);opacity:0.7;}
+.name{font-size:0.74rem;font-weight:700;text-align:center;line-height:1.35;}
+
+/* 鍵の印(語ではなく形で示す) */
+.legend{display:flex;gap:1.2rem;align-items:center;justify-content:center;
+  margin:0.2rem 0 1.2rem;font-size:0.78rem;color:var(--ink-2);}
+.legend span{display:inline-flex;align-items:center;gap:0.35rem;}
+.dot{width:16px;height:16px;border-radius:50%;display:inline-block;}
+.dot.on{background:linear-gradient(135deg,var(--lavender),var(--pink));}
+.dot.off{background:#DCD5DA;}
+
+footer{margin-top:2rem;text-align:center;font-size:0.74rem;color:var(--ink-2);}
+footer a{color:var(--ink-2);}
+
+/* 本のページ */
+.lead{font-size:0.95rem;color:var(--ink-2);margin-bottom:1.2rem;}
+.step{display:flex;align-items:center;gap:0.5rem;font-size:30px;margin:0.2rem 0 0.5rem;flex-wrap:wrap;}
+.step .arrow{color:var(--pink);font-size:20px;font-weight:700;}
+.step .chip{background:var(--soft-pink);border-radius:999px;padding:0.1rem 0.7rem;
+  font-size:0.86rem;font-weight:700;color:var(--ink);}
+.cap{font-size:0.84rem;color:var(--ink-2);}
+.ring{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--round);font-size:2rem;font-weight:800;color:var(--ink);
+  border:9px solid transparent;
+  background:linear-gradient(var(--surface),var(--surface)) padding-box,
+             linear-gradient(135deg,var(--lavender),var(--pink)) border-box;}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:0.55rem 0.9rem;align-items:baseline;}
+.facts .k{font-size:1.5rem;line-height:1.2;}
+.facts .v{font-family:var(--round);font-size:1.05rem;font-weight:700;}
+.facts .v small{display:block;font-family:var(--sans);font-size:0.78rem;font-weight:400;color:var(--ink-2);}
 @media (prefers-color-scheme:dark){
-  :root{--paper:#241f1a;--paper-2:#1b1713;--ink:#e8dfd0;--ink-soft:#a89b8a;
-        --rule:rgba(232,223,208,0.18);--gold:#c4a25e;--pink:#f08cb8;}
+  :root{--bg:#17131A;--surface:#221C26;--ink:#F1EAF2;--ink-2:#A79FAC;--sep:#332B37;
+        --soft-pink:#3A2330;--soft-lavender:#2E2440;}
+  .book.shut .disc{background:#2A232E;}
+  .dot.off{background:#4A414F;}
 }
 
-/* 狭い画面では表を段に崩す。**列にすると1文字ずつ折り返して読めなくなる**
-   (2026-08-26、実際にそうなった)。見出しは隠し、名前の下に値を置く。 */
-@media (max-width:36rem){
-  table{display:block;}
-  thead{display:none;}
-  tbody,tr,td{display:block;width:100%;}
-  tr{padding:0.55rem 0;border-bottom:1px solid var(--rule);}
-  td{border:0;padding:0.05rem 0;}
-  td:first-child{font-size:0.86rem;color:var(--ink-soft);}
-  td.n{font-size:1.02rem;font-weight:700;color:var(--ink);white-space:normal;}
-}
+/* 本のページ: 絵で見せる */
+.panels{display:grid;gap:var(--gap);}
+.panel{background:var(--surface);border-radius:var(--r-card);padding:1.1rem var(--pad);
+  box-shadow:0 6px 14px rgba(236,92,158,0.08);}
+.row{display:flex;align-items:center;gap:0.55rem;flex-wrap:wrap;font-size:34px;line-height:1.25;}
+.row .arrow{color:var(--pink);font-size:22px;font-weight:800;}
+.row .x{font-family:var(--round);font-size:1.4rem;font-weight:800;color:var(--ink);}
+.row .bubble{background:var(--soft-pink);border-radius:16px;padding:0.15rem 0.7rem;
+  font-size:0.95rem;font-weight:700;}
+.row .grey{filter:grayscale(1);opacity:0.45;}
+.tag{margin-top:0.55rem;font-size:0.82rem;color:var(--ink-2);}
+.num{display:flex;align-items:center;gap:0.9rem;}
+.num .ring{width:70px;height:70px;border-width:7px;font-size:1.5rem;flex:none;}
+.num .what{font-size:26px;}
+.num .cap{font-size:0.82rem;color:var(--ink-2);}
+
 </style>
 </head>
 <body>
 <div class="wrap">
-<a class="back" href="/Library/tatote/">&larr; タトて 本棚</a>
-
+<a class="back" href="/Library/tatote/">←</a>
 <header>
-  <h1>使い方</h1>
-  <div class="en">How to use Tatote</div>
-  <p class="lead">タトては、<strong>友達の名前を押すと「外へ行こう」の合図（通知と振動）が届く</strong>アプリです。会話をするための道具ではありません。用件は<span class="em">押す・返す</span>の二手で終わります。</p>
+  <h1>使い方<span class="heart">♡</span></h1>
 </header>
 
-<h2>タトる ── 合図を送る</h2>
-<p>絵文字をひとつ選び、友達の名前を押すだけです。相手の端末が鳴って震えます。</p>
-<ul>
-  <li><strong>絵文字を選ぶ</strong> ── 👌 と 🙅‍♀️ の2つは返事に使うので固定。残り9枠は自由に入れ替えられます</li>
-  <li><strong>連打</strong> ── 同じ相手へ続けて押すと、まとめて1回の合図として届きます（1人へ最大20回）</li>
-  <li><strong>定型文</strong> ── 6つまで登録でき、選んでから押すと本文が付いて届きます（1つ80文字まで）</li>
-</ul>
-
-<h2>返す</h2>
-<p>届いた通知から、アプリを開かずにその場で返せます。ロック画面からも返せます。</p>
-<ul>
-  <li>選べるのは <strong>👌 ／ 🙅‍♀️ ／ 自分で描いた絵文字 ／ 定型文6つ</strong> の9つ</li>
-  <li>キーボードは開きません。<span class="em">用件は選ぶだけで終わる</span>ようにしてあります</li>
-</ul>
-
-<h2>今の状態 ── 押される前に伝える置き手紙</h2>
-<p>いま声をかけてよいかを、押される前に相手へ見せておけます。</p>
-<ul>
-  <li><strong>絵文字24枠</strong> ── 全部その場で入れ替えられます</li>
-  <li><strong>ひとこと6枠</strong> ── 1つ10文字まで。「3階にいる」のような短い置き手紙です</li>
-  <li>枠を長押しすると、書き換えと削除ができます</li>
-</ul>
-
-<h2>タトメーカー ── 自分の絵文字を描く</h2>
-<p>ドット絵を描いて、<strong>合図の絵文字として使えます</strong>。相手の画面にもその絵が出ます。</p>
-
-<h2>KYO ── 今日の1枚</h2>
-<p>一緒にいない日に、今日の写真を1枚だけ友達へ見せられます。</p>
-<ul>
-  <li><strong>1人1枚だけ。履歴は残りません</strong>（新しく上げると前の1枚は差し替わります）</li>
-  <li><strong>日付が変わると消えます。</strong> 消える時刻は、上げた本人の端末の日付で決まります</li>
-  <li>友達のアイコンに色の輪が付き、押すと輪から広がって全画面になります</li>
-  <li><span class="em">Apple Watchでも見られます</span></li>
-</ul>
-
-<h2>タトログ ── 送った・届いたの記録</h2>
-<ul>
-  <li>日ごとに並びます。行を押すと定型文の本文が読めます</li>
-  <li>カレンダーで日を遡れます。検索もできます</li>
-  <li><strong>検索はこの端末の中だけで行います。</strong> サーバーへ問い合わせません</li>
-</ul>
-
-<h2>タトークン ── 押せる回数</h2>
-<ul>
-  <li>上限は20。<strong>日をまたいでも持ち越します</strong>（毎朝リセットされることも、没収されることもありません）</li>
-  <li>足りなくなったら、広告を最後まで見ると<strong>満タンに戻ります</strong>。1日の回数制限はありません</li>
-</ul>
-
-<h2>タトワ ── 定型文で足りないときの通話</h2>
-<p>集合場所が急に変わったときなど、決まった言葉では足りない場面のための通話です。</p>
-<ul>
-  <li><strong>おたがいがスイッチを入れたときだけ</strong>、電話番号が相手に渡ります（片方だけでは渡りません）</li>
-  <li>掛けるときは、<strong>相手のプロフィール画像を右へ引き切ります</strong></li>
-  <li>通話は <strong>FaceTimeオーディオ</strong>で行うので、<span class="em">通話料はかかりません</span></li>
-  <li>iPhoneの「設定 → FaceTime → FaceTime着信用の連絡先情報」で、<strong>登録した番号にチェックが必要です</strong>（入っていないと鳴りません）</li>
-</ul>
-
-<h2>今日は停止</h2>
-<p>今日はそっとしておいてほしい日に使います。</p>
-<ul>
-  <li><strong>その日は誰ともつながりません。</strong> 友達はあなたへタトれません</li>
-  <li><strong>あなたがアプリを開いたことも友達へ知らせません</strong></li>
-  <li>停止中の人へは、あなたの「開いたよ」も届きません</li>
-</ul>
-
-<h2>Apple Watch</h2>
-<p>iPhoneでできることは、ほぼWatchだけでできます。</p>
-<ul>
-  <li>友達一覧・タトる・絵文字を選ぶ・今の状態とひとことを変える・定型文を送る</li>
-  <li>タトログ（本文も読めます）・KYOを見る・残りのタトークン・通知から返す</li>
-  <li><span class="em">タトワもWatchから掛けられます</span></li>
-</ul>
-
-<h2>ウィジェット</h2>
-<p>ホーム画面とロック画面から、アプリを開かずにタトれます。届いたときはライブアクティビティにも出ます。</p>
-
-<div class="note">
-  この本は、アプリの実際のふるまいから起こしています。数や上限は
-  <a href="/Library/tatote/kimarigoto/">決まりごと</a> にまとめてあります。
-  情報の扱いは <a href="https://api-tatoe.chikumo.jp/privacy">プライバシーポリシー</a>、
-  困ったときは <a href="https://api-tatoe.chikumo.jp/support">サポート</a> をご覧ください。
+<div class="panels">
+  <div class="panel">
+    <div class="row">👋<span class="arrow">→</span>👤<span class="arrow">→</span>📳</div>
+    <div class="tag">名前を押すと、合図が届く</div>
+  </div>
+  <div class="panel">
+    <div class="row">👋<span class="x">×20</span></div>
+    <div class="tag">続けて押すと、まとめて届く</div>
+  </div>
+  <div class="panel">
+    <div class="row"><span class="bubble">今から行く</span><span class="arrow">→</span>👤</div>
+    <div class="tag">決めた言葉を6つまで</div>
+  </div>
+  <div class="panel">
+    <div class="row">🔔<span class="arrow">→</span>👌 🙅‍♀️ 💬</div>
+    <div class="tag">通知からその場で返す（9つ）</div>
+  </div>
+  <div class="panel">
+    <div class="row">😴 <span class="bubble">3階にいる</span></div>
+    <div class="tag">押される前に、置き手紙</div>
+  </div>
+  <div class="panel">
+    <div class="row">🎨<span class="arrow">→</span>👋</div>
+    <div class="tag">自分で描いた絵文字で呼ぶ</div>
+  </div>
+  <div class="panel">
+    <div class="row">📷<span class="arrow">→</span>🌅<span class="arrow">→</span>🌙</div>
+    <div class="tag">今日の1枚。日が変わると消える</div>
+  </div>
+  <div class="panel">
+    <div class="row">📅 🔍</div>
+    <div class="tag">送った・届いたを日ごとに</div>
+  </div>
+  <div class="panel">
+    <div class="row"><span class="ring" style="width:60px;height:60px;border-width:6px;font-size:1.2rem">20</span> 📺<span class="arrow">→</span><span class="ring" style="width:60px;height:60px;border-width:6px;font-size:1.2rem">20</span></div>
+    <div class="tag">足りなくなったら、動画で満タン</div>
+  </div>
+  <div class="panel">
+    <div class="row">👤<span class="arrow">→</span><span class="arrow">→</span>📞</div>
+    <div class="tag">画像を右へ引くと通話（通話料なし）</div>
+  </div>
+  <div class="panel">
+    <div class="row">🛑 <span class="grey">👤</span></div>
+    <div class="tag">今日は誰ともつながらない</div>
+  </div>
+  <div class="panel">
+    <div class="row">⌚️ 👋 😴 💬 📅 📷</div>
+    <div class="tag">Watchだけでも、ほぼ全部</div>
+  </div>
+  <div class="panel">
+    <div class="row">📱 👋</div>
+    <div class="tag">ホーム画面から、開かずに</div>
+  </div>
 </div>
 
-<footer>タトて ─ <a href="/Library/tatote/">本棚</a> ・ <a href="https://api-tatoe.chikumo.jp/support">サポート</a> ・ <a href="https://api-tatoe.chikumo.jp/privacy">プライバシー</a> ・ <a href="/">chikumo.jp</a></footer>
+<footer><a href="/Library/tatote/">本棚</a> ・ <a href="/">chikumo.jp</a></footer>
 </div>
 </body>
 </html>
