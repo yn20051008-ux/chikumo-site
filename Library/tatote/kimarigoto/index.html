@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>タトての決まりごと ─ タトて 本棚</title>
+<meta name="description" content="タトての上限・期限・回復の条件。友達6人・タトークン20・招待コード60秒・タトログ365日・KYOは1日で消える・タトワは両者合意。アプリの中の値と機械で照合している。">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="タトての決まりごと ─ タトて 本棚">
+<meta property="og:description" content="タトての上限・期限・回復の条件。友達6人・タトークン20・招待コード60秒・タトログ365日・KYOは1日で消える・タトワは両者合意。アプリの中の値と機械で照合している。">
+<meta property="og:type" content="article">
+<link rel="canonical" href="https://chikumo.jp/Library/tatote/kimarigoto/">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700;800&family=IBM+Plex+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --paper:#f4ece0; --paper-2:#efe5d6; --ink:#3c332a; --ink-soft:#6f6456;
+  --rule:rgba(60,51,42,0.16); --gold:#a8863f; --pink:#d94f8a;
+  --serif:'Shippori Mincho','Hiragino Mincho ProN','Yu Mincho',serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+html,body{min-height:100%;}
+body{font-family:var(--serif);color:var(--ink);line-height:1.95;
+  background:radial-gradient(ellipse 90% 50% at 20% 0%,rgba(255,252,244,0.9),transparent 60%),
+             linear-gradient(180deg,var(--paper) 0%,var(--paper-2) 100%);}
+.wrap{max-width:44rem;margin:0 auto;padding:clamp(1.8rem,5vw,3.6rem) 1.3rem 5rem;}
+a.back{display:inline-block;font-family:var(--mono);font-size:0.7rem;letter-spacing:0.18em;
+  color:var(--ink-soft);text-decoration:none;border-bottom:1px solid var(--rule);padding-bottom:2px;margin-bottom:2.4rem;}
+a.back:hover{color:var(--ink);}
+header{margin-bottom:2.6rem;}
+h1{font-size:clamp(2rem,7vw,3rem);font-weight:800;letter-spacing:0.1em;}
+header .en{font-family:var(--mono);font-size:0.66rem;letter-spacing:0.34em;color:var(--ink-soft);
+  text-transform:uppercase;margin-top:0.7rem;}
+header p.lead{margin-top:1.1rem;font-size:0.95rem;color:var(--ink-soft);}
+h2{font-size:1.18rem;font-weight:800;letter-spacing:0.08em;margin:2.6rem 0 0.9rem;
+  padding-bottom:0.4rem;border-bottom:1px solid var(--rule);}
+h3{font-size:1rem;font-weight:700;margin:1.6rem 0 0.4rem;color:var(--ink);}
+p{margin:0.7rem 0;font-size:0.95rem;}
+ul{margin:0.6rem 0 0.6rem 1.2rem;}
+li{margin:0.35rem 0;font-size:0.95rem;}
+strong{font-weight:800;}
+.em{color:var(--pink);font-weight:800;}
+table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.88rem;}
+th,td{text-align:left;padding:0.6rem 0.7rem;border-bottom:1px solid var(--rule);vertical-align:top;}
+th{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.14em;color:var(--ink-soft);
+  text-transform:uppercase;font-weight:400;}
+td.n{font-family:var(--mono);white-space:nowrap;font-weight:600;}
+.note{margin-top:2.6rem;padding:1rem 1.1rem;border-left:3px solid var(--gold);
+  background:rgba(255,255,255,0.4);font-size:0.86rem;color:var(--ink-soft);}
+footer{margin-top:4rem;padding-top:1.4rem;border-top:1px solid var(--rule);
+  font-family:var(--mono);font-size:0.68rem;letter-spacing:0.12em;color:var(--ink-soft);}
+footer a{color:var(--ink-soft);}
+@media (prefers-color-scheme:dark){
+  :root{--paper:#241f1a;--paper-2:#1b1713;--ink:#e8dfd0;--ink-soft:#a89b8a;
+        --rule:rgba(232,223,208,0.18);--gold:#c4a25e;--pink:#f08cb8;}
+}
+
+/* 狭い画面では表を段に崩す。**列にすると1文字ずつ折り返して読めなくなる**
+   (2026-08-26、実際にそうなった)。見出しは隠し、名前の下に値を置く。 */
+@media (max-width:36rem){
+  table{display:block;}
+  thead{display:none;}
+  tbody,tr,td{display:block;width:100%;}
+  tr{padding:0.55rem 0;border-bottom:1px solid var(--rule);}
+  td{border:0;padding:0.05rem 0;}
+  td:first-child{font-size:0.86rem;color:var(--ink-soft);}
+  td.n{font-size:1.02rem;font-weight:700;color:var(--ink);white-space:normal;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="/Library/tatote/">&larr; タトて 本棚</a>
+
+<header>
+  <h1>決まりごと</h1>
+  <div class="en">The Fixed Numbers</div>
+  <p class="lead">タトての上限・期限・回復の条件を、ひとところに集めた本です。<strong>ここに書いた数がいまの仕様</strong>で、アプリの中の数と機械で照合しています。<span class="em">食い違ったら試験が落ちる</span>ので、片方だけ古いまま残ることはありません。</p>
+</header>
+
+<h2>縁 ── 友達</h2>
+<table>
+  <thead><tr><th>決まりごと</th><th>いま</th></tr></thead>
+  <tbody>
+  <tr><td>友達の数</td><td class="n">6人まで</td></tr>
+  <tr><td>招待コードの有効期限</td><td class="n">60秒</td></tr>
+  <tr><td>招待コードの使用回数</td><td class="n">1回だけ</td></tr>
+  <tr><td>友達申請の有効期限</td><td class="n">24時間</td></tr>
+  <tr><td>使える端末</td><td class="n">合計5台（iPhone 3・Watch 2）</td></tr>
+  </tbody>
+</table>
+<p>招待コードが60秒で消えるのは、<strong>縁は一対一で、その場で渡すもの</strong>だからです。iPhoneの枠とWatchの枠を分けてあるので、<strong>iPhoneを増やしてもWatchが押し出されません</strong>。</p>
+
+<h2>タトークン ── 押せる回数</h2>
+<table>
+  <thead><tr><th>決まりごと</th><th>いま</th></tr></thead>
+  <tbody>
+  <tr><td>上限</td><td class="n">20</td></tr>
+  <tr><td>日をまたいだとき</td><td class="n">そのまま持ち越す</td></tr>
+  <tr><td>1人への連打</td><td class="n">最大20回</td></tr>
+  <tr><td>広告を見たとき</td><td class="n">満タン（20）まで回復</td></tr>
+  <tr><td>広告で回復できる条件</td><td class="n">満タン以外ならいつでも</td></tr>
+  <tr><td>広告回復の1日の回数</td><td class="n">制限なし</td></tr>
+  </tbody>
+</table>
+<p><strong>深夜0時の全回復はありません。没収もしません。</strong> 日付は残数に影響しません。広告は満タン以外なら必ず押せるので、<span class="em">押せなくなって詰むことがありません</span>。</p>
+
+<h2>言葉 ── 送れる中身</h2>
+<table>
+  <thead><tr><th>決まりごと</th><th>いま</th></tr></thead>
+  <tbody>
+  <tr><td>定型文の枠</td><td class="n">6枠</td></tr>
+  <tr><td>定型文の文字数</td><td class="n">1つ80文字</td></tr>
+  <tr><td>ひとことの枠</td><td class="n">6枠</td></tr>
+  <tr><td>ひとことの文字数</td><td class="n">1つ10文字</td></tr>
+  <tr><td>今の状態の絵文字</td><td class="n">24枠（すべて変更可）</td></tr>
+  <tr><td>タトる絵文字</td><td class="n">11枠（👌 と 🙅‍♀️ は固定、9枠は自由）</td></tr>
+  <tr><td>通知から返せる数</td><td class="n">9つ</td></tr>
+  <tr><td>返信の自由入力</td><td class="n">無し（キーボードを開かない）</td></tr>
+  </tbody>
+</table>
+<p>👌 と 🙅‍♀️ を外せないのは、<strong>合意形成の返事</strong>だからです。定型文は「返事の言葉」、ひとことは「置き手紙の言葉」で、別の枠に分けてあります。</p>
+
+<h2>記録</h2>
+<table>
+  <thead><tr><th>決まりごと</th><th>いま</th></tr></thead>
+  <tbody>
+  <tr><td>タトログ（この端末）</td><td class="n">退会するまで消さない</td></tr>
+  <tr><td>タトログ（サーバーの控え）</td><td class="n">365日</td></tr>
+  <tr><td>タトログの検索</td><td class="n">端末の中だけで引く</td></tr>
+  <tr><td>プロフィール写真</td><td class="n">300KBまで</td></tr>
+  </tbody>
+</table>
+<p>サーバーの365日は<strong>機種変更や入れ直しのときの控え</strong>で、本人にだけ表示します。<span class="em">送受信した本文はサーバーに保存しません。</span></p>
+
+<h2>KYO ── 今日の1枚</h2>
+<table>
+  <thead><tr><th>決まりごと</th><th>いま</th></tr></thead>
+  <tbody>
+  <tr><td>持てる枚数</td><td class="n">1人1枚（履歴なし）</td></tr>
+  <tr><td>消えるとき</td><td class="n">日付が変わったら</td></tr>
+  <tr><td>日付を決めるのは</td><td class="n">上げた本人の端末</td></tr>
+  <tr><td>写真の上限</td><td class="n">300KB（自動で収める）</td></tr>
+  <tr><td>見られる人</td><td class="n">承認済みの友達だけ</td></tr>
+  </tbody>
+</table>
+
+<h2>タトワ ── 通話</h2>
+<table>
+  <thead><tr><th>決まりごと</th><th>いま</th></tr></thead>
+  <tbody>
+  <tr><td>番号が渡る条件</td><td class="n">両方がオンにしたときだけ</td></tr>
+  <tr><td>通話の仕組み</td><td class="n">FaceTimeオーディオ</td></tr>
+  <tr><td>通話料</td><td class="n">かからない</td></tr>
+  <tr><td>掛け方</td><td class="n">相手の画像を右へ引き切る</td></tr>
+  <tr><td>オフに戻したら</td><td class="n">以後は渡さない（渡った分は相手に残る）</td></tr>
+  </tbody>
+</table>
+<p><strong>片方だけでは番号は渡りません。</strong> 登録も1対1の合意形成を必ず踏みます。</p>
+
+<h2>今日は停止</h2>
+<table>
+  <thead><tr><th>決まりごと</th><th>いま</th></tr></thead>
+  <tbody>
+  <tr><td>効く範囲</td><td class="n">その日は誰ともつながらない</td></tr>
+  <tr><td>友達からのタト</td><td class="n">届かない</td></tr>
+  <tr><td>「開いたよ」の知らせ</td><td class="n">出さない・受け取らない</td></tr>
+  </tbody>
+</table>
+
+<div class="note">
+  この本の数は、アプリとサーバーの中の値と機械で突き合わせています。
+  どちらかだけを書き換えると試験が落ちるので、<strong>古い数が生き残りません</strong>。
+  使い方は <a href="/Library/tatote/tsukaikata/">使い方</a>、
+  情報の扱いは <a href="https://api-tatoe.chikumo.jp/privacy">プライバシーポリシー</a> をご覧ください。
+</div>
+
+<footer>タトて ─ <a href="/Library/tatote/">本棚</a> ・ <a href="https://api-tatoe.chikumo.jp/support">サポート</a> ・ <a href="https://api-tatoe.chikumo.jp/privacy">プライバシー</a> ・ <a href="/">chikumo.jp</a></footer>
+</div>
+</body>
+</html>
