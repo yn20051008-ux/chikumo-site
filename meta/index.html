@@ -48,7 +48,7 @@
   #title{justify-content:space-between;background:linear-gradient(180deg,rgba(255,255,255,.78) 0%,rgba(255,255,255,0) 30%,rgba(255,255,255,0) 62%,rgba(255,255,255,.82) 100%)}
   #title h1{font-size:min(11vw,52px);letter-spacing:.12em;color:#2b3a66;text-shadow:0 2px 0 #fff,0 4px 18px rgba(120,170,255,.55)}
   #title .sub{font-size:min(4.6vw,19px);font-weight:800;color:#e26a3a;letter-spacing:.08em;margin-top:2px}
-  #title .lead{font-size:min(3.9vw,15px);line-height:1.8;color:#3a4766;max-width:520px;margin-top:10px}
+  #title .lead{font-size:min(3.9vw,15px);line-height:1.8;color:#3a4766;max-width:520px;margin-top:10px;text-shadow:0 0 2px #fff,0 0 3px #fff,0 0 6px #fff,0 0 12px #fff}
   #title .bottom{display:flex;flex-direction:column;align-items:center}
   #title small{display:block;margin-top:10px;font-size:12px;color:#5d6b8c}
   .btn{pointer-events:auto;cursor:pointer;border:none;border-radius:40px;padding:15px 42px;font-size:20px;font-weight:800;color:#3a2410;background:linear-gradient(180deg,#ffe9a8,#ffc861);box-shadow:0 6px 24px rgba(255,190,90,.45),0 0 0 3px rgba(255,255,255,.7);font-family:inherit;letter-spacing:.06em}
@@ -65,7 +65,7 @@
   #dayTrack{position:absolute;left:0;right:0;top:12px;height:3px;border-radius:2px;background:rgba(255,255,255,.55);box-shadow:0 1px 4px rgba(0,0,0,.15)}
   #dayFill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:2px;background:linear-gradient(90deg,#ffd66b,#ff9e5b,#7d8cff)}
   #dayMark{position:absolute;top:0;left:0;font-size:22px;line-height:26px;transform:translateX(-50%)}
-  #hint{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 9%);transform:translateX(-50%);z-index:6;color:#fff;font-size:min(5vw,20px);font-weight:800;text-shadow:0 2px 10px rgba(30,40,80,.6);pointer-events:none;opacity:0;transition:opacity .6s;white-space:nowrap}
+  #hint{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 9%);transform:translateX(-50%);z-index:6;color:#fff;font-size:min(5vw,20px);font-weight:800;text-shadow:0 1px 2px rgba(30,40,80,.85),0 2px 10px rgba(30,40,80,.6);pointer-events:none;opacity:0;transition:opacity .6s;white-space:nowrap}
   #hint.on{opacity:1}
   .hidden{display:none!important}
 </style>
@@ -323,10 +323,11 @@ void main(){
   gl_Position=uVP*w;
   gl_Position.z+=uZOff*gl_Position.w;   // 外殻はわずかに奥へ：くぼみで本体を突き抜ける黒点を抑える
 }`;
-const KOKKO_FS=`
+const KOKKO_FS_HEAD=`
 uniform sampler2D uF; uniform sampler2D uB;
 uniform vec3 uL; uniform vec3 uLC; uniform vec3 uAC; uniform vec3 uCam; uniform vec3 uLineC;
 uniform float uMode; uniform float uBlush;
+uniform float uToy; uniform vec3 uSkyK; uniform vec3 uAmbK; uniform vec3 uBncK; uniform vec3 uLampK; uniform vec3 uLampP; uniform float uExpo;
 uniform sampler2D uId; uniform vec3 uIdMin; uniform vec3 uIdSpan; uniform vec2 uIdInv; uniform float uIdTh; uniform float uIdOn;
 varying vec3 vN; varying vec3 vW; varying vec2 vUV; varying float vZ; varying vec3 vP0;
 void main(){
@@ -343,6 +344,15 @@ void main(){
   float l=dot(N,uL);
   float sh=mix(0.72,1.0,smoothstep(-0.25,0.45,l));
   float rim=pow(1.0-clamp(dot(N,V),0.0,1.0),3.0);
+  if(uToy>0.5){   // おもちゃの部屋：窓の日だまり・空の光・部屋の照り返し・ねむりの灯りで照らし、部屋と同じ映画の色へ
+    vec3 lc=pow(c,vec3(2.2));vec3 Ls=uSunDir;float w=winMask(vW,Ls);
+    float nl=clamp((dot(N,Ls)+0.25)/1.25,0.0,1.0);
+    vec3 lit=uSunCol*w*nl+uAmbK*1.6+uSkyK*(0.55+0.45*clamp(-N.x*0.7+N.y*0.5,0.0,1.0))+uBncK*clamp(0.6-0.6*N.y,0.0,1.0);
+    vec3 lp=uLampP-vW;float ld=length(lp);lit+=uLampK*max(dot(N,lp/ld),0.0)*6.0/(1.0+ld*ld*0.08);
+    vec3 H=normalize(V+Ls);float sp=pow(max(dot(N,H),0.0),40.0)*0.25*w;
+    vec3 o=lc*lit+uSunCol*sp+uSkyK*rim*0.35;
+    o=pow(acesTone(o*uExpo),vec3(1.0/2.2));
+    gl_FragColor=vec4(o,1.0);return;}
   vec3 col=c*(uLC*sh+uAC*0.16)+uAC*rim*0.22;
   gl_FragColor=vec4(col,1.0);
 }`;
@@ -383,7 +393,7 @@ void main(){float r=dot(vQ,vQ);gl_FragColor=vec4(0.08,0.10,0.2,uA*exp(-r*3.2)*st
 
 let GL=null;   // 描画資源
 function initGL(K,texF,texB){
-  const progK=prog(KOKKO_VS,KOKKO_FS), progSky=prog(SKY_VS,SKY_FS), progFl=prog(FLOOR_VS,FLOOR_FS),
+  const progK=prog(KOKKO_VS,WIN_GLSL+KOKKO_FS_HEAD), progSky=prog(SKY_VS,SKY_FS), progFl=prog(FLOOR_VS,FLOOR_FS),
     progPed=prog(PED_VS,PED_FS), progSh=prog(SHADOW_VS,SHADOW_FS);
   const buf=(t,a)=>{const b=gl.createBuffer();gl.bindBuffer(t,b);gl.bufferData(t,a,gl.STATIC_DRAW);return b;};
   const big=K.nV>65535;
@@ -408,6 +418,378 @@ function makeTex(canvas){const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,canvas);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
   gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);return t;}
+
+/* ================= おもちゃの部屋 ─ 距離関数の部屋を光線行進で描き、光を時間で積み重ねる =================
+   設計書：docs/要件定義-メタ空間-おもちゃの部屋.md
+   こっこの目の高さから見た子ども部屋。カメラは止まっている（こっこが回る）ので、毎フレーム1標本ずつの光
+  （窓の形の日の光と柔らかい影・すき間の陰り・1回の照り返し・光の筋）を前のフレームと混ぜて積み重ねる。
+   こっこ本体はラスタで上に描き、照らす光の向き・色・窓の日だまりだけを部屋と揃える（品種は変えない）。 */
+const ROOM_MAXPX=300000;       // 部屋を描く内部解像度の上限（画素数）
+const ROOM_MINPX=50000;        // 重い端末で下げてよい下限（画素数）。ここでも重ければ今までの部屋へ
+const ROOM_FAR=60.0;           // 奥行きの正規化（アルファに入れる）
+/* 窓の形の日の光：左の壁（x=-14）の窓を通って届くか。部屋とこっこの両方の断片で使う */
+const WIN_GLSL=`
+uniform vec3 uSunDir; uniform vec3 uSunCol; uniform vec4 uWin;
+float winMask(vec3 p, vec3 L){
+  if(L.x>-0.02) return 0.0;
+  float t=(-14.0-p.x)/L.x; if(t<0.0) return 0.0;
+  vec3 h=p+L*t; float s=0.05+t*0.014;
+  float m=smoothstep(uWin.x-s,uWin.x+s,h.z)*(1.0-smoothstep(uWin.y-s,uWin.y+s,h.z))
+         *smoothstep(uWin.z-s,uWin.z+s,h.y)*(1.0-smoothstep(uWin.w-s,uWin.w+s,h.y));
+  float cz=(uWin.x+uWin.y)*0.5, cy=(uWin.z+uWin.w)*0.5;
+  m*=smoothstep(0.16-s,0.16+s,abs(h.z-cz))*smoothstep(0.16-s,0.16+s,abs(h.y-cy));
+  return m;
+}
+vec3 acesTone(vec3 x){return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14),0.0,1.0);}`;
+const ROOM_VS=`attribute vec2 aP; varying vec2 vP; void main(){vP=aP;gl_Position=vec4(aP,0.0,1.0);}`;
+const ROOM_FS=WIN_GLSL+`
+uniform vec2 uRes; uniform float uFrame; uniform float uTime; uniform mat4 uInvVP; uniform vec3 uEye;
+uniform sampler2D uPrev; uniform float uBlend; uniform float uStore; uniform float uEnc;
+uniform sampler2D uAtlas;
+uniform vec3 uSky; uniform vec3 uAmb; uniform vec3 uLampCol; uniform vec3 uLampPos;
+uniform vec3 uKc; uniform vec3 uKr; uniform float uKa;   // こっこの近似の楕円体（中心・半径・ヨー）
+varying vec2 vP;
+float hash(vec2 p){vec3 q=fract(vec3(p.xyx)*0.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
+float hash3(vec3 p){return fract(sin(dot(p,vec3(12.9898,78.233,37.719)))*43758.5453);}
+float vnoise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.0-2.0*f);
+  return mix(mix(mix(hash3(i),hash3(i+vec3(1,0,0)),f.x),mix(hash3(i+vec3(0,1,0)),hash3(i+vec3(1,1,0)),f.x),f.y),
+             mix(mix(hash3(i+vec3(0,0,1)),hash3(i+vec3(1,0,1)),f.x),mix(hash3(i+vec3(0,1,1)),hash3(i+vec3(1,1,1)),f.x),f.y),f.z);}
+float seed;
+float rnd(){seed+=1.0;return hash(gl_FragCoord.xy+vec2(seed*17.17,uFrame*3.71+seed));}
+vec2 rotv(vec2 v,float a){float c=cos(a),s=sin(a);return vec2(c*v.x-s*v.y,s*v.x+c*v.y);}
+float sdBox(vec3 p,vec3 b){vec3 q=abs(p)-b;return length(max(q,0.0))+min(max(q.x,max(q.y,q.z)),0.0);}
+float sdRB(vec3 p,vec3 b,float r){return sdBox(p,b-vec3(r))-r;}
+float sdEll(vec3 p,vec3 r){float k0=length(p/r);float k1=length(p/(r*r));return k0*(k0-1.0)/max(k1,1e-4);}
+float sdCapV(vec3 p,float h,float r){p.y-=clamp(p.y,0.0,h);return length(p)-r;}
+/* 置き物（10cm＝1単位。こっこは背丈1.5） */
+const vec3 BK0=vec3(-1.55,0.45,-5.2); const vec3 BK1=vec3(-1.5,1.35,-5.25); const vec3 BK2=vec3(-1.57,2.25,-5.18); const vec3 BK3=vec3(1.35,0.45,-2.6);
+const vec3 BALL=vec3(1.95,0.7,-7.4); const vec3 TOP=vec3(-1.1,0.0,-1.0); const vec3 LAMP=vec3(2.1,0.0,-10.2);
+vec3 blockLocal(vec3 p,int i){
+  if(i==0)return vec3(rotv((p-BK0).xz,0.2),(p-BK0).y).xzy;
+  if(i==1)return vec3(rotv((p-BK1).xz,-0.18),(p-BK1).y).xzy;
+  if(i==2)return vec3(rotv((p-BK2).xz,0.4),(p-BK2).y).xzy;
+  return vec3(rotv((p-BK3).xz,0.65),(p-BK3).y).xzy;}
+vec2 opU(vec2 a,vec2 b){return a.x<b.x?a:b;}
+/* useK：0＝一次光線　1＝陰り・照り返し（こっこを含む）　2＝日の影（床・壁・天井は窓への光を遮れないので外す）　3＝灯りの影（灯り自身も外す） */
+vec2 map(vec3 p,float useK){
+  vec2 r=vec2(1e4,0.0);
+  if(useK<1.5){
+    r=vec2(p.y,1.0);                                       // 床（ラグは床の材質で描く）
+    r=opU(r,vec2(p.z+11.0,3.0));                           // 奥の壁
+    r=opU(r,vec2(p.x+14.0,3.0)); r=opU(r,vec2(14.0-p.x,3.0)); r=opU(r,vec2(24.0-p.y,3.0));
+    r=opU(r,vec2(sdBox(p-vec3(0.0,0.45,-10.92),vec3(14.0,0.45,0.1)),4.0));   // 幅木
+  }
+  if(length(p.xz-vec2(-1.55,-5.2))<1.6){                   // 積み木の塔
+    r=opU(r,vec2(sdRB(blockLocal(p,0),vec3(0.45),0.06),5.0));
+    r=opU(r,vec2(sdRB(blockLocal(p,1),vec3(0.45),0.06),6.0));
+    r=opU(r,vec2(sdRB(blockLocal(p,2),vec3(0.45),0.06),7.0));
+  }else r=opU(r,vec2(length(p.xz-vec2(-1.55,-5.2))-1.2,0.0));
+  r=opU(r,vec2(sdRB(blockLocal(p,3),vec3(0.45),0.06),8.0));
+  r=opU(r,vec2(length(p-BALL)-0.7,9.0));                   // ボール
+  vec3 q=p-TOP;                                            // こま
+  float top=sdEll(q-vec3(0.0,0.42,0.0),vec3(0.5,0.3,0.5));
+  top=min(top,max(max((length(q.xz)-0.42*clamp(q.y/0.35,0.0,1.0))*0.6,-q.y),q.y-0.42));   // 円すいの先（上を閉じる。距離の見積りが大きすぎないよう縮める）
+  top=min(top,sdCapV(q-vec3(0.0,0.5,0.0),0.55,0.07));
+  r=opU(r,vec2(top,10.0));
+  r=opU(r,vec2(sdRB(p-vec3(-8.2,3.0,-9.6),vec3(3.2,3.0,1.25),0.12),11.0));   // たんす
+  vec3 bq=p-vec3(8.8,2.0,-6.8);                            // ベッドのふち（ふとん）
+  float bed=sdRB(bq,vec3(4.0,1.6,3.6),0.5)-0.06*sin(bq.x*2.3+bq.z*0.7)*smoothstep(-1.6,0.4,bq.y);
+  r=opU(r,vec2(bed,12.0));
+  if(useK<2.5){vec3 lq=p-LAMP; r=opU(r,vec2(min(length(lq-vec3(0.0,0.62,0.0))-0.42,sdRB(lq-vec3(0.0,0.12,0.0),vec3(0.3,0.12,0.3),0.05)),13.0));}  // ねむりの灯り
+  if(useK>0.5){vec3 kq=p-uKc;kq.xz=rotv(kq.xz,uKa);r=opU(r,vec2(sdEll(kq,uKr),14.0));}   // こっこ（影と陰りだけに使う。網の回転 rotY の逆＝rotv(+ヨー)）
+  return r;}
+vec3 calcN(vec3 p){vec2 e=vec2(0.0015,-0.0015);
+  return normalize(e.xyy*map(p+e.xyy,0.0).x+e.yyx*map(p+e.yyx,0.0).x+e.yxy*map(p+e.yxy,0.0).x+e.xxx*map(p+e.xxx,0.0).x);}
+float march(vec3 ro,vec3 rd,float tmax,float useK,out float id){float t=0.02;id=-1.0;
+  for(int i=0;i<64;i++){if(useK>0.5&&i>=32)break;vec2 h=map(ro+rd*t,useK);if(h.x<0.0015*t){id=h.y;return t;}t+=h.x;if(t>tmax)break;}return -1.0;}
+/* 柔らかい影：一歩ごとの最短距離だけを見ると、影の中に光の漏れた細い弧が出る。前の一歩の距離と合わせて「光線が物にいちばん近づいた所」を見積もる（Aaltonen の改良版） */
+float softSh(vec3 ro,vec3 rd,float tmax,float kind){float res=1.0,t=0.03+0.06*rnd(),ph=1e4;
+  for(int i=0;i<32;i++){float h=map(ro+rd*t,kind).x;float y=h*h/(2.0*ph);float d=sqrt(max(h*h-y*y,0.0));
+    res=min(res,7.0*d/max(t-y,1e-3));ph=h;t+=clamp(h,0.03,1.0);
+    if(res<0.005||t>tmax||ro.y+rd.y*t>6.4)break;}                 // たんすの天板（y=6）より上には遮る物がない
+  res=clamp(res,0.0,1.0);return res*res*(3.0-2.0*res);}
+float calcAO(vec3 p,vec3 n){float o=0.0,s=1.0;
+  for(int i=0;i<5;i++){float h=0.04+0.16*float(i);o+=(h-map(p+n*h,1.0).x)*s;s*=0.72;}return clamp(1.0-1.6*o,0.0,1.0);}
+/* 材質：色・ざらつき・自ら光る分 */
+void mat(float id,vec3 p,vec3 n,out vec3 alb,out float rough,out vec3 emi){
+  emi=vec3(0.0);rough=0.6;
+  if(id<1.5){
+    float rr=length(p.xz);
+    if(rr<3.25){                                            // 編んだラグ
+      float band=floor(rr/0.38);float a=atan(p.z,p.x);
+      vec3 c0=vec3(0.92,0.84,0.66),c1=vec3(0.42,0.66,0.38),c2=vec3(0.95,0.50,0.16),c3=vec3(0.36,0.62,0.88);
+      float k=mod(band,4.0);vec3 c=k<0.5?c0:k<1.5?c1:k<2.5?c0*0.96:k<3.5?c2:c3;
+      if(rr<0.9)c=c0;
+      float fade=1.0-smoothstep(6.0,12.0,length(p-uEye));
+      float braid=1.0-0.16*fade*(0.5+0.5*sin(a*rr*9.0+rr*22.0))*(0.6+0.4*sin(rr*16.5));
+      alb=c*braid*(1.0-0.25*smoothstep(3.05,3.25,rr));rough=1.0;return;}
+    float w=1.05, row=floor(p.z/w), fz=fract(p.z/w);       // 木の床：板と木目とすき間
+    float off=hash(vec2(row,7.0))*9.0, seg=floor((p.x+off)/7.5), fx=fract((p.x+off)/7.5);
+    float pv=hash(vec2(row,seg));
+    float grain=vnoise(vec3((p.x+off)*0.35,p.z*7.0+row*13.0,pv*9.0))*0.6+vnoise(vec3((p.x+off)*1.4,p.z*22.0,row))*0.4;
+    vec3 c=mix(vec3(0.38,0.20,0.09),vec3(0.66,0.40,0.19),pv*0.6+grain*0.5);
+    float gap=smoothstep(0.0,0.025,fz)*smoothstep(1.0,0.975,fz)*smoothstep(0.0,0.006,fx)*smoothstep(1.0,0.994,fx);
+    alb=c*mix(0.35,1.0,gap);rough=0.32+0.25*grain;return;}
+  if(id<3.5){                                               // 壁紙：やわらかい縦じまと小さな点
+    float st=smoothstep(0.42,0.5,abs(fract(p.x*0.55)-0.5));
+    vec2 g=fract(vec2(p.x*0.55,p.y*0.55+0.25*floor(p.x*0.55)))-0.5;
+    float dot1=1.0-smoothstep(0.05,0.08,length(g));
+    alb=mix(vec3(0.62,0.80,0.70),vec3(0.80,0.90,0.80),st)*(1.0-0.10*dot1);rough=0.95;
+    if(p.x<-13.9)alb=vec3(0.86,0.82,0.74);
+    return;}
+  if(id<4.5){alb=vec3(0.92,0.90,0.86);rough=0.3;return;}      // 幅木
+  if(id<8.5){                                                // 積み木：塗った木と、面の絵文字（世界標準の絵）
+    int bi=int(id-5.0+0.5);vec3 q=blockLocal(p,bi)/0.45;vec3 a=abs(q);
+    vec2 uv;float face;
+    if(a.x>a.y&&a.x>a.z){uv=q.zy;face=q.x>0.0?0.0:1.0;}else if(a.y>a.z){uv=q.xz;face=q.y>0.0?2.0:3.0;}else{uv=q.xy;face=q.z>0.0?4.0:5.0;}
+    vec3 base=bi==0?vec3(0.78,0.13,0.10):bi==1?vec3(0.12,0.32,0.78):bi==2?vec3(0.98,0.72,0.12):vec3(0.16,0.58,0.30);
+    float inner=step(max(abs(uv.x),abs(uv.y)),0.72);
+    vec3 c=mix(base,vec3(0.95,0.90,0.78),inner);
+    float ei=mod(float(bi)*2.0+face,4.0);
+    vec4 em=texture2D(uAtlas,vec2((ei+0.5+uv.x*0.36)/4.0,0.5-uv.y*0.36));
+    c=mix(c,em.rgb,em.a*inner);
+    alb=c;rough=0.45;return;}
+  if(id<9.5){                                                // ボール：つやのある二色
+    vec3 d=normalize(p-BALL);float s=sin(atan(d.z,d.x)*3.0+d.y*1.5);
+    alb=mix(vec3(0.95,0.42,0.12),vec3(0.96,0.92,0.82),smoothstep(-0.05,0.05,s));rough=0.18;return;}
+  if(id<10.5){vec3 q=p-TOP;float b=sin(q.y*18.0);alb=q.y>0.62?vec3(0.55,0.32,0.15):mix(vec3(0.82,0.15,0.12),vec3(0.95,0.85,0.55),smoothstep(-0.3,0.3,b));rough=0.3;return;}
+  if(id<11.5){vec3 q=p-vec3(-8.2,3.0,-9.6);float dr=smoothstep(0.0,0.04,abs(fract(q.y/2.0+0.5)-0.5)*2.0);
+    float gr=vnoise(vec3(q.x*0.6,q.y*5.0,1.0));alb=vec3(0.30,0.16,0.08)*(0.75+0.35*gr)*mix(0.4,1.0,dr);rough=0.45;return;}
+  if(id<12.5){vec2 c=floor(vec2(p.x,p.z)*0.9+vec2(p.y*0.4));float k=mod(c.x+c.y,3.0);
+    alb=k<0.5?vec3(0.86,0.78,0.88):k<1.5?vec3(0.95,0.90,0.80):vec3(0.72,0.84,0.90);rough=1.0;return;}
+  if(id<13.5){vec3 q=p-LAMP;if(q.y>0.25){alb=vec3(0.95,0.92,0.82);emi=uLampCol*1.6;}else alb=vec3(0.75,0.6,0.4);rough=0.5;return;}
+  alb=vec3(0.9,0.85,0.7);
+}
+float ggx(vec3 n,vec3 v,vec3 l,float r){vec3 h=normalize(v+l);float a=r*r;float nh=max(dot(n,h),0.0);float d=a*a/(3.14159*pow(nh*nh*(a*a-1.0)+1.0,2.0));
+  float f=0.04+0.96*pow(1.0-max(dot(h,v),0.0),5.0);return d*f*0.25;}
+vec3 lightAt(vec3 p,vec3 n,vec3 v,vec3 alb,float rough,bool full){
+  vec3 L=uSunDir;float w=winMask(p,L);vec3 c=vec3(0.0);
+  if(w>0.002){float tw=(-14.0-p.x)/L.x;float sh=full?softSh(p+n*0.03,L,tw-0.2,2.0):1.0;float nl=max(dot(n,L),0.0);
+    c+=uSunCol*w*sh*(alb*nl+(full?vec3(ggx(n,v,L,max(rough,0.08))*nl):vec3(0.0)));}
+  vec3 lp=uLampPos-p;float ld=length(lp);vec3 ll=lp/ld;float ln=max(dot(n,ll),0.0);
+  if(dot(uLampCol,uLampCol)>1e-4&&ln>0.0){float sh=full?softSh(p+n*0.03,ll,ld-0.5,3.0):1.0;c+=uLampCol*alb*ln*sh*6.0/(1.0+ld*ld*0.08);}
+  return c;}
+void main(){
+  seed=0.0;
+  vec2 jit=vec2(rnd(),rnd())-0.5;
+  vec2 ndc=((gl_FragCoord.xy+jit)/uRes)*2.0-1.0;
+  vec4 a=uInvVP*vec4(ndc,-1.0,1.0),b=uInvVP*vec4(ndc,1.0,1.0);
+  vec3 ro=uEye, rd=normalize(b.xyz/b.w-a.xyz/a.w);
+  float id;float t=march(ro,rd,80.0,0.0,id);
+  vec3 col;float depth=ROOM_FAR_;
+  if(t<0.0){col=uAmb;}
+  else{
+    vec3 p=ro+rd*t;vec3 n=calcN(p);vec3 v=-rd;depth=t;
+    vec3 alb;float rough;vec3 emi;mat(id,p,n,alb,rough,emi);
+    float ao=calcAO(p,n);
+    col=lightAt(p,n,v,alb,rough,true);
+    col+=alb*mix(0.3,1.0,ao)*(uAmb+uSky*0.8*(0.35+0.65*clamp(-n.x*0.7+n.y*0.5,0.0,1.0)));   // 窓からの空の光と部屋の照り返しの地（陰でも真っ黒にしない）
+    // 1回の照り返し：余弦重みのランダムな方向へ一本
+    float r1=rnd(),r2=rnd();float ph=6.2831853*r1,sr=sqrt(r2);
+    vec3 tt=normalize(abs(n.y)<0.9?cross(n,vec3(0,1,0)):cross(n,vec3(1,0,0)));vec3 bb=cross(n,tt);
+    vec3 d=normalize(tt*cos(ph)*sr+bb*sin(ph)*sr+n*sqrt(1.0-r2));
+    float id2;float t2=march(p+n*0.03,d,14.0,1.0,id2);
+    vec3 bounce=uAmb*1.1;
+    if(t2>0.0&&id2<13.9){vec3 q=p+n*0.03+d*t2;vec3 nq=calcN(q);vec3 a2;float r2_;vec3 e2;mat(id2,q,nq,a2,r2_,e2);
+      bounce=min(lightAt(q,nq,-d,a2,1.0,false)+a2*(uAmb+uSky*0.5)+e2,vec3(0.9));}
+    else if(t2>0.0)bounce=uAmb*0.6;
+    col+=alb*bounce*0.85*mix(0.4,1.0,ao);
+    col+=emi;
+  }
+  // 光の筋：視線上の数点で窓の光を受けるほこり
+  float tend=t<0.0?40.0:min(t,40.0);float j=rnd();vec3 vs=vec3(0.0);
+  for(int i=0;i<7;i++){float ts=tend*(float(i)+j)/7.0;vec3 s=ro+rd*ts;float w=winMask(s,uSunDir);
+    if(w>0.0){float dn=vnoise(s*0.9+vec3(uTime*0.05,uTime*0.02,0.0));vs+=w*dn*dn;}}
+  float g=0.55,cth=dot(rd,uSunDir);float hg=(1.0-g*g)/pow(1.0+g*g-2.0*g*cth,1.5)*0.08;
+  col+=uSunCol*vs*tend/7.0*0.011*(0.3+hg*6.0);
+  vec4 prev=texture2D(uPrev,gl_FragCoord.xy/uRes);
+  vec4 cur=vec4(col*uStore,depth/ROOM_FAR_);
+  if(uEnc>0.5){vec3 lin=mix(prev.rgb*prev.rgb,cur.rgb,uBlend);vec4 o=vec4(sqrt(max(lin,0.0)),mix(prev.a,cur.a,uBlend));
+    o.rgb+=(hash(gl_FragCoord.xy*1.37+vec2(uFrame*7.13,uFrame*3.31))-0.5)/255.0;gl_FragColor=o;}
+  else gl_FragColor=mix(prev,cur,uBlend);
+}`.replace(/ROOM_FAR_/g,ROOM_FAR.toFixed(1));
+const POST_FS=`
+uniform sampler2D uAcc; uniform vec2 uAccRes; uniform float uFocus; uniform float uAper; uniform float uExpo; uniform float uStoreInv; uniform float uEnc; uniform float uCocK;
+varying vec2 vP;
+vec3 aces(vec3 x){return clamp((x*(2.51*x+0.03))/(x*(2.43*x+0.59)+0.14),0.0,1.0);}
+vec4 rd(vec2 uv){vec4 s=texture2D(uAcc,uv);if(uEnc>0.5)s.rgb*=s.rgb;return s;}
+void main(){
+  vec2 uv=vP*0.5+0.5;
+  vec4 c0=rd(uv);float d0=c0.a*ROOM_FAR_;
+  {vec2 e=1.0/uAccRes;vec3 n1=rd(uv+vec2(e.x,0.0)).rgb,n2=rd(uv-vec2(e.x,0.0)).rgb,n3=rd(uv+vec2(0.0,e.y)).rgb,n4=rd(uv-vec2(0.0,e.y)).rgb;
+   vec3 mx=max(max(n1,n2),max(n3,n4));c0.rgb=min(c0.rgb,mx*1.25+0.02);}    // 周りより飛び抜けた1画素（蛍）だけを削る
+  float coc0=clamp(abs(d0-uFocus)/max(d0,0.5)*uAper,0.0,1.0);       // ピントからのずれ（0〜1）
+  vec2 px=1.0/uAccRes;float rad=coc0*uCocK;
+  vec3 sum=c0.rgb;float ws=1.0;
+  for(int i=0;i<20;i++){float fi=float(i);float r=sqrt((fi+0.5)/20.0)*rad;float a=fi*2.39996;
+    vec2 o=vec2(cos(a),sin(a))*r*px;vec4 s=rd(uv+o);float ds=s.a*ROOM_FAR_;
+    float cs=clamp(abs(ds-uFocus)/max(ds,0.5)*uAper,0.0,1.0)*uCocK;
+    float w=ds<d0-0.3?smoothstep(r-1.0,r+1.0,cs):1.0;               // 手前でピントの合った物を奥のぼけへにじませない
+    sum+=s.rgb*w;ws+=w;}
+  vec3 c=sum/ws*uStoreInv;
+  c=aces(c*uExpo);
+  float lu=dot(c,vec3(0.2126,0.7152,0.0722));c=clamp(mix(vec3(lu),c,1.12),0.0,1.0);   // 彩度を少し上げる
+  c=pow(c,vec3(1.0/2.2));
+  c=c*c*(3.0-2.0*c)*0.35+c*0.65;                                    // ゆるいS字で陰を深く
+  gl_FragColor=vec4(c,1.0);
+}`.replace(/ROOM_FAR_/g,ROOM_FAR.toFixed(1));
+const FIN_FS=`
+uniform sampler2D uPost; uniform float uTime; varying vec2 vP;
+float hash(vec2 p){vec3 q=fract(vec3(p.xyx)*0.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
+void main(){
+  vec2 uv=vP*0.5+0.5;vec3 c=texture2D(uPost,uv).rgb;
+  vec2 q=uv-0.5;c*=1.0-0.32*dot(q,q)*1.6;                               // ふちを少し落とす
+  c+=(hash(gl_FragCoord.xy+uTime*60.0)-0.5)*0.014;                      // 映画の粒子
+  gl_FragColor=vec4(c,1.0);
+}`;
+const MOTE_N=260;
+const MOTE_VS=WIN_GLSL+`
+attribute vec4 aM; uniform mat4 uVP; uniform float uTime; uniform vec3 uEye; uniform float uFocus; uniform float uDpr;
+varying float vA; varying float vD;
+void main(){
+  vec3 b=vec3(-6.0+aM.x*10.0,0.2+aM.y*5.5,-9.0+aM.z*12.0);
+  float t=uTime*0.12+aM.w*40.0;
+  vec3 p=b+vec3(sin(t*0.7+aM.x*9.0)*0.6,sin(t*0.45+aM.y*7.0)*0.35+0.25*sin(t*0.13),cos(t*0.6+aM.z*8.0)*0.6);
+  gl_Position=uVP*vec4(p,1.0);
+  float d=length(p-uEye);vD=d;float coc=clamp(abs(d-uFocus)/max(d,0.5)*0.9,0.0,1.0);
+  float sz=(2.2+coc*18.0)*uDpr;gl_PointSize=sz;
+  float w=winMask(p,uSunDir);float tw=0.6+0.4*sin(uTime*1.7+aM.w*30.0);
+  vA=w*tw*clamp(dot(uSunCol,vec3(0.3,0.5,0.2))*0.22,0.0,1.4)*clamp(9.0/(sz*sz/(uDpr*uDpr)),0.07,1.0);
+}`;
+const MOTE_FS=`uniform sampler2D uAcc; uniform vec2 uScr; varying float vA; varying float vD;
+void main(){vec2 q=gl_PointCoord*2.0-1.0;float r=dot(q,q);if(r>1.0)discard;
+  if(vD>texture2D(uAcc,gl_FragCoord.xy/uScr).a*ROOM_FAR_+0.3)discard;   // 部屋の物の奥にある粒は描かない
+  gl_FragColor=vec4(vec3(1.0,0.93,0.78)*vA*(1.0-r*0.6),1.0);}`.replace(/ROOM_FAR_/g,ROOM_FAR.toFixed(1));
+/* 一日の光（おもちゃの部屋）：太陽の向き・色、空の光、部屋の地の光、ねむりの灯り、露出 */
+const TOYK=[
+  {t:0.00,L:[-0.58,0.44,-0.42],sun:[4.0,3.2,2.25],sky:[0.22,0.34,0.62],amb:[0.035,0.035,0.04],lamp:0.0,exp:0.9},
+  {t:0.30,L:[-0.62,0.60,-0.30],sun:[4.0,3.65,3.05],sky:[0.24,0.38,0.66],amb:[0.04,0.04,0.045],lamp:0.0,exp:0.76},
+  {t:0.62,L:[-0.80,0.36,-0.16],sun:[4.6,2.65,1.05],sky:[0.22,0.24,0.40],amb:[0.035,0.03,0.03],lamp:0.0,exp:0.95},
+  {t:0.82,L:[-0.92,0.30,-0.05],sun:[2.6,0.9,0.35],sky:[0.20,0.14,0.20],amb:[0.05,0.04,0.045],lamp:0.15,exp:1.25},
+  {t:1.00,L:[-0.62,0.58,-0.40],sun:[0.16,0.22,0.42],sky:[0.025,0.04,0.09],amb:[0.008,0.009,0.016],lamp:0.75,exp:1.05}];
+function toyLight(u){u=clamp(u,0,1);let i=0;while(i<TOYK.length-2&&u>TOYK[i+1].t)i++;const a=TOYK[i],b=TOYK[i+1],k=clamp((u-a.t)/(b.t-a.t),0,1),s=k*k*(3-2*k);
+  const o={};for(const n of['L','sun','sky','amb'])o[n]=a[n].map((v,j)=>lerp(v,b[n][j],s));o.lamp=lerp(a.lamp,b.lamp,s);o.exp=lerp(a.exp,b.exp,s);
+  const l=Math.hypot(...o.L);o.L=o.L.map(v=>v/l);o.lampCol=[1.0*o.lamp,0.62*o.lamp,0.28*o.lamp];return o;}
+const WIN_RECT=[-9.0,-2.0,5.0,13.0];   // 窓：z0,z1,y0,y1（左の壁 x=-14）
+let ROOM={mode:'simple',scale:0,lvl:1,eff:1,lvlMin:0.1,lock:false,slow:false,sum:0,n:0,skip:1,long:0,prevAvg:0,prevLvl:1,frames:0,ping:0,acc:[],post:null,w:0,h:0,half:false,key:'',why:''};
+function roomAtlas(){const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');
+  x.textAlign='center';x.textBaseline='middle';x.font='96px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  ['🐣','🌱','⭐','🍎'].forEach((e,i)=>x.fillText(e,64+i*128,68));return c;}
+/* 内部解像度＝画面の大きさで決まる上限（30万画素・CSS画素の0.75倍）×重さの見張りが決める段（lvl）。下限は5万画素 */
+function roomScale(){
+  const area=ROOM.cssW*ROOM.cssH,base=Math.min(0.75,Math.sqrt(ROOM_MAXPX/area));
+  ROOM.lvlMin=Math.min(1,Math.sqrt(ROOM_MINPX/area)/base);ROOM.eff=clamp(ROOM.lvl,ROOM.lvlMin,1);ROOM.scale=base*ROOM.eff;}
+function roomWatchReset(){ROOM.sum=0;ROOM.n=0;ROOM.prevAvg=0;ROOM.skip=0.3;ROOM.long=0;}
+function freeTargets(){ROOM.acc.concat(ROOM.post?[ROOM.post]:[]).forEach(a=>{gl.deleteFramebuffer(a.fb);gl.deleteTexture(a.tx);});ROOM.acc=[];ROOM.post=null;ROOM.w=ROOM.h=0;}
+function roomTargets(){
+  const w=Math.max(16,Math.round(ROOM.cssW*ROOM.scale)),h=Math.max(16,Math.round(ROOM.cssH*ROOM.scale));
+  if(ROOM.w===w&&ROOM.h===h&&ROOM.acc.length)return true;
+  freeTargets();
+  const mk=type=>{const tx=gl.createTexture();gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,tx);
+    gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,w,h,0,gl.RGBA,type,null);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+    const fb=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,fb);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tx,0);
+    const ok=gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE;gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.bindTexture(gl.TEXTURE_2D,null);
+    if(!ok){gl.deleteFramebuffer(fb);gl.deleteTexture(tx);return null;}
+    gl.bindFramebuffer(gl.FRAMEBUFFER,fb);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+    return{fb,tx};};
+  const pair=type=>{const a=mk(type),b=a&&mk(type);if(a&&!b){gl.deleteFramebuffer(a.fb);gl.deleteTexture(a.tx);}return b?[a,b]:null;};
+  let acc=ROOM.halfType?pair(ROOM.halfType):null;ROOM.half=!!acc;
+  if(!acc)acc=pair(gl.UNSIGNED_BYTE);
+  const post=acc&&mk(gl.UNSIGNED_BYTE);           // 仕上げ（ぼけ・トーンマップ後）は画面の色なので8ビットで足りる
+  if(!acc||!post){ROOM.acc=acc||[];ROOM.post=post;freeTargets();return false;}
+  ROOM.acc=acc;ROOM.post=post;ROOM.w=w;ROOM.h=h;ROOM.frames=0;ROOM.ping=0;ROOM.key='';return true;}
+function disposeRoom(){
+  try{freeTargets();
+    [ROOM.prog,ROOM.postP,ROOM.fin,ROOM.mote].forEach(q=>{if(q)gl.deleteProgram(q.p);});
+    if(ROOM.atlas)gl.deleteTexture(ROOM.atlas);if(ROOM.moteB)gl.deleteBuffer(ROOM.moteB);}catch(e){}
+  ROOM.prog=ROOM.postP=ROOM.fin=ROOM.mote=ROOM.atlas=ROOM.moteB=null;}
+function initRoom(){
+  try{
+    const ext=gl.getExtension('OES_texture_half_float'),lin=gl.getExtension('OES_texture_half_float_linear');
+    gl.getExtension('EXT_color_buffer_half_float');
+    ROOM.halfType=(ext&&lin)?ext.HALF_FLOAT_OES:0;
+    ROOM.prog=prog(ROOM_VS,ROOM_FS);ROOM.postP=prog(ROOM_VS,POST_FS);ROOM.fin=prog(ROOM_VS,FIN_FS);
+    ROOM.atlas=makeTex(roomAtlas());
+    ROOM.mote=prog(MOTE_VS,MOTE_FS);const md=new Float32Array(MOTE_N*4);for(let i=0;i<md.length;i++)md[i]=Math.random();
+    ROOM.moteB=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,ROOM.moteB);gl.bufferData(gl.ARRAY_BUFFER,md,gl.STATIC_DRAW);
+    ROOM.cssW=vw;ROOM.cssH=vh;ROOM.lvl=1;roomScale();ROOM.skip=1;
+    if(!roomTargets())throw new Error('fbo');
+    ROOM.mode='toy';
+  }catch(e){console.warn('おもちゃの部屋→ふつうの部屋',e);disposeRoom();ROOM.mode='simple';ROOM.why=String(e).slice(0,200);}
+}
+/* 重さの見張り（前提A の赦の経路）：2秒・8フレームごとの平均で判定。
+   遅ければ、重さは画素数に比例するとして目標（50fps）に届く段を見積もって下げる。
+   下げても速くならず、しかも24fps以上出ているなら、描画の重さでなくフレームの上限（省電力モードの30fps など）なので、元の段に戻して止める。
+   下限（5万画素）でも24fpsに届かなければ、今までの部屋へ。 */
+function roomWatch(dt){
+  if(ROOM.mode!=='toy'||ROOM.lock)return;
+  if(ROOM.slow)dt=0.03+0.1*ROOM.eff*ROOM.eff;     // 検証用：画素数に比例して重い端末を模す
+  if(ROOM.skip>0){ROOM.skip-=Math.min(dt,0.5);return;}   // 起動直後・段を変えた直後は数えない（秒で数える）
+  if(dt>0.5){ROOM.long++;if(ROOM.long<3)return;dt=0.5;}   // 一瞬の長いフレーム（タブ切り替え）は数えない。続けば、とても重い端末
+  else ROOM.long=0;
+  ROOM.sum+=dt;ROOM.n++;
+  if(ROOM.sum<2||ROOM.n<4)return;
+  const avg=ROOM.sum/ROOM.n;ROOM.sum=0;ROOM.n=0;
+  if(avg<=1/34){ROOM.prevAvg=0;return;}
+  if(ROOM.prevAvg&&avg>ROOM.prevAvg*0.85&&ROOM.prevAvg<=1/24){ROOM.lvl=ROOM.prevLvl;roomScale();ROOM.lock=true;ROOM.why='cap';return;}
+  if(ROOM.lvl<=ROOM.lvlMin+1e-3){
+    if(avg>1/24){disposeRoom();ROOM.mode='simple';ROOM.why='slow';}else{ROOM.lock=true;ROOM.why='floor';}
+    return;}
+  ROOM.prevAvg=avg;ROOM.prevLvl=ROOM.lvl;
+  ROOM.lvl=Math.max(ROOM.lvlMin,ROOM.lvl*clamp(Math.sqrt((1/50)/avg),0.45,0.8));roomScale();ROOM.skip=0.2;}
+function renderRoom(u){
+  const tl=toyLight(u),G=ROOM;
+  if(G.cssW!==vw||G.cssH!==vh){G.cssW=vw;G.cssH=vh;roomScale();roomWatchReset();if(G.lock&&G.why==='floor')G.lock=false;}
+  if(!roomTargets()){disposeRoom();G.mode='simple';G.why='fbo';return null;}
+  // 止まっている画面（タイトル・おやすみ）で十分に積んだら、光線を辿るのを休む（端末を熱くしない）。
+  // 向きは数えない：こっこの影の楕円体はほぼ丸い（幅0.50・奥行き0.52）ので、タイトルでこっこが回っても部屋の絵は変わらない
+  const key=u.toFixed(4)+'|'+S.hop.toFixed(3);
+  const rest=G.still&&G.frames>=160&&key===G.key;G.key=key;
+  if(!rest){
+    const src=G.acc[G.ping],dst=G.acc[1-G.ping];
+    gl.bindFramebuffer(gl.FRAMEBUFFER,dst.fb);gl.viewport(0,0,G.w,G.h);gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);
+    let p=G.prog;gl.useProgram(p.p);gl.bindBuffer(gl.ARRAY_BUFFER,GL.quad);gl.enableVertexAttribArray(p.a.aP);gl.vertexAttribPointer(p.a.aP,2,gl.FLOAT,false,0,0);
+    gl.uniform2f(p.u.uRes,G.w,G.h);gl.uniform1f(p.u.uFrame,G.frames%997);gl.uniform1f(p.u.uTime,performance.now()/1000%1000);
+    gl.uniformMatrix4fv(p.u.uInvVP,false,M4.inv(cam.VP));gl.uniform3fv(p.u.uEye,cam.eye);
+    gl.uniform3fv(p.u.uSunDir,tl.L);gl.uniform3fv(p.u.uSunCol,tl.sun);gl.uniform4fv(p.u.uWin,WIN_RECT);
+    gl.uniform3fv(p.u.uSky,tl.sky);gl.uniform3fv(p.u.uAmb,tl.amb);gl.uniform3fv(p.u.uLampCol,tl.lampCol);gl.uniform3f(p.u.uLampPos,2.1,0.62,-10.2);
+    const kr=[K.width*0.42,MODEL_H*0.5,K.zMax*0.92];gl.uniform3f(p.u.uKc,0,MODEL_H*0.5+S.hop,0);gl.uniform3fv(p.u.uKr,kr);gl.uniform1f(p.u.uKa,S.yaw+idleSway());
+    // 8ビットの描画先は小さな更新が丸めで消えるので、積み重ねを浅くする（前提B）
+    const blend=Math.max(1/(G.frames+1),G.half?(G.still?1/96:0.14):(G.still?1/16:0.25));
+    gl.uniform1f(p.u.uBlend,blend);gl.uniform1f(p.u.uStore,G.half?1:0.25);gl.uniform1f(p.u.uEnc,G.half?0:1);
+    gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,src.tx);gl.uniform1i(p.u.uPrev,3);
+    gl.activeTexture(gl.TEXTURE4);gl.bindTexture(gl.TEXTURE_2D,G.atlas);gl.uniform1i(p.u.uAtlas,4);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    G.ping=1-G.ping;G.frames++;
+    // 仕上げ一段目（低い解像度）：蛍の抑え・ぼけ・トーンマップ・色
+    gl.bindFramebuffer(gl.FRAMEBUFFER,G.post.fb);gl.viewport(0,0,G.w,G.h);
+    p=G.postP;gl.useProgram(p.p);gl.enableVertexAttribArray(p.a.aP);gl.vertexAttribPointer(p.a.aP,2,gl.FLOAT,false,0,0);
+    gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,G.acc[G.ping].tx);gl.uniform1i(p.u.uAcc,3);
+    gl.uniform2f(p.u.uAccRes,G.w,G.h);gl.uniform1f(p.u.uFocus,Math.hypot(cam.eye[0],cam.eye[1]-0.75,cam.eye[2]));gl.uniform1f(p.u.uAper,G.aper==null?0.9:G.aper);
+    gl.uniform1f(p.u.uExpo,tl.exp);gl.uniform1f(p.u.uStoreInv,G.half?1:4);gl.uniform1f(p.u.uEnc,G.half?0:1);gl.uniform1f(p.u.uCocK,9.0*G.eff);
+    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  }
+  // 仕上げ二段目（画面の解像度）：拡大・ふち落とし・粒子
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,cv.width,cv.height);gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);
+  const p=G.fin;gl.useProgram(p.p);gl.bindBuffer(gl.ARRAY_BUFFER,GL.quad);gl.enableVertexAttribArray(p.a.aP);gl.vertexAttribPointer(p.a.aP,2,gl.FLOAT,false,0,0);
+  gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,G.post.tx);gl.uniform1i(p.u.uPost,3);gl.uniform1f(p.u.uTime,performance.now()/1000%100);
+  gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+  gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,null);
+  return tl;
+}
+/* ほこりの粒：こっこを描いた後に、こっこの深度（書き込まない）と部屋の奥行きで隠しながら足し合わせる */
+function drawMotes(tl){
+  const G=ROOM,p=G.mote;gl.useProgram(p.p);gl.bindBuffer(gl.ARRAY_BUFFER,G.moteB);gl.enableVertexAttribArray(p.a.aM);gl.vertexAttribPointer(p.a.aM,4,gl.FLOAT,false,0,0);
+  gl.uniformMatrix4fv(p.u.uVP,false,cam.VP);gl.uniform1f(p.u.uTime,performance.now()/1000%1000);gl.uniform3fv(p.u.uEye,cam.eye);
+  gl.uniform1f(p.u.uFocus,Math.hypot(cam.eye[0],cam.eye[1]-0.75,cam.eye[2]));gl.uniform1f(p.u.uDpr,dpr);
+  gl.uniform3fv(p.u.uSunDir,tl.L);gl.uniform3fv(p.u.uSunCol,tl.sun);gl.uniform4fv(p.u.uWin,WIN_RECT);
+  gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,G.acc[G.ping].tx);gl.uniform1i(p.u.uAcc,3);gl.uniform2f(p.u.uScr,cv.width,cv.height);
+  gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.depthMask(false);gl.enable(gl.BLEND);gl.blendFunc(gl.ONE,gl.ONE);
+  gl.drawArrays(gl.POINTS,0,MOTE_N);
+  gl.depthMask(true);gl.disable(gl.BLEND);gl.disableVertexAttribArray(p.a.aM);gl.activeTexture(gl.TEXTURE3);gl.bindTexture(gl.TEXTURE_2D,null);
+}
 
 /* ---------------- 状態 ---------------- */
 let K=null, mode='load';          // 'gl' | '2d'
@@ -466,10 +848,11 @@ function toScreen(x,y,z){const p=xf(cam.VP,x,y,z,1);return[(p[0]/p[3]*0.5+0.5)*v
 function headWorld(){const m=modelMat();const p=xf(m,0,MODEL_H*1.02,0,1);return p;}
 
 /* ---------------- 行列：こっこ・カメラ ---------------- */
+function idleSway(){return S.idle>3?Math.sin(S.t*0.9)*0.18*Math.min(1,(S.idle-3)/2):0;}
 function modelMat(){
-  const idleSway=S.idle>3?Math.sin(S.t*0.9)*0.18*Math.min(1,(S.idle-3)/2):0;
+  const idleSway_=idleSway();
   const sway=phase==='sleep'||phase==='end'?Math.sin(performance.now()/1000*0.9)*0.05:0;
-  return M4.mul(M4.tr(0,S.hop,0),M4.mul(M4.rotY(S.yaw+idleSway),M4.mul(M4.rotX(S.pitch),M4.rotZ(sway))));
+  return M4.mul(M4.tr(0,S.hop,0),M4.mul(M4.rotY(S.yaw+idleSway_),M4.mul(M4.rotX(S.pitch),M4.rotZ(sway))));
 }
 function squash(){const br=phase==='sleep'||phase==='end'?Math.sin(performance.now()/1000*1.6)*0.022:Math.sin(performance.now()/1000*2.3)*0.010;
   const sy=1-S.sq+S.hx*0.6+br, sx=1+S.sq*0.5-S.hx, sz=1+S.sq*0.5+S.hx*0.3;return[sx,sy,sz];}
@@ -496,6 +879,9 @@ function drawKokko(VP,M,eye,col,modeK,lineScale,useId){
   gl.uniform3fv(p.u.uSq,col.sq);
   gl.uniform3fv(p.u.uL,col.L);gl.uniform3fv(p.u.uLC,col.lc);gl.uniform3fv(p.u.uAC,col.ac);gl.uniform3fv(p.u.uCam,eye);
   gl.uniform3f(p.u.uLineC,0.07,0.09,0.10);gl.uniform1f(p.u.uBlush,S.blush);
+  const ty=col.toy;gl.uniform1f(p.u.uToy,ty?1:0);
+  if(ty){gl.uniform3fv(p.u.uSunDir,ty.L);gl.uniform3fv(p.u.uSunCol,ty.sun);gl.uniform4fv(p.u.uWin,WIN_RECT);gl.uniform3fv(p.u.uSkyK,ty.sky);gl.uniform3fv(p.u.uAmbK,ty.amb);
+    gl.uniform3f(p.u.uBncK,ty.sun[0]*0.06+ty.amb[0],ty.sun[1]*0.045+ty.amb[1],ty.sun[2]*0.03+ty.amb[2]);gl.uniform3fv(p.u.uLampK,ty.lampCol);gl.uniform3f(p.u.uLampP,2.1,0.62,-10.2);gl.uniform1f(p.u.uExpo,ty.exp);}
   gl.uniform3fv(p.u.uIdMin,K.idMin);gl.uniform3fv(p.u.uIdSpan,K.idSpan);gl.uniform1f(p.u.uIdTh,K.line*ID_NEAR);gl.uniform1f(p.u.uIdTurn,K.line*ID_TURN);
   const idOn=!!(useId&&G.idf);gl.uniform1f(p.u.uIdOn,idOn?1:0);
   gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,idOn?G.idf.tx:null);gl.uniform1i(p.u.uId,2);
@@ -532,6 +918,19 @@ function idTarget(){
 function render(){
   if(mode!=='gl'||!GL)return;
   const u=phase==='title'?0.08:clamp(S.t/DAY,0,1), c=sky(u);
+  if(ROOM.mode==='toy'){
+    ROOM.still=phase!=='room';
+    const tl=renderRoom(u);
+    if(tl){
+      gl.clear(gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);
+      const M=modelMat(),kc={sq:squash(),L:tl.L,lc:c.lc,ac:c.ac,toy:tl},idf=idTarget();
+      if(idf){gl.bindFramebuffer(gl.FRAMEBUFFER,idf.fb);gl.viewport(0,0,idf.w,idf.h);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+        gl.disable(gl.BLEND);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);drawKokko(cam.VP,M,cam.eye,kc,3,1,false);
+        gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,cv.width,cv.height);}
+      drawKokko(cam.VP,M,cam.eye,kc,0,1,true);
+      drawMotes(tl);
+      return;}
+  }
   const L=(()=>{const a=-0.6+u*1.3;const v=[Math.sin(a)*0.55,0.75-u*0.25,0.55];const l=Math.hypot(...v);return v.map(x=>x/l);})();
   gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,cv.width,cv.height);
   gl.clearColor(c.hor[0],c.hor[1],c.hor[2],1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
@@ -695,12 +1094,12 @@ function updDay(u){if(!dayEls)dayEls={f:$('dayFill'),m:$('dayMark')};const p=(cl
 /* ---------------- 場面 ---------------- */
 function startRoom(){
   initAudio();if(AC&&AC.state==='suspended')AC.resume();
-  phase='room';S.t=0;S.idle=0;S.yawned=false;S.sleepT=0;S.lastZ=0;S.pokes=0;S.hugs=0;S.turn={from:S.yaw,to:Math.round(S.yaw/(Math.PI*2))*Math.PI*2,k:0};
+  phase='room';S.t=0;S.idle=0;ROOM.frames=0;roomWatchReset();S.yawned=false;S.sleepT=0;S.lastZ=0;S.pokes=0;S.hugs=0;S.turn={from:S.yaw,to:Math.round(S.yaw/(Math.PI*2))*Math.PI*2,k:0};
   $('title').classList.add('hidden');$('night').classList.add('hidden');$('night').classList.remove('show');
   $('day').classList.add('on');$('hint').classList.add('on');updDay(0);ambStart();
   if(mode==='2d')document.body.style.background='';
 }
-function fallAsleep(){phase='sleep';S.sleepT=0;S.lastZ=-9;ptrs.clear();ambStop(0.6);$('hint').classList.remove('on');updDay(1);}
+function fallAsleep(){phase='sleep';roomWatchReset();S.sleepT=0;S.lastZ=-9;ptrs.clear();ambStop(0.6);$('hint').classList.remove('on');updDay(1);}
 function showNight(){
   phase='end';S.lastZ=performance.now()/1000;
   const n=S.pokes, h=S.hugs;
@@ -722,9 +1121,9 @@ function bg2D(u){const c=sky(u);document.body.style.background='linear-gradient(
 /* ---------------- ループ ---------------- */
 let lastT=performance.now();
 function frame(now){
-  const dt=Math.min(0.05,(now-lastT)/1000);lastT=now;
+  const raw=(now-lastT)/1000,dt=Math.min(0.05,raw);lastT=now;
   update(dt);
-  if(mode==='gl')render();else if(mode==='2d')bg2D(phase==='title'?0.08:S.t/DAY);
+  if(mode==='gl'){roomWatch(raw);render();}else if(mode==='2d')bg2D(phase==='title'?0.08:S.t/DAY);
   requestAnimationFrame(frame);
 }
 
@@ -745,6 +1144,7 @@ async function boot(){
       const img=await loadImg('/chikumo.svg');build({front:img,back:img,backOk:false});
     }
     mode='gl';
+    initRoom();
     $('startBtn').disabled=false;$('startBtn').textContent='さわってみる';
   }catch(err){console.warn('3D→2D',err);fallback2D();}
   requestAnimationFrame(frame);
@@ -813,7 +1213,14 @@ window.__meta={
       if(r>150&&Math.abs(r/Math.max(1,g)-1.42)<0.12&&Math.abs(g/Math.max(1,b)-1.38)<0.14)cheek++;
       if(r>150&&g>90&&b<90&&r-g>50&&r-g<110)beak++;}return{eye,cheek,beak};};
     return{front:count(renderOrtho(0,0)),back:count(renderOrtho(Math.PI,0))};},
-  hug(){hug();}
+  hug(){hug();},
+  room(){return{mode:ROOM.mode,scale:+ROOM.scale.toFixed(3),lvl:+ROOM.lvl.toFixed(3),eff:+ROOM.eff.toFixed(3),lock:ROOM.lock,half:ROOM.half,w:ROOM.w,h:ROOM.h,frames:ROOM.frames,why:ROOM.why};},
+  lockRoom(lv){ROOM.lock=true;if(lv){ROOM.lvl=lv;roomScale();}},
+  unlockRoom(){ROOM.lock=false;roomWatchReset();ROOM.skip=0;},
+  simSlow(on){ROOM.slow=!!on;ROOM.lock=false;ROOM.skip=0;},
+  watch(dt,n){for(let i=0;i<n;i++)roomWatch(dt);return this.room();},
+  aper(a){ROOM.aper=a;},
+  settle(n){const st=ROOM.still;ROOM.frames=0;for(let i=0;i<n;i++){ROOM.still=true;render();}ROOM.still=st;}
 };
 </script>
 <script>
