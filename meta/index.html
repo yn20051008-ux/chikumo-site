@@ -698,6 +698,16 @@ function renderOrtho(yaw,modeK){
   pokes.forEach((q,i)=>q.s=saved[i]);
   const px=new Uint8Array(GW*GH*4);gl.readPixels(0,0,GW,GH,gl.RGBA,gl.UNSIGNED_BYTE,px);
   gl.bindFramebuffer(gl.FRAMEBUFFER,null);return px;}
+function renderOrthoWide(yaw,modeK){ // 横顔の計測用：前後に余裕のある正射影（縦横同じ縮尺）
+  const f=offscreen(GW,GH);gl.bindFramebuffer(gl.FRAMEBUFFER,f.fb);gl.viewport(0,0,GW,GH);
+  gl.clearColor(0,0,0,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.enable(gl.DEPTH_TEST);
+  const hw=0.95, VP=M4.ortho(-hw,hw,-0.3,-0.3+hw*2*GH/GW,-10,10);
+  const saved=pokes.map(q=>q.s);pokes.forEach(q=>q.s=0);
+  drawKokko(VP,M4.rotY(yaw),[Math.sin(yaw)*9,0.8,Math.cos(yaw)*9],{sq:[1,1,1],L:[0.3,0.8,0.5],lc:[1,1,1],ac:[0.7,0.8,1]},modeK,1);
+  pokes.forEach((q,i)=>q.s=saved[i]);
+  const px=new Uint8Array(GW*GH*4);gl.readPixels(0,0,GW,GH,gl.RGBA,gl.UNSIGNED_BYTE,px);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,null);return px;}
+function maskRows(px){const rows=[];for(let y=0;y<GH;y++){const r=GH-1-y;let l=-1,rr=-1;for(let x=0;x<GW;x++)if(px[(r*GW+x)*4]>127){if(l<0)l=x;rr=x;}rows.push(l<0?null:[l,rr]);}return rows;}
 function maskBox(px){let x0=GW,x1=-1,n=0;for(let y=0;y<GH;y++)for(let x=0;x<GW;x++)if(px[(y*GW+x)*4]>127){n++;if(x<x0)x0=x;if(x>x1)x1=x;}return{w:x1-x0+1,n};}
 window.__meta={
   get mode(){return mode;}, get phase(){return phase;},
@@ -713,7 +723,18 @@ window.__meta={
     const px=renderOrtho(0,2);let a=0,b=0,both=0;
     for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const m=px[((GH-1-y)*GW+x)*4]>127, o=K.ins[y*GW+x]===1;if(m)a++;if(o)b++;if(m&&o)both++;}
     return +(both/(a+b-both)).toFixed(4);},
-  sideRatio(){const f=maskBox(renderOrtho(0,2)), s=maskBox(renderOrtho(Math.PI/2,2));return +(s.w/f.w).toFixed(3);},
+  sideRatio(){const f=maskBox(renderOrthoWide(0,2)), s=maskBox(renderOrthoWide(Math.PI/2,2));return +(s.w/f.w).toFixed(3);},
+  sideProfile(){ // 横顔：全体の奥行き÷背丈、頭の奥行き÷正面の頭の幅、埋まり具合、高さごとの奥行き
+    const F=maskRows(renderOrthoWide(0,2)), sp=renderOrthoWide(Math.PI/2,2), Sd=maskRows(sp);
+    const span=R=>{let t=-1,b=-1;R.forEach((r,i)=>{if(r){if(t<0)t=i;b=i;}});return[t,b];};
+    const [ft,fb]=span(F),[st,sb]=span(Sd),H=sb-st+1;
+    const headMax=(R,t,b)=>{let m=0;for(let i=t;i<=t+Math.round((b-t)*0.55);i++){const r=R[i];if(r)m=Math.max(m,r[1]-r[0]+1);}return m;};
+    let D=0,area=0;Sd.forEach(r=>{if(r)D=Math.max(D,r[1]-r[0]+1);});for(let i=0;i<sp.length;i+=4)if(sp[i]>127)area++;
+    const prof=[];for(let k=0;k<=10;k++){const r=Sd[Math.round(sb-(H-1)*k/10)];prof.push(r?+((r[1]-r[0]+1)/H).toFixed(3):0);}
+    return{DoverH:+(D/H).toFixed(3),headRatio:+(headMax(Sd,st,sb)/headMax(F,ft,fb)).toFixed(3),fill:+(area/(D*H)).toFixed(3),depthByHeight:prof};},
+  sideMaskPNG(){const px=renderOrthoWide(Math.PI/2,0),c=document.createElement('canvas');c.width=GW;c.height=GH;const x=c.getContext('2d'),im=x.createImageData(GW,GH),d=im.data;
+    for(let y=0;y<GH;y++){const r=GH-1-y;for(let X=0;X<GW;X++){const i=(r*GW+X)*4,o=(y*GW+X)*4,bg=!px[i]&&!px[i+1]&&!px[i+2];d[o]=bg?236:px[i];d[o+1]=bg?240:px[i+1];d[o+2]=bg?246:px[i+2];d[o+3]=255;}}
+    x.putImageData(im,0,0);return c.toDataURL('image/png');},
   backFace(){ // 背面の描画に顔の色（目・ほっぺ・くちばし）が出ていないか
     const count=px=>{let eye=0,cheek=0,beak=0;for(let i=0;i<px.length;i+=4){const r=px[i],g=px[i+1],b=px[i+2];
       if(Math.abs(r-22)+Math.abs(g-40)+Math.abs(b-42)<40&&g>r+8)eye++;
