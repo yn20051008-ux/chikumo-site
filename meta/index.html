@@ -101,6 +101,7 @@
 /* ============================================================
    メタ空間 ─ 3Dこっこちゃんのへや
    公式 /chikumo.svg のシルエットを「内接球の和」でふくらませて立体にする。
+   奥行きは部位の大きさに連動させる（頭・胴は深く丸く、とさか・うで・あしは浅いまま）。
    正面には公式SVGをそのまま、背面には顔の部位を外した公式SVGを投影。
    輪郭線は、線幅ぶん削ったシルエットを膨らませ、外殻（裏面を法線方向へ押し出した黒）で描き戻す。
    設計書：docs/要件定義-メタ空間.md
@@ -116,7 +117,11 @@ const SC=(GH-PAD*2)/SVG_H;    // SVG単位→マスクpx
 const OX=(GW-SVG_W*SC)/2, OY=PAD;
 const LINE_PX=9.5;            // 公式の輪郭線の幅（マスクpx・実測で約9〜10）。この幅だけ削って膨らませ、外殻で描き戻す
 const UV_PULL=3.5;            // 縁の頂点はテクスチャを内側へこのpxだけ寄せて引く（縁の急な壁に輪郭線の黒を引き伸ばさない）
-const DEPTH=0.8;              // 奥行きの倍率（内接球の和の高さ×DEPTH）
+const DEPTH_THIN=0.8, DEPTH_FAT=1.15; // 奥行きの倍率：細い部位（とさか・うで・あし）／いちばん太い部位（頭）。内接球の和の高さ×この倍率
+const THIN_R=0.35, FAT_R=0.62; // 支配球の半径÷いちばん大きい内接球の半径 がこの間で 細→太 へ滑らかに移る
+const LIFT_P=0.35, LIFT_MAX=1.5; // 太い部位の持ち上げ：支配球の中心から遠い（高さが球の半径より低い）所ほど (h/R)^-LIFT_P 倍、上限 LIFT_MAX。
+                              // 頭頂の肩（とさかへ渡る所）を持ち上げて横顔を丸くする。球の中心付近は1倍のままなので頭と胴の幅は変わらない
+const R_BLUR=0.12, PART_BLUR=0.3; // 支配球の半径の場をならす幅（いちばん大きい内接球の半径に対する比）：細い/太いの見分け用／持ち上げの基準用
 const MODEL_H=1.5;            // こっこの背丈（モデル単位）
 const GRID=4;                 // 網の格子（マスクpx）
 const KEEP_FILLS=['#df953b','#eda03f','#f5e8c6','#e26a3a']; // 背面に残す色（あし・からだ・とさか）。それ以外の塗り＝顔の部位
@@ -178,15 +183,25 @@ function drawTo(img,scale){const c=document.createElement('canvas');c.width=GW*s
 
 /* ---------------- 距離変換（Felzenszwalb の下側包絡。f は任意の標本関数） ---------------- */
 const INF=1e20;
-function dt1(f,n,d,v,z){let k=0;v[0]=0;z[0]=-INF;z[1]=INF;
+// sv を渡すと、各点で最小を与えた元の標本の番号も記録する
+function dt1(f,n,d,v,z,sv){let k=0;v[0]=0;z[0]=-INF;z[1]=INF;
   for(let q=1;q<n;q++){let s=((f[q]+q*q)-(f[v[k]]+v[k]*v[k]))/(2*q-2*v[k]);
     while(s<=z[k]){k--;s=((f[q]+q*q)-(f[v[k]]+v[k]*v[k]))/(2*q-2*v[k]);}
     k++;v[k]=q;z[k]=s;z[k+1]=INF;}
-  k=0;for(let q=0;q<n;q++){while(z[k+1]<q)k++;const t=q-v[k];d[q]=t*t+f[v[k]];}}
-function dt2(f,w,h){const n=Math.max(w,h),fi=new Float64Array(n),di=new Float64Array(n),v=new Int32Array(n),z=new Float64Array(n+1),o=new Float64Array(w*h);
-  for(let x=0;x<w;x++){for(let y=0;y<h;y++)fi[y]=f[y*w+x];dt1(fi,h,di,v,z);for(let y=0;y<h;y++)o[y*w+x]=di[y];}
-  for(let y=0;y<h;y++){for(let x=0;x<w;x++)fi[x]=o[y*w+x];dt1(fi,w,di,v,z);for(let x=0;x<w;x++)o[y*w+x]=di[x];}
+  k=0;for(let q=0;q<n;q++){while(z[k+1]<q)k++;const t=q-v[k];d[q]=t*t+f[v[k]];if(sv)sv[q]=v[k];}}
+// src を渡すと、各点で最小を与えた元の画素の番号（y*w+x）を返す（縦の段の行番号を横の段で引き継ぐ）
+function dt2(f,w,h,src){const n=Math.max(w,h),fi=new Float64Array(n),di=new Float64Array(n),v=new Int32Array(n),z=new Float64Array(n+1),o=new Float64Array(w*h);
+  const si=src?new Int32Array(n):null, sy=src?new Int32Array(w*h):null;
+  for(let x=0;x<w;x++){for(let y=0;y<h;y++)fi[y]=f[y*w+x];dt1(fi,h,di,v,z,si);for(let y=0;y<h;y++){o[y*w+x]=di[y];if(src)sy[y*w+x]=si[y];}}
+  for(let y=0;y<h;y++){for(let x=0;x<w;x++)fi[x]=o[y*w+x];dt1(fi,w,di,v,z,si);for(let x=0;x<w;x++){o[y*w+x]=di[x];if(src){const sx=si[x];src[y*w+x]=sy[y*w+sx]*w+sx;}}}
   return o;}
+/* 箱ぼかし（縦横を passes 回。端の外は0として数える） */
+function boxBlur(a,w,h,R,passes){const b=new Float32Array(a),t=new Float32Array(w*h);
+  for(let pass=0;pass<passes;pass++){
+    for(let y=0;y<h;y++){let s=0;for(let x=-R;x<w+R;x++){if(x+R<w)s+=b[y*w+x+R];if(x-R-1>=0)s-=b[y*w+x-R-1];if(x>=0&&x<w)t[y*w+x]=s/(2*R+1);}}
+    for(let x=0;x<w;x++){let s=0;for(let y=-R;y<h+R;y++){if(y+R<h)s+=t[(y+R)*w+x];if(y-R-1>=0)s-=t[(y-R-1)*w+x];if(y>=0&&y<h)b[y*w+x]=s/(2*R+1);}}
+  }
+  return b;}
 
 /* ---------------- 立体こっこを起こす ---------------- */
 function buildKokko(geoCanvas){
@@ -200,27 +215,36 @@ function buildKokko(geoCanvas){
   const sdf=new Float32Array(N);   // 線幅ぶん削ったシルエットの符号付き距離
   for(let i=0;i<N;i++)sdf[i]=(ins[i]?Math.sqrt(dIn[i])-0.5:-(Math.sqrt(dOut[i])-0.5))-LINE_PX;
   for(let i=0;i<N;i++)f[i]=sdf[i]>0?-sdf[i]*sdf[i]:INF;
-  const g=dt2(f,W,H);              // min_q(|p-q|²-r_q²) → 内接球の和の高さ
+  const src=new Int32Array(N);
+  const g=dt2(f,W,H,src);          // min_q(|p-q|²-r_q²) → 内接球の和の高さ。src＝その高さを決めた球の中心
   const hgt=new Float32Array(N);
   for(let i=0;i<N;i++)hgt[i]=g[i]<0?Math.sqrt(-g[i]):0;
+  // 大きさ連動の奥行き：その点の高さを決めた内接球（支配球）の半径 R が大きい部位（頭・胴）ほど深く、
+  // 小さい部位（とさか・うで・あし）は浅いまま。R は部位の境で段になるので内側だけでならし、
+  // 細い/太いは狭くならした R で、持ち上げの基準は広くならした R で決める（参考：横向きの丸み＝docs/要件定義-メタ空間.md 許4）
+  let rMax=0;for(let i=0;i<N;i++)if(sdf[i]>rMax)rMax=sdf[i];
+  const rad=new Float32Array(N), wIn=new Float32Array(N);
+  for(let i=0;i<N;i++)if(sdf[i]>0){rad[i]=sdf[src[i]];wIn[i]=1;}
+  const smR=b=>{const n=Math.max(1,Math.round(rMax*b)), s=boxBlur(rad,W,H,n,3), w=boxBlur(wIn,W,H,n,3);
+    for(let i=0;i<N;i++)s[i]=w[i]>1e-6?s[i]/w[i]/rMax:0;return s;};   // 内側だけで平均した R÷いちばん大きい内接球の半径
+  const rT=smR(R_BLUR), rP=smR(PART_BLUR);
+  const hz=new Float32Array(N);    // 奥行き（マスクpx）＝内接球の和の高さ×部位の太さの倍率。網・当たり判定・影で共有
+  for(let i=0;i<N;i++)if(hgt[i]>0){const t=clamp((rT[i]-THIN_R)/(FAT_R-THIN_R),0,1);
+    hz[i]=hgt[i]*lerp(DEPTH_THIN,DEPTH_FAT*Math.min(LIFT_MAX,Math.pow(hgt[i]/(Math.max(rP[i],FAT_R)*rMax),-LIFT_P)),t*t*(3-2*t));}
   // 内接球の和は球どうしの継ぎ目にしわが出る。縁から離れた内側だけを箱ぼかしでならす
-  const bl=new Float32Array(hgt), tmp=new Float32Array(N), R=6;
-  for(let pass=0;pass<2;pass++){
-    for(let y=0;y<H;y++){let a=0;for(let x=-R;x<W+R;x++){if(x+R<W)a+=bl[y*W+x+R];if(x-R-1>=0)a-=bl[y*W+x-R-1];if(x>=0&&x<W)tmp[y*W+x]=a/(2*R+1);}}
-    for(let x=0;x<W;x++){let a=0;for(let y=-R;y<H+R;y++){if(y+R<H)a+=tmp[(y+R)*W+x];if(y-R-1>=0)a-=tmp[(y-R-1)*W+x];if(y>=0&&y<H)bl[y*W+x]=a/(2*R+1);}}
-  }
-  for(let i=0;i<N;i++)if(sdf[i]>0){const k=clamp((sdf[i]-8)/18,0,1);hgt[i]=lerp(hgt[i],Math.max(bl[i],hgt[i]*0.9),k);}
+  const bl=boxBlur(hz,W,H,6,2);
+  for(let i=0;i<N;i++)if(sdf[i]>0){const k=clamp((sdf[i]-8)/18,0,1);hz[i]=lerp(hz[i],Math.max(bl[i],hz[i]*0.9),k);}
 
   const cx=(x0+x1+1)/2, cy=y1+1, UNIT=(y1+1-y0)/MODEL_H;   // 足もと＝y0、モデル1単位＝UNIT px
   const NX=W/GRID+1, NY=H/GRID+1;
   const S=(i,j)=>sdf[Math.min(j*GRID,H-1)*W+Math.min(i*GRID,W-1)];
-  const Hh=(i,j)=>hgt[Math.min(j*GRID,H-1)*W+Math.min(i*GRID,W-1)];
+  const Hh=(i,j)=>hz[Math.min(j*GRID,H-1)*W+Math.min(i*GRID,W-1)];
   const P=[], UV=[];                // xyz, uv
   const sd=(x,y)=>{x=clamp(x|0,1,W-2);y=clamp(y|0,1,H-2);return sdf[y*W+x];};
   function uvOf(x,y){let d=sd(x,y);if(d<UV_PULL){let gx=sd(x+1,y)-sd(x-1,y),gy=sd(x,y+1)-sd(x,y-1);const l=Math.hypot(gx,gy)||1;
       const m=UV_PULL-d;x+=gx/l*m;y+=gy/l*m;}return[x/W,y/H];}
   const cIdx=new Int32Array(NX*NY*2).fill(-1), hE=new Int32Array(NX*NY).fill(-1), vE=new Int32Array(NX*NY).fill(-1);
-  const toM=(x,y,h)=>[(x-cx)/UNIT,(cy-y)/UNIT,h*DEPTH/UNIT];
+  const toM=(x,y,h)=>[(x-cx)/UNIT,(cy-y)/UNIT,h/UNIT];
   function corner(i,j,side){const k=(j*NX+i)*2+side;if(cIdx[k]<0){const x=i*GRID+0.5,y=j*GRID+0.5,m=toM(x,y,Hh(i,j));cIdx[k]=P.length/3;P.push(m[0],m[1],side?-m[2]:m[2]);UV.push(...uvOf(x,y));}return cIdx[k];}
   function edge(i,j,horiz){const arr=horiz?hE:vE,k=j*NX+i;if(arr[k]<0){const i2=horiz?i+1:i,j2=horiz?j:j+1,a=S(i,j),b=S(i2,j2),t=a/(a-b);
       const x=lerp(i,i2,t)*GRID+0.5,y=lerp(j,j2,t)*GRID+0.5,m=toM(x,y,0);arr[k]=P.length/3;P.push(m[0],m[1],0);UV.push(...uvOf(x,y));}return arr[k];}
@@ -247,9 +271,9 @@ function buildKokko(geoCanvas){
     const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
     for(const q of[a,b,c]){nrm[q]+=nx;nrm[q+1]+=ny;nrm[q+2]+=nz;}}
   for(let q=0;q<nV*3;q+=3){const l=Math.hypot(nrm[q],nrm[q+1],nrm[q+2])||1;nrm[q]/=l;nrm[q+1]/=l;nrm[q+2]/=l;}
-  let hmax=0;for(let i=0;i<N;i++)if(hgt[i]>hmax)hmax=hgt[i];
-  return {pos,nrm,uv:new Float32Array(UV),idx:I,nV,nT:I.length/3,ins,sdf,hgt,px,cx,cy,UNIT,x0,x1,y0,y1,
-    zMax:hmax*DEPTH/UNIT, line:LINE_PX/UNIT, width:(x1+1-x0)/UNIT};
+  let hmax=0;for(let i=0;i<N;i++)if(hz[i]>hmax)hmax=hz[i];
+  return {pos,nrm,uv:new Float32Array(UV),idx:I,nV,nT:I.length/3,ins,sdf,hz,px,cx,cy,UNIT,x0,x1,y0,y1,
+    zMax:hmax/UNIT, line:LINE_PX/UNIT, width:(x1+1-x0)/UNIT};
 }
 
 /* ---------------- WebGL ---------------- */
@@ -496,7 +520,7 @@ function render(){
 
 /* ---------------- 当たり判定（モデル空間で高さ場を辿る） ---------------- */
 function insideShape(x,y,z){const gx=x*K.UNIT+K.cx,gy=K.cy-y*K.UNIT;if(gx<0||gy<0||gx>=GW-1||gy>=GH-1)return false;
-  const h=K.hgt[(gy|0)*GW+(gx|0)];return h>0&&Math.abs(z)<=h*DEPTH/K.UNIT+K.line*0.6;}
+  const h=K.hz[(gy|0)*GW+(gx|0)];return h>0&&Math.abs(z)<=h/K.UNIT+K.line*0.6;}
 function pickAt(sx,sy){
   if(mode!=='gl'||!K)return null;
   const nx=sx/vw*2-1, ny=1-sy/vh*2, iVP=M4.inv(cam.VP);
