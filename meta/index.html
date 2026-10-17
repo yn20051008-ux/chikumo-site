@@ -122,6 +122,8 @@ const THIN_R=0.35, FAT_R=0.62; // 支配球の半径÷いちばん大きい内�
 const LIFT_P=0.35, LIFT_MAX=1.5; // 太い部位の持ち上げ：支配球の中心から遠い（高さが球の半径より低い）所ほど (h/R)^-LIFT_P 倍、上限 LIFT_MAX。
                               // 頭頂の肩（とさかへ渡る所）を持ち上げて横顔を丸くする。球の中心付近は1倍のままなので頭と胴の幅は変わらない
 const R_BLUR=0.12, PART_BLUR=0.3; // 支配球の半径の場をならす幅（いちばん大きい内接球の半径に対する比）：細い/太いの見分け用／持ち上げの基準用
+const ID_NEAR=2.0;            // 輪郭線は「押し出した元の点」がその画素に見えている体の点から 線の太さ×この倍 以内なら描かない（自分の突き抜け）
+const ID_TURN=0.0;            // 比べる点は面の向きへ 線の太さ×この倍 ずらしてから測る：向きの違う面どうし（腕と体の境のくぼみ）は離れて見え、ふちの線が残る
 const MODEL_H=1.5;            // こっこの背丈（モデル単位）
 const GRID=4;                 // 網の格子（マスクpx）
 const KEEP_FILLS=['#df953b','#eda03f','#f5e8c6','#e26a3a']; // 背面に残す色（あし・からだ・とさか）。それ以外の塗り＝顔の部位
@@ -239,15 +241,21 @@ function buildKokko(geoCanvas){
   const NX=W/GRID+1, NY=H/GRID+1;
   const S=(i,j)=>sdf[Math.min(j*GRID,H-1)*W+Math.min(i*GRID,W-1)];
   const Hh=(i,j)=>hz[Math.min(j*GRID,H-1)*W+Math.min(i*GRID,W-1)];
-  const P=[], UV=[];                // xyz, uv
+  const P=[], UV=[], VX=[], VY=[], VS=[], PX=[], PY=[];  // xyz, uv, 陰影用の向きを引く画素位置と面（1前・-1後・0縁）, 頂点の画素位置
+  const bil=(a,x,y)=>{x=clamp(x-0.5,0,W-1.001);y=clamp(y-0.5,0,H-1.001);const ix=x|0,iy=y|0,tx=x-ix,ty=y-iy,i=iy*W+ix;
+    return (a[i]*(1-tx)+a[i+1]*tx)*(1-ty)+(a[i+W]*(1-tx)+a[i+W+1]*tx)*ty;};
   const sd=(x,y)=>{x=clamp(x|0,1,W-2);y=clamp(y|0,1,H-2);return sdf[y*W+x];};
   function uvOf(x,y){let d=sd(x,y);if(d<UV_PULL){let gx=sd(x+1,y)-sd(x-1,y),gy=sd(x,y+1)-sd(x,y-1);const l=Math.hypot(gx,gy)||1;
       const m=UV_PULL-d;x+=gx/l*m;y+=gy/l*m;}return[x/W,y/H];}
   const cIdx=new Int32Array(NX*NY*2).fill(-1), hE=new Int32Array(NX*NY).fill(-1), vE=new Int32Array(NX*NY).fill(-1);
   const toM=(x,y,h)=>[(x-cx)/UNIT,(cy-y)/UNIT,h/UNIT];
-  function corner(i,j,side){const k=(j*NX+i)*2+side;if(cIdx[k]<0){const x=i*GRID+0.5,y=j*GRID+0.5,m=toM(x,y,Hh(i,j));cIdx[k]=P.length/3;P.push(m[0],m[1],side?-m[2]:m[2]);UV.push(...uvOf(x,y));}return cIdx[k];}
+  function corner(i,j,side){const k=(j*NX+i)*2+side;if(cIdx[k]<0){const x=i*GRID+0.5,y=j*GRID+0.5;
+      // 縁の壁は急なので、格子の点ごとに縁からの距離がばらつき、三角形から出す向きは行ごとに揺れて陰影に横じわが出る。
+      // 陰影用の向きは、縁から2格子以内なら縁から等距離（0.5格子・1.5格子）の輪の上で引いて揃える（位置は動かさない）
+      let sx=x,sy=y;const d=bil(sdf,x,y);if(d>0&&d<GRID*2){const gx=bil(sdf,x+1,y)-bil(sdf,x-1,y),gy=bil(sdf,x,y+1)-bil(sdf,x,y-1),l=Math.hypot(gx,gy)||1,m=(d<GRID?GRID*0.5:GRID*1.5)-d;sx+=gx/l*m;sy+=gy/l*m;}
+      const m=toM(x,y,bil(hz,x,y));cIdx[k]=P.length/3;P.push(m[0],m[1],side?-m[2]:m[2]);UV.push(...uvOf(x,y));VX.push(sx);VY.push(sy);VS.push(side?-1:1);PX.push(x);PY.push(y);}return cIdx[k];}
   function edge(i,j,horiz){const arr=horiz?hE:vE,k=j*NX+i;if(arr[k]<0){const i2=horiz?i+1:i,j2=horiz?j:j+1,a=S(i,j),b=S(i2,j2),t=a/(a-b);
-      const x=lerp(i,i2,t)*GRID+0.5,y=lerp(j,j2,t)*GRID+0.5,m=toM(x,y,0);arr[k]=P.length/3;P.push(m[0],m[1],0);UV.push(...uvOf(x,y));}return arr[k];}
+      const x=lerp(i,i2,t)*GRID+0.5,y=lerp(j,j2,t)*GRID+0.5,m=toM(x,y,0);arr[k]=P.length/3;P.push(m[0],m[1],0);UV.push(...uvOf(x,y));VX.push(x);VY.push(y);VS.push(0);PX.push(x);PY.push(y);}return arr[k];}
   const I=[];
   const CI=[[0,0],[1,0],[1,1],[0,1]];
   for(let j=0;j<NY-1;j++)for(let i=0;i<NX-1;i++){
@@ -265,15 +273,23 @@ function buildKokko(geoCanvas){
       for(let k=1;k<poly.length-1;k++)tri(poly[0],poly[k],poly[k+1]);
     }
   }
-  const nV=P.length/3, pos=new Float32Array(P), nrm=new Float32Array(nV*3);
-  for(let t=0;t<I.length;t+=3){const a=I[t]*3,b=I[t+1]*3,c=I[t+2]*3;
-    const ux=pos[b]-pos[a],uy=pos[b+1]-pos[a+1],uz=pos[b+2]-pos[a+2],vx=pos[c]-pos[a],vy=pos[c+1]-pos[a+1],vz=pos[c+2]-pos[a+2];
-    const nx=uy*vz-uz*vy,ny=uz*vx-ux*vz,nz=ux*vy-uy*vx;
-    for(const q of[a,b,c]){nrm[q]+=nx;nrm[q+1]+=ny;nrm[q+2]+=nz;}}
-  for(let q=0;q<nV*3;q+=3){const l=Math.hypot(nrm[q],nrm[q+1],nrm[q+2])||1;nrm[q]/=l;nrm[q+1]/=l;nrm[q+2]/=l;}
+  const nV=P.length/3, pos=new Float32Array(P), nrm=new Float32Array(nV*3), snm=new Float32Array(nV*3);
+  // 形の向き（外殻＝輪郭線の押し出し・つつきの凹み用）：頂点の実際の位置での、なめらかな奥行きの場の真の法線。
+  // 三角形から足し合わせると縁の急な壁で行ごとに向きが揺れ、外殻が自分の体を突き抜けて体の上に黒い横線が出た（実機で目立った）。
+  // 真の法線で押し出せば外殻は体の面から線の太さだけ離れた面になり、なめらかな所では体を突き抜けない（くぼみのふちの線は残る）
+  const nOf=(x,y,sd2,o,a)=>{let nx,ny,nz;
+    if(sd2===0){nx=-(bil(sdf,x+1,y)-bil(sdf,x-1,y));ny=bil(sdf,x,y+1)-bil(sdf,x,y-1);nz=0;}
+    else{const fx=(bil(hz,x+1,y)-bil(hz,x-1,y))/2,fy=(bil(hz,x,y+1)-bil(hz,x,y-1))/2;nx=-fx;ny=fy;nz=sd2;}
+    const l=Math.hypot(nx,ny,nz)||1;a[o]=nx/l;a[o+1]=ny/l;a[o+2]=nz/l;};
+  for(let v=0;v<nV;v++)nOf(PX[v],PY[v],VS[v],v*3,nrm);
+  // 陰影の向き：三角形からでなく、なめらかな奥行きの場 hz の勾配から出す（縁の急な壁で行ごとに揺れない）。縁の頂点は sdf の勾配で真横を向く
+  for(let v=0;v<nV;v++)nOf(VX[v],VY[v],VS[v],v*3,snm);
+  let flips=0;for(let t=0;t<I.length;t+=3){const a=I[t]*3,b=I[t+1]*3,c=I[t+2]*3;   // 裏返った三角形の数（検証用・0であること）
+    const cz=(pos[b]-pos[a])*(pos[c+1]-pos[a+1])-(pos[b+1]-pos[a+1])*(pos[c]-pos[a]);if((pos[a+2]+pos[b+2]+pos[c+2])*cz<0)flips++;}
   let hmax=0;for(let i=0;i<N;i++)if(hz[i]>hmax)hmax=hz[i];
-  return {pos,nrm,uv:new Float32Array(UV),idx:I,nV,nT:I.length/3,ins,sdf,hz,px,cx,cy,UNIT,x0,x1,y0,y1,
-    zMax:hmax/UNIT, line:LINE_PX/UNIT, width:(x1+1-x0)/UNIT};
+  return {pos,nrm,snm,uv:new Float32Array(UV),idx:I,nV,nT:I.length/3,flips,ins,sdf,hz,px,cx,cy,UNIT,x0,x1,y0,y1,
+    zMax:hmax/UNIT, line:LINE_PX/UNIT, width:(x1+1-x0)/UNIT,
+    idMin:[(x0-cx)/UNIT-0.2,-0.2,-hmax/UNIT-0.2], idSpan:[(x1+1-x0)/UNIT+0.4,MODEL_H+0.4,2*hmax/UNIT+0.4]};
 }
 
 /* ---------------- WebGL ---------------- */
@@ -288,11 +304,11 @@ function prog(vs,fs){const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_S
   return {p,u,a:at};}
 
 const KOKKO_VS=`
-attribute vec3 aPos; attribute vec3 aNrm; attribute vec2 aUV;
+attribute vec3 aPos; attribute vec3 aNrm; attribute vec3 aSN; attribute vec2 aUV;
 uniform mat4 uVP; uniform mat4 uM;
 uniform vec4 uPoke[4]; uniform float uPokeR;
-uniform vec3 uSq; uniform float uLine; uniform float uZOff;
-varying vec3 vN; varying vec3 vW; varying vec2 vUV; varying float vZ;
+uniform vec3 uSq; uniform float uLine; uniform float uZOff; uniform float uIdTurn;
+varying vec3 vN; varying vec3 vW; varying vec2 vUV; varying float vZ; varying vec3 vP0;
 void main(){
   vec3 p=aPos;
   float s=0.0;
@@ -302,7 +318,7 @@ void main(){
   vec3 n=normalize(aNrm/uSq);
   p+=n*uLine;
   vec4 w=uM*vec4(p,1.0);
-  vW=w.xyz; vN=(uM*vec4(n,0.0)).xyz; vZ=aPos.z;
+  vW=w.xyz; vN=(uM*vec4(normalize(aSN/uSq),0.0)).xyz; vZ=aPos.z; vP0=aPos+aSN*uIdTurn;
   vUV=aUV;
   gl_Position=uVP*w;
   gl_Position.z+=uZOff*gl_Position.w;   // 外殻はわずかに奥へ：くぼみで本体を突き抜ける黒点を抑える
@@ -311,10 +327,15 @@ const KOKKO_FS=`
 uniform sampler2D uF; uniform sampler2D uB;
 uniform vec3 uL; uniform vec3 uLC; uniform vec3 uAC; uniform vec3 uCam; uniform vec3 uLineC;
 uniform float uMode; uniform float uBlush;
-varying vec3 vN; varying vec3 vW; varying vec2 vUV; varying float vZ;
+uniform sampler2D uId; uniform vec3 uIdMin; uniform vec3 uIdSpan; uniform vec2 uIdInv; uniform float uIdTh; uniform float uIdOn;
+varying vec3 vN; varying vec3 vW; varying vec2 vUV; varying float vZ; varying vec3 vP0;
 void main(){
+  if(uMode>2.5){gl_FragColor=vec4((vP0-uIdMin)/uIdSpan,1.0);return;}   // 見えている体の点（変形前のモデル座標を面の向きへずらしたもの）を記録
   if(uMode>1.5){gl_FragColor=vec4(1.0);return;}
-  if(uMode>0.5){gl_FragColor=vec4(uLineC,1.0);return;}
+  if(uMode>0.5){
+    // 輪郭線：この画素に見えている体の点が、線を押し出した元の点のすぐそば＝自分の体への突き抜け→描かない
+    if(uIdOn>0.5){vec4 id=texture2D(uId,gl_FragCoord.xy*uIdInv);if(id.a>0.5&&distance(id.rgb*uIdSpan+uIdMin,vP0)<uIdTh)discard;}
+    gl_FragColor=vec4(uLineC,1.0);return;}
   vec3 c=(vZ>=0.0?texture2D(uF,vUV):texture2D(uB,vUV)).rgb;
   float pink=smoothstep(0.09,0.0,abs(c.r-0.93))*smoothstep(0.1,0.0,abs(c.g-0.66))*smoothstep(0.13,0.0,abs(c.b-0.48));
   c=mix(c,vec3(1.0,0.42,0.42),pink*uBlush*0.75);
@@ -367,7 +388,7 @@ function initGL(K,texF,texB){
   const buf=(t,a)=>{const b=gl.createBuffer();gl.bindBuffer(t,b);gl.bufferData(t,a,gl.STATIC_DRAW);return b;};
   const big=K.nV>65535;
   if(big&&!gl.getExtension('OES_element_index_uint'))throw new Error('index');
-  const kP=buf(gl.ARRAY_BUFFER,K.pos), kN=buf(gl.ARRAY_BUFFER,K.nrm), kU=buf(gl.ARRAY_BUFFER,K.uv), kI=buf(gl.ELEMENT_ARRAY_BUFFER,big?new Uint32Array(K.idx):new Uint16Array(K.idx));
+  const kP=buf(gl.ARRAY_BUFFER,K.pos), kN=buf(gl.ARRAY_BUFFER,K.nrm), kS=buf(gl.ARRAY_BUFFER,K.snm), kU=buf(gl.ARRAY_BUFFER,K.uv), kI=buf(gl.ELEMENT_ARRAY_BUFFER,big?new Uint32Array(K.idx):new Uint16Array(K.idx));
   const quad=buf(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]));
   const FL=60, flr=buf(gl.ARRAY_BUFFER,new Float32Array([-FL,-FL,FL,-FL,-FL,FL,FL,FL]));
   // 台座（円柱）：上面 y=0、側面は y=-PED_H まで
@@ -379,7 +400,7 @@ function initGL(K,texF,texB){
   for(let s=0;s<=SEG;s++){const a=s/SEG*Math.PI*2,c=Math.cos(a),n=Math.sin(a);pv.push(R*c,0,R*n,c,0,n,R*c,-PH,R*n,c,0,n);}
   for(let s=0;s<SEG;s++){const a=base+s*2;pi.push(a,a+2,a+1,a+1,a+2,a+3);}
   const pB=buf(gl.ARRAY_BUFFER,new Float32Array(pv)), pI=buf(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(pi));
-  GL={progK,progSky,progFl,progPed,progSh,kP,kN,kU,kI,kCount:K.idx.length,kType:big?gl.UNSIGNED_INT:gl.UNSIGNED_SHORT,
+  GL={progK,progSky,progFl,progPed,progSh,kP,kN,kS,kU,kI,kCount:K.idx.length,kType:big?gl.UNSIGNED_INT:gl.UNSIGNED_SHORT,
     quad,flr,pB,pI,pCount:pi.length,R,PH,texF,texB,fbo:null};
 }
 function makeTex(canvas){const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);
@@ -462,10 +483,11 @@ function resize(){dpr=Math.min(window.devicePixelRatio||1,2);vw=window.innerWidt
 window.addEventListener('resize',resize);
 
 /* ---------------- 描画 ---------------- */
-function drawKokko(VP,M,eye,col,modeK,lineScale){
+function drawKokko(VP,M,eye,col,modeK,lineScale,useId){
   const G=GL,p=G.progK;gl.useProgram(p.p);
   gl.bindBuffer(gl.ARRAY_BUFFER,G.kP);gl.enableVertexAttribArray(p.a.aPos);gl.vertexAttribPointer(p.a.aPos,3,gl.FLOAT,false,0,0);
   gl.bindBuffer(gl.ARRAY_BUFFER,G.kN);gl.enableVertexAttribArray(p.a.aNrm);gl.vertexAttribPointer(p.a.aNrm,3,gl.FLOAT,false,0,0);
+  gl.bindBuffer(gl.ARRAY_BUFFER,G.kS);gl.enableVertexAttribArray(p.a.aSN);gl.vertexAttribPointer(p.a.aSN,3,gl.FLOAT,false,0,0);
   gl.bindBuffer(gl.ARRAY_BUFFER,G.kU);gl.enableVertexAttribArray(p.a.aUV);gl.vertexAttribPointer(p.a.aUV,2,gl.FLOAT,false,0,0);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,G.kI);
   gl.uniformMatrix4fv(p.u.uVP,false,VP);gl.uniformMatrix4fv(p.u.uM,false,M);
@@ -474,17 +496,39 @@ function drawKokko(VP,M,eye,col,modeK,lineScale){
   gl.uniform3fv(p.u.uSq,col.sq);
   gl.uniform3fv(p.u.uL,col.L);gl.uniform3fv(p.u.uLC,col.lc);gl.uniform3fv(p.u.uAC,col.ac);gl.uniform3fv(p.u.uCam,eye);
   gl.uniform3f(p.u.uLineC,0.07,0.09,0.10);gl.uniform1f(p.u.uBlush,S.blush);
+  gl.uniform3fv(p.u.uIdMin,K.idMin);gl.uniform3fv(p.u.uIdSpan,K.idSpan);gl.uniform1f(p.u.uIdTh,K.line*ID_NEAR);gl.uniform1f(p.u.uIdTurn,K.line*ID_TURN);
+  const idOn=!!(useId&&G.idf);gl.uniform1f(p.u.uIdOn,idOn?1:0);
+  gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,idOn?G.idf.tx:null);gl.uniform1i(p.u.uId,2);
+  if(idOn)gl.uniform2f(p.u.uIdInv,1/G.idf.w,1/G.idf.h);
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,G.texF);gl.uniform1i(p.u.uF,0);
   gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,G.texB);gl.uniform1i(p.u.uB,1);
   gl.enable(gl.CULL_FACE);
-  // 外殻（輪郭線）：裏面だけを法線方向へ押し出して描く
-  gl.cullFace(gl.FRONT);gl.uniform1f(p.u.uZOff,modeK===2?0:0.0003);gl.uniform1f(p.u.uLine,K.line*lineScale);gl.uniform1f(p.u.uMode,modeK===2?2:1);
-  gl.drawElements(gl.TRIANGLES,GL.kCount,GL.kType,0);
+  if(modeK!==3){
+    // 外殻（輪郭線）：裏面だけを法線方向へ押し出して描く。縁の急な壁で網の向きが行ごとに揺れると、外殻が自分の体を突き抜けて
+    // 体の上に余分な黒い横線になる（実機で目立った）。ふちの線（外周・腕やあし・とさかの境）は全部残し、突き抜けだけを断片で間引く
+    gl.cullFace(gl.FRONT);gl.uniform1f(p.u.uZOff,modeK===2?0:0.0003);gl.uniform1f(p.u.uLine,K.line*lineScale);gl.uniform1f(p.u.uMode,modeK===2?2:1);
+    gl.drawElements(gl.TRIANGLES,GL.kCount,GL.kType,0);
+  }
   gl.cullFace(gl.BACK);gl.uniform1f(p.u.uZOff,0);gl.uniform1f(p.u.uLine,0);gl.uniform1f(p.u.uMode,modeK);
   gl.drawElements(gl.TRIANGLES,GL.kCount,GL.kType,0);
   gl.disable(gl.CULL_FACE);
-  gl.disableVertexAttribArray(p.a.aNrm);gl.disableVertexAttribArray(p.a.aUV);
+  gl.disableVertexAttribArray(p.a.aNrm);gl.disableVertexAttribArray(p.a.aSN);gl.disableVertexAttribArray(p.a.aUV);
 }
+/* 見えている体の点を記録する画面と同じ大きさの下書き（輪郭線の突き抜けの判定用）。作れなければ null＝従来どおり描く */
+function idTarget(){
+  const w=cv.width,h=cv.height;if(GL.idf&&GL.idf.w===w&&GL.idf.h===h)return GL.idf;if(GL.idBad)return null;
+  if(GL.idf){gl.deleteFramebuffer(GL.idf.fb);gl.deleteTexture(GL.idf.tx);gl.deleteRenderbuffer(GL.idf.rb);GL.idf=null;}
+  const fb=gl.createFramebuffer(),tx=gl.createTexture(),rb=gl.createRenderbuffer();
+  gl.activeTexture(gl.TEXTURE2);gl.bindTexture(gl.TEXTURE_2D,tx);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,w,h,0,gl.RGBA,gl.UNSIGNED_BYTE,null);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.NEAREST);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.NEAREST);
+  gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);
+  gl.bindTexture(gl.TEXTURE_2D,null);
+  gl.bindRenderbuffer(gl.RENDERBUFFER,rb);gl.renderbufferStorage(gl.RENDERBUFFER,gl.DEPTH_COMPONENT16,w,h);
+  gl.bindFramebuffer(gl.FRAMEBUFFER,fb);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tx,0);
+  gl.framebufferRenderbuffer(gl.FRAMEBUFFER,gl.DEPTH_ATTACHMENT,gl.RENDERBUFFER,rb);
+  const ok=gl.checkFramebufferStatus(gl.FRAMEBUFFER)===gl.FRAMEBUFFER_COMPLETE;gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+  if(!ok){gl.deleteFramebuffer(fb);gl.deleteTexture(tx);gl.deleteRenderbuffer(rb);GL.idBad=true;return null;}
+  GL.idf={fb,tx,rb,w,h};return GL.idf;}
 function render(){
   if(mode!=='gl'||!GL)return;
   const u=phase==='title'?0.08:clamp(S.t/DAY,0,1), c=sky(u);
@@ -514,8 +558,12 @@ function render(){
   const hs=1/(1+S.hop*1.6);gl.uniformMatrix4fv(p.u.uVP,false,cam.VP);gl.uniform3f(p.u.uC,0,0.004,0);
   gl.uniform2f(p.u.uS,K.width*0.6*(1+S.hop*0.5),K.zMax*1.25*(1+S.hop*0.5));gl.uniform1f(p.u.uA,0.42*hs);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
   gl.depthMask(true);gl.disable(gl.BLEND);
-  // こっこ
-  drawKokko(cam.VP,modelMat(),cam.eye,{sq:squash(),L,lc:c.lc,ac:c.ac},0,1);
+  // こっこ（先に下書きへ「見えている体の点」を描き、本番の輪郭線がそれを引いて自分への突き抜けだけを間引く）
+  const M=modelMat(),kc={sq:squash(),L,lc:c.lc,ac:c.ac},idf=idTarget();
+  if(idf){gl.bindFramebuffer(gl.FRAMEBUFFER,idf.fb);gl.viewport(0,0,idf.w,idf.h);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    gl.disable(gl.BLEND);gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);drawKokko(cam.VP,M,cam.eye,kc,3,1,false);
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.viewport(0,0,cv.width,cv.height);}
+  drawKokko(cam.VP,M,cam.eye,kc,0,1,true);
 }
 
 /* ---------------- 当たり判定（モデル空間で高さ場を辿る） ---------------- */
@@ -737,7 +785,7 @@ window.__meta={
   get mode(){return mode;}, get phase(){return phase;},
   state(){return{mode,phase,t:+S.t.toFixed(2),yaw:+S.yaw.toFixed(3),pitch:+S.pitch.toFixed(3),hop:+S.hop.toFixed(3),sq:+S.sq.toFixed(3),hx:+S.hx.toFixed(3),
     blush:+S.blush.toFixed(2),pokes:S.pokes,hugs:S.hugs,dent:+Math.max(...pokes.map(q=>Math.abs(q.s))).toFixed(4),
-    yawned:S.yawned,verts:K?K.nV:0,tris:K?K.nT:0,backOk:K?K.backOk:false,amb:!!amb};},
+    yawned:S.yawned,verts:K?K.nV:0,tris:K?K.nT:0,flips:K?K.flips:0,backOk:K?K.backOk:false,amb:!!amb};},
   start(){startRoom();},
   step(sec){const n=Math.ceil(sec*60);for(let i=0;i<n;i++)update(sec/n);render();},
   setYaw(a){S.yaw=a;S.yawV=0;S.turn=null;},
