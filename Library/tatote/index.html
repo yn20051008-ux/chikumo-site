@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>タトて 本棚</title>
+<meta name="description" content="タトての本棚。使い方・決まりごと・プライバシー・サポートと、廿式・鳴分岐・示式。">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="タトて 本棚">
+<meta property="og:description" content="タトての本棚。使い方・決まりごと・プライバシー・サポートと、廿式・鳴分岐・示式。">
+<link rel="canonical" href="https://chikumo.jp/Library/tatote/">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  /* Shared/AppTheme.swift の実値 */
+  --bg:#FFF9FC; --surface:#FFFFFF;
+  --pink:#EC5C9E; --soft-pink:#FBE2EE;
+  --lavender:#C894E8; --soft-lavender:#F2E5FA;
+  --ink:#251F2C; --ink-2:#77717D;
+  --sep:#F0E7ED; --green:#67D878;
+  --r-card:26px; --r-btn:22px; --gap:14px; --pad:18px;
+  --sans:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
+  --round:ui-rounded,-apple-system,"Hiragino Sans",sans-serif;
+}
+html,body{min-height:100%;}
+body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.75;
+  -webkit-font-smoothing:antialiased;}
+.wrap{max-width:30rem;margin:0 auto;padding:calc(var(--pad) * 1.6) var(--pad) 4rem;}
+
+a.back{display:inline-flex;align-items:center;justify-content:center;
+  width:44px;height:44px;border-radius:50%;background:var(--surface);
+  box-shadow:0 6px 14px rgba(236,92,158,0.08);text-decoration:none;
+  color:var(--ink);font-size:20px;margin-bottom:1.4rem;}
+
+header{margin-bottom:1.6rem;}
+h1{font-size:2.1rem;font-weight:800;letter-spacing:0.04em;display:flex;align-items:center;gap:0.4rem;}
+h1 .heart{color:var(--pink);font-size:1.5rem;}
+header p{margin-top:0.2rem;font-size:0.88rem;color:var(--ink-2);}
+
+.card{background:var(--surface);border-radius:var(--r-card);padding:var(--pad);
+  box-shadow:0 6px 14px rgba(236,92,158,0.08);margin-bottom:var(--gap);}
+.card h2{font-size:0.82rem;font-weight:700;color:var(--ink-2);margin-bottom:0.9rem;letter-spacing:0.04em;}
+
+/* 本＝アプリの絵文字の丸 */
+.books{display:grid;grid-template-columns:repeat(3,1fr);gap:0.9rem 0.6rem;}
+.book{display:flex;flex-direction:column;align-items:center;gap:0.45rem;
+  text-decoration:none;color:inherit;}
+.disc{width:74px;height:74px;border-radius:50%;background:var(--surface);
+  display:flex;align-items:center;justify-content:center;font-size:32px;
+  border:1px solid var(--sep);position:relative;transition:transform .16s ease;}
+.book:hover .disc,.book:focus-visible .disc{transform:scale(1.06);}
+.book.open .disc{border:3px solid transparent;
+  background:linear-gradient(var(--surface),var(--surface)) padding-box,
+             linear-gradient(135deg,var(--lavender),var(--pink)) border-box;}
+.book.shut{cursor:default;}
+.book.shut .disc{background:#F6F3F5;border-color:var(--sep);filter:grayscale(1);opacity:0.55;}
+.book.shut .name{color:var(--ink-2);opacity:0.7;}
+.name{font-size:0.74rem;font-weight:700;text-align:center;line-height:1.35;}
+
+/* 鍵の印(語ではなく形で示す) */
+.legend{display:flex;gap:1.2rem;align-items:center;justify-content:center;
+  margin:0.2rem 0 1.2rem;font-size:0.78rem;color:var(--ink-2);}
+.legend span{display:inline-flex;align-items:center;gap:0.35rem;}
+.dot{width:16px;height:16px;border-radius:50%;display:inline-block;}
+.dot.on{background:linear-gradient(135deg,var(--lavender),var(--pink));}
+.dot.off{background:#DCD5DA;}
+
+footer{margin-top:2rem;text-align:center;font-size:0.74rem;color:var(--ink-2);}
+footer a{color:var(--ink-2);}
+
+/* 本のページ */
+.lead{font-size:0.95rem;color:var(--ink-2);margin-bottom:1.2rem;}
+.step{display:flex;align-items:center;gap:0.5rem;font-size:30px;margin:0.2rem 0 0.5rem;flex-wrap:wrap;}
+.step .arrow{color:var(--pink);font-size:20px;font-weight:700;}
+.step .chip{background:var(--soft-pink);border-radius:999px;padding:0.1rem 0.7rem;
+  font-size:0.86rem;font-weight:700;color:var(--ink);}
+.cap{font-size:0.84rem;color:var(--ink-2);}
+.ring{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--round);font-size:2rem;font-weight:800;color:var(--ink);
+  border:9px solid transparent;
+  background:linear-gradient(var(--surface),var(--surface)) padding-box,
+             linear-gradient(135deg,var(--lavender),var(--pink)) border-box;}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:0.55rem 0.9rem;align-items:baseline;}
+.facts .k{font-size:1.5rem;line-height:1.2;}
+.facts .v{font-family:var(--round);font-size:1.05rem;font-weight:700;}
+.facts .v small{display:block;font-family:var(--sans);font-size:0.78rem;font-weight:400;color:var(--ink-2);}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#17131A;--surface:#221C26;--ink:#F1EAF2;--ink-2:#A79FAC;--sep:#332B37;
+        --soft-pink:#3A2330;--soft-lavender:#2E2440;}
+  .book.shut .disc{background:#2A232E;}
+  .dot.off{background:#4A414F;}
+}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="/Library/">←</a>
+<header>
+  <h1>タトて<span class="heart">♡</span></h1>
+  <p>本をえらぶ</p>
+</header>
+
+<div class="legend">
+  <span><i class="dot on"></i>ひらける</span>
+  <span><i class="dot off"></i>ひらけない</span>
+</div>
+
+<div class="card">
+  <div class="books">
+    <a class="book open" href="/Library/tatote/tsukaikata/" aria-label="使い方をひらく">
+      <span class="disc">👋</span><span class="name">使い方</span></a>
+    <a class="book open" href="/Library/tatote/kimarigoto/" aria-label="決まりごとをひらく">
+      <span class="disc">🔢</span><span class="name">決まりごと</span></a>
+    <a class="book open" href="https://api-tatoe.chikumo.jp/privacy" aria-label="プライバシーをひらく">
+      <span class="disc">🔐</span><span class="name">プライバシー</span></a>
+    <a class="book open" href="https://api-tatoe.chikumo.jp/support" aria-label="サポートをひらく">
+      <span class="disc">✉️</span><span class="name">サポート</span></a>
+    <a class="book open" href="https://chikumo.jp/nijusshiki/" aria-label="廿式をひらく">
+      <span class="disc">⚙️</span><span class="name">廿式</span></a>
+    <a class="book open" href="https://chikumo.jp/meibunki/" aria-label="鳴分岐をひらく">
+      <span class="disc">🔔</span><span class="name">鳴分岐</span></a>
+    <a class="book open" href="https://chikumo.jp/shishiki/" aria-label="示式をひらく">
+      <span class="disc">📐</span><span class="name">示式</span></a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="books">
+    <div class="book shut" aria-label="思鳴の継（ひらけない）">
+      <span class="disc">🔒</span><span class="name">思鳴の継</span></div>
+    <div class="book shut" aria-label="思鳴の継(原文)（ひらけない）">
+      <span class="disc">🔒</span><span class="name">思鳴の継(原文)</span></div>
+    <div class="book shut" aria-label="認の書（ひらけない）">
+      <span class="disc">🔒</span><span class="name">認の書</span></div>
+    <div class="book shut" aria-label="思の書（ひらけない）">
+      <span class="disc">🔒</span><span class="name">思の書</span></div>
+    <div class="book shut" aria-label="鳴の書（ひらけない）">
+      <span class="disc">🔒</span><span class="name">鳴の書</span></div>
+    <div class="book shut" aria-label="示の書（ひらけない）">
+      <span class="disc">🔒</span><span class="name">示の書</span></div>
+    <div class="book shut" aria-label="継の記録（ひらけない）">
+      <span class="disc">🔒</span><span class="name">継の記録</span></div>
+    <div class="book shut" aria-label="開発規範（ひらけない）">
+      <span class="disc">🔒</span><span class="name">開発規範</span></div>
+    <div class="book shut" aria-label="Apple仕様（ひらけない）">
+      <span class="disc">🔒</span><span class="name">Apple仕様</span></div>
+    <div class="book shut" aria-label="仕様表（ひらけない）">
+      <span class="disc">🔒</span><span class="name">仕様表</span></div>
+    <div class="book shut" aria-label="タトゴ（ひらけない）">
+      <span class="disc">🔒</span><span class="name">タトゴ</span></div>
+    <div class="book shut" aria-label="タトバース計測（ひらけない）">
+      <span class="disc">🔒</span><span class="name">タトバース計測</span></div>
+    <div class="book shut" aria-label="こっこちゃんパターン台帳（ひらけない）">
+      <span class="disc">🔒</span><span class="name">こっこちゃんパターン台帳</span></div>
+    <div class="book shut" aria-label="こっこちゃん測定（ひらけない）">
+      <span class="disc">🔒</span><span class="name">こっこちゃん測定</span></div>
+    <div class="book shut" aria-label="機能点検（ひらけない）">
+      <span class="disc">🔒</span><span class="name">機能点検</span></div>
+    <div class="book shut" aria-label="配信の記録（ひらけない）">
+      <span class="disc">🔒</span><span class="name">配信の記録</span></div>
+    <div class="book shut" aria-label="開発ガイド（ひらけない）">
+      <span class="disc">🔒</span><span class="name">開発ガイド</span></div>
+    <div class="book shut" aria-label="開発環境（ひらけない）">
+      <span class="disc">🔒</span><span class="name">開発環境</span></div>
+    <div class="book shut" aria-label="通知の設定（ひらけない）">
+      <span class="disc">🔒</span><span class="name">通知の設定</span></div>
+    <div class="book shut" aria-label="審査提出チェック（ひらけない）">
+      <span class="disc">🔒</span><span class="name">審査提出チェック</span></div>
+    <div class="book shut" aria-label="審査のプライバシー回答（ひらけない）">
+      <span class="disc">🔒</span><span class="name">審査のプライバシー回答</span></div>
+    <div class="book shut" aria-label="販促画像の承認（ひらけない）">
+      <span class="disc">🔒</span><span class="name">販促画像の承認</span></div>
+  </div>
+</div>
+
+<footer><a href="/Library/">畜学 蔵書</a> ・ <a href="/">chikumo.jp</a></footer>
+</div>
+</body>
+</html>

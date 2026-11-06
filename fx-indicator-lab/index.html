@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>USD/JPY Indicator Lab | ちくも</title>
+  <meta name="description" content="サンプルのUSD/JPY風データで、移動平均線とRSIの動きを試せるブラウザデモです。">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#0a1020">
+  <link rel="canonical" href="https://chikumo.jp/fx-indicator-lab/">
+  <style>
+    :root{color-scheme:dark;--bg:#070b15;--panel:#0d1426;--line:#26324b;--text:#f5f7fb;--muted:#99a6bd;--cyan:#57d7ff;--amber:#ffbc5c;--green:#55e6a5;--red:#ff6f7d}
+    *{box-sizing:border-box}html{font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}body{margin:0;min-height:100vh;background:radial-gradient(circle at 75% 0,#142748 0,transparent 38%),var(--bg)}
+    main{width:min(1180px,calc(100% - 32px));margin:auto;padding:34px 0 48px}.topline{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:24px}.eyebrow{font-size:.72rem;letter-spacing:.18em;color:var(--cyan);font-weight:800;text-transform:uppercase;margin:0 0 10px}.title{font-size:clamp(2rem,5vw,4rem);letter-spacing:-.055em;line-height:.95;margin:0}.subtitle{max-width:620px;color:var(--muted);line-height:1.65;margin:14px 0 0}.sample{display:inline-flex;align-items:center;gap:8px;border:1px solid #394760;border-radius:999px;padding:8px 12px;background:#121a2c;color:#d7deea;font-size:.78rem;font-weight:700;white-space:nowrap}.sample:before{content:"";width:7px;height:7px;border-radius:50%;background:var(--amber)}
+    .grid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px}.card{border:1px solid #202c42;border-radius:18px;background:linear-gradient(145deg,rgba(18,27,47,.96),rgba(10,15,29,.96));box-shadow:0 18px 60px rgba(0,0,0,.22)}.chart-card{padding:20px}.chart-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:14px}.pair{font-size:.72rem;color:var(--muted);letter-spacing:.13em}.price{font:700 clamp(1.8rem,4vw,2.8rem)/1 ui-monospace,SFMono-Regular,monospace;margin-top:6px}.change{font:700 .82rem ui-monospace,SFMono-Regular,monospace;color:var(--green);margin-top:8px}.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:.75rem}.legend span:before{content:"";display:inline-block;width:14px;height:2px;margin:0 6px 3px 0;background:var(--c)}.canvas-wrap{height:390px;position:relative}canvas{width:100%;height:100%;display:block}.axis-note{position:absolute;right:8px;top:8px;font-size:.64rem;letter-spacing:.09em;color:#62708a;text-transform:uppercase;pointer-events:none}
+    aside{display:grid;gap:16px}.controls,.rsi-card,.note{padding:20px}.section-label{font-size:.68rem;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;margin-bottom:18px}.control+.control{margin-top:22px}.control-row{display:flex;justify-content:space-between;align-items:center;font-size:.86rem;margin-bottom:10px}.pill{font:700 .78rem ui-monospace,SFMono-Regular,monospace;border-radius:7px;padding:4px 8px;background:#19233a}.short-pill{color:var(--cyan)}.long-pill{color:var(--amber)}input[type=range]{width:100%;accent-color:var(--cyan);cursor:pointer}.long-range{accent-color:var(--amber)!important}.scale{display:flex;justify-content:space-between;color:#65728a;font-size:.65rem;margin-top:5px}
+    .rsi-value{font:750 3.5rem/1 ui-monospace,SFMono-Regular,monospace}.rsi-band{height:7px;border-radius:99px;background:linear-gradient(90deg,var(--red) 0 30%,#34405a 30% 70%,var(--amber) 70%);position:relative;margin:18px 0 9px}.rsi-marker{position:absolute;width:3px;height:17px;background:white;top:50%;transform:translate(-50%,-50%);border-radius:3px;box-shadow:0 0 8px #fff}.rsi-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:.65rem}.note{color:var(--muted);line-height:1.6;font-size:.78rem}.note strong{display:block;color:var(--text);margin-bottom:7px;font-size:.86rem}.footer{display:flex;justify-content:space-between;gap:18px;margin-top:20px;color:#66738a;font-size:.7rem;line-height:1.5}.footer a{color:#91a0b8}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+    @media(max-width:800px){main{width:min(100% - 20px,680px);padding-top:22px}.topline{display:block}.sample{margin-top:18px}.grid{grid-template-columns:1fr}.canvas-wrap{height:310px}.legend{margin-top:10px}.chart-head{align-items:flex-start;flex-direction:column}.footer{flex-direction:column}}
+    @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+  </style>
+</head>
+<body>
+<main>
+  <header class="topline">
+    <div><p class="eyebrow">FX Indicator Test</p><h1 class="title">USD / JPY<br>Indicator Lab</h1><p class="subtitle">短期・長期の移動平均期間を動かして、同じ価格データの見え方がどう変わるかを試す小さな実験ページです。</p></div>
+    <div class="sample">サンプル価格・ライブではありません</div>
+  </header>
+  <div class="grid">
+    <section class="card chart-card" aria-labelledby="chartTitle">
+      <div class="chart-head">
+        <div><div id="chartTitle" class="pair">USD / JPY · SAMPLE SERIES</div><div class="price" id="latestPrice">—</div><div class="change" id="priceChange">—</div></div>
+        <div class="legend"><span style="--c:#d9e1ee">価格</span><span style="--c:var(--cyan)">短期MA</span><span style="--c:var(--amber)">長期MA</span></div>
+      </div>
+      <div class="canvas-wrap"><canvas id="chart" role="img" aria-label="USD/JPY風サンプル価格、短期移動平均、長期移動平均の折れ線チャート"></canvas><span class="axis-note">sample · 120 periods</span></div>
+    </section>
+    <aside>
+      <section class="card controls" aria-labelledby="controlsTitle"><div id="controlsTitle" class="section-label">Moving averages</div>
+        <div class="control"><div class="control-row"><label for="shortMA">短期移動平均</label><output id="shortOut" class="pill short-pill">10</output></div><input id="shortMA" type="range" min="3" max="30" value="10" aria-label="短期移動平均の期間"><div class="scale"><span>3</span><span>30 periods</span></div></div>
+        <div class="control"><div class="control-row"><label for="longMA">長期移動平均</label><output id="longOut" class="pill long-pill">30</output></div><input id="longMA" class="long-range" type="range" min="15" max="60" value="30" aria-label="長期移動平均の期間"><div class="scale"><span>15</span><span>60 periods</span></div></div>
+      </section>
+      <section class="card rsi-card" aria-labelledby="rsiTitle"><div id="rsiTitle" class="section-label">RSI · 14 periods</div><div class="rsi-value" id="rsiValue">—</div><div class="rsi-band"><span id="rsiMarker" class="rsi-marker"></span></div><div class="rsi-labels"><span>0</span><span>30</span><span>70</span><span>100</span></div></section>
+      <section class="card note"><strong>このページについて</strong>表示値は説明用に生成した固定サンプルです。市場データへの接続、売買判断、投資助言を目的としていません。</section>
+    </aside>
+  </div>
+  <footer class="footer"><span>Indicators are descriptive, not predictive.</span><a href="/">chikumo.jp に戻る</a></footer>
+</main>
+<script>
+"use strict";
+(function(){
+  var prices=[];
+  for(var i=0;i<120;i++){var trend=i*.018;var wave=Math.sin(i*.21)*.62+Math.sin(i*.057+1.8)*1.05;var pulse=Math.sin(i*.73)*.13;prices.push(147.2+trend+wave+pulse);}
+  var canvas=document.getElementById("chart"),ctx=canvas.getContext("2d"),shortInput=document.getElementById("shortMA"),longInput=document.getElementById("longMA");
+  function ma(period){return prices.map(function(_,i){if(i<period-1)return null;var sum=0;for(var j=i-period+1;j<=i;j++)sum+=prices[j];return sum/period;});}
+  function rsi(period){var gains=0,losses=0;for(var i=prices.length-period;i<prices.length;i++){var d=prices[i]-prices[i-1];if(d>=0)gains+=d;else losses-=d;}if(losses===0)return 100;var rs=(gains/period)/(losses/period);return 100-(100/(1+rs));}
+  function draw(){
+    var dpr=Math.min(window.devicePixelRatio||1,2),rect=canvas.getBoundingClientRect();canvas.width=Math.round(rect.width*dpr);canvas.height=Math.round(rect.height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
+    var w=rect.width,h=rect.height,pad={l:8,r:52,t:18,b:22},sw=+shortInput.value,lw=+longInput.value,short=ma(sw),long=ma(lw),all=prices.concat(short.filter(Number.isFinite),long.filter(Number.isFinite)),min=Math.min.apply(null,all)-.35,max=Math.max.apply(null,all)+.35;
+    function x(i){return pad.l+i*(w-pad.l-pad.r)/(prices.length-1)}function y(v){return pad.t+(max-v)*(h-pad.t-pad.b)/(max-min)}
+    ctx.clearRect(0,0,w,h);ctx.font="10px ui-monospace,monospace";ctx.textAlign="left";ctx.textBaseline="middle";
+    for(var g=0;g<5;g++){var val=min+(max-min)*g/4,yy=y(val);ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.strokeStyle="#202c42";ctx.lineWidth=1;ctx.stroke();ctx.fillStyle="#758198";ctx.fillText(val.toFixed(2),w-pad.r+8,yy);}
+    function line(data,color,width){ctx.beginPath();var started=false;data.forEach(function(v,i){if(v===null)return;var xx=x(i),yy=y(v);if(!started){ctx.moveTo(xx,yy);started=true}else ctx.lineTo(xx,yy)});ctx.strokeStyle=color;ctx.lineWidth=width;ctx.lineJoin="round";ctx.lineCap="round";ctx.stroke();}
+    line(prices,"#d9e1ee",1.35);line(short,"#57d7ff",2);line(long,"#ffbc5c",2);
+    var latest=prices[prices.length-1],change=latest-prices[prices.length-2],rv=rsi(14);document.getElementById("latestPrice").textContent=latest.toFixed(3);var ce=document.getElementById("priceChange");ce.textContent=(change>=0?"+":"")+change.toFixed(3)+"  (sample)";ce.style.color=change>=0?"var(--green)":"var(--red)";document.getElementById("rsiValue").textContent=rv.toFixed(1);document.getElementById("rsiMarker").style.left=rv+"%";document.getElementById("shortOut").textContent=sw;document.getElementById("longOut").textContent=lw;
+  }
+  shortInput.addEventListener("input",draw);longInput.addEventListener("input",draw);window.addEventListener("resize",draw,{passive:true});draw();
+}());
+</script>
+</body>
+</html>

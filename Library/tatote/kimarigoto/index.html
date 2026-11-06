@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>タトての決まりごと</title>
+<meta name="description" content="タトモ6人・タトークン60・招待コード60秒・定型文27枠・今の状態54枠・KYOは1人1枚。アプリの仕様表から写した。">
+<meta name="color-scheme" content="light dark">
+<meta property="og:title" content="タトての決まりごと">
+<meta property="og:description" content="タトモ6人・タトークン60・招待コード60秒・定型文27枠・今の状態54枠・KYOは1人1枚。アプリの仕様表から写した。">
+<link rel="canonical" href="https://chikumo.jp/Library/tatote/kimarigoto/">
+<link rel="icon" type="image/svg+xml" href="/chikumo.svg">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  /* Shared/AppTheme.swift の実値 */
+  --bg:#FFF9FC; --surface:#FFFFFF;
+  --pink:#EC5C9E; --soft-pink:#FBE2EE;
+  --lavender:#C894E8; --soft-lavender:#F2E5FA;
+  --ink:#251F2C; --ink-2:#77717D;
+  --sep:#F0E7ED; --green:#67D878;
+  --r-card:26px; --r-btn:22px; --gap:14px; --pad:18px;
+  --sans:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP","Yu Gothic",sans-serif;
+  --round:ui-rounded,-apple-system,"Hiragino Sans",sans-serif;
+}
+html,body{min-height:100%;}
+body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.75;
+  -webkit-font-smoothing:antialiased;}
+.wrap{max-width:30rem;margin:0 auto;padding:calc(var(--pad) * 1.6) var(--pad) 4rem;}
+
+a.back{display:inline-flex;align-items:center;justify-content:center;
+  width:44px;height:44px;border-radius:50%;background:var(--surface);
+  box-shadow:0 6px 14px rgba(236,92,158,0.08);text-decoration:none;
+  color:var(--ink);font-size:20px;margin-bottom:1.4rem;}
+
+header{margin-bottom:1.6rem;}
+h1{font-size:2.1rem;font-weight:800;letter-spacing:0.04em;display:flex;align-items:center;gap:0.4rem;}
+h1 .heart{color:var(--pink);font-size:1.5rem;}
+header p{margin-top:0.2rem;font-size:0.88rem;color:var(--ink-2);}
+
+.card{background:var(--surface);border-radius:var(--r-card);padding:var(--pad);
+  box-shadow:0 6px 14px rgba(236,92,158,0.08);margin-bottom:var(--gap);}
+.card h2{font-size:0.82rem;font-weight:700;color:var(--ink-2);margin-bottom:0.9rem;letter-spacing:0.04em;}
+
+/* 本＝アプリの絵文字の丸 */
+.books{display:grid;grid-template-columns:repeat(3,1fr);gap:0.9rem 0.6rem;}
+.book{display:flex;flex-direction:column;align-items:center;gap:0.45rem;
+  text-decoration:none;color:inherit;}
+.disc{width:74px;height:74px;border-radius:50%;background:var(--surface);
+  display:flex;align-items:center;justify-content:center;font-size:32px;
+  border:1px solid var(--sep);position:relative;transition:transform .16s ease;}
+.book:hover .disc,.book:focus-visible .disc{transform:scale(1.06);}
+.book.open .disc{border:3px solid transparent;
+  background:linear-gradient(var(--surface),var(--surface)) padding-box,
+             linear-gradient(135deg,var(--lavender),var(--pink)) border-box;}
+.book.shut{cursor:default;}
+.book.shut .disc{background:#F6F3F5;border-color:var(--sep);filter:grayscale(1);opacity:0.55;}
+.book.shut .name{color:var(--ink-2);opacity:0.7;}
+.name{font-size:0.74rem;font-weight:700;text-align:center;line-height:1.35;}
+
+/* 鍵の印(語ではなく形で示す) */
+.legend{display:flex;gap:1.2rem;align-items:center;justify-content:center;
+  margin:0.2rem 0 1.2rem;font-size:0.78rem;color:var(--ink-2);}
+.legend span{display:inline-flex;align-items:center;gap:0.35rem;}
+.dot{width:16px;height:16px;border-radius:50%;display:inline-block;}
+.dot.on{background:linear-gradient(135deg,var(--lavender),var(--pink));}
+.dot.off{background:#DCD5DA;}
+
+footer{margin-top:2rem;text-align:center;font-size:0.74rem;color:var(--ink-2);}
+footer a{color:var(--ink-2);}
+
+/* 本のページ */
+.lead{font-size:0.95rem;color:var(--ink-2);margin-bottom:1.2rem;}
+.step{display:flex;align-items:center;gap:0.5rem;font-size:30px;margin:0.2rem 0 0.5rem;flex-wrap:wrap;}
+.step .arrow{color:var(--pink);font-size:20px;font-weight:700;}
+.step .chip{background:var(--soft-pink);border-radius:999px;padding:0.1rem 0.7rem;
+  font-size:0.86rem;font-weight:700;color:var(--ink);}
+.cap{font-size:0.84rem;color:var(--ink-2);}
+.ring{width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--round);font-size:2rem;font-weight:800;color:var(--ink);
+  border:9px solid transparent;
+  background:linear-gradient(var(--surface),var(--surface)) padding-box,
+             linear-gradient(135deg,var(--lavender),var(--pink)) border-box;}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:0.55rem 0.9rem;align-items:baseline;}
+.facts .k{font-size:1.5rem;line-height:1.2;}
+.facts .v{font-family:var(--round);font-size:1.05rem;font-weight:700;}
+.facts .v small{display:block;font-family:var(--sans);font-size:0.78rem;font-weight:400;color:var(--ink-2);}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#17131A;--surface:#221C26;--ink:#F1EAF2;--ink-2:#A79FAC;--sep:#332B37;
+        --soft-pink:#3A2330;--soft-lavender:#2E2440;}
+  .book.shut .disc{background:#2A232E;}
+  .dot.off{background:#4A414F;}
+}
+
+/* 本のページ: 絵で見せる */
+.panels{display:grid;gap:var(--gap);}
+.panel{background:var(--surface);border-radius:var(--r-card);padding:1.1rem var(--pad);
+  box-shadow:0 6px 14px rgba(236,92,158,0.08);}
+.row{display:flex;align-items:center;gap:0.55rem;flex-wrap:wrap;font-size:34px;line-height:1.25;}
+.row .arrow{color:var(--pink);font-size:22px;font-weight:800;}
+.row .x{font-family:var(--round);font-size:1.4rem;font-weight:800;color:var(--ink);}
+.row .bubble{background:var(--soft-pink);border-radius:16px;padding:0.15rem 0.7rem;
+  font-size:0.95rem;font-weight:700;}
+.row .grey{filter:grayscale(1);opacity:0.45;}
+.tag{margin-top:0.55rem;font-size:0.82rem;color:var(--ink-2);}
+.num{display:flex;align-items:center;gap:0.9rem;}
+.num .ring{width:70px;height:70px;border-width:7px;font-size:1.5rem;flex:none;}
+.num .what{font-size:26px;}
+.num .cap{font-size:0.82rem;color:var(--ink-2);}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="/Library/tatote/">←</a>
+<header>
+  <h1>決まりごと<span class="heart">♡</span></h1>
+</header>
+
+<div class="panels">
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">6</span>
+    <span><span class="what">👥</span><br><span class="cap">タトモ</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">3</span>
+    <span><span class="what">🏷️</span><br><span class="cap">名前の文字</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">60</span>
+    <span><span class="what">⏱️</span><br><span class="cap">招待コード（秒）</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">24</span>
+    <span><span class="what">📩</span><br><span class="cap">友達申請（時間）</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">60</span>
+    <span><span class="what">👋</span><br><span class="cap">タトークン（持てる最大）</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">60</span>
+    <span><span class="what">👊</span><br><span class="cap">連打（1回で）</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">60</span>
+    <span><span class="what">📺</span><br><span class="cap">動画で回復（満タンまで）</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">10</span>
+    <span><span class="what">🪙</span><br><span class="cap">1タトPayで換わるタトークン</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">6</span>
+    <span><span class="what">💸</span><br><span class="cap">タトPayを渡す（1日の回数）</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">2</span>
+    <span><span class="what">🔔</span><br><span class="cap">通知から返せる数</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">27</span>
+    <span><span class="what">💬</span><br><span class="cap">定型文</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">6</span>
+    <span><span class="what">✍️</span><br><span class="cap">定型文の文字（1つ）</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">18</span>
+    <span><span class="what">🔗</span><br><span class="cap">定型文をつなげた文字</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">54</span>
+    <span><span class="what">😴</span><br><span class="cap">今の状態</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">27</span>
+    <span><span class="what">📝</span><br><span class="cap">ひとこと（1枠の長さは定型文と同じ）</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">1</span>
+    <span><span class="what">📷</span><br><span class="cap">KYO（1人1枚・日付で消える）</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.5rem">2</span>
+    <span><span class="what">🤝</span><br><span class="cap">タトワ（両方が入れたときだけ）</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.3rem">300</span>
+    <span><span class="what">🖼️</span><br><span class="cap">写真（KB）</span></span>
+  </div>
+  <div class="panel num">
+    <span class="ring" style="font-size:1.3rem">365</span>
+    <span><span class="what">🗄️</span><br><span class="cap">サーバーの控え（日）</span></span>
+  </div>
+</div>
+
+<footer><a href="/Library/tatote/">本棚</a> ・ <a href="/">chikumo.jp</a></footer>
+</div>
+</body>
+</html>
